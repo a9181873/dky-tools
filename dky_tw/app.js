@@ -148,21 +148,23 @@ const renderFields = {
     </div>
     <div class="output" id="text-output" style="white-space: pre-wrap;"></div>
   `,
-  tz: () => `
-    <div class="input-group">
-      <label>選擇目標時區</label>
-      <select id="tz-select">
-        <option value="Asia/Tokyo">日本東京 (Asia/Tokyo)</option>
-        <option value="America/New_York">美國紐約 (America/New_York)</option>
-        <option value="Europe/London">英國倫敦 (Europe/London)</option>
-        <option value="Asia/Taipei" selected>台灣台北 (Asia/Taipei)</option>
-        <option value="Australia/Sydney">澳洲雪梨 (Australia/Sydney)</option>
-        <option value="UTC">世界協調時間 (UTC)</option>
-      </select>
-    </div>
-    <button class="btn" onclick="UI.handleTZ()">取得當地即時時間</button>
-    <div class="output" id="tz-output" style="font-size: 1.2rem; text-align: center;"></div>
-  `,
+  tz: () => {
+    const zones = Intl.supportedValuesOf('timeZone');
+    return `
+      <div class="input-group">
+        <label>搜尋並選擇全球城市/時區</label>
+        <input id="tz-search" type="text" placeholder="輸入關鍵字，例如: Tokyo, London, Sydney..." oninput="UI.filterTZ()" />
+        <div id="tz-list" class="glass" style="max-height: 200px; overflow-y: auto; margin-top: 8px; border-radius: 8px; border: 1px solid var(--glass-border);">
+          ${zones.map(z => `<div class="tz-item" style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--glass-border);" onclick="UI.selectTZ('${z}')">${z}</div>`).join('')}
+        </div>
+      </div>
+      <div class="output" id="tz-output" style="margin-top: 20px; text-align: center;">
+        <div id="tz-clock" style="font-size: 2.5rem; font-weight: 300; font-family: monospace;">--:--:--</div>
+        <div id="tz-date" style="color: var(--muted); margin-top: 10px;">請選擇一個時區</div>
+        <div id="tz-offset" style="font-size: 0.8rem; color: var(--muted); margin-top: 4px;"></div>
+      </div>
+    `;
+  },
   hash: () => `
     <div class="input-group">
       <label>輸入明文文字</label>
@@ -302,10 +304,38 @@ const UI = {
     document.getElementById('text-output').textContent = v.trim();
   },
   handleTZ() {
-    const tz = document.getElementById('tz-select').value;
+    // 已由 updateTZDisplay 接手
+  },
+  filterTZ() {
+    const q = document.getElementById('tz-search').value.toLowerCase();
+    const items = document.querySelectorAll('.tz-item');
+    items.forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+    });
+  },
+  selectTZ(tz) {
+    window.selectedTZ = tz;
+    document.getElementById('tz-search').value = tz;
+    this.updateTZDisplay();
+  },
+  updateTZDisplay() {
+    if (!window.selectedTZ) return;
     const now = new Date();
-    const formatter = new Intl.DateTimeFormat('zh-TW', { timeZone: tz, dateStyle: 'full', timeStyle: 'long' });
-    document.getElementById('tz-output').textContent = formatter.format(now);
+    try {
+      const timeStr = new Intl.DateTimeFormat('zh-TW', { timeZone: window.selectedTZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now);
+      const dateStr = new Intl.DateTimeFormat('zh-TW', { timeZone: window.selectedTZ, dateStyle: 'full' }).format(now);
+      
+      const clockEl = document.getElementById('tz-clock');
+      const dateEl = document.getElementById('tz-date');
+      const offsetEl = document.getElementById('tz-offset');
+      
+      if (clockEl) clockEl.textContent = timeStr;
+      if (dateEl) dateEl.textContent = dateStr;
+      
+      // 計算偏移量 (簡易版)
+      const offsetName = new Intl.DateTimeFormat('en-US', { timeZone: window.selectedTZ, timeZoneName: 'short' }).format(now).split(', ')[1];
+      if (offsetEl) offsetEl.textContent = `時區標示: ${offsetName || ''}`;
+    } catch(e) { console.error(e); }
   },
   handleHash(algo) {
     const v = document.getElementById('hash-input').value;
@@ -340,6 +370,8 @@ const UI = {
     }
   }
 };
+
+let tzTimer = null;
 
 window.UI = UI;
 
@@ -385,6 +417,17 @@ function renderRoute() {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', UI.handleCSS);
     });
+  }
+  if (route === 'tz') {
+    if (tzTimer) clearInterval(tzTimer);
+    tzTimer = setInterval(() => UI.updateTZDisplay(), 1000);
+    // 預設選擇台北
+    setTimeout(() => UI.selectTZ('Asia/Taipei'), 100);
+  } else {
+    if (tzTimer) {
+      clearInterval(tzTimer);
+      tzTimer = null;
+    }
   }
 }
 
