@@ -258,7 +258,7 @@ const UI = {
   },
   handleTextCount() {
     const v = document.getElementById('text-input').value;
-    document.getElementById('text-output').textContent = \`總字數 (含空白/符號)：\${v.length}\n總字數 (去空白)：\${v.replace(/\\s/g,'').length}\`;
+    document.getElementById('text-output').textContent = `總字數 (含空白/符號)：${v.length}\n總字數 (去空白)：${v.replace(/\s/g,'').length}`;
   },
   handleTextUpper() {
     const v = document.getElementById('text-input').value;
