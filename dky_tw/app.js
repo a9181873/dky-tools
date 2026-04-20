@@ -15,8 +15,7 @@ const ROUTES = {
   '/tz': 'tz',
   '/hash': 'hash',
   '/css': 'css',
-  '/regex': 'regex',
-  '/fake': 'fake'
+  '/regex': 'regex'
 };
 
 const metaList = {
@@ -32,8 +31,7 @@ const metaList = {
   tz: { icon: '🌍', title: '跨國時區即時算', desc: '常常要跟外國客戶開通話？打開它，立刻為你換算目前東京、紐約、倫敦的準確當地時間。' },
   hash: { icon: '🔒', title: '加密雜湊 (Hash)', desc: '將任何明文轉換為不可逆的 SHA-256 / SHA-1 加密字串，不透過伺服器，最高規格保護密碼隱私。' },
   css: { icon: '✨', title: 'CSS 視覺產生', desc: '不再死背語法！拉動滑桿即時在畫面上預覽立體陰影 (Box-Shadow)，滿意後直接點擊複製 CSS 給前端貼上。' },
-  regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
-  fake: { icon: '📰', title: '隨機假資料生成', desc: '做設計排版沒畫面？一鍵生出幾百字的繁體中文「假文章 (Lorem Ipsum)」，或是隨機假人名、信箱填滿 UI！' }
+  regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' }
 };
 
 const renderFields = {
@@ -203,17 +201,6 @@ const renderFields = {
     </div>
     <button class="btn" onclick="UI.handleRegex()">測試匹配</button>
     <div class="output" id="regex-output" style="white-space: pre-wrap;"></div>
-  `,
-  fake: () => `
-    <div class="input-group">
-      <label>產出資料格式</label>
-      <select id="fake-type">
-        <option value="profile">假身分 (姓名、信箱)</option>
-        <option value="lorem">假文 (Lorem Ipsum)</option>
-      </select>
-    </div>
-    <button class="btn" onclick="UI.handleFake()">🔄 隨機生成</button>
-    <div class="output" id="fake-output" style="white-space: pre-wrap; font-size:1.1rem; line-height: 1.6;"></div>
   `
 };
 
@@ -326,11 +313,6 @@ const UI = {
     tools.hash.sha(algo, v).then(res => {
       document.getElementById('hash-output').textContent = res;
     });
-  },
-  handleFake() {
-    const type = document.getElementById('fake-type').value;
-    const data = tools.fake.getFake();
-    document.getElementById('fake-output').textContent = type === 'profile' ? `姓名：${data.name}\n信箱：${data.email}` : data.lorem;
   },
   handleRegex() {
     try {
