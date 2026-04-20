@@ -1,5 +1,5 @@
 // 路由與工具配置（模組化）
-import { tools } from './tools/index.js';
+import * as tools from './tools/index.js';
 
 const ROUTES = {
   '/': 'home',
@@ -18,16 +18,46 @@ const ROUTES = {
 const renderFields = {
   home: () => `
       <div class="tool-grid">
-        <div class="tool-card" onclick="location.hash='#/jwt'"><div class="icon">🔑</div><div class="label">JWT 解碼</div></div>
-        <div class="tool-card" onclick="location.hash='#/pwd'"><div class="icon">🛡️</div><div class="label">密碼產生</div></div>
-        <div class="tool-card" onclick="location.hash='#/url'"><div class="icon">🔗</div><div class="label">網址編解碼</div></div>
-        <div class="tool-card" onclick="location.hash='#/text'"><div class="icon">📝</div><div class="label">文字處理</div></div>
-        <div class="tool-card" onclick="location.hash='#/tz'"><div class="icon">🌍</div><div class="label">時區轉換</div></div>
-        <div class="tool-card" onclick="location.hash='#/qr'"><div class="icon">📱</div><div class="label">QR Code</div></div>
-        <div class="tool-card" onclick="location.hash='#/color'"><div class="icon">🎨</div><div class="label">顏色轉換</div></div>
-        <div class="tool-card" onclick="location.hash='#/json'"><div class="icon">{}</div><div class="label">JSON 格式化</div></div>
-        <div class="tool-card" onclick="location.hash='#/base64'"><div class="icon">📦</div><div class="label">Base64</div></div>
-        <div class="tool-card" onclick="location.hash='#/diff'"><div class="icon">⚖️</div><div class="label">文字比對</div></div>
+        <div class="tool-card" onclick="location.hash='#/jwt'">
+          <div class="icon">🔑</div><div class="label">JWT 解碼</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">解析 Token 拿到隱藏的 Payload 內容</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/pwd'">
+          <div class="icon">🛡️</div><div class="label">密碼產生</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">瀏覽器級硬體亂數，生成最高安全密碼</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/url'">
+          <div class="icon">🔗</div><div class="label">網址編解碼</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">解決惱人的 %E6 亂碼，快速轉碼對照</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/text'">
+          <div class="icon">📝</div><div class="label">文字處理</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">即時字數統計、去空白與大小寫轉換</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/tz'">
+          <div class="icon">🌍</div><div class="label">時區轉換</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">免查表！一鍵取得世界各國當地準確時間</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/qr'">
+          <div class="icon">📱</div><div class="label">QR Code</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">簡單乾淨的高解析度二維碼產生器</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/color'">
+          <div class="icon">🎨</div><div class="label">顏色轉換</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">HEX/RGB/HSL即時數學分析與互轉</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/json'">
+          <div class="icon">{}</div><div class="label">JSON 格式化</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">亂碼結構重新排版，瞬間揪出語法錯誤</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/base64'">
+          <div class="icon">📦</div><div class="label">Base64</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">拖曳圖檔或輸入文字，本機快速安全編譯</div>
+        </div>
+        <div class="tool-card" onclick="location.hash='#/diff'">
+          <div class="icon">⚖️</div><div class="label">文字比對</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">針對兩段文章、程式碼找出每一行的差異</div>
+        </div>
       </div>
   `,
   qr: () => `
