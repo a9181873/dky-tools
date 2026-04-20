@@ -38,7 +38,7 @@ const renderFields = {
   home: () => `
     <div class="tool-grid">
       ${Object.entries(metaList).map(([k, meta]) => `
-        <div class="tool-card" onclick="location.hash='#/${k}'">
+        <div class="tool-card" onclick="UI.navigate('/${k}')">
           <div class="icon">${meta.icon}</div><div class="label">${meta.title}</div>
           <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">${meta.desc}</div>
         </div>
@@ -332,15 +332,25 @@ const UI = {
     const str = `box-shadow: ${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5);`;
     document.getElementById('css-output').textContent = str;
     document.getElementById('css-preview').style.boxShadow = `${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5)`;
+  },
+  navigate(path) {
+    if (location.pathname !== path) {
+      history.pushState(null, '', path);
+      renderRoute();
+    }
   }
 };
 
 window.UI = UI;
 
 function renderRoute() {
-  const h = location.hash || '#/';
-  const key = h.replace('#', '') || '/';
-  const route = ROUTES[key] || 'home';
+  const path = location.pathname;
+  let route = ROUTES[path];
+  
+  // Try mapping root or /home to home explicitly
+  if (path === '/' || path === '/home' || !route) {
+      route = 'home';
+  }
   const app = document.getElementById('app');
 
   const meta = metaList[route] || (route === 'home' ? { title: '多功能工具箱', desc: '純客戶端、無需伺服器的實用戰備箱' } : { title: '工具', desc: '' });
@@ -378,8 +388,5 @@ function renderRoute() {
   }
 }
 
-window.addEventListener('hashchange', renderRoute);
-window.addEventListener('DOMContentLoaded', () => {
-  if (!location.hash) location.hash = '#/';
-  renderRoute();
-});
+window.addEventListener('popstate', renderRoute);
+window.addEventListener('DOMContentLoaded', renderRoute);
