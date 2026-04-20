@@ -8,19 +8,27 @@ const ROUTES = {
   '/json': 'json',
   '/base64': 'base64',
   '/diff': 'diff',
-  '/download': 'download',
+  '/jwt': 'jwt',
+  '/pwd': 'pwd',
+  '/url': 'url',
+  '/text': 'text',
+  '/tz': 'tz',
 };
 
 const renderFields = {
   home: () => `
-    <div class="tool-grid">
-      ${Object.entries(tools).map(([k, t]) => `
-        <div class="tool-card" onclick="location.hash='#/${k}'">
-          <div class="icon">📋</div>
-          <div class="label">${t.title}</div>
-        </div>
-      `).join('')}
-    </div>
+      <div class="tool-grid">
+        <div class="tool-card" onclick="location.hash='#/jwt'"><div class="icon">🔑</div><div class="label">JWT 解碼</div></div>
+        <div class="tool-card" onclick="location.hash='#/pwd'"><div class="icon">🛡️</div><div class="label">密碼產生</div></div>
+        <div class="tool-card" onclick="location.hash='#/url'"><div class="icon">🔗</div><div class="label">網址編解碼</div></div>
+        <div class="tool-card" onclick="location.hash='#/text'"><div class="icon">📝</div><div class="label">文字處理</div></div>
+        <div class="tool-card" onclick="location.hash='#/tz'"><div class="icon">🌍</div><div class="label">時區轉換</div></div>
+        <div class="tool-card" onclick="location.hash='#/qr'"><div class="icon">📱</div><div class="label">QR Code</div></div>
+        <div class="tool-card" onclick="location.hash='#/color'"><div class="icon">🎨</div><div class="label">顏色轉換</div></div>
+        <div class="tool-card" onclick="location.hash='#/json'"><div class="icon">{}</div><div class="label">JSON 格式化</div></div>
+        <div class="tool-card" onclick="location.hash='#/base64'"><div class="icon">📦</div><div class="label">Base64</div></div>
+        <div class="tool-card" onclick="location.hash='#/diff'"><div class="icon">⚖️</div><div class="label">文字比對</div></div>
+      </div>
   `,
   qr: () => `
     <div class="input-group">
@@ -81,13 +89,58 @@ const renderFields = {
     <button class="btn" onclick="UI.handleDiff()">比對</button>
     <div class="output" id="diff-output"></div>
   `,
-  download: () => `
+  jwt: () => `
     <div class="input-group">
-      <label>影片連結 (YouTube / IG / X)</label>
-      <input id="dl-url" placeholder="https://www.youtube.com/watch?v=..." />
+      <label>JWT Token</label>
+      <textarea id="jwt-input" rows="4" placeholder="eyJhb..."></textarea>
     </div>
-    <button class="btn" onclick="UI.handleDownload()">解析</button>
-    <div class="output" id="dl-output"></div>
+    <button class="btn" onclick="UI.handleJWT()">解碼 Payload</button>
+    <div class="output" id="jwt-output"></div>
+  `,
+  pwd: () => `
+    <div class="input-group">
+      <label>密碼長度 (8~128)</label>
+      <input id="pwd-len" type="number" value="16" min="8" max="128" />
+    </div>
+    <button class="btn" onclick="UI.handlePwd()">生成強密碼</button>
+    <div class="output" id="pwd-output" style="font-size: 1.4rem; text-align: center; letter-spacing: 2px;"></div>
+  `,
+  url: () => `
+    <div class="input-group">
+      <label>網址或字串</label>
+      <textarea id="url-input" rows="4" placeholder="輸入需要編碼的 %E6 字串或正常網址"></textarea>
+    </div>
+    <button class="btn" onclick="UI.handleURLEncode()">Encode / 編碼</button>
+    <button class="btn" onclick="UI.handleURLDecode()">Decode / 解碼</button>
+    <div class="output" id="url-output"></div>
+  `,
+  text: () => `
+    <div class="input-group">
+      <label>輸入文字</label>
+      <textarea id="text-input" rows="6" placeholder="輸入要處理的文字..."></textarea>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px">
+      <button class="btn" onclick="UI.handleTextCount()">字數統計</button>
+      <button class="btn" onclick="UI.handleTextUpper()">全大寫 UPPER</button>
+      <button class="btn" onclick="UI.handleTextLower()">全小寫 lower</button>
+      <button class="btn" onclick="UI.handleTextTrim()">去頭尾空白</button>
+    </div>
+    <div class="output" id="text-output"></div>
+  `,
+  tz: () => `
+    <div class="input-group">
+      <label>選擇目標時區</label>
+      <select id="tz-select">
+        <option value="Asia/Tokyo">日本東京 (Asia/Tokyo)</option>
+        <option value="America/New_York">美國紐約 (America/New_York)</option>
+        <option value="Europe/London">英國倫敦 (Europe/London)</option>
+        <option value="Asia/Taipei" selected>台灣台北 (Asia/Taipei)</option>
+        <option value="Australia/Sydney">澳洲雪梨 (Australia/Sydney)</option>
+        <option value="UTC">世界協調時間 (UTC)</option>
+      </select>
+    </div>
+    <button class="btn" onclick="UI.handleTZ()">取得當地即時時間</button>
+    <div class="output" id="tz-output" style="font-size: 1.2rem; text-align: center;"></div>
   `,
 };
 
@@ -146,10 +199,55 @@ const UI = {
     const b = document.getElementById('diff-b').value.split('\n');
     document.getElementById('diff-output').innerHTML = tools.diff?.compare(a, b) || '未实现';
   },
-  handleDownload() {
-    const url = document.getElementById('dl-url').value.trim();
-    document.getElementById('dl-output').textContent = `解析中... 建议格式: mp4-1080p, mp3-audio, jpg-thumbnail`;
+  handleJWT() {
+    try {
+      const token = document.getElementById('jwt-input').value.trim();
+      const payload = token.split('.')[1];
+      if (!payload) throw new Error();
+      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      document.getElementById('jwt-output').textContent = JSON.stringify(decoded, null, 2);
+    } catch { alert('無效的 JWT 格式'); }
   },
+  handlePwd() {
+    const len = parseInt(document.getElementById('pwd-len').value) || 16;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=';
+    const randomArray = new Uint32Array(len);
+    window.crypto.getRandomValues(randomArray);
+    let pwd = '';
+    for (let i=0; i<len; i++) pwd += chars[randomArray[i] % chars.length];
+    document.getElementById('pwd-output').textContent = pwd;
+  },
+  handleURLEncode() {
+    const v = document.getElementById('url-input').value;
+    document.getElementById('url-output').textContent = encodeURIComponent(v);
+  },
+  handleURLDecode() {
+    const v = document.getElementById('url-input').value;
+    try { document.getElementById('url-output').textContent = decodeURIComponent(v); }
+    catch { alert('無效的 URL 編碼'); }
+  },
+  handleTextCount() {
+    const v = document.getElementById('text-input').value;
+    document.getElementById('text-output').textContent = \`總字數 (含空白/符號)：\${v.length}\n總字數 (去空白)：\${v.replace(/\\s/g,'').length}\`;
+  },
+  handleTextUpper() {
+    const v = document.getElementById('text-input').value;
+    document.getElementById('text-output').textContent = v.toUpperCase();
+  },
+  handleTextLower() {
+    const v = document.getElementById('text-input').value;
+    document.getElementById('text-output').textContent = v.toLowerCase();
+  },
+  handleTextTrim() {
+    const v = document.getElementById('text-input').value;
+    document.getElementById('text-output').textContent = v.trim();
+  },
+  handleTZ() {
+    const tz = document.getElementById('tz-select').value;
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('zh-TW', { timeZone: tz, dateStyle: 'full', timeStyle: 'long' });
+    document.getElementById('tz-output').textContent = formatter.format(now);
+  }
 };
 
 // 將 UI 掛載到全域環境，以利 HTML 內的 onclick 屬性呼叫
@@ -161,10 +259,25 @@ function renderRoute() {
   const key = hash.replace('#', '') || '/';
   const route = ROUTES[key] || 'home';
   const app = document.getElementById('app');
+  const metaList = {
+    qr: { title: 'QR Code 產生', desc: '快速生成二維碼' },
+    color: { title: '顏色轉換', desc: 'HEX/RGB/HSL 互轉' },
+    json: { title: 'JSON 格式化', desc: '排版與驗證檢查' },
+    base64: { title: 'Base64', desc: '文字與檔案編解碼' },
+    diff: { title: '文字比對', desc: '尋找兩段文字的差異' },
+    jwt: { title: 'JWT 解碼', desc: '解析 JSON Web Token Payload' },
+    pwd: { title: '強密碼產生', desc: '藉由客戶端硬體亂數生成安全密碼' },
+    url: { title: '網址編解碼', desc: 'URL Encode / Decode' },
+    text: { title: '文字處理', desc: '字數統計與大小寫轉換' },
+    tz: { title: '時區轉換', desc: '各國主要時區即時轉換' },
+    home: { title: '功能首頁', desc: '選擇您需要的工具' }
+  };
+  const meta = metaList[route] || { title: '工具', desc: '' };
+
   app.innerHTML = `
     <div class="card">
-      <h2>${tools[route]?.title || '工具'}</h2>
-      <p style="color:var(--muted);margin-top:4px">${tools[route]?.desc || ''}</p>
+      <h2>${meta.title}</h2>
+      <p style="color:var(--muted);margin-top:4px">${meta.desc}</p>
       ${renderFields[route]?.() || '<p>页面未找到</p>'}
     </div>
   `;
