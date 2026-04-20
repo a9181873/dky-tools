@@ -13,57 +13,44 @@ const ROUTES = {
   '/url': 'url',
   '/text': 'text',
   '/tz': 'tz',
+  '/hash': 'hash',
+  '/css': 'css',
+  '/regex': 'regex',
+  '/fake': 'fake'
+};
+
+const metaList = {
+  qr: { icon: '📱', title: 'QR Code 產生', desc: '輸入任意網址或文字，立刻生成無廣告、可直接下載列印的高解析度 QR Code，適合店家或行銷使用。' },
+  json: { icon: '{}', title: 'JSON 格式整理', desc: '當拿到一大串擠在一起的 {} 程式亂碼時，點擊就能瞬間幫你排版成有縮排、有顏色的完美格式，還能揪出哪裡少打引號！' },
+  color: { icon: '🎨', title: '色彩代碼轉換', desc: '設計師專用！如果你拿到色號 #00F2FF 卻不知道 RGB 是多少，貼上即可算出所有的色彩代碼 (HEX/RGB/HSL)。' },
+  base64: { icon: '📦', title: 'Base64 加解密', desc: '可以把任何文字，或者直接將「圖片檔案」拖曳進來，編碼成亂碼文字方便藏在網頁碼裡，也能隨時無損還原。' },
+  diff: { icon: '⚖️', title: '左右文字比對', desc: '當你有兩段差不多長的文章或程式碼時，貼上來它會像改錯字一樣，把「多出來」或「刪掉」的地方用紅綠色標出來！' },
+  jwt: { icon: '🔑', title: 'JWT Token 解密', desc: '開發者必備：拿到一串 "eyJ" 開頭的登入亂碼通行證時，貼上來即可解析出裡面藏的過期時間或 ID，純本地運算超安全。' },
+  pwd: { icon: '🛡️', title: '安全密碼產生', desc: '需要超複雜密碼？這個工具啟用你電腦 CPU 最底層的硬體亂數引擎，生成駭客也猜不到的高強度隨機密碼！' },
+  url: { icon: '🔗', title: '網址亂碼還原', desc: '複製中文網址常變成 "%E6%B8%AC" 這種超長亂碼，透過「解碼」就能還原成看得懂的中文；當然也能反向「編碼」。' },
+  text: { icon: '📝', title: '文字排版助手', desc: '報告寫了多少字？瞬間幫你結算含空白、去空白的字數；還能一鍵將英文全部轉大寫，或刪除多餘空白。' },
+  tz: { icon: '🌍', title: '跨國時區即時算', desc: '常常要跟外國客戶開通話？打開它，立刻為你換算目前東京、紐約、倫敦的準確當地時間。' },
+  hash: { icon: '🔒', title: '加密雜湊 (Hash)', desc: '將任何明文轉換為不可逆的 SHA-256 / SHA-1 加密字串，不透過伺服器，最高規格保護密碼隱私。' },
+  css: { icon: '✨', title: 'CSS 視覺產生', desc: '不再死背語法！拉動滑桿即時在畫面上預覽立體陰影 (Box-Shadow)，滿意後直接點擊複製 CSS 給前端貼上。' },
+  regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
+  fake: { icon: '📰', title: '隨機假資料生成', desc: '做設計排版沒畫面？一鍵生出幾百字的繁體中文「假文章 (Lorem Ipsum)」，或是隨機假人名、信箱填滿 UI！' }
 };
 
 const renderFields = {
   home: () => `
-      <div class="tool-grid">
-        <div class="tool-card" onclick="location.hash='#/jwt'">
-          <div class="icon">🔑</div><div class="label">JWT 解碼</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">解析 Token 拿到隱藏的 Payload 內容</div>
+    <div class="tool-grid">
+      ${Object.entries(metaList).map(([k, meta]) => `
+        <div class="tool-card" onclick="location.hash='#/${k}'">
+          <div class="icon">${meta.icon}</div><div class="label">${meta.title}</div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">${meta.desc}</div>
         </div>
-        <div class="tool-card" onclick="location.hash='#/pwd'">
-          <div class="icon">🛡️</div><div class="label">密碼產生</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">瀏覽器級硬體亂數，生成最高安全密碼</div>
-        </div>
-        <div class="tool-card" onclick="location.hash='#/url'">
-          <div class="icon">🔗</div><div class="label">網址編解碼</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">解決惱人的 %E6 亂碼，快速轉碼對照</div>
-        </div>
-        <div class="tool-card" onclick="location.hash='#/text'">
-          <div class="icon">📝</div><div class="label">文字處理</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">即時字數統計、去空白與大小寫轉換</div>
-        </div>
-        <div class="tool-card" onclick="location.hash='#/tz'">
-          <div class="icon">🌍</div><div class="label">時區轉換</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">免查表！一鍵取得世界各國當地準確時間</div>
-        </div>
-        <div class="tool-card" onclick="location.hash='#/qr'">
-          <div class="icon">📱</div><div class="label">QR Code</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">簡單乾淨的高解析度二維碼產生器</div>
-        </div>
-        <div class="tool-card" onclick="location.hash='#/color'">
-          <div class="icon">🎨</div><div class="label">顏色轉換</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">HEX/RGB/HSL即時數學分析與互轉</div>
-        </div>
-        <div class="tool-card" onclick="location.hash='#/json'">
-          <div class="icon">{}</div><div class="label">JSON 格式化</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">亂碼結構重新排版，瞬間揪出語法錯誤</div>
-        </div>
-        <div class="tool-card" onclick="location.hash='#/base64'">
-          <div class="icon">📦</div><div class="label">Base64</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">拖曳圖檔或輸入文字，本機快速安全編譯</div>
-        </div>
-        <div class="tool-card" onclick="location.hash='#/diff'">
-          <div class="icon">⚖️</div><div class="label">文字比對</div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">針對兩段文章、程式碼找出每一行的差異</div>
-        </div>
-      </div>
+      `).join('')}
+    </div>
   `,
   qr: () => `
     <div class="input-group">
       <label>內容</label>
-      <input id="qr-input" placeholder="${tools.qr.placeholder || 'https://example.com'}" />
+      <input id="qr-input" placeholder="https://example.com" />
     </div>
     <button class="btn" onclick="UI.handleQR()">生成 QR Code</button>
     <div class="qr-wrap">
@@ -86,7 +73,7 @@ const renderFields = {
       </div>
     </div>
     <button class="btn" onclick="UI.handleColor()">轉換</button>
-    <div class="output" id="color-output"></div>
+    <div class="output" id="color-output" style="font-family: monospace; white-space: pre-wrap;"></div>
     <div class="color-swatch" id="color-preview" style="margin-top:8px;width:100px;height:32px"></div>
   `,
   json: () => `
@@ -95,17 +82,23 @@ const renderFields = {
       <textarea id="json-input" rows="6" placeholder='{"name":"DKY","tags":["web","tools"]}'></textarea>
     </div>
     <button class="btn" onclick="UI.handleJSON()">格式化</button>
-    <div class="output" id="json-output"></div>
+    <div class="output" id="json-output" style="white-space: pre-wrap; font-family: monospace;"></div>
   `,
   base64: () => `
     <div class="input-group">
       <label>文字 / 檔案</label>
       <input id="base64-input" type="file" accept="*" />
     </div>
-    <button class="btn" onclick="UI.handleBase64()">編碼</button>
-    <button class="btn" onclick="UI.handleBase64Decode()">解碼</button>
-    <div class="output" id="base64-output"></div>
-    <a id="base64-download" class="btn" download>下載檔案</a>
+    <button class="btn" onclick="UI.handleBase64()">編碼檔案</button>
+    <div class="input-group" style="margin-top:10px">
+      <textarea id="base64-txt" rows="4" placeholder="在此輸入文字進行Base64編解碼..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="UI.handleBase64Txt('enc')">文字編碼</button>
+      <button class="btn" onclick="UI.handleBase64Txt('dec')">文字解碼</button>
+    </div>
+    <div class="output" id="base64-output" style="word-break: break-all;"></div>
+    <a id="base64-download" class="btn" style="display:none" download>下載檔案</a>
   `,
   diff: () => `
     <div class="input-group">
@@ -117,7 +110,7 @@ const renderFields = {
       <textarea id="diff-b" rows="4" placeholder="第一行\n改為第二行"></textarea>
     </div>
     <button class="btn" onclick="UI.handleDiff()">比對</button>
-    <div class="output" id="diff-output"></div>
+    <div class="output" id="diff-output" style="font-family: monospace; white-space: pre-wrap;"></div>
   `,
   jwt: () => `
     <div class="input-group">
@@ -125,7 +118,7 @@ const renderFields = {
       <textarea id="jwt-input" rows="4" placeholder="eyJhb..."></textarea>
     </div>
     <button class="btn" onclick="UI.handleJWT()">解碼 Payload</button>
-    <div class="output" id="jwt-output"></div>
+    <div class="output" id="jwt-output" style="font-family: monospace; white-space: pre-wrap;"></div>
   `,
   pwd: () => `
     <div class="input-group">
@@ -142,7 +135,7 @@ const renderFields = {
     </div>
     <button class="btn" onclick="UI.handleURLEncode()">Encode / 編碼</button>
     <button class="btn" onclick="UI.handleURLDecode()">Decode / 解碼</button>
-    <div class="output" id="url-output"></div>
+    <div class="output" id="url-output" style="word-break: break-all;"></div>
   `,
   text: () => `
     <div class="input-group">
@@ -155,7 +148,7 @@ const renderFields = {
       <button class="btn" onclick="UI.handleTextLower()">全小寫 lower</button>
       <button class="btn" onclick="UI.handleTextTrim()">去頭尾空白</button>
     </div>
-    <div class="output" id="text-output"></div>
+    <div class="output" id="text-output" style="white-space: pre-wrap;"></div>
   `,
   tz: () => `
     <div class="input-group">
@@ -172,12 +165,62 @@ const renderFields = {
     <button class="btn" onclick="UI.handleTZ()">取得當地即時時間</button>
     <div class="output" id="tz-output" style="font-size: 1.2rem; text-align: center;"></div>
   `,
+  hash: () => `
+    <div class="input-group">
+      <label>輸入明文文字</label>
+      <textarea id="hash-input" rows="4" placeholder="在此輸入需要加密的文字..."></textarea>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px">
+      <button class="btn" onclick="UI.handleHash('SHA-1')">SHA-1</button>
+      <button class="btn" onclick="UI.handleHash('SHA-256')">SHA-256</button>
+      <button class="btn" onclick="UI.handleHash('SHA-384')">SHA-384</button>
+      <button class="btn" onclick="UI.handleHash('SHA-512')">SHA-512</button>
+    </div>
+    <div class="output" id="hash-output" style="word-break: break-all; font-family: monospace;"></div>
+  `,
+  css: () => `
+    <div class="input-group">
+      <label>X, Y, Blur, Spread (立體陰影產生器)</label>
+      <div style="display:flex; gap:8px;">
+        <input type="number" id="css-x" value="0" placeholder="X" />
+        <input type="number" id="css-y" value="10" placeholder="Y" />
+        <input type="number" id="css-b" value="20" placeholder="Blur" />
+        <input type="number" id="css-s" value="0" placeholder="Spread" />
+      </div>
+    </div>
+    <button class="btn" onclick="UI.handleCSS()">即時產生</button>
+    <div class="output" id="css-output" style="font-family: monospace;">box-shadow: 0px 10px 20px 0px rgba(0,0,0,0.5);</div>
+    <div id="css-preview" style="margin-top:20px; width:100%; height:80px; background:var(--card-bg); border-radius:8px; box-shadow: 0px 10px 20px 0px rgba(0,0,0,0.5);"></div>
+  `,
+  regex: () => `
+    <div class="input-group">
+      <label>正規表達式 (Regex Pattern) 例如: [a-z]+@[a-z]+\.[a-z]+</label>
+      <input id="regex-pattern" placeholder="[a-zA-Z0-9]+@[a-zA-Z0-9]+" />
+    </div>
+    <div class="input-group">
+      <label>測試字串 (Test String)</label>
+      <textarea id="regex-str" rows="4" placeholder="hello@world.com"></textarea>
+    </div>
+    <button class="btn" onclick="UI.handleRegex()">測試匹配</button>
+    <div class="output" id="regex-output" style="white-space: pre-wrap;"></div>
+  `,
+  fake: () => `
+    <div class="input-group">
+      <label>產出資料格式</label>
+      <select id="fake-type">
+        <option value="profile">假身分 (姓名、信箱)</option>
+        <option value="lorem">假文 (Lorem Ipsum)</option>
+      </select>
+    </div>
+    <button class="btn" onclick="UI.handleFake()">🔄 隨機生成</button>
+    <div class="output" id="fake-output" style="white-space: pre-wrap; font-size:1.1rem; line-height: 1.6;"></div>
+  `
 };
 
 const UI = {
   handleQR() {
     const text = document.getElementById('qr-input').value.trim();
-    if (!text) return alert('请输入内容或链接');
+    if (!text) return alert('請輸入內容或連結');
     tools.qr.generate(text).then((url) => {
       document.getElementById('qr-output').src = url;
       document.getElementById('qr-download').href = url;
@@ -198,36 +241,35 @@ const UI = {
       const obj = JSON.parse(input);
       document.getElementById('json-output').textContent = JSON.stringify(obj, null, 2);
     } catch {
-      alert('无效的 JSON');
+      alert('無效的 JSON');
     }
   },
   handleBase64() {
     const inp = document.getElementById('base64-input');
-    if (!inp.files?.[0]) return alert('请选择文件');
+    if (!inp.files?.[0]) return alert('請選擇檔案');
     const reader = new FileReader();
     reader.onload = () => {
       const base = reader.result.split(',')[1] || reader.result;
       document.getElementById('base64-output').textContent = base;
+      const a = document.getElementById('base64-download');
+      a.style.display = 'inline-block';
+      a.href = reader.result;
+      a.download = inp.files[0].name;
     };
     reader.readAsDataURL(inp.files[0]);
   },
-  handleBase64Decode() {
-    const b64 = document.getElementById('base64-input').value.trim();
+  handleBase64Txt(type) {
+    const v = document.getElementById('base64-txt').value;
+    const out = document.getElementById('base64-output');
     try {
-      const bin = atob(b64);
-      const len = bin.length;
-      const arr = new Uint8Array(len);
-      for (let i = 0; i < len; i++) arr[i] = bin.charCodeAt(i);
-      document.getElementById('base64-output').textContent = `data:application/octet-stream;base64,${b64}`;
-      const a = document.getElementById('base64-download');
-      a.href = document.getElementById('base64-output').textContent;
-      a.download = 'decoded.bin';
-    } catch { alert('Base64 格式错误'); }
+      if (type === 'enc') out.textContent = btoa(encodeURI(v));
+      else out.textContent = decodeURI(atob(v));
+    } catch { alert('編解碼失敗'); }
   },
   handleDiff() {
     const a = document.getElementById('diff-a').value.split('\n');
     const b = document.getElementById('diff-b').value.split('\n');
-    document.getElementById('diff-output').innerHTML = tools.diff?.compare(a, b) || '未实现';
+    document.getElementById('diff-output').innerHTML = tools.diff?.compare(a, b) || '未實現';
   },
   handleJWT() {
     try {
@@ -277,53 +319,67 @@ const UI = {
     const now = new Date();
     const formatter = new Intl.DateTimeFormat('zh-TW', { timeZone: tz, dateStyle: 'full', timeStyle: 'long' });
     document.getElementById('tz-output').textContent = formatter.format(now);
+  },
+  handleHash(algo) {
+    const v = document.getElementById('hash-input').value;
+    if (!v) return alert('請輸入文字');
+    tools.hash.sha(algo, v).then(res => {
+      document.getElementById('hash-output').textContent = res;
+    });
+  },
+  handleFake() {
+    const type = document.getElementById('fake-type').value;
+    const data = tools.fake.getFake();
+    document.getElementById('fake-output').textContent = type === 'profile' ? `姓名：${data.name}\n信箱：${data.email}` : data.lorem;
+  },
+  handleRegex() {
+    try {
+      const pat = document.getElementById('regex-pattern').value;
+      const str = document.getElementById('regex-str').value;
+      if (!pat) return;
+      const re = new RegExp(pat, 'g');
+      const matches = str.match(re);
+      document.getElementById('regex-output').textContent = matches ? `找到 ${matches.length} 個匹配項目：\n\n${matches.join('\n')}` : '無匹配結果';
+    } catch(e) { document.getElementById('regex-output').textContent = 'Regex 語法錯誤'; }
+  },
+  handleCSS() {
+    const x = document.getElementById('css-x').value || 0;
+    const y = document.getElementById('css-y').value || 0;
+    const b = document.getElementById('css-b').value || 0;
+    const s = document.getElementById('css-s').value || 0;
+    const str = `box-shadow: ${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5);`;
+    document.getElementById('css-output').textContent = str;
+    document.getElementById('css-preview').style.boxShadow = `${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5)`;
   }
 };
 
-// 將 UI 掛載到全域環境，以利 HTML 內的 onclick 屬性呼叫
 window.UI = UI;
 
-// 路由分发
 function renderRoute() {
-  const hash = location.hash || '#/';
-  const key = hash.replace('#', '') || '/';
+  const h = location.hash || '#/';
+  const key = h.replace('#', '') || '/';
   const route = ROUTES[key] || 'home';
   const app = document.getElementById('app');
-  const metaList = {
-    qr: { title: 'QR Code 產生', desc: '快速生成二維碼' },
-    color: { title: '顏色轉換', desc: 'HEX/RGB/HSL 互轉' },
-    json: { title: 'JSON 格式化', desc: '排版與驗證檢查' },
-    base64: { title: 'Base64', desc: '文字與檔案編解碼' },
-    diff: { title: '文字比對', desc: '尋找兩段文字的差異' },
-    jwt: { title: 'JWT 解碼', desc: '解析 JSON Web Token Payload' },
-    pwd: { title: '強密碼產生', desc: '藉由客戶端硬體亂數生成安全密碼' },
-    url: { title: '網址編解碼', desc: 'URL Encode / Decode' },
-    text: { title: '文字處理', desc: '字數統計與大小寫轉換' },
-    tz: { title: '時區轉換', desc: '各國主要時區即時轉換' },
-    home: { title: '功能首頁', desc: '選擇您需要的工具' }
-  };
-  const meta = metaList[route] || { title: '工具', desc: '' };
+
+  const meta = metaList[route] || (route === 'home' ? { title: '多功能工具箱', desc: '純客戶端、無需伺服器的實用戰備箱' } : { title: '工具', desc: '' });
 
   app.innerHTML = `
     <div class="card">
       <h2>${meta.title}</h2>
       <p style="color:var(--muted);margin-top:4px">${meta.desc}</p>
-      ${renderFields[route]?.() || '<p>页面未找到</p>'}
+      ${renderFields[route]?.() || '<p>頁面未找到</p>'}
     </div>
   `;
-  // 事件绑定
-  if (route === 'qr') {
-    if (typeof QRCode === 'undefined') {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-      s.onload = () => { console.log('QRCode 模組載入完成'); };
-      document.head.appendChild(s);
-    }
+
+  if (route === 'qr' && typeof QRCode === 'undefined') {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+    document.head.appendChild(s);
   }
   if (route === 'color') {
     ['color-hex','color-r','color-g','color-b'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('input', () => { document.getElementById('color-output').textContent=''; });
+      if (el) el.addEventListener('input', UI.handleColor);
     });
   }
   if (route === 'diff') {
@@ -332,13 +388,14 @@ function renderRoute() {
       if (el) el.addEventListener('input', UI.handleDiff);
     });
   }
-  if (route === 'base64') {
-    const inp = document.getElementById('base64-input');
-    if (inp) inp.addEventListener('change', function () { UI.handleBase64(); });
+  if (route === 'css') {
+    ['css-x','css-y','css-b','css-s'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', UI.handleCSS);
+    });
   }
 }
 
-// 初始化
 window.addEventListener('hashchange', renderRoute);
 window.addEventListener('DOMContentLoaded', () => {
   if (!location.hash) location.hash = '#/';
