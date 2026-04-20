@@ -1,4 +1,5 @@
-export { default as color } from './color.js';
-export { default as qr } from './qr.js';
-export { default as diff } from './diff.js';
-// 後續可加入更多 tools 模組
+import * as color from './color.js';
+import * as qr from './qr.js';
+import * as diff from './diff.js';
+
+export { color, qr, diff };
