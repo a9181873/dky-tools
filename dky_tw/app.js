@@ -432,4 +432,11 @@ function renderRoute() {
 }
 
 window.addEventListener('popstate', renderRoute);
-window.addEventListener('DOMContentLoaded', renderRoute);
+window.addEventListener('DOMContentLoaded', () => {
+  // 自動將帶有 #/ 的舊版網址轉為新版路徑
+  if (location.hash.startsWith('#/')) {
+    const cleanPath = location.hash.replace('#', '');
+    history.replaceState(null, '', cleanPath);
+  }
+  renderRoute();
+});
