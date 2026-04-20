@@ -3,10 +3,9 @@ const CACHE_NAME = 'dky-tools-v1';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
-  '/src/index.js',
-  '/src/app.js',
-  '/src/styles.css',
-  '/src/index.html',
+  '/index.js',
+  '/app.js',
+  '/styles.css',
   '/favicon.ico',
 ];
 
