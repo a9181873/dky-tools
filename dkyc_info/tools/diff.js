@@ -15,5 +15,5 @@ export const compare = (a, b) => {
 };
 
 function escapeHtml(s) {
-  return s.replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }

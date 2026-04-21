@@ -1,5 +1,5 @@
 // 路由與工具配置（模組化）
-import { tools } from './tools/index.js';
+import * as tools from './tools/index.js';
 
 const ROUTES = {
   '/': 'home',
