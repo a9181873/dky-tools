@@ -108,11 +108,11 @@ const renderFields = {
       <label>內容</label>
       <input id="qr-input" placeholder="https://example.com" />
     </div>
-    <button class="btn" onclick="UI.handleQR()">生成 QR Code</button>
+    <button class="btn" id="qr-gen-btn" onclick="UI.handleQR()">生成 QR Code</button>
     <div class="qr-wrap">
-      <canvas id="qr-canvas" width="256" height="256"></canvas>
-      <img id="qr-output" style="max-width:256px;border-radius:10px;border:1px solid var(--glass-border)" />
-      <a id="qr-download" class="btn" download="qrcode.png">下載 PNG</a>
+      <div id="qr-status" style="color:var(--muted); font-size:0.8rem; display:none;">正在生成...</div>
+      <img id="qr-output" style="max-width:100%; width:256px; border-radius:10px; border:1px solid var(--glass-border); display:none;" />
+      <a id="qr-download" class="btn" style="display:none;" download="qrcode.png">下載 PNG</a>
     </div>
   `,
   color: () => `
@@ -308,10 +308,27 @@ const UI = {
   handleQR() {
     const text = document.getElementById('qr-input').value.trim();
     if (!text) return alert('請輸入內容或連結');
+    const out = document.getElementById('qr-output');
+    const dl = document.getElementById('qr-download');
+    const status = document.getElementById('qr-status');
+    const btn = document.getElementById('qr-gen-btn');
+    
+    status.style.display = 'block';
+    out.style.display = 'none';
+    dl.style.display = 'none';
+    btn.disabled = true;
+
     tools.qr.generate(text).then((url) => {
-      document.getElementById('qr-output').src = url;
-      document.getElementById('qr-download').href = url;
-    }).catch((e) => alert(e.message));
+      out.src = url;
+      out.style.display = 'block';
+      dl.href = url;
+      dl.style.display = 'inline-flex';
+    }).catch((e) => {
+      alert('產生失敗: ' + e.message);
+    }).finally(() => {
+      status.style.display = 'none';
+      btn.disabled = false;
+    });
   },
   handleColor() {
     const h = document.getElementById('color-hex').value.trim();
