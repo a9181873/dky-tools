@@ -1,5 +1,5 @@
 // 顏色代碼轉換工具（模組）
-export const convert = (input) => {
+const convert = (input) => {
   const h = input.hex?.trim();
   const r = parseInt(input.rgb?.r), g = parseInt(input.rgb?.g), b = parseInt(input.rgb?.b);
   let hex = '', rgb = '', hsl = '', cmyk = '';
@@ -43,3 +43,5 @@ function rgbToCmyk(r, g, b) {
   const C = (c - k) / (1 - k), M = (m - k) / (1 - k), Y = (y - k) / (1 - k);
   return `cmyk(${Math.round(C * 100)}, ${Math.round(M * 100)}, ${Math.round(Y * 100)}, ${Math.round(k * 100)}%)`;
 }
+
+export default { convert };

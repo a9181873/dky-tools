@@ -9,6 +9,7 @@ const ROUTES = {
   '/base64': 'base64',
   '/diff': 'diff',
   '/download': 'download',
+  '/id': 'id'
 };
 
 const renderFields = {
@@ -89,6 +90,38 @@ const renderFields = {
     <button class="btn" onclick="UI.handleDownload()">解析</button>
     <div class="output" id="dl-output"></div>
   `,
+  id: () => `
+    <div style="background: rgba(255, 193, 7, 0.1); color: #FFC107; padding: 10px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem;">
+      <strong>⚠️ 警語</strong>: 本工具純粹依據官方數學邏輯隨機演算生成。產生的字號僅供「程式開發」與「系統測試」使用，有機率與真實字號巧合相同，切勿用於任何真實網站註冊或非法用途！
+    </div>
+    <div style="display:flex; gap: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.2);">
+            <h3 style="margin-top:0;">✨ 隨機產生器</h3>
+            <div class="input-group">
+                <label>性別選項</label>
+                <select id="id-gender" class="glass-input" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:transparent;color:inherit;padding:8px;font-size:1rem;margin-bottom:8px;">
+                    <option value="">隨機</option>
+                    <option value="1">男性 (1)</option>
+                    <option value="2">女性 (2)</option>
+                    <option value="8">外國男 (8)</option>
+                    <option value="9">外國女 (9)</option>
+                </select>
+            </div>
+            <button class="btn" onclick="UI.handleIdGen()">抽出一組字號</button>
+            <div class="output" id="id-gen-output" style="font-size: 1.5rem; text-align: center; letter-spacing: 3px; margin-top: 10px;">點擊產生</div>
+        </div>
+        
+        <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.2);">
+            <h3 style="margin-top:0;">🛡️ 真偽驗證器</h3>
+            <div class="input-group">
+                <label>輸入身分證字號</label>
+                <input id="id-val-input" placeholder="例如: A123456789" maxlength="10" />
+            </div>
+            <button class="btn" onclick="UI.handleIdVal()">驗證</button>
+            <div class="output" id="id-val-output" style="text-align: center; margin-top: 10px;">等待驗證</div>
+        </div>
+    </div>
+  `
 };
 
 const UI = {
@@ -158,15 +191,47 @@ const UI = {
       a.download = 'decoded.bin';
     } catch { alert('Base64 格式错误'); }
   },
-  handleDiff() {
+  async handleDiff() {
     const a = document.getElementById('diff-a').value.split('\n');
     const b = document.getElementById('diff-b').value.split('\n');
-    document.getElementById('diff-output').innerHTML = tools.diff?.compare(a, b) || '未实现';
+    if (tools.diff?.compare) {
+        document.getElementById('diff-output').innerHTML = '<span style="color:var(--muted)">比對中...</span>';
+        try {
+            document.getElementById('diff-output').innerHTML = await tools.diff.compare(a, b);
+        } catch(e) {
+            document.getElementById('diff-output').innerHTML = '比對錯誤: ' + e.message;
+        }
+    } else {
+        document.getElementById('diff-output').innerHTML = '未實現';
+    }
   },
   handleDownload() {
     const url = document.getElementById('dl-url').value.trim();
     document.getElementById('dl-output').textContent = `解析中... 建议格式: mp4-1080p, mp3-audio, jpg-thumbnail`;
   },
+  handleIdGen() {
+    const sel = document.getElementById('id-gender').value;
+    const gender = sel ? sel : null;
+    if (tools.id?.generate) {
+      document.getElementById('id-gen-output').textContent = tools.id.generate(gender);
+    } else {
+      alert('產生器載入失敗');
+    }
+  },
+  handleIdVal() {
+    const val = document.getElementById('id-val-input').value;
+    if (tools.id?.validate) {
+      const result = tools.id.validate(val);
+      const out = document.getElementById('id-val-output');
+      if (result.valid) {
+          out.innerHTML = `<span style="color:#4CAF50; font-weight:bold;">${result.msg}</span>`;
+      } else {
+          out.innerHTML = `<span style="color:#FF5252; font-weight:bold;">${result.msg}</span>`;
+      }
+    } else {
+      alert('驗證器載入失敗');
+    }
+  }
 };
 
 // 將 UI 掛載到全域環境，以利 HTML 內的 onclick 屬性呼叫
