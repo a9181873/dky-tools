@@ -17,7 +17,9 @@ const ROUTES = {
   '/hash': 'hash',
   '/css': 'css',
   '/regex': 'regex',
-  '/id': 'id'
+  '/id': 'id',
+  '/unit': 'unit',
+  '/imgzip': 'imgzip'
 };
 
 const metaList = {
@@ -35,7 +37,9 @@ const metaList = {
   hash: { icon: '🔒', title: '加密雜湊 (Hash)', desc: '將任何明文轉換為不可逆的 SHA-256 / SHA-1 加密字串，不透過伺服器，最高規格保護密碼隱私。' },
   css: { icon: '✨', title: 'CSS 視覺產生', desc: '不再死背語法！拉動滑桿即時在畫面上預覽立體陰影 (Box-Shadow)，滿意後直接點擊複製 CSS 給前端貼上。' },
   regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
-  id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' }
+  id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
+  unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
+  imgzip: { icon: '🖼️', title: '圖片壓縮工具', desc: '上傳 JPG/PNG/WEBP，在瀏覽器本地壓縮後下載，品質、大小一目瞭然。⚠️ 不支援 GIF/SVG，所有運算本地完成，不上傳任何資料。' }
 };
 
 window.tzDatabase = [
@@ -351,6 +355,73 @@ const renderFields = {
             <div class="output" id="id-val-output" style="text-align: center; margin-top: 10px;">等待驗證</div>
         </div>
     </div>
+  `,
+  unit: () => {
+    const cats = tools.unit?.getCategories?.() || [];
+    const defaultCat = cats[0] || { key: '', units: [] };
+    const unitOptions = (units) => units.map(u => `<option value="${u.key}">${u.label}</option>`).join('');
+    return `
+      <div class="input-group">
+        <label>換算類別</label>
+        <select id="unit-cat" onchange="UI.handleUnitCatChange()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+          ${cats.map(c => `<option value="${c.key}">${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:1;min-width:120px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>數值</label>
+            <input id="unit-val" type="number" value="1" oninput="UI.handleUnitConvert()" />
+          </div>
+        </div>
+        <div style="flex:1;min-width:130px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>從</label>
+            <select id="unit-from" onchange="UI.handleUnitConvert()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;">
+              ${unitOptions(defaultCat.units)}
+            </select>
+          </div>
+        </div>
+        <div style="font-size:1.5rem;padding-top:20px;color:var(--accent)">→</div>
+        <div style="flex:1;min-width:130px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>到</label>
+            <select id="unit-to" onchange="UI.handleUnitConvert()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;">
+              ${unitOptions(defaultCat.units)}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="output" id="unit-output" style="font-size:1.8rem;text-align:center;margin-top:24px;letter-spacing:2px;">請選擇類別與單位</div>
+    `;
+  },
+  imgzip: () => `
+    <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+      ⚠️ <strong>注意</strong>：支援 JPG / PNG / WEBP，<strong>不支援 GIF / SVG</strong>。所有壓縮在瀏覽器本地完成，不上傳任何資料到伺服器，請放心使用。
+    </div>
+    <div class="input-group">
+      <label>選擇圖片</label>
+      <input id="imgzip-file" type="file" accept="image/jpeg,image/png,image/webp" onchange="UI.handleImgZipPreview()" />
+    </div>
+    <div class="input-group">
+      <label>壓縮品質 (<span id="imgzip-quality-label">80</span>%)</label>
+      <input id="imgzip-quality" type="range" min="10" max="100" value="80" oninput="document.getElementById('imgzip-quality-label').textContent=this.value; UI.handleImgZipCompress()" style="width:100%;accent-color:var(--accent);" />
+    </div>
+    <div id="imgzip-preview-wrap" style="display:none;">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="flex:1;min-width:200px;text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">原圖</div>
+          <img id="imgzip-original" style="max-width:100%;border-radius:8px;border:1px solid var(--border-light);" />
+          <div id="imgzip-original-size" style="margin-top:6px;font-size:0.85rem;color:var(--text-muted);"></div>
+        </div>
+        <div style="flex:1;min-width:200px;text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">壓縮後</div>
+          <img id="imgzip-result" style="max-width:100%;border-radius:8px;border:1px solid var(--border-light);" />
+          <div id="imgzip-result-size" style="margin-top:6px;font-size:0.85rem;color:#81c784;"></div>
+        </div>
+      </div>
+      <a id="imgzip-download" class="btn" download style="display:none;">⬇️ 下載壓縮圖</a>
+    </div>
   `
 };
 
@@ -639,6 +710,63 @@ const UI = {
       }
     } else {
       alert('驗證器載入失敗');
+    }
+  },
+  handleUnitCatChange() {
+    const catKey = document.getElementById('unit-cat').value;
+    const cats = tools.unit?.getCategories?.() || [];
+    const cat = cats.find(c => c.key === catKey);
+    if (!cat) return;
+    const opts = cat.units.map(u => `<option value="${u.key}">${u.label}</option>`).join('');
+    document.getElementById('unit-from').innerHTML = opts;
+    document.getElementById('unit-to').innerHTML = opts;
+    this.handleUnitConvert();
+  },
+  handleUnitConvert() {
+    const catKey = document.getElementById('unit-cat')?.value;
+    const fromKey = document.getElementById('unit-from')?.value;
+    const toKey = document.getElementById('unit-to')?.value;
+    const val = parseFloat(document.getElementById('unit-val')?.value);
+    const out = document.getElementById('unit-output');
+    if (isNaN(val)) { out.textContent = '請輸入有效數值'; return; }
+    const result = tools.unit?.convert?.(catKey, fromKey, toKey, val);
+    if (result === null || result === undefined) { out.textContent = '換算失敗'; return; }
+    const fromLabel = document.getElementById('unit-from').options[document.getElementById('unit-from').selectedIndex]?.text || fromKey;
+    const toLabel   = document.getElementById('unit-to').options[document.getElementById('unit-to').selectedIndex]?.text || toKey;
+    out.innerHTML = `<span style="color:var(--accent); font-size:2rem;">${result.toLocaleString(undefined, {maximumFractionDigits: 8})}</span><br><span style="font-size:0.85rem;color:var(--text-muted);">${val} ${fromLabel} = ${result.toLocaleString(undefined, {maximumFractionDigits: 8})} ${toLabel}</span>`;
+  },
+  handleImgZipPreview() {
+    const file = document.getElementById('imgzip-file').files[0];
+    if (!file) return;
+    const wrap = document.getElementById('imgzip-preview-wrap');
+    wrap.style.display = 'block';
+    const origImg = document.getElementById('imgzip-original');
+    const origSize = document.getElementById('imgzip-original-size');
+    const url = URL.createObjectURL(file);
+    origImg.src = url;
+    origSize.textContent = `原始大小：${(file.size / 1024).toFixed(1)} KB`;
+    window._imgzipFile = file;
+    this.handleImgZipCompress();
+  },
+  async handleImgZipCompress() {
+    const file = window._imgzipFile;
+    if (!file) return;
+    const quality = parseInt(document.getElementById('imgzip-quality').value) / 100;
+    try {
+      const result = await tools.imgzip.compress(file, quality);
+      const resultImg = document.getElementById('imgzip-result');
+      const resultSize = document.getElementById('imgzip-result-size');
+      const dlBtn = document.getElementById('imgzip-download');
+      resultImg.src = result.dataUrl;
+      const compressed = result.size;
+      const ratio = ((1 - compressed / file.size) * 100).toFixed(1);
+      resultSize.innerHTML = `壓縮後大小：<strong>${(compressed / 1024).toFixed(1)} KB</strong><br><span style="color:var(--accent)">節省 ${ratio}%</span>`;
+      dlBtn.style.display = 'inline-flex';
+      dlBtn.href = result.dataUrl;
+      const ext = result.mimeType === 'image/webp' ? 'webp' : result.mimeType === 'image/png' ? 'png' : 'jpg';
+      dlBtn.download = `compressed_q${Math.round(quality * 100)}.${ext}`;
+    } catch(e) {
+      document.getElementById('imgzip-result-size').textContent = '壓縮失敗: ' + e.message;
     }
   }
 };

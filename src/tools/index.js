@@ -4,4 +4,5 @@ export { default as diff } from './diff.js';
 export { default as id } from './id.js';
 export { default as json } from './json.js';
 export { default as base64 } from './base64.js';
-export { default as download } from './download.js';
+export { default as unit } from './unit.js';
+export { default as imgzip } from './imgzip.js';

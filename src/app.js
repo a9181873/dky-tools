@@ -8,17 +8,19 @@ const ROUTES = {
   '/json': 'json',
   '/base64': 'base64',
   '/diff': 'diff',
-  '/download': 'download',
-  '/id': 'id'
+  '/id': 'id',
+  '/unit': 'unit',
+  '/imgzip': 'imgzip'
 };
 
 const renderFields = {
   home: () => `
     <div class="tool-grid">
-      ${Object.entries(tools).map(([k, t]) => `
+      ${Object.entries(tools).filter(([k]) => k !== 'home').map(([k, t]) => `
         <div class="tool-card" onclick="location.hash='#/${k}'">
-          <div class="icon">📋</div>
-          <div class="label">${t.title}</div>
+          <div class="icon">${t.icon || '🔧'}</div>
+          <div class="label">${t.title || k}</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:8px; line-height:1.4">${t.desc || ''}</div>
         </div>
       `).join('')}
     </div>
@@ -95,11 +97,11 @@ const renderFields = {
       <strong>⚠️ 警語</strong>: 本工具純粹依據官方數學邏輯隨機演算生成。產生的字號僅供「程式開發」與「系統測試」使用，有機率與真實字號巧合相同，切勿用於任何真實網站註冊或非法用途！
     </div>
     <div style="display:flex; gap: 20px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.2);">
+        <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--border-light); border-radius: 8px; background: rgba(0,0,0,0.2);">
             <h3 style="margin-top:0;">✨ 隨機產生器</h3>
             <div class="input-group">
                 <label>性別選項</label>
-                <select id="id-gender" class="glass-input" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:transparent;color:inherit;padding:8px;font-size:1rem;margin-bottom:8px;">
+                <select id="id-gender" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:inherit;padding:8px;font-size:1rem;margin-bottom:8px;">
                     <option value="">隨機</option>
                     <option value="1">男性 (1)</option>
                     <option value="2">女性 (2)</option>
@@ -111,7 +113,7 @@ const renderFields = {
             <div class="output" id="id-gen-output" style="font-size: 1.5rem; text-align: center; letter-spacing: 3px; margin-top: 10px;">點擊產生</div>
         </div>
         
-        <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.2);">
+        <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--border-light); border-radius: 8px; background: rgba(0,0,0,0.2);">
             <h3 style="margin-top:0;">🛡️ 真偽驗證器</h3>
             <div class="input-group">
                 <label>輸入身分證字號</label>
@@ -120,6 +122,73 @@ const renderFields = {
             <button class="btn" onclick="UI.handleIdVal()">驗證</button>
             <div class="output" id="id-val-output" style="text-align: center; margin-top: 10px;">等待驗證</div>
         </div>
+    </div>
+  `,
+  unit: () => {
+    const cats = tools.unit?.getCategories?.() || [];
+    const defaultCat = cats[0] || { key: '', units: [] };
+    const unitOptions = (units) => units.map(u => `<option value="${u.key}">${u.label}</option>`).join('');
+    return `
+      <div class="input-group">
+        <label>換算類別</label>
+        <select id="unit-cat" onchange="UI.handleUnitCatChange()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+          ${cats.map(c => `<option value="${c.key}">${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:1;min-width:120px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>數値</label>
+            <input id="unit-val" type="number" value="1" oninput="UI.handleUnitConvert()" />
+          </div>
+        </div>
+        <div style="flex:1;min-width:130px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>從</label>
+            <select id="unit-from" onchange="UI.handleUnitConvert()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;">
+              ${unitOptions(defaultCat.units)}
+            </select>
+          </div>
+        </div>
+        <div style="font-size:1.5rem;padding-top:20px;color:var(--accent)">→</div>
+        <div style="flex:1;min-width:130px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>到</label>
+            <select id="unit-to" onchange="UI.handleUnitConvert()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;">
+              ${unitOptions(defaultCat.units)}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="output" id="unit-output" style="font-size:1.8rem;text-align:center;margin-top:24px;letter-spacing:2px;">請選擇類別與單位</div>
+    `;
+  },
+  imgzip: () => `
+    <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+      ⚠️ <strong>注意</strong>：支援 JPG / PNG / WEBP，<strong>不支援 GIF / SVG</strong>。所有壓縮在瀏覽器本地完成，不上傳任何資料到伺服器，請放心使用。
+    </div>
+    <div class="input-group">
+      <label>選擇圖片</label>
+      <input id="imgzip-file" type="file" accept="image/jpeg,image/png,image/webp" onchange="UI.handleImgZipPreview()" />
+    </div>
+    <div class="input-group">
+      <label>壓縮品質 (<span id="imgzip-quality-label">80</span>%)</label>
+      <input id="imgzip-quality" type="range" min="10" max="100" value="80" oninput="document.getElementById('imgzip-quality-label').textContent=this.value; UI.handleImgZipCompress()" style="width:100%;accent-color:var(--accent);" />
+    </div>
+    <div id="imgzip-preview-wrap" style="display:none;">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="flex:1;min-width:200px;text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">原圖</div>
+          <img id="imgzip-original" style="max-width:100%;border-radius:8px;border:1px solid var(--border-light);" />
+          <div id="imgzip-original-size" style="margin-top:6px;font-size:0.85rem;color:var(--text-muted);"></div>
+        </div>
+        <div style="flex:1;min-width:200px;text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">壓縮後</div>
+          <img id="imgzip-result" style="max-width:100%;border-radius:8px;border:1px solid var(--border-light);" />
+          <div id="imgzip-result-size" style="margin-top:6px;font-size:0.85rem;color:#81c784;"></div>
+        </div>
+      </div>
+      <a id="imgzip-download" class="btn" download style="display:none;">⬇️ 下載壓縮圖</a>
     </div>
   `
 };
@@ -205,10 +274,6 @@ const UI = {
         document.getElementById('diff-output').innerHTML = '未實現';
     }
   },
-  handleDownload() {
-    const url = document.getElementById('dl-url').value.trim();
-    document.getElementById('dl-output').textContent = `解析中... 建议格式: mp4-1080p, mp3-audio, jpg-thumbnail`;
-  },
   handleIdGen() {
     const sel = document.getElementById('id-gender').value;
     const gender = sel ? sel : null;
@@ -230,6 +295,59 @@ const UI = {
       }
     } else {
       alert('驗證器載入失敗');
+    }
+  },
+  handleUnitCatChange() {
+    const catKey = document.getElementById('unit-cat').value;
+    const cats = tools.unit?.getCategories?.() || [];
+    const cat = cats.find(c => c.key === catKey);
+    if (!cat) return;
+    const opts = cat.units.map(u => `<option value="${u.key}">${u.label}</option>`).join('');
+    document.getElementById('unit-from').innerHTML = opts;
+    document.getElementById('unit-to').innerHTML = opts;
+    this.handleUnitConvert();
+  },
+  handleUnitConvert() {
+    const catKey = document.getElementById('unit-cat')?.value;
+    const fromKey = document.getElementById('unit-from')?.value;
+    const toKey = document.getElementById('unit-to')?.value;
+    const val = parseFloat(document.getElementById('unit-val')?.value);
+    const out = document.getElementById('unit-output');
+    if (isNaN(val)) { out.textContent = '請輸入有效數值'; return; }
+    const result = tools.unit?.convert?.(catKey, fromKey, toKey, val);
+    if (result === null || result === undefined) { out.textContent = '換算失敗'; return; }
+    const fromEl = document.getElementById('unit-from');
+    const toEl   = document.getElementById('unit-to');
+    const fromLabel = fromEl.options[fromEl.selectedIndex]?.text || fromKey;
+    const toLabel   = toEl.options[toEl.selectedIndex]?.text || toKey;
+    out.innerHTML = `<span style="color:var(--accent); font-size:2rem;">${result.toLocaleString(undefined, {maximumFractionDigits: 8})}</span><br><span style="font-size:0.85rem;color:var(--text-muted);">${val} ${fromLabel} = ${result.toLocaleString(undefined, {maximumFractionDigits: 8})} ${toLabel}</span>`;
+  },
+  handleImgZipPreview() {
+    const file = document.getElementById('imgzip-file').files[0];
+    if (!file) return;
+    document.getElementById('imgzip-preview-wrap').style.display = 'block';
+    const url = URL.createObjectURL(file);
+    document.getElementById('imgzip-original').src = url;
+    document.getElementById('imgzip-original-size').textContent = `原始大小：${(file.size / 1024).toFixed(1)} KB`;
+    window._imgzipFile = file;
+    this.handleImgZipCompress();
+  },
+  async handleImgZipCompress() {
+    const file = window._imgzipFile;
+    if (!file) return;
+    const quality = parseInt(document.getElementById('imgzip-quality').value) / 100;
+    try {
+      const result = await tools.imgzip.compress(file, quality);
+      document.getElementById('imgzip-result').src = result.dataUrl;
+      const ratio = ((1 - result.size / file.size) * 100).toFixed(1);
+      document.getElementById('imgzip-result-size').innerHTML = `壓縮後大小：<strong>${(result.size / 1024).toFixed(1)} KB</strong><br><span style="color:var(--accent)">節省 ${ratio}%</span>`;
+      const dlBtn = document.getElementById('imgzip-download');
+      dlBtn.style.display = 'inline-flex';
+      dlBtn.href = result.dataUrl;
+      const ext = result.mimeType === 'image/webp' ? 'webp' : result.mimeType === 'image/png' ? 'png' : 'jpg';
+      dlBtn.download = `compressed_q${Math.round(quality * 100)}.${ext}`;
+    } catch(e) {
+      document.getElementById('imgzip-result-size').textContent = '壓縮失敗: ' + e.message;
     }
   }
 };
