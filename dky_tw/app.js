@@ -15,7 +15,11 @@ const ROUTES = {
   '/tz': 'tz',
   '/hash': 'hash',
   '/css': 'css',
-  '/regex': 'regex'
+  '/regex': 'regex',
+  '/exchange': 'exchange',
+  '/id': 'id',
+  '/unit': 'unit',
+  '/imgzip': 'imgzip'
 };
 
 const metaList = {
@@ -31,7 +35,11 @@ const metaList = {
   tz: { icon: '🌍', title: '跨國時區即時算', desc: '常常要跟外國客戶開通話？打開它，立刻為你換算目前東京、紐約、倫敦的準確當地時間。' },
   hash: { icon: '🔒', title: '加密雜湊 (Hash)', desc: '將任何明文轉換為不可逆的 SHA-256 / SHA-1 加密字串，不透過伺服器，最高規格保護密碼隱私。' },
   css: { icon: '✨', title: 'CSS 視覺產生', desc: '不再死背語法！拉動滑桿即時在畫面上預覽立體陰影 (Box-Shadow)，滿意後直接點擊複製 CSS 給前端貼上。' },
-  regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' }
+  regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
+  exchange: { icon: '💱', title: '匯率計算', desc: '即時取得全球匯率，支援多種貨幣快速換算。' },
+  id: { icon: '🪪', title: '身分證字號', desc: '台灣身分證字號驗證與隨機產生工具。' },
+  unit: { icon: '📏', title: '單位換算', desc: '長度、重量、數位容量等多種單位即時轉換。' },
+  imgzip: { icon: '🖼️', title: '圖片壓縮', desc: '純前端本機圖片壓縮、改變大小，完全保護隱私不外洩。' }
 };
 
 const renderFields = {
@@ -203,6 +211,93 @@ const renderFields = {
     </div>
     <button class="btn" onclick="UI.handleRegex()">測試匹配</button>
     <div class="output" id="regex-output" style="white-space: pre-wrap;"></div>
+  `,
+  exchange: () => `
+    <div class="input-group">
+      <label>輸入金額 (基礎幣值: TWD)</label>
+      <div style="display:flex; gap:8px;">
+        <input id="exchange-amount" type="number" value="100" placeholder="金額" style="flex: 2;" />
+        <select id="exchange-base" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: #fff;">
+          <option value="TWD">TWD 台幣</option>
+          <option value="USD">USD 美金</option>
+          <option value="JPY">JPY 日幣</option>
+          <option value="EUR">EUR 歐元</option>
+          <option value="HKD">HKD 港幣</option>
+          <option value="GBP">GBP 英鎊</option>
+          <option value="AUD">AUD 澳幣</option>
+          <option value="CNY">CNY 人民幣</option>
+          <option value="KRW">KRW 韓元</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn" onclick="UI.handleExchange()">即時換算</button>
+    <div class="output" id="exchange-output" style="white-space: pre-wrap; font-family: monospace; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">請點擊換算取得最新匯率...</div>
+    <div style="font-size: 0.8rem; color: var(--muted); margin-top: 10px; text-align: center;">資料來源: exchangerate-api.com</div>
+  `,
+  id: () => `
+    <div class="input-group">
+      <label>輸入身分證字號驗證</label>
+      <input id="id-input" placeholder="A123456789" maxlength="10" style="text-transform: uppercase;" />
+    </div>
+    <button class="btn" onclick="UI.handleIDCheck()">驗證</button>
+    <div class="output" id="id-output" style="margin-bottom: 20px;">請輸入身分證字號進行驗證</div>
+    
+    <div class="input-group">
+      <label>隨機產生</label>
+      <div style="display:flex; gap:8px;">
+        <select id="id-gender" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: #fff;">
+          <option value="1">男</option>
+          <option value="2">女</option>
+          <option value="">隨機</option>
+        </select>
+        <button class="btn" onclick="UI.handleIDGenerate()" style="flex: 2; margin: 0;">產生</button>
+      </div>
+    </div>
+    <div class="output" id="id-gen-output" style="font-size: 1.4rem; text-align: center; letter-spacing: 2px;">尚未產生</div>
+  `,
+  unit: () => `
+    <div class="input-group">
+      <label>換算類型</label>
+      <select id="unit-type" onchange="UI.handleUnitTypeChange()" style="padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: #fff; width: 100%;">
+        <option value="length">長度</option>
+        <option value="weight">重量</option>
+        <option value="temp">溫度</option>
+        <option value="area">面積</option>
+        <option value="volume">體積/容量</option>
+        <option value="speed">速度</option>
+        <option value="data">數位容量</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>輸入數值</label>
+      <div style="display:flex; gap:8px;">
+        <input id="unit-val" type="number" value="1" placeholder="數值" style="flex: 2;" oninput="UI.handleUnitConvert()" />
+        <select id="unit-from" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: #fff;" onchange="UI.handleUnitConvert()">
+        </select>
+      </div>
+    </div>
+    <div class="output" id="unit-output" style="white-space: pre-wrap; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">請選擇單位並輸入數值...</div>
+  `,
+  imgzip: () => `
+    <div class="input-group">
+      <label>選擇圖片 (僅限本機處理，不需上傳，完全保護隱私)</label>
+      <input id="imgzip-input" type="file" accept="image/*" />
+    </div>
+    <div class="input-group">
+      <label>壓縮品質 (<span id="imgzip-qval">0.8</span>) - 數值越小檔案越小，但畫質會降低</label>
+      <input id="imgzip-quality" type="range" min="0.1" max="1.0" step="0.1" value="0.8" oninput="document.getElementById('imgzip-qval').textContent = this.value" />
+    </div>
+    <div class="input-group">
+      <label>最大寬度限制 (選填，留白則保持原尺寸，僅壓縮品質)</label>
+      <input id="imgzip-width" type="number" placeholder="例如: 800" />
+    </div>
+    <button class="btn" onclick="UI.handleImgZip()">壓縮圖片</button>
+    <div class="qr-wrap" style="margin-top:20px;">
+      <canvas id="imgzip-canvas" style="display:none;"></canvas>
+      <img id="imgzip-output" style="max-width:100%; border-radius:10px; border:1px solid var(--glass-border); display:none;" />
+      <div id="imgzip-info" style="color:var(--muted); margin: 10px 0; font-size: 0.9rem;"></div>
+      <a id="imgzip-download" class="btn" style="display:none" download="compressed.jpg">下載圖片</a>
+    </div>
   `
 };
 
@@ -363,6 +458,127 @@ const UI = {
     document.getElementById('css-output').textContent = str;
     document.getElementById('css-preview').style.boxShadow = `${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5)`;
   },
+  async handleExchange() {
+    const base = document.getElementById('exchange-base').value;
+    const amount = parseFloat(document.getElementById('exchange-amount').value) || 0;
+    const out = document.getElementById('exchange-output');
+    out.innerHTML = '載入中...';
+    try {
+      const res = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
+      const data = await res.json();
+      const targets = ['TWD', 'USD', 'JPY', 'EUR', 'HKD', 'GBP', 'AUD', 'CNY', 'KRW'];
+      let html = '';
+      targets.forEach(t => {
+        if (t !== base && data.rates[t]) {
+          const val = (amount * data.rates[t]).toFixed(2);
+          html += `<div style="background: var(--card-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
+            <div style="font-size:0.8rem; color:var(--muted)">${t}</div>
+            <div style="font-size:1.2rem">${val}</div>
+          </div>`;
+        }
+      });
+      out.style.display = 'grid';
+      out.innerHTML = html || '無資料';
+    } catch (e) {
+      out.innerHTML = '無法取得匯率，請稍後再試。';
+    }
+  },
+  handleIDCheck() {
+    const id = document.getElementById('id-input').value;
+    const out = document.getElementById('id-output');
+    if (!id) {
+      out.textContent = '請輸入身分證字號';
+      out.style.color = 'var(--muted)';
+      return;
+    }
+    const res = tools.id.validate(id);
+    out.textContent = res.valid ? \`✅ \${res.reason} (\${res.city}, \${res.gender})\` : \`❌ \${res.reason}\`;
+    out.style.color = res.valid ? '#00ffaa' : '#ff4444';
+  },
+  handleIDGenerate() {
+    const g = document.getElementById('id-gender').value;
+    const res = tools.id.generate(null, g || null);
+    document.getElementById('id-gen-output').textContent = res;
+  },
+  handleUnitTypeChange() {
+    const type = document.getElementById('unit-type').value;
+    const select = document.getElementById('unit-from');
+    if (!tools.unit.CATEGORIES[type]) return;
+    const units = tools.unit.CATEGORIES[type].units;
+    select.innerHTML = Object.entries(units).map(([k, v]) => \`<option value="\${k}">\${v.name}</option>\`).join('');
+    this.handleUnitConvert();
+  },
+  handleUnitConvert() {
+    const type = document.getElementById('unit-type').value;
+    const from = document.getElementById('unit-from').value;
+    const val = parseFloat(document.getElementById('unit-val').value);
+    const out = document.getElementById('unit-output');
+    if (isNaN(val) || !from) {
+      out.innerHTML = '請輸入有效數值';
+      return;
+    }
+    const units = tools.unit.CATEGORIES[type].units;
+    let html = '';
+    for (const [k, v] of Object.entries(units)) {
+      if (k !== from) {
+        const converted = tools.unit.convert(val, from, k, type);
+        let displayVal = converted;
+        if (typeof converted === 'number') {
+          displayVal = converted > 100 ? converted.toFixed(2) : converted.toPrecision(4);
+          displayVal = parseFloat(displayVal).toString(); // remove trailing zeros
+        }
+        html += \`<div style="background: var(--card-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
+          <div style="font-size:0.8rem; color:var(--muted)">\${v.name}</div>
+          <div style="font-size:1.1rem">\${displayVal}</div>
+        </div>\`;
+      }
+    }
+    out.innerHTML = html;
+  },
+  handleImgZip() {
+    const fileInput = document.getElementById('imgzip-input');
+    const file = fileInput.files[0];
+    if (!file) return alert('請先選擇圖片');
+    const quality = parseFloat(document.getElementById('imgzip-quality').value);
+    const maxWidth = parseInt(document.getElementById('imgzip-width').value) || null;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.getElementById('imgzip-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = img.width;
+        let height = img.height;
+        
+        if (maxWidth && width > maxWidth) {
+          height = Math.round(height * (maxWidth / width));
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        const outImg = document.getElementById('imgzip-output');
+        outImg.src = dataUrl;
+        outImg.style.display = 'block';
+        
+        const originalSize = (file.size / 1024).toFixed(1);
+        const newSize = Math.round((dataUrl.length * 3 / 4) / 1024).toFixed(1);
+        const ratio = ((1 - newSize / originalSize) * 100).toFixed(1);
+        
+        document.getElementById('imgzip-info').textContent = \`原始大小: \${originalSize} KB → 壓縮後: \${newSize} KB (減少 \${ratio}%) | 解析度: \${width}x\${height}\`;
+        
+        const dlBtn = document.getElementById('imgzip-download');
+        dlBtn.href = dataUrl;
+        dlBtn.style.display = 'inline-block';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  },
   navigate(path) {
     if (location.pathname !== path) {
       history.pushState(null, '', path);
@@ -427,6 +643,20 @@ function renderRoute() {
     if (tzTimer) {
       clearInterval(tzTimer);
       tzTimer = null;
+    }
+  }
+  
+  if (route === 'unit') {
+    UI.handleUnitTypeChange();
+  }
+  
+  if (route === 'exchange') {
+    // 按下 Enter 時也能觸發換算
+    const exAmount = document.getElementById('exchange-amount');
+    if (exAmount) {
+      exAmount.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') UI.handleExchange();
+      });
     }
   }
 }
