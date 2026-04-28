@@ -13,6 +13,7 @@ const ROUTES = {
   '/url': 'url',
   '/text': 'text',
   '/tz': 'tz',
+  '/fx': 'fx',
   '/hash': 'hash',
   '/css': 'css',
   '/regex': 'regex',
@@ -32,7 +33,8 @@ const metaList = {
   pwd: { icon: '🛡️', title: '安全密碼產生', desc: '需要超複雜密碼？這個工具啟用你電腦 CPU 最底層的硬體亂數引擎，生成駭客也猜不到的高強度隨機密碼！' },
   url: { icon: '🔗', title: '網址亂碼還原', desc: '複製中文網址常變成 "%E6%B8%AC" 這種超長亂碼，透過「解碼」就能還原成看得懂的中文；當然也能反向「編碼」。' },
   text: { icon: '📝', title: '文字排版助手', desc: '報告寫了多少字？瞬間幫你結算含空白、去空白的字數；還能一鍵將英文全部轉大寫，或刪除多餘空白。' },
-  tz: { icon: '🌍', title: '跨國時區即時算', desc: '常常要跟外國客戶開通話？打開它，立刻為你換算目前東京、紐約、倫敦的準確當地時間。' },
+  tz: { icon: '🌍', title: '跨國時區即時算', desc: '常常要跟外國客戶開通話？打開它，透過州別、國家、城市分層選擇，立刻為你換算準確當地時間。' },
+  fx: { icon: '💱', title: '即時匯率換算 (FX)', desc: '查詢最新國際匯率！自動加上模擬銀行買賣價差，提供最實用的即時換算參考，不需再開網頁搜尋。' },
   hash: { icon: '🔒', title: '加密雜湊 (Hash)', desc: '將任何明文轉換為不可逆的 SHA-256 / SHA-1 加密字串，不透過伺服器，最高規格保護密碼隱私。' },
   css: { icon: '✨', title: 'CSS 視覺產生', desc: '不再死背語法！拉動滑桿即時在畫面上預覽立體陰影 (Box-Shadow)，滿意後直接點擊複製 CSS 給前端貼上。' },
   regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
@@ -41,6 +43,78 @@ const metaList = {
   unit: { icon: '📏', title: '單位換算', desc: '長度、重量、數位容量等多種單位即時轉換。' },
   imgzip: { icon: '🖼️', title: '圖片壓縮', desc: '純前端本機圖片壓縮、改變大小，完全保護隱私不外洩。' }
 };
+
+window.tzDatabase = [
+  { region: '亞洲 (Asia)', country: '台灣 (Taiwan)', city: '台北 (Taipei)', tz: 'Asia/Taipei' },
+  { region: '亞洲 (Asia)', country: '中國 (China)', city: '北京 (Beijing)', tz: 'Asia/Shanghai' },
+  { region: '亞洲 (Asia)', country: '中國 (China)', city: '上海 (Shanghai)', tz: 'Asia/Shanghai' },
+  { region: '亞洲 (Asia)', country: '中國 (China)', city: '廣州 (Guangzhou)', tz: 'Asia/Shanghai' },
+  { region: '亞洲 (Asia)', country: '中國 (China)', city: '深圳 (Shenzhen)', tz: 'Asia/Shanghai' },
+  { region: '亞洲 (Asia)', country: '中國 (China)', city: '重慶 (Chongqing)', tz: 'Asia/Chongqing' },
+  { region: '亞洲 (Asia)', country: '香港 (Hong Kong)', city: '香港 (Hong Kong)', tz: 'Asia/Hong_Kong' },
+  { region: '亞洲 (Asia)', country: '澳門 (Macau)', city: '澳門 (Macau)', tz: 'Asia/Macau' },
+  { region: '亞洲 (Asia)', country: '日本 (Japan)', city: '東京 (Tokyo)', tz: 'Asia/Tokyo' },
+  { region: '亞洲 (Asia)', country: '日本 (Japan)', city: '大阪 (Osaka)', tz: 'Asia/Tokyo' },
+  { region: '亞洲 (Asia)', country: '韓國 (South Korea)', city: '首爾 (Seoul)', tz: 'Asia/Seoul' },
+  { region: '亞洲 (Asia)', country: '韓國 (South Korea)', city: '釜山 (Busan)', tz: 'Asia/Seoul' },
+  { region: '亞洲 (Asia)', country: '新加坡 (Singapore)', city: '新加坡 (Singapore)', tz: 'Asia/Singapore' },
+  { region: '亞洲 (Asia)', country: '馬來西亞 (Malaysia)', city: '吉隆坡 (Kuala Lumpur)', tz: 'Asia/Kuala_Lumpur' },
+  { region: '亞洲 (Asia)', country: '泰國 (Thailand)', city: '曼谷 (Bangkok)', tz: 'Asia/Bangkok' },
+  { region: '亞洲 (Asia)', country: '越南 (Vietnam)', city: '胡志明市 (Ho Chi Minh)', tz: 'Asia/Ho_Chi_Minh' },
+  { region: '亞洲 (Asia)', country: '越南 (Vietnam)', city: '河內 (Hanoi)', tz: 'Asia/Bangkok' },
+  { region: '亞洲 (Asia)', country: '菲律賓 (Philippines)', city: '馬尼拉 (Manila)', tz: 'Asia/Manila' },
+  { region: '亞洲 (Asia)', country: '印度尼西亞 (Indonesia)', city: '雅加達 (Jakarta)', tz: 'Asia/Jakarta' },
+  { region: '亞洲 (Asia)', country: '印度 (India)', city: '新德里 (New Delhi)', tz: 'Asia/Kolkata' },
+  { region: '亞洲 (Asia)', country: '印度 (India)', city: '孟買 (Mumbai)', tz: 'Asia/Kolkata' },
+  { region: '亞洲 (Asia)', country: '阿聯酋 (UAE)', city: '杜拜 (Dubai)', tz: 'Asia/Dubai' },
+  { region: '亞洲 (Asia)', country: '阿聯酋 (UAE)', city: '阿布達比 (Abu Dhabi)', tz: 'Asia/Dubai' },
+  { region: '亞洲 (Asia)', country: '沙烏地阿拉伯 (Saudi Arabia)', city: '利雅德 (Riyadh)', tz: 'Asia/Riyadh' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '紐約 (New York)', tz: 'America/New_York' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '華盛頓 (Washington DC)', tz: 'America/New_York' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '波士頓 (Boston)', tz: 'America/New_York' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '洛杉磯 (Los Angeles)', tz: 'America/Los_Angeles' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '舊金山 (San Francisco)', tz: 'America/Los_Angeles' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '西雅圖 (Seattle)', tz: 'America/Los_Angeles' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '拉斯維加斯 (Las Vegas)', tz: 'America/Los_Angeles' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '芝加哥 (Chicago)', tz: 'America/Chicago' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '休士頓 (Houston)', tz: 'America/Chicago' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '達拉斯 (Dallas)', tz: 'America/Chicago' },
+  { region: '美洲 (America)', country: '美國 (USA)', city: '邁阿密 (Miami)', tz: 'America/New_York' },
+  { region: '美洲 (America)', country: '加拿大 (Canada)', city: '多倫多 (Toronto)', tz: 'America/Toronto' },
+  { region: '美洲 (America)', country: '加拿大 (Canada)', city: '溫哥華 (Vancouver)', tz: 'America/Vancouver' },
+  { region: '美洲 (America)', country: '加拿大 (Canada)', city: '蒙特婁 (Montreal)', tz: 'America/Toronto' },
+  { region: '美洲 (America)', country: '墨西哥 (Mexico)', city: '墨西哥城 (Mexico City)', tz: 'America/Mexico_City' },
+  { region: '美洲 (America)', country: '巴西 (Brazil)', city: '聖保羅 (Sao Paulo)', tz: 'America/Sao_Paulo' },
+  { region: '美洲 (America)', country: '阿根廷 (Argentina)', city: '布宜諾斯艾利斯 (Buenos Aires)', tz: 'America/Argentina/Buenos_Aires' },
+  { region: '歐洲 (Europe)', country: '英國 (UK)', city: '倫敦 (London)', tz: 'Europe/London' },
+  { region: '歐洲 (Europe)', country: '英國 (UK)', city: '曼徹斯特 (Manchester)', tz: 'Europe/London' },
+  { region: '歐洲 (Europe)', country: '法國 (France)', city: '巴黎 (Paris)', tz: 'Europe/Paris' },
+  { region: '歐洲 (Europe)', country: '德國 (Germany)', city: '柏林 (Berlin)', tz: 'Europe/Berlin' },
+  { region: '歐洲 (Europe)', country: '德國 (Germany)', city: '法蘭克福 (Frankfurt)', tz: 'Europe/Berlin' },
+  { region: '歐洲 (Europe)', country: '德國 (Germany)', city: '慕尼黑 (Munich)', tz: 'Europe/Berlin' },
+  { region: '歐洲 (Europe)', country: '義大利 (Italy)', city: '羅馬 (Rome)', tz: 'Europe/Rome' },
+  { region: '歐洲 (Europe)', country: '義大利 (Italy)', city: '米蘭 (Milan)', tz: 'Europe/Rome' },
+  { region: '歐洲 (Europe)', country: '西班牙 (Spain)', city: '馬德里 (Madrid)', tz: 'Europe/Madrid' },
+  { region: '歐洲 (Europe)', country: '西班牙 (Spain)', city: '巴塞隆納 (Barcelona)', tz: 'Europe/Madrid' },
+  { region: '歐洲 (Europe)', country: '荷蘭 (Netherlands)', city: '阿姆斯特丹 (Amsterdam)', tz: 'Europe/Amsterdam' },
+  { region: '歐洲 (Europe)', country: '瑞士 (Switzerland)', city: '蘇黎世 (Zurich)', tz: 'Europe/Zurich' },
+  { region: '歐洲 (Europe)', country: '瑞士 (Switzerland)', city: '日內瓦 (Geneva)', tz: 'Europe/Zurich' },
+  { region: '歐洲 (Europe)', country: '瑞典 (Sweden)', city: '斯德哥爾摩 (Stockholm)', tz: 'Europe/Stockholm' },
+  { region: '歐洲 (Europe)', country: '挪威 (Norway)', city: '奧斯陸 (Oslo)', tz: 'Europe/Oslo' },
+  { region: '歐洲 (Europe)', country: '丹麥 (Denmark)', city: '哥本哈根 (Copenhagen)', tz: 'Europe/Copenhagen' },
+  { region: '歐洲 (Europe)', country: '土耳其 (Turkey)', city: '伊斯坦堡 (Istanbul)', tz: 'Europe/Istanbul' },
+  { region: '大洋洲 (Pacific)', country: '澳洲 (Australia)', city: '雪梨 (Sydney)', tz: 'Australia/Sydney' },
+  { region: '大洋洲 (Pacific)', country: '澳洲 (Australia)', city: '墨爾本 (Melbourne)', tz: 'Australia/Melbourne' },
+  { region: '大洋洲 (Pacific)', country: '澳洲 (Australia)', city: '布里斯本 (Brisbane)', tz: 'Australia/Brisbane' },
+  { region: '大洋洲 (Pacific)', country: '澳洲 (Australia)', city: '伯斯 (Perth)', tz: 'Australia/Perth' },
+  { region: '大洋洲 (Pacific)', country: '紐西蘭 (New Zealand)', city: '奧克蘭 (Auckland)', tz: 'Pacific/Auckland' },
+  { region: '大洋洲 (Pacific)', country: '紐西蘭 (New Zealand)', city: '威靈頓 (Wellington)', tz: 'Pacific/Auckland' },
+  { region: '非洲 (Africa)', country: '埃及 (Egypt)', city: '開羅 (Cairo)', tz: 'Africa/Cairo' },
+  { region: '非洲 (Africa)', country: '南非 (South Africa)', city: '約翰尼斯堡 (Johannesburg)', tz: 'Africa/Johannesburg' },
+  { region: '非洲 (Africa)', country: '南非 (South Africa)', city: '開普敦 (Cape Town)', tz: 'Africa/Johannesburg' },
+  { region: '非洲 (Africa)', country: '肯亞 (Kenya)', city: '奈洛比 (Nairobi)', tz: 'Africa/Nairobi' },
+  { region: '非洲 (Africa)', country: '奈及利亞 (Nigeria)', city: '拉哥斯 (Lagos)', tz: 'Africa/Lagos' }
+];
 
 const renderFields = {
   home: () => `
@@ -58,11 +132,11 @@ const renderFields = {
       <label>內容</label>
       <input id="qr-input" placeholder="https://example.com" />
     </div>
-    <button class="btn" onclick="UI.handleQR()">生成 QR Code</button>
+    <button class="btn" id="qr-gen-btn" onclick="UI.handleQR()">生成 QR Code</button>
     <div class="qr-wrap">
-      <canvas id="qr-canvas" width="256" height="256"></canvas>
-      <img id="qr-output" style="max-width:256px;border-radius:10px;border:1px solid var(--glass-border)" />
-      <a id="qr-download" class="btn" download="qrcode.png">下載 PNG</a>
+      <div id="qr-status" style="color:var(--muted); font-size:0.8rem; display:none;">正在生成...</div>
+      <img id="qr-output" style="max-width:100%; width:256px; border-radius:10px; border:1px solid var(--glass-border); display:none;" />
+      <a id="qr-download" class="btn" style="display:none;" download="qrcode.png">下載 PNG</a>
     </div>
   `,
   color: () => `
@@ -157,19 +231,59 @@ const renderFields = {
     <div class="output" id="text-output" style="white-space: pre-wrap;"></div>
   `,
   tz: () => {
-    const zones = Intl.supportedValuesOf('timeZone');
     return `
-      <div class="input-group">
-        <label>搜尋並選擇全球城市/時區</label>
-        <input id="tz-search" type="text" placeholder="輸入關鍵字，例如: Tokyo, London, Sydney..." oninput="UI.filterTZ()" />
-        <div id="tz-list" class="glass" style="max-height: 200px; overflow-y: auto; margin-top: 8px; border-radius: 8px; border: 1px solid var(--glass-border);">
-          ${zones.map(z => `<div class="tz-item" style="padding: 10px; cursor: pointer; border-bottom: 1px solid var(--glass-border);" onclick="UI.selectTZ('${z}')">${z}</div>`).join('')}
+      <div class="input-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 150px;">
+          <label>大洲 (Region)</label>
+          <select id="tz-region" class="glass-input" onchange="UI.tzRegionChange()" style="width: 100%; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; padding: 12px; font-size: 1rem; outline: none; margin-bottom: 8px;">
+            <option value="">--請選擇--</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+          <label>國家 (Country)</label>
+          <select id="tz-country" class="glass-input" onchange="UI.tzCountryChange()" style="width: 100%; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; padding: 12px; font-size: 1rem; outline: none; margin-bottom: 8px;">
+            <option value="">--請先選大洲--</option>
+          </select>
+        </div>
+        <div style="flex: 1; min-width: 150px;">
+          <label>城市 (City)</label>
+          <select id="tz-city" class="glass-input" onchange="UI.tzCityChange()" style="width: 100%; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; padding: 12px; font-size: 1rem; outline: none; margin-bottom: 8px;">
+            <option value="">--請先選國家--</option>
+          </select>
         </div>
       </div>
       <div class="output" id="tz-output" style="margin-top: 20px; text-align: center;">
         <div id="tz-clock" style="font-size: 2.5rem; font-weight: 300; font-family: monospace;">--:--:--</div>
-        <div id="tz-date" style="color: var(--muted); margin-top: 10px;">請選擇一個時區</div>
+        <div id="tz-date" style="color: var(--muted); margin-top: 10px;">請從上方清單選擇城市</div>
         <div id="tz-offset" style="font-size: 0.8rem; color: var(--muted); margin-top: 4px;"></div>
+      </div>
+    `;
+  },
+  fx: () => {
+    const currencies = ['USD', 'TWD', 'EUR', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'SGD', 'NZD', 'KRW'];
+    return `
+      <div class="input-group" style="display:flex;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:150px">
+          <label>兌換數量</label>
+          <input id="fx-amt" type="number" value="1000" placeholder="例如: 1000" />
+        </div>
+        <div style="flex:1;min-width:100px">
+          <label>基準貨幣 (Base)</label>
+          <select id="fx-base" class="glass-input" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+            ${currencies.map(c => `<option value="${c}" ${c === 'USD' ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1;min-width:100px">
+          <label>目標貨幣 (Target)</label>
+          <select id="fx-target" class="glass-input" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+            ${currencies.map(c => `<option value="${c}" ${c === 'TWD' ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="UI.handleFX()">取得最新報價與換算</button>
+      <div class="output" id="fx-output" style="margin-top:20px; text-align:center;">
+         <div style="color:var(--muted); font-size:0.9rem; margin-bottom:8px;">報價來自全球開源匯率 API (中價基準)，並模擬各大銀行 ±0.5% 買賣價差提供參考，實際牌價請依各營業網點為準。</div>
+         <div id="fx-result" style="font-size:1.1rem; line-height: 1.8;">請點擊獲取報價</div>
       </div>
     `;
   },
@@ -305,10 +419,27 @@ const UI = {
   handleQR() {
     const text = document.getElementById('qr-input').value.trim();
     if (!text) return alert('請輸入內容或連結');
+    const out = document.getElementById('qr-output');
+    const dl = document.getElementById('qr-download');
+    const status = document.getElementById('qr-status');
+    const btn = document.getElementById('qr-gen-btn');
+    
+    status.style.display = 'block';
+    out.style.display = 'none';
+    dl.style.display = 'none';
+    btn.disabled = true;
+
     tools.qr.generate(text).then((url) => {
-      document.getElementById('qr-output').src = url;
-      document.getElementById('qr-download').href = url;
-    }).catch((e) => alert(e.message));
+      out.src = url;
+      out.style.display = 'block';
+      dl.href = url;
+      dl.style.display = 'inline-flex';
+    }).catch((e) => {
+      alert('產生失敗: ' + e.message);
+    }).finally(() => {
+      status.style.display = 'none';
+      btn.disabled = false;
+    });
   },
   handleColor() {
     const h = document.getElementById('color-hex').value.trim();
@@ -350,10 +481,20 @@ const UI = {
       else out.textContent = decodeURI(atob(v));
     } catch { alert('編解碼失敗'); }
   },
-  handleDiff() {
+  async handleDiff() {
     const a = document.getElementById('diff-a').value.split('\n');
     const b = document.getElementById('diff-b').value.split('\n');
-    document.getElementById('diff-output').innerHTML = tools.diff?.compare(a, b) || '未實現';
+    
+    if (tools.diff?.compare) {
+        document.getElementById('diff-output').innerHTML = '<span style="color:var(--muted)">比對中...</span>';
+        try {
+            document.getElementById('diff-output').innerHTML = await tools.diff.compare(a, b);
+        } catch (e) {
+            document.getElementById('diff-output').innerHTML = '比對錯誤: ' + e.message;
+        }
+    } else {
+        document.getElementById('diff-output').innerHTML = '未實現';
+    }
   },
   handleJWT() {
     try {
@@ -401,16 +542,44 @@ const UI = {
   handleTZ() {
     // 已由 updateTZDisplay 接手
   },
-  filterTZ() {
-    const q = document.getElementById('tz-search').value.toLowerCase();
-    const items = document.querySelectorAll('.tz-item');
-    items.forEach(item => {
-      item.style.display = item.textContent.toLowerCase().includes(q) ? 'block' : 'none';
-    });
+  tzInit() {
+    const regions = [...new Set(window.tzDatabase.map(t => t.region))];
+    const rSel = document.getElementById('tz-region');
+    if(rSel) rSel.innerHTML = '<option value="">--請選擇大洲--</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
   },
-  selectTZ(tz) {
+  tzRegionChange() {
+    const r = document.getElementById('tz-region').value;
+    const cSel = document.getElementById('tz-country');
+    if (!r) {
+      cSel.innerHTML = '<option value="">--請先選大洲--</option>';
+      document.getElementById('tz-city').innerHTML = '<option value="">--請先選國家--</option>';
+      return;
+    }
+    const countries = [...new Set(window.tzDatabase.filter(t => t.region === r).map(t => t.country))];
+    cSel.innerHTML = '<option value="">--請選擇國家--</option>' + countries.map(c => `<option value="${c}">${c}</option>`).join('');
+    document.getElementById('tz-city').innerHTML = '<option value="">--請先選國家--</option>';
+  },
+  tzCountryChange() {
+    const r = document.getElementById('tz-region').value;
+    const c = document.getElementById('tz-country').value;
+    const citySel = document.getElementById('tz-city');
+    if (!c) {
+      citySel.innerHTML = '<option value="">--請先選國家--</option>';
+      return;
+    }
+    const cities = window.tzDatabase.filter(t => t.region === r && t.country === c);
+    citySel.innerHTML = '<option value="">--請選擇城市--</option>' + cities.map(ci => `<option value="${ci.tz}">${ci.city}</option>`).join('');
+  },
+  tzCityChange() {
+    const sel = document.getElementById('tz-city');
+    const tz = sel.value;
+    if (tz) {
+      const cityText = sel.options[sel.selectedIndex].text;
+      UI.selectTZ(tz, cityText);
+    }
+  },
+  selectTZ(tz, displayName = tz) {
     window.selectedTZ = tz;
-    document.getElementById('tz-search').value = tz;
     this.updateTZDisplay();
   },
   updateTZDisplay() {
@@ -584,6 +753,132 @@ const UI = {
       history.pushState(null, '', path);
       renderRoute();
     }
+  },
+  async handleFX() {
+    const amtStr = document.getElementById('fx-amt').value;
+    const amt = parseFloat(amtStr);
+    const base = document.getElementById('fx-base').value;
+    const target = document.getElementById('fx-target').value;
+    const resEl = document.getElementById('fx-result');
+    
+    if (isNaN(amt) || amt <= 0) return alert('請輸入有效的金額數量');
+    if (base === target) {
+      resEl.innerHTML = `同幣別不需換算: ${amt.toLocaleString()} ${base}`;
+      return;
+    }
+
+    resEl.innerHTML = `<span style="color:var(--accent);">網頁獲取即時報價中...</span>`;
+    
+    try {
+      let rate = 1;
+      const resp = await fetch(`https://open.er-api.com/v6/latest/${base}`);
+      if (!resp.ok) {
+        throw new Error('API 無法取得該貨幣對的報價支援');
+      }
+      const data = await resp.json();
+      if (!data.rates || !data.rates[target]) throw new Error('找不到目標貨幣的即時匯率');
+      rate = data.rates[target];
+      
+      const midVal = (amt * rate).toFixed(3);
+      // Simulate fake bank bid/ask spread (0.5% margin)
+      const bidRate = rate * 0.995;
+      const askRate = rate * 1.005;
+      
+      const bidVal = (amt * bidRate).toFixed(3);
+      const askVal = (amt * askRate).toFixed(3);
+
+      resEl.innerHTML = `
+        <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; margin-top: 12px; display: inline-block; text-align: left;">
+          <div style="margin-bottom: 8px;"><strong>交易中價 (Mid)</strong> : 1 ${base} = ${rate.toFixed(4)} ${target} <br> 總額: <span style="font-size: 1.2rem; color: #aaa;">${midVal}</span></div>
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+          <div style="color: #4CAF50; margin-bottom: 8px;">🛒 <strong>銀行賣出參考 (含加減碼)</strong> : 1 ${base} = ${askRate.toFixed(4)} ${target} <br> 找銀行買 ${base} 總成本估算: <span style="font-size: 1.2em; font-weight: bold;">${askVal}</span></div>
+          <div style="color: #FF5252;">💵 <strong>銀行買入參考 (含加減碼)</strong> : 1 ${base} = ${bidRate.toFixed(4)} ${target} <br> 賣 ${base} 給銀行總收益估算: <span style="font-size: 1.2em; font-weight: bold;">${bidVal}</span></div>
+        </div>
+      `;
+    } catch (e) {
+      resEl.innerHTML = `<span style="color:#FF5252">無法獲取匯率，請稍後再試。錯誤: ${e.message}</span>
+      <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;">(備註: 開源 API (Frankfurter) 無法跨行包含部分封閉國家的貨幣，例如新台幣 TWD 支援可能受限)</div>`;
+    }
+  },
+  handleIdGen() {
+    const sel = document.getElementById('id-gender').value;
+    const gender = sel ? sel : null;
+    if (tools.id?.generate) {
+      document.getElementById('id-gen-output').textContent = tools.id.generate(gender);
+    } else {
+      alert('產生器載入失敗');
+    }
+  },
+  handleIdVal() {
+    const val = document.getElementById('id-val-input').value;
+    if (tools.id?.validate) {
+      const result = tools.id.validate(val);
+      const out = document.getElementById('id-val-output');
+      if (result.valid) {
+          out.innerHTML = `<span style="color:#4CAF50; font-weight:bold;">${result.msg}</span>`;
+      } else {
+          out.innerHTML = `<span style="color:#FF5252; font-weight:bold;">${result.msg}</span>`;
+      }
+    } else {
+      alert('驗證器載入失敗');
+    }
+  },
+  handleUnitCatChange() {
+    const catKey = document.getElementById('unit-cat').value;
+    const cats = tools.unit?.getCategories?.() || [];
+    const cat = cats.find(c => c.key === catKey);
+    if (!cat) return;
+    const opts = cat.units.map(u => `<option value="${u.key}">${u.label}</option>`).join('');
+    document.getElementById('unit-from').innerHTML = opts;
+    document.getElementById('unit-to').innerHTML = opts;
+    this.handleUnitConvert();
+  },
+  handleUnitConvert() {
+    const catKey = document.getElementById('unit-cat')?.value;
+    const fromKey = document.getElementById('unit-from')?.value;
+    const toKey = document.getElementById('unit-to')?.value;
+    const val = parseFloat(document.getElementById('unit-val')?.value);
+    const out = document.getElementById('unit-output');
+    if (isNaN(val)) { out.textContent = '請輸入有效數值'; return; }
+    const result = tools.unit?.convert?.(catKey, fromKey, toKey, val);
+    if (result === null || result === undefined) { out.textContent = '換算失敗'; return; }
+    const fromLabel = document.getElementById('unit-from').options[document.getElementById('unit-from').selectedIndex]?.text || fromKey;
+    const toLabel   = document.getElementById('unit-to').options[document.getElementById('unit-to').selectedIndex]?.text || toKey;
+    out.innerHTML = `<span style="color:var(--accent); font-size:2rem;">${result.toLocaleString(undefined, {maximumFractionDigits: 8})}</span><br><span style="font-size:0.85rem;color:var(--text-muted);">${val} ${fromLabel} = ${result.toLocaleString(undefined, {maximumFractionDigits: 8})} ${toLabel}</span>`;
+  },
+  handleImgZipPreview() {
+    const file = document.getElementById('imgzip-file').files[0];
+    if (!file) return;
+    const wrap = document.getElementById('imgzip-preview-wrap');
+    wrap.style.display = 'block';
+    const origImg = document.getElementById('imgzip-original');
+    const origSize = document.getElementById('imgzip-original-size');
+    const url = URL.createObjectURL(file);
+    origImg.src = url;
+    origSize.textContent = `原始大小：${(file.size / 1024).toFixed(1)} KB`;
+    window._imgzipFile = file;
+    this.handleImgZipCompress();
+  },
+  async handleImgZipCompress() {
+    const file = window._imgzipFile;
+    if (!file) return;
+    const quality = parseInt(document.getElementById('imgzip-quality').value) / 100;
+    try {
+      const result = await tools.imgzip.compress(file, quality);
+      const resultImg = document.getElementById('imgzip-result');
+      const resultSize = document.getElementById('imgzip-result-size');
+      const dlBtn = document.getElementById('imgzip-download');
+      resultImg.src = result.dataUrl;
+      const compressed = result.size;
+      const ratio = ((1 - compressed / file.size) * 100).toFixed(1);
+      resultSize.innerHTML = `壓縮後大小：<strong>${(compressed / 1024).toFixed(1)} KB</strong><br><span style="color:var(--accent)">節省 ${ratio}%</span>`;
+      dlBtn.style.display = 'inline-flex';
+      dlBtn.href = result.dataUrl;
+      const ext = result.mimeType === 'image/webp' ? 'webp' : result.mimeType === 'image/png' ? 'png' : 'jpg';
+      dlBtn.download = `compressed_q${Math.round(quality * 100)}.${ext}`;
+    } catch(e) {
+      document.getElementById('imgzip-result-size').textContent = '壓縮失敗: ' + e.message;
+    }
   }
 };
 
@@ -635,10 +930,12 @@ function renderRoute() {
     });
   }
   if (route === 'tz') {
+    UI.tzInit();
     if (tzTimer) clearInterval(tzTimer);
     tzTimer = setInterval(() => UI.updateTZDisplay(), 1000);
-    // 預設選擇台北
-    setTimeout(() => UI.selectTZ('Asia/Taipei'), 100);
+    
+    // 不自動選擇，讓使用者自選，保留空白狀態，避免跳掉
+    document.getElementById('tz-date').textContent = '請從上方下拉選單篩選並選擇城市';
   } else {
     if (tzTimer) {
       clearInterval(tzTimer);
