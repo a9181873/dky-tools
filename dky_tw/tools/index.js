@@ -6,7 +6,4 @@ import * as id from './id.js';
 import * as unit from './unit.js';
 import * as imgzip from './imgzip.js';
 
-import * as id from './id.js';
-import * as unit from './unit.js';
-
-export { color, qr, diff, hash, id, unit };
+export { color, qr, diff, hash, id, unit, imgzip };

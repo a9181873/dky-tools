@@ -17,7 +17,6 @@ const ROUTES = {
   '/hash': 'hash',
   '/css': 'css',
   '/regex': 'regex',
-  '/exchange': 'exchange',
   '/id': 'id',
   '/unit': 'unit',
   '/imgzip': 'imgzip'
@@ -38,10 +37,9 @@ const metaList = {
   hash: { icon: '🔒', title: '加密雜湊 (Hash)', desc: '將任何明文轉換為不可逆的 SHA-256 / SHA-1 加密字串，不透過伺服器，最高規格保護密碼隱私。' },
   css: { icon: '✨', title: 'CSS 視覺產生', desc: '不再死背語法！拉動滑桿即時在畫面上預覽立體陰影 (Box-Shadow)，滿意後直接點擊複製 CSS 給前端貼上。' },
   regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
-  exchange: { icon: '💱', title: '匯率計算', desc: '即時取得全球匯率，支援多種貨幣快速換算。' },
-  id: { icon: '🪪', title: '身分證字號', desc: '台灣身分證字號驗證與隨機產生工具。' },
-  unit: { icon: '📏', title: '單位換算', desc: '長度、重量、數位容量等多種單位即時轉換。' },
-  imgzip: { icon: '🖼️', title: '圖片壓縮', desc: '純前端本機圖片壓縮、改變大小，完全保護隱私不外洩。' }
+  id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
+  unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
+  imgzip: { icon: '🖼️', title: '圖片壓縮工具', desc: '上傳 JPG/PNG/WEBP，在瀏覽器本地壓縮後下載，品質、大小一目瞭然。⚠️ 不支援 GIF/SVG，所有運算本地完成，不上傳任何資料。' }
 };
 
 window.tzDatabase = [
@@ -232,35 +230,19 @@ const renderFields = {
   `,
   tz: () => {
     return `
-      <div class="input-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 150px;">
-          <label>大洲 (Region)</label>
-          <select id="tz-region" class="glass-input" onchange="UI.tzRegionChange()" style="width: 100%; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; padding: 12px; font-size: 1rem; outline: none; margin-bottom: 8px;">
-            <option value="">--請選擇--</option>
-          </select>
-        </div>
-        <div style="flex: 1; min-width: 150px;">
-          <label>國家 (Country)</label>
-          <select id="tz-country" class="glass-input" onchange="UI.tzCountryChange()" style="width: 100%; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; padding: 12px; font-size: 1rem; outline: none; margin-bottom: 8px;">
-            <option value="">--請先選大洲--</option>
-          </select>
-        </div>
-        <div style="flex: 1; min-width: 150px;">
-          <label>城市 (City)</label>
-          <select id="tz-city" class="glass-input" onchange="UI.tzCityChange()" style="width: 100%; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; padding: 12px; font-size: 1rem; outline: none; margin-bottom: 8px;">
-            <option value="">--請先選國家--</option>
-          </select>
-        </div>
+      <div class="input-group">
+        <label>搜尋國家或城市 (中英文皆可)</label>
+        <input id="tz-search" class="glass-input" placeholder="例如: 台北, Tokyo, 美國..." oninput="UI.filterTZ()" style="width: 100%; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; padding: 12px; font-size: 1rem; outline: none; margin-bottom: 8px;" />
+        <div id="tz-list" class="glass" style="max-height: 200px; overflow-y: auto; border-radius: 8px; border: 1px solid var(--glass-border); display: none;"></div>
       </div>
       <div class="output" id="tz-output" style="margin-top: 20px; text-align: center;">
         <div id="tz-clock" style="font-size: 2.5rem; font-weight: 300; font-family: monospace;">--:--:--</div>
-        <div id="tz-date" style="color: var(--muted); margin-top: 10px;">請從上方清單選擇城市</div>
+        <div id="tz-date" style="color: var(--muted); margin-top: 10px;">請搜尋並選擇時區</div>
         <div id="tz-offset" style="font-size: 0.8rem; color: var(--muted); margin-top: 4px;"></div>
       </div>
     `;
   },
   fx: () => {
-    const currencies = ['USD', 'TWD', 'EUR', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'SGD', 'NZD', 'KRW'];
     return `
       <div class="input-group" style="display:flex;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:150px">
@@ -269,21 +251,17 @@ const renderFields = {
         </div>
         <div style="flex:1;min-width:100px">
           <label>基準貨幣 (Base)</label>
-          <select id="fx-base" class="glass-input" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
-            ${currencies.map(c => `<option value="${c}" ${c === 'USD' ? 'selected' : ''}>${c}</option>`).join('')}
-          </select>
+          <input list="fx-currencies" id="fx-base" class="glass-input" value="USD" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;" onchange="UI.handleFX()" />
         </div>
         <div style="flex:1;min-width:100px">
           <label>目標貨幣 (Target)</label>
-          <select id="fx-target" class="glass-input" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
-            ${currencies.map(c => `<option value="${c}" ${c === 'TWD' ? 'selected' : ''}>${c}</option>`).join('')}
-          </select>
+          <input list="fx-currencies" id="fx-target" class="glass-input" value="TWD" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;" onchange="UI.handleFX()" />
         </div>
       </div>
-      <button class="btn" onclick="UI.handleFX()">取得最新報價與換算</button>
+      <datalist id="fx-currencies"></datalist>
       <div class="output" id="fx-output" style="margin-top:20px; text-align:center;">
-         <div style="color:var(--muted); font-size:0.9rem; margin-bottom:8px;">報價來自全球開源匯率 API (中價基準)，並模擬各大銀行 ±0.5% 買賣價差提供參考，實際牌價請依各營業網點為準。</div>
-         <div id="fx-result" style="font-size:1.1rem; line-height: 1.8;">請點擊獲取報價</div>
+         <div style="color:var(--muted); font-size:0.9rem; margin-bottom:8px;">報價來自全球開源匯率 API (中價基準)</div>
+         <div id="fx-result" style="font-size:1.5rem; line-height: 1.8;">載入中...</div>
       </div>
     `;
   },
@@ -326,91 +304,103 @@ const renderFields = {
     <button class="btn" onclick="UI.handleRegex()">測試匹配</button>
     <div class="output" id="regex-output" style="white-space: pre-wrap;"></div>
   `,
-  exchange: () => `
-    <div class="input-group">
-      <label>輸入金額 (基礎幣值: TWD)</label>
-      <div style="display:flex; gap:8px;">
-        <input id="exchange-amount" type="number" value="100" placeholder="金額" style="flex: 2;" />
-        <select id="exchange-base" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: #fff;">
-          <option value="TWD">TWD 台幣</option>
-          <option value="USD">USD 美金</option>
-          <option value="JPY">JPY 日幣</option>
-          <option value="EUR">EUR 歐元</option>
-          <option value="HKD">HKD 港幣</option>
-          <option value="GBP">GBP 英鎊</option>
-          <option value="AUD">AUD 澳幣</option>
-          <option value="CNY">CNY 人民幣</option>
-          <option value="KRW">KRW 韓元</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn" onclick="UI.handleExchange()">即時換算</button>
-    <div class="output" id="exchange-output" style="white-space: pre-wrap; font-family: monospace; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">請點擊換算取得最新匯率...</div>
-    <div style="font-size: 0.8rem; color: var(--muted); margin-top: 10px; text-align: center;">資料來源: exchangerate-api.com</div>
-  `,
   id: () => `
-    <div class="input-group">
-      <label>輸入身分證字號驗證</label>
-      <input id="id-input" placeholder="A123456789" maxlength="10" style="text-transform: uppercase;" />
+    <div style="background: rgba(255, 193, 7, 0.1); color: #FFC107; padding: 10px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem;">
+      <strong>⚠️ 警語</strong>: 本工具純粹依據官方數學邏輯隨機演算生成。產生的字號僅供「程式開發」與「系統測試」使用，有機率與真實字號巧合相同，切勿用於任何真實網站註冊或非法用途！
     </div>
-    <button class="btn" onclick="UI.handleIDCheck()">驗證</button>
-    <div class="output" id="id-output" style="margin-bottom: 20px;">請輸入身分證字號進行驗證</div>
-    
-    <div class="input-group">
-      <label>隨機產生</label>
-      <div style="display:flex; gap:8px;">
-        <select id="id-gender" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: #fff;">
-          <option value="1">男</option>
-          <option value="2">女</option>
-          <option value="">隨機</option>
-        </select>
-        <button class="btn" onclick="UI.handleIDGenerate()" style="flex: 2; margin: 0;">產生</button>
-      </div>
+    <div style="display:flex; gap: 20px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.2);">
+            <h3 style="margin-top:0;">✨ 隨機產生器</h3>
+            <div class="input-group">
+                <label>性別選項</label>
+                <select id="id-gender" class="glass-input" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+                    <option value="">隨機</option>
+                    <option value="1">男性 (1)</option>
+                    <option value="2">女性 (2)</option>
+                    <option value="8">外國男 (8)</option>
+                    <option value="9">外國女 (9)</option>
+                </select>
+            </div>
+            <button class="btn" onclick="UI.handleIdGen()">抽出一組字號</button>
+            <div class="output" id="id-gen-output" style="font-size: 1.5rem; text-align: center; letter-spacing: 3px; margin-top: 10px;">點擊產生</div>
+        </div>
+        
+        <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.2);">
+            <h3 style="margin-top:0;">🛡️ 真偽驗證器</h3>
+            <div class="input-group">
+                <label>輸入身分證字號</label>
+                <input id="id-val-input" placeholder="例如: A123456789" maxlength="10" />
+            </div>
+            <button class="btn" onclick="UI.handleIdVal()">驗證</button>
+            <div class="output" id="id-val-output" style="text-align: center; margin-top: 10px;">等待驗證</div>
+        </div>
     </div>
-    <div class="output" id="id-gen-output" style="font-size: 1.4rem; text-align: center; letter-spacing: 2px;">尚未產生</div>
   `,
-  unit: () => `
-    <div class="input-group">
-      <label>換算類型</label>
-      <select id="unit-type" onchange="UI.handleUnitTypeChange()" style="padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: #fff; width: 100%;">
-        <option value="length">長度</option>
-        <option value="weight">重量</option>
-        <option value="temp">溫度</option>
-        <option value="area">面積</option>
-        <option value="volume">體積/容量</option>
-        <option value="speed">速度</option>
-        <option value="data">數位容量</option>
-      </select>
-    </div>
-    <div class="input-group">
-      <label>輸入數值</label>
-      <div style="display:flex; gap:8px;">
-        <input id="unit-val" type="number" value="1" placeholder="數值" style="flex: 2;" oninput="UI.handleUnitConvert()" />
-        <select id="unit-from" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: #fff;" onchange="UI.handleUnitConvert()">
+  unit: () => {
+    const cats = tools.unit?.getCategories?.() || [];
+    const defaultCat = cats[0] || { key: '', units: [] };
+    const unitOptions = (units) => units.map(u => `<option value="${u.key}">${u.label}</option>`).join('');
+    return `
+      <div class="input-group">
+        <label>換算類別</label>
+        <select id="unit-cat" onchange="UI.handleUnitCatChange()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+          ${cats.map(c => `<option value="${c.key}">${c.name}</option>`).join('')}
         </select>
       </div>
-    </div>
-    <div class="output" id="unit-output" style="white-space: pre-wrap; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">請選擇單位並輸入數值...</div>
-  `,
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div style="flex:1;min-width:120px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>數值</label>
+            <input id="unit-val" type="number" value="1" oninput="UI.handleUnitConvert()" />
+          </div>
+        </div>
+        <div style="flex:1;min-width:130px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>從</label>
+            <select id="unit-from" onchange="UI.handleUnitConvert()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;">
+              ${unitOptions(defaultCat.units)}
+            </select>
+          </div>
+        </div>
+        <div style="font-size:1.5rem;padding-top:20px;color:var(--accent)">→</div>
+        <div style="flex:1;min-width:130px;">
+          <div class="input-group" style="margin-bottom:0">
+            <label>到</label>
+            <select id="unit-to" onchange="UI.handleUnitConvert()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;">
+              ${unitOptions(defaultCat.units)}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="output" id="unit-output" style="font-size:1.8rem;text-align:center;margin-top:24px;letter-spacing:2px;">請選擇類別與單位</div>
+    `;
+  },
   imgzip: () => `
-    <div class="input-group">
-      <label>選擇圖片 (僅限本機處理，不需上傳，完全保護隱私)</label>
-      <input id="imgzip-input" type="file" accept="image/*" />
+    <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+      ⚠️ <strong>注意</strong>：支援 JPG / PNG / WEBP，<strong>不支援 GIF / SVG</strong>。所有壓縮在瀏覽器本地完成，不上傳任何資料到伺服器，請放心使用。
     </div>
     <div class="input-group">
-      <label>壓縮品質 (<span id="imgzip-qval">0.8</span>) - 數值越小檔案越小，但畫質會降低</label>
-      <input id="imgzip-quality" type="range" min="0.1" max="1.0" step="0.1" value="0.8" oninput="document.getElementById('imgzip-qval').textContent = this.value" />
+      <label>選擇圖片</label>
+      <input id="imgzip-file" type="file" accept="image/jpeg,image/png,image/webp" onchange="UI.handleImgZipPreview()" />
     </div>
     <div class="input-group">
-      <label>最大寬度限制 (選填，留白則保持原尺寸，僅壓縮品質)</label>
-      <input id="imgzip-width" type="number" placeholder="例如: 800" />
+      <label>壓縮品質 (<span id="imgzip-quality-label">80</span>%)</label>
+      <input id="imgzip-quality" type="range" min="10" max="100" value="80" oninput="document.getElementById('imgzip-quality-label').textContent=this.value; UI.handleImgZipCompress()" style="width:100%;accent-color:var(--accent);" />
     </div>
-    <button class="btn" onclick="UI.handleImgZip()">壓縮圖片</button>
-    <div class="qr-wrap" style="margin-top:20px;">
-      <canvas id="imgzip-canvas" style="display:none;"></canvas>
-      <img id="imgzip-output" style="max-width:100%; border-radius:10px; border:1px solid var(--glass-border); display:none;" />
-      <div id="imgzip-info" style="color:var(--muted); margin: 10px 0; font-size: 0.9rem;"></div>
-      <a id="imgzip-download" class="btn" style="display:none" download="compressed.jpg">下載圖片</a>
+    <div id="imgzip-preview-wrap" style="display:none;">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="flex:1;min-width:200px;text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">原圖</div>
+          <img id="imgzip-original" style="max-width:100%;border-radius:8px;border:1px solid var(--border-light);" />
+          <div id="imgzip-original-size" style="margin-top:6px;font-size:0.85rem;color:var(--text-muted);"></div>
+        </div>
+        <div style="flex:1;min-width:200px;text-align:center;">
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">壓縮後</div>
+          <img id="imgzip-result" style="max-width:100%;border-radius:8px;border:1px solid var(--border-light);" />
+          <div id="imgzip-result-size" style="margin-top:6px;font-size:0.85rem;color:#81c784;"></div>
+        </div>
+      </div>
+      <a id="imgzip-download" class="btn" download style="display:none;">⬇️ 下載壓縮圖</a>
     </div>
   `
 };
@@ -542,11 +532,7 @@ const UI = {
   handleTZ() {
     // 已由 updateTZDisplay 接手
   },
-  tzInit() {
-    const regions = [...new Set(window.tzDatabase.map(t => t.region))];
-    const rSel = document.getElementById('tz-region');
-    if(rSel) rSel.innerHTML = '<option value="">--請選擇大洲--</option>' + regions.map(r => `<option value="${r}">${r}</option>`).join('');
-  },
+  
   tzRegionChange() {
     const r = document.getElementById('tz-region').value;
     const cSel = document.getElementById('tz-country');
@@ -626,127 +612,6 @@ const UI = {
     const str = `box-shadow: ${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5);`;
     document.getElementById('css-output').textContent = str;
     document.getElementById('css-preview').style.boxShadow = `${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5)`;
-  },
-  async handleExchange() {
-    const base = document.getElementById('exchange-base').value;
-    const amount = parseFloat(document.getElementById('exchange-amount').value) || 0;
-    const out = document.getElementById('exchange-output');
-    out.innerHTML = '載入中...';
-    try {
-      const res = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
-      const data = await res.json();
-      const targets = ['TWD', 'USD', 'JPY', 'EUR', 'HKD', 'GBP', 'AUD', 'CNY', 'KRW'];
-      let html = '';
-      targets.forEach(t => {
-        if (t !== base && data.rates[t]) {
-          const val = (amount * data.rates[t]).toFixed(2);
-          html += `<div style="background: var(--card-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
-            <div style="font-size:0.8rem; color:var(--muted)">${t}</div>
-            <div style="font-size:1.2rem">${val}</div>
-          </div>`;
-        }
-      });
-      out.style.display = 'grid';
-      out.innerHTML = html || '無資料';
-    } catch (e) {
-      out.innerHTML = '無法取得匯率，請稍後再試。';
-    }
-  },
-  handleIDCheck() {
-    const id = document.getElementById('id-input').value;
-    const out = document.getElementById('id-output');
-    if (!id) {
-      out.textContent = '請輸入身分證字號';
-      out.style.color = 'var(--muted)';
-      return;
-    }
-    const res = tools.id.validate(id);
-    out.textContent = res.valid ? \`✅ \${res.reason} (\${res.city}, \${res.gender})\` : \`❌ \${res.reason}\`;
-    out.style.color = res.valid ? '#00ffaa' : '#ff4444';
-  },
-  handleIDGenerate() {
-    const g = document.getElementById('id-gender').value;
-    const res = tools.id.generate(null, g || null);
-    document.getElementById('id-gen-output').textContent = res;
-  },
-  handleUnitTypeChange() {
-    const type = document.getElementById('unit-type').value;
-    const select = document.getElementById('unit-from');
-    if (!tools.unit.CATEGORIES[type]) return;
-    const units = tools.unit.CATEGORIES[type].units;
-    select.innerHTML = Object.entries(units).map(([k, v]) => \`<option value="\${k}">\${v.name}</option>\`).join('');
-    this.handleUnitConvert();
-  },
-  handleUnitConvert() {
-    const type = document.getElementById('unit-type').value;
-    const from = document.getElementById('unit-from').value;
-    const val = parseFloat(document.getElementById('unit-val').value);
-    const out = document.getElementById('unit-output');
-    if (isNaN(val) || !from) {
-      out.innerHTML = '請輸入有效數值';
-      return;
-    }
-    const units = tools.unit.CATEGORIES[type].units;
-    let html = '';
-    for (const [k, v] of Object.entries(units)) {
-      if (k !== from) {
-        const converted = tools.unit.convert(val, from, k, type);
-        let displayVal = converted;
-        if (typeof converted === 'number') {
-          displayVal = converted > 100 ? converted.toFixed(2) : converted.toPrecision(4);
-          displayVal = parseFloat(displayVal).toString(); // remove trailing zeros
-        }
-        html += \`<div style="background: var(--card-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border);">
-          <div style="font-size:0.8rem; color:var(--muted)">\${v.name}</div>
-          <div style="font-size:1.1rem">\${displayVal}</div>
-        </div>\`;
-      }
-    }
-    out.innerHTML = html;
-  },
-  handleImgZip() {
-    const fileInput = document.getElementById('imgzip-input');
-    const file = fileInput.files[0];
-    if (!file) return alert('請先選擇圖片');
-    const quality = parseFloat(document.getElementById('imgzip-quality').value);
-    const maxWidth = parseInt(document.getElementById('imgzip-width').value) || null;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.getElementById('imgzip-canvas');
-        const ctx = canvas.getContext('2d');
-        let width = img.width;
-        let height = img.height;
-        
-        if (maxWidth && width > maxWidth) {
-          height = Math.round(height * (maxWidth / width));
-          width = maxWidth;
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-        
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        const outImg = document.getElementById('imgzip-output');
-        outImg.src = dataUrl;
-        outImg.style.display = 'block';
-        
-        const originalSize = (file.size / 1024).toFixed(1);
-        const newSize = Math.round((dataUrl.length * 3 / 4) / 1024).toFixed(1);
-        const ratio = ((1 - newSize / originalSize) * 100).toFixed(1);
-        
-        document.getElementById('imgzip-info').textContent = \`原始大小: \${originalSize} KB → 壓縮後: \${newSize} KB (減少 \${ratio}%) | 解析度: \${width}x\${height}\`;
-        
-        const dlBtn = document.getElementById('imgzip-download');
-        dlBtn.href = dataUrl;
-        dlBtn.style.display = 'inline-block';
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
   },
   navigate(path) {
     if (location.pathname !== path) {
@@ -930,30 +795,15 @@ function renderRoute() {
     });
   }
   if (route === 'tz') {
-    UI.tzInit();
+    UI.filterTZ();
     if (tzTimer) clearInterval(tzTimer);
     tzTimer = setInterval(() => UI.updateTZDisplay(), 1000);
-    
-    // 不自動選擇，讓使用者自選，保留空白狀態，避免跳掉
-    document.getElementById('tz-date').textContent = '請從上方下拉選單篩選並選擇城市';
+  } else if (route === 'fx') {
+    UI.handleFX();
   } else {
     if (tzTimer) {
       clearInterval(tzTimer);
       tzTimer = null;
-    }
-  }
-  
-  if (route === 'unit') {
-    UI.handleUnitTypeChange();
-  }
-  
-  if (route === 'exchange') {
-    // 按下 Enter 時也能觸發換算
-    const exAmount = document.getElementById('exchange-amount');
-    if (exAmount) {
-      exAmount.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') UI.handleExchange();
-      });
     }
   }
 }
