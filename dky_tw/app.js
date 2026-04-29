@@ -529,43 +529,50 @@ const UI = {
     const v = document.getElementById('text-input').value;
     document.getElementById('text-output').textContent = v.trim();
   },
-  handleTZ() {
-    // 已由 updateTZDisplay 接手
-  },
-  
-  tzRegionChange() {
-    const r = document.getElementById('tz-region').value;
-    const cSel = document.getElementById('tz-country');
-    if (!r) {
-      cSel.innerHTML = '<option value="">--請先選大洲--</option>';
-      document.getElementById('tz-city').innerHTML = '<option value="">--請先選國家--</option>';
+  filterTZ() {
+    const searchEl = document.getElementById('tz-search');
+    const listEl = document.getElementById('tz-list');
+    if (!searchEl || !listEl) return;
+    
+    const query = searchEl.value.trim().toLowerCase();
+    if (!query) {
+      listEl.style.display = 'none';
+      listEl.innerHTML = '';
       return;
     }
-    const countries = [...new Set(window.tzDatabase.filter(t => t.region === r).map(t => t.country))];
-    cSel.innerHTML = '<option value="">--請選擇國家--</option>' + countries.map(c => `<option value="${c}">${c}</option>`).join('');
-    document.getElementById('tz-city').innerHTML = '<option value="">--請先選國家--</option>';
-  },
-  tzCountryChange() {
-    const r = document.getElementById('tz-region').value;
-    const c = document.getElementById('tz-country').value;
-    const citySel = document.getElementById('tz-city');
-    if (!c) {
-      citySel.innerHTML = '<option value="">--請先選國家--</option>';
+    
+    const results = window.tzDatabase.filter(t => {
+      const searchStr = `${t.region} ${t.country} ${t.city} ${t.tz}`.toLowerCase();
+      return searchStr.includes(query);
+    });
+    
+    if (results.length === 0) {
+      listEl.style.display = 'block';
+      listEl.innerHTML = '<div style="padding: 12px; color: var(--text-muted); text-align: center;">找不到符合的城市</div>';
       return;
     }
-    const cities = window.tzDatabase.filter(t => t.region === r && t.country === c);
-    citySel.innerHTML = '<option value="">--請選擇城市--</option>' + cities.map(ci => `<option value="${ci.tz}">${ci.city}</option>`).join('');
-  },
-  tzCityChange() {
-    const sel = document.getElementById('tz-city');
-    const tz = sel.value;
-    if (tz) {
-      const cityText = sel.options[sel.selectedIndex].text;
-      UI.selectTZ(tz, cityText);
-    }
+    
+    listEl.style.display = 'block';
+    listEl.innerHTML = results.map(t => `
+      <div onclick="UI.selectTZ('${t.tz}', '${t.city}')" 
+           style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;"
+           onmouseenter="this.style.background='rgba(0,242,255,0.1)'" 
+           onmouseleave="this.style.background='transparent'">
+        <span style="color: var(--accent); font-weight: 500;">${t.city}</span>
+        <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">${t.country} · ${t.region}</span>
+      </div>
+    `).join('');
   },
   selectTZ(tz, displayName = tz) {
     window.selectedTZ = tz;
+    window.selectedTZName = displayName;
+    
+    // 關閉搜尋下拉選單
+    const listEl = document.getElementById('tz-list');
+    const searchEl = document.getElementById('tz-search');
+    if (listEl) listEl.style.display = 'none';
+    if (searchEl) searchEl.value = displayName;
+    
     this.updateTZDisplay();
   },
   updateTZDisplay() {
@@ -580,9 +587,9 @@ const UI = {
       const offsetEl = document.getElementById('tz-offset');
       
       if (clockEl) clockEl.textContent = timeStr;
-      if (dateEl) dateEl.textContent = dateStr;
+      if (dateEl) dateEl.textContent = `${window.selectedTZName || ''} — ${dateStr}`;
       
-      // 計算偏移量 (簡易版)
+      // 計算偏移量
       const offsetName = new Intl.DateTimeFormat('en-US', { timeZone: window.selectedTZ, timeZoneName: 'short' }).format(now).split(', ')[1];
       if (offsetEl) offsetEl.textContent = `時區標示: ${offsetName || ''}`;
     } catch(e) { console.error(e); }
@@ -795,10 +802,16 @@ function renderRoute() {
     });
   }
   if (route === 'tz') {
-    UI.filterTZ();
+    // 不做 filterTZ，避免空搜尋時出錯，只啟動時鐘
     if (tzTimer) clearInterval(tzTimer);
     tzTimer = setInterval(() => UI.updateTZDisplay(), 1000);
   } else if (route === 'fx') {
+    // 填充貨幣 datalist
+    const currencies = ['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNY','TWD','HKD','SGD','KRW','THB','MYR','PHP','IDR','INR','VND','NZD','SEK','NOK','DKK','MXN','BRL','ARS','ZAR','TRY','AED','SAR','EGP','RUB','PLN','CZK','HUF','ILS','KWD','QAR','BHD'];
+    const datalist = document.getElementById('fx-currencies');
+    if (datalist) {
+      datalist.innerHTML = currencies.map(c => `<option value="${c}">`).join('');
+    }
     UI.handleFX();
   } else {
     if (tzTimer) {
