@@ -1549,11 +1549,7 @@ function renderRoute() {
     </div>
   `;
 
-  if (route === 'qr' && typeof QRCode === 'undefined') {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js';
-    document.head.appendChild(s);
-  }
+
   if (route === 'color') {
     ['color-hex','color-r','color-g','color-b'].forEach(id => {
       const el = document.getElementById(id);
