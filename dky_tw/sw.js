@@ -1,11 +1,11 @@
 // Simple Service Worker: precache core assets and enable offline-first navigation
-const CACHE_NAME = 'dky-tools-v3';
+const CACHE_NAME = 'dky-tools-v5';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
-  '/index.js',
   '/app.js',
   '/styles.css',
+  '/tools/timezones.js',
   '/favicon.ico',
 ];
 
@@ -15,6 +15,11 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
   // Navigation requests: serve from cache first, fallback to network
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -23,7 +28,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   // For same-origin requests, try cache first then network
-  if (new URL(request.url).origin === location.origin) {
+  if (url.origin === location.origin) {
     event.respondWith(
       caches.match(request).then((cached) => cached || fetch(request))
     );

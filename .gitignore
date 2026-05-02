@@ -1,0 +1,9 @@
+.DS_Store
+.env
+.env.*
+.dev.vars
+*.log
+node_modules/
+dist/
+build/
+dky_tw/ideabox-產生器/

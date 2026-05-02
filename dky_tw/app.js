@@ -19,7 +19,8 @@ const ROUTES = {
   '/regex': 'regex',
   '/id': 'id',
   '/unit': 'unit',
-  '/imgzip': 'imgzip'
+  '/imgzip': 'imgzip',
+  '/ideabox': 'ideabox'
 };
 
 const metaList = {
@@ -39,7 +40,8 @@ const metaList = {
   regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
-  imgzip: { icon: '🖼️', title: '圖片壓縮工具', desc: '上傳 JPG/PNG/WEBP，在瀏覽器本地壓縮後下載，品質、大小一目瞭然。⚠️ 不支援 GIF/SVG，所有運算本地完成，不上傳任何資料。' }
+  imgzip: { icon: '🖼️', title: '圖片壓縮工具', desc: '上傳 JPG/PNG/WEBP，在瀏覽器本地壓縮後下載，品質、大小一目瞭然。⚠️ 不支援 GIF/SVG，所有運算本地完成，不上傳任何資料。' },
+  ideabox: { icon: '💡', title: 'IDEA Box 提案產生器', desc: '輸入構想、單位與應用構面，一鍵整理成清楚可讀的 IDEA Box 提案書，輸出內容不含 Markdown 符號。' }
 };
 
 window.tzDatabase = [
@@ -113,6 +115,439 @@ window.tzDatabase = [
   { region: '非洲 (Africa)', country: '肯亞 (Kenya)', city: '奈洛比 (Nairobi)', tz: 'Africa/Nairobi' },
   { region: '非洲 (Africa)', country: '奈及利亞 (Nigeria)', city: '拉哥斯 (Lagos)', tz: 'Africa/Lagos' }
 ];
+
+window.tzDatabase = tools.timezones?.getTimeZoneOptions?.() || window.tzDatabase;
+
+const COMMON_CURRENCIES = [
+  'USD','TWD','JPY','EUR','GBP','CNY','HKD','SGD','KRW','AUD','CAD','CHF','THB','MYR','PHP','IDR','INR','VND','NZD','SEK','NOK','DKK',
+  'AED','AFN','ALL','AMD','ANG','AOA','ARS','AWG','AZN','BAM','BBD','BDT','BGN','BHD','BIF','BMD','BND','BOB','BRL','BSD','BTN','BWP',
+  'BYN','BZD','CDF','CLP','COP','CRC','CUP','CVE','CZK','DJF','DOP','DZD','EGP','ERN','ETB','FJD','FKP','GEL','GHS','GIP','GMD','GNF',
+  'GTQ','GYD','HNL','HRK','HTG','HUF','ILS','IQD','IRR','ISK','JMD','JOD','KES','KGS','KHR','KID','KMF','KWD','KYD','KZT','LAK','LBP',
+  'LKR','LRD','LSL','LYD','MAD','MDL','MGA','MKD','MMK','MNT','MOP','MRU','MUR','MVR','MWK','MXN','MZN','NAD','NGN','NIO','NPR','OMR',
+  'PAB','PEN','PGK','PKR','PLN','PYG','QAR','RON','RSD','RUB','RWF','SAR','SBD','SCR','SDG','SHP','SLE','SOS','SRD','SSP','STN','SYP',
+  'SZL','TJS','TMT','TND','TOP','TRY','TTD','TVD','TZS','UAH','UGX','UYU','UZS','VES','VUV','WST','XAF','XCD','XOF','XPF','YER','ZAR','ZMW','ZWL'
+];
+
+function escapeHTML(value = '') {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
+}
+
+function stripMarkdown(value = '') {
+  return String(value)
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/__/g, '')
+    .replace(/`{1,3}/g, '')
+    .replace(/^\s*[-*]\s+/gm, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .trim();
+}
+
+function cleanIdeaText(value = '') {
+  return stripMarkdown(value)
+    .replace(/\r\n/g, '\n')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function getChecked(value, option) {
+  return value === option ? '☑' : '☐';
+}
+
+function textToParagraphs(value = '') {
+  const lines = cleanIdeaText(value).split('\n').map(line => line.trim()).filter(Boolean);
+  return lines.length ? lines : [''];
+}
+
+function renderPlainParagraphs(value = '') {
+  return textToParagraphs(value).map(line => `<p>${escapeHTML(line)}</p>`).join('');
+}
+
+function normalizeGeneratedIdea(data, form) {
+  const safe = data && typeof data === 'object' ? data : {};
+  const fallbackDepartment = form.department === '未填寫'
+    ? '資訊處、流程權責單位、法遵或風控單位'
+    : `${form.department}、資訊處、法遵或風控單位`;
+
+  const analysisRows = Array.isArray(safe.analysisRows) && safe.analysisRows.length > 1
+    ? safe.analysisRows.map(row => Array.isArray(row) ? row.map(cleanIdeaText) : [cleanIdeaText(row)])
+    : null;
+
+  return {
+    company: cleanIdeaText(form.company) || '台灣人壽',
+    department: cleanIdeaText(form.department) || '未填寫',
+    members: cleanIdeaText(form.members) || '未填寫',
+    title: cleanIdeaText(form.title) || '未命名',
+    dimension: cleanIdeaText(form.dimension) || '流程優化',
+    analysisType: cleanIdeaText(form.analysisType) || '優缺點清單',
+    idea: cleanIdeaText(form.idea),
+    analysisRows,
+    purpose: cleanIdeaText(safe.purpose) || `本提案希望改善目前流程中資訊分散、人工整理耗時、回覆品質不易一致的問題。透過「${form.title}」讓團隊能更快掌握重點，降低重複作業，並提升使用者感受與長期競爭力。`,
+    description: cleanIdeaText(safe.description) || `提案方向是以使用者輸入的構想為核心，建立清楚、可追蹤、可調整的作業流程。構想內容為：${form.idea}`,
+    aiApplication: cleanIdeaText(safe.aiApplication) || 'AI 可擔任資料整理、初稿產生、重點摘要、風險提醒與內容一致性檢查的輔助角色，產出後仍由負責同仁確認正確性與合規性。',
+    expectedBenefits: cleanIdeaText(safe.expectedBenefits) || '預期效益包含縮短初稿整理時間、降低遺漏重點的機率、讓跨部門溝通更容易對齊，並提升服務或內部作業的一致性。',
+    feasibility: cleanIdeaText(safe.feasibility) || '建議採短期試辦方式推進。三個月內完成需求盤點與原型，六個月內進行小範圍測試，一年內依結果評估是否擴大導入。',
+    cooperatingDepartment: cleanIdeaText(safe.cooperatingDepartment) || fallbackDepartment,
+    cooperationDetails: cleanIdeaText(safe.cooperationDetails) || '提供試辦情境、確認資料權限、定義審核規則、追蹤成效指標。'
+  };
+}
+
+function buildIdeaBoxHtml(data) {
+  const departmentHint = data.department === '未填寫'
+    ? '客戶服務處/營運規劃處/通路一處/商品精算處/資訊處/總經理轄下/通路二處/不動產投資處/行政管理處/金融投資二處/金融投資一處/財務處'
+    : data.department;
+
+  return `
+    <h3><u>IDEA Box 提案書</u></h3>
+    <h4>報名資料：</h4>
+    <table class="idea-entry-table">
+      <tbody>
+        <tr>
+          <th rowspan="2">提案單位</th>
+          <td>${getChecked(data.company, '台灣人壽')} 台灣人壽　　${getChecked(data.company, '中信產險')} 中信產險</td>
+        </tr>
+        <tr>
+          <td class="idea-muted">${escapeHTML(departmentHint)}</td>
+        </tr>
+        <tr><th>團隊成員</th><td>${escapeHTML(data.members)}</td></tr>
+        <tr><th>提案名稱</th><td>${escapeHTML(data.title)}</td></tr>
+        <tr>
+          <th>應用構面</th>
+          <td>
+            ${getChecked(data.dimension, '公平待客')} 公平待客　　
+            ${getChecked(data.dimension, '業績提升')} 業績提升　　
+            ${getChecked(data.dimension, '流程優化')} 流程優化　　
+            ${getChecked(data.dimension, '專業知能')} 專業知能
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    ${data.analysisRows ? `
+      <h4>決策分析參考</h4>
+      ${UI.renderIdeaTable(data.analysisRows)}
+    ` : ''}
+
+    <h4>請簡述點子，須包含但不限下述構面</h4>
+    <table class="idea-body-table">
+      <tbody>
+        <tr><td><h5>1. 提案目的（why - 遇到什麼問題／想解決什麼問題？例如：從生活現況、社會環境或發現市場趨勢或觀察現有不足...等，以提升長期競爭力與差異化價值為主）</h5>${renderPlainParagraphs(data.purpose)}</td></tr>
+        <tr><td><h5>2. 提案說明（請描述你的構想或方向，想像可以如何運用 AI 作為輔助？）</h5>${renderPlainParagraphs(data.description)}</td></tr>
+        <tr><td><h5>3. AI 輔助應用說明（請說明本提案中，AI 預計扮演的角色。如何應用 AI 輔助工具來改善現況；AI 可以做什麼？使用情境或操作方式簡述）</h5>${renderPlainParagraphs(data.aiApplication)}</td></tr>
+        <tr><td><h5>4. 預期效益、成效／商業模式或核心價值（value - 此提案可帶來的價值？滿足什麼需求？預計可帶來的新增效益之量/質化指標？）</h5>${renderPlainParagraphs(data.expectedBenefits)}</td></tr>
+        <tr><td><h5>5. 可行性（when - 可落地實行度，預估執行時程：短期 1 年內、中期 1~3 年內、長期 3~5 年；建議提出合作部門，並說明配合事項）</h5>${renderPlainParagraphs(data.feasibility)}<p>配合部門：${escapeHTML(data.cooperatingDepartment)}</p><p>配合事項：${escapeHTML(data.cooperationDetails)}</p></td></tr>
+      </tbody>
+    </table>
+    <p><strong>註: 提案內容以５頁 A4 為限</strong></p>
+  `;
+}
+
+function buildIdeaBoxPlainText(data) {
+  const analysis = data.analysisRows
+    ? ['決策分析參考', data.analysisRows.map(row => row.join('｜')).join('\n'), '']
+    : [];
+
+  return [
+    'IDEA Box 提案書',
+    `提案單位：${data.company} / ${data.department}`,
+    `團隊成員：${data.members}`,
+    `提案名稱：${data.title}`,
+    `應用構面：${data.dimension}`,
+    '',
+    ...analysis,
+    '請簡述點子，須包含但不限下述構面',
+    `1. 提案目的\n${data.purpose}`,
+    `2. 提案說明\n${data.description}`,
+    `3. AI 輔助應用說明\n${data.aiApplication}`,
+    `4. 預期效益、成效／商業模式或核心價值\n${data.expectedBenefits}`,
+    `5. 可行性\n${data.feasibility}`,
+    `配合部門：${data.cooperatingDepartment}`,
+    `配合事項：${data.cooperationDetails}`,
+    '',
+    '註: 提案內容以５頁 A4 為限'
+  ].join('\n\n');
+}
+
+const WORD_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+function escapeXml(value = '') {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&apos;'
+  }[char]));
+}
+
+function wordRun(text = '', options = {}) {
+  const props = [
+    '<w:rFonts w:ascii="Microsoft JhengHei" w:eastAsia="微軟正黑體" w:hAnsi="Microsoft JhengHei"/>',
+    options.bold ? '<w:b/><w:bCs/>' : '',
+    options.underline ? '<w:u w:val="single"/>' : '',
+    `<w:sz w:val="${options.size || 24}"/><w:szCs w:val="${options.size || 24}"/>`
+  ].join('');
+  const preserve = /^\s|\s$/.test(text) ? ' xml:space="preserve"' : '';
+  return `<w:r><w:rPr>${props}</w:rPr><w:t${preserve}>${escapeXml(text)}</w:t></w:r>`;
+}
+
+function wordParagraph(text = '', options = {}) {
+  const jc = options.align ? `<w:jc w:val="${options.align}"/>` : '';
+  const spacing = `<w:spacing w:before="${options.before || 0}" w:after="${options.after || 80}" w:line="${options.line || 360}" w:lineRule="auto"/>`;
+  const indent = options.indent ? `<w:ind w:left="${options.indent}"/>` : '';
+  return `<w:p><w:pPr>${spacing}${jc}${indent}</w:pPr>${wordRun(text, options)}</w:p>`;
+}
+
+function wordCell(content, options = {}) {
+  const width = options.width ? `<w:tcW w:w="${options.width}" w:type="dxa"/>` : '';
+  const valign = options.valign ? `<w:vAlign w:val="${options.valign}"/>` : '<w:vAlign w:val="top"/>';
+  const shade = options.shade ? `<w:shd w:val="clear" w:color="auto" w:fill="${options.shade}"/>` : '';
+  const gridSpan = options.gridSpan ? `<w:gridSpan w:val="${options.gridSpan}"/>` : '';
+  const vMerge = options.vMerge ? `<w:vMerge${options.vMerge === 'continue' ? '' : ` w:val="${options.vMerge}"`}/>` : '';
+  const paragraphs = Array.isArray(content) ? content.join('') : (content || '<w:p/>');
+  return `<w:tc><w:tcPr>${width}${gridSpan}${vMerge}${valign}${shade}<w:tcMar><w:top w:w="120" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="120" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tcMar></w:tcPr>${paragraphs}</w:tc>`;
+}
+
+function wordTable(rows, widths = []) {
+  const grid = widths.length ? `<w:tblGrid>${widths.map(width => `<w:gridCol w:w="${width}"/>`).join('')}</w:tblGrid>` : '';
+  return `
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="10774" w:type="dxa"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4" w:space="0" w:color="808080"/>
+          <w:left w:val="single" w:sz="4" w:space="0" w:color="808080"/>
+          <w:bottom w:val="single" w:sz="4" w:space="0" w:color="808080"/>
+          <w:right w:val="single" w:sz="4" w:space="0" w:color="808080"/>
+          <w:insideH w:val="single" w:sz="4" w:space="0" w:color="808080"/>
+          <w:insideV w:val="single" w:sz="4" w:space="0" w:color="808080"/>
+        </w:tblBorders>
+      </w:tblPr>
+      ${grid}
+      ${rows.map(row => `<w:tr>${row.join('')}</w:tr>`).join('')}
+    </w:tbl>
+  `;
+}
+
+function wordSectionCell(title, body) {
+  const paragraphs = [
+    wordParagraph(title, { bold: true, size: 24, after: 80 }),
+    ...textToParagraphs(body).map(line => wordParagraph(line, { size: 24, after: 60 }))
+  ];
+  return [wordCell(paragraphs, { width: 10774 })];
+}
+
+function buildIdeaBoxDocumentXml(data) {
+  const departmentHint = data.department === '未填寫'
+    ? '客戶服務處/營運規劃處/通路一處/商品精算處/資訊處/總經理轄下/通路二處/不動產投資處/行政管理處/金融投資二處/金融投資一處/財務處'
+    : data.department;
+
+  const headerRows = [
+    [
+      wordCell(wordParagraph('提案單位', { align: 'center', after: 0 }), { width: 1560, valign: 'center', vMerge: 'restart' }),
+      wordCell(wordParagraph(`${getChecked(data.company, '台灣人壽')} 台灣人壽    ${getChecked(data.company, '中信產險')} 中信產險`, { after: 0 }), { width: 9214, valign: 'center' })
+    ],
+    [
+      wordCell('', { width: 1560, valign: 'center', vMerge: 'continue' }),
+      wordCell(wordParagraph(departmentHint, { after: 0 }), { width: 9214, valign: 'center' })
+    ],
+    [
+      wordCell(wordParagraph('團隊成員', { align: 'center', after: 0 }), { width: 1560, valign: 'center' }),
+      wordCell(wordParagraph(data.members, { after: 0 }), { width: 9214, valign: 'center' })
+    ],
+    [
+      wordCell(wordParagraph('提案名稱', { align: 'center', after: 0 }), { width: 1560, valign: 'center' }),
+      wordCell(wordParagraph(data.title, { after: 0 }), { width: 9214, valign: 'center' })
+    ],
+    [
+      wordCell(wordParagraph('應用構面', { align: 'center', after: 0 }), { width: 1560, valign: 'center' }),
+      wordCell(wordParagraph(`${getChecked(data.dimension, '公平待客')} 公平待客    ${getChecked(data.dimension, '業績提升')} 業績提升    ${getChecked(data.dimension, '流程優化')} 流程優化    ${getChecked(data.dimension, '專業知能')} 專業知能`, { bold: true, after: 0 }), { width: 9214, valign: 'center' })
+    ]
+  ];
+
+  const bodyRows = [
+    wordSectionCell('1. 提案目的（why - 遇到什麼問題／想解決什麼問題？例如：從生活現況、社會環境或發現市場趨勢或觀察現有不足...等，以提升長期競爭力與差異化價值為主）', data.purpose),
+    wordSectionCell('2. 提案說明（請描述你的構想或方向，想像可以如何運用 AI 作為輔助？）', data.description),
+    wordSectionCell('3. AI 輔助應用說明（請說明本提案中，AI 預計扮演的角色。如何應用 AI 輔助工具來改善現況；AI 可以做什麼？使用情境或操作方式簡述）', data.aiApplication),
+    wordSectionCell('4. 預期效益、成效／商業模式或核心價值（value - 此提案可帶來的價值？滿足什麼需求？預計可帶來的新增效益之量/質化指標？）', data.expectedBenefits),
+    wordSectionCell('5. 可行性（when - 可落地實行度，預估執行時程：短期 1 年內、中期 1~3 年內、長期 3~5 年；建議提出合作部門，並說明配合事項）', `${data.feasibility}\n\n配合部門：${data.cooperatingDepartment}\n配合事項：${data.cooperationDetails}`)
+  ];
+
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <w:document xmlns:w="${WORD_NS}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+      <w:body>
+        ${wordParagraph('IDEA Box 提案書', { align: 'center', bold: true, underline: true, size: 32, after: 240 })}
+        ${wordParagraph('報名資料：', { bold: true, size: 28, after: 120 })}
+        ${wordTable(headerRows, [1560, 9214])}
+        ${wordParagraph('', { after: 100 })}
+        ${wordParagraph('請簡述點子，須包含但不限下述構面', { bold: true, size: 28, after: 120 })}
+        ${wordTable(bodyRows, [10774])}
+        ${wordParagraph('註: 提案內容以５頁 A4 為限', { bold: true, size: 20, after: 0 })}
+        <w:sectPr>
+          <w:pgSz w:w="11906" w:h="16838"/>
+          <w:pgMar w:top="709" w:right="1274" w:bottom="932" w:left="851" w:header="720" w:footer="720" w:gutter="0"/>
+        </w:sectPr>
+      </w:body>
+    </w:document>`;
+}
+
+function buildDocxFiles(data) {
+  const now = new Date().toISOString();
+  return {
+    '[Content_Types].xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>`,
+    '_rels/.rels': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>`,
+    'word/_rels/document.xml.rels': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>`,
+    'word/styles.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="${WORD_NS}"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Microsoft JhengHei" w:eastAsia="微軟正黑體" w:hAnsi="Microsoft JhengHei"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:lang w:val="zh-TW" w:eastAsia="zh-TW"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:line="360" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style><w:style w:type="table" w:default="1" w:styleId="TableNormal"><w:name w:val="Normal Table"/></w:style></w:styles>`,
+    'word/document.xml': buildIdeaBoxDocumentXml(data),
+    'docProps/core.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${escapeXml(data.title)}</dc:title><dc:creator>DKY.tw IDEA Box</dc:creator><cp:lastModifiedBy>DKY.tw IDEA Box</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">${now}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${now}</dcterms:modified></cp:coreProperties>`,
+    'docProps/app.xml': `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>DKY.tw IDEA Box</Application></Properties>`
+  };
+}
+
+function makeCrcTable() {
+  const table = [];
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) {
+      c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    table[n] = c >>> 0;
+  }
+  return table;
+}
+
+const CRC_TABLE = makeCrcTable();
+
+function crc32(bytes) {
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.length; i += 1) {
+    crc = CRC_TABLE[(crc ^ bytes[i]) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function zipDateParts(date = new Date()) {
+  const dosTime = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+  const dosDate = ((date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+  return { dosTime, dosDate };
+}
+
+function writeUint16(view, offset, value) {
+  view.setUint16(offset, value, true);
+}
+
+function writeUint32(view, offset, value) {
+  view.setUint32(offset, value >>> 0, true);
+}
+
+function concatUint8(parts) {
+  const size = parts.reduce((sum, part) => sum + part.length, 0);
+  const out = new Uint8Array(size);
+  let offset = 0;
+  parts.forEach(part => {
+    out.set(part, offset);
+    offset += part.length;
+  });
+  return out;
+}
+
+function makeZipBlob(files) {
+  const encoder = new TextEncoder();
+  const now = zipDateParts();
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+
+  Object.entries(files).forEach(([name, content]) => {
+    const nameBytes = encoder.encode(name);
+    const data = encoder.encode(content);
+    const crc = crc32(data);
+    const local = new Uint8Array(30 + nameBytes.length + data.length);
+    const localView = new DataView(local.buffer);
+    writeUint32(localView, 0, 0x04034b50);
+    writeUint16(localView, 4, 20);
+    writeUint16(localView, 6, 0);
+    writeUint16(localView, 8, 0);
+    writeUint16(localView, 10, now.dosTime);
+    writeUint16(localView, 12, now.dosDate);
+    writeUint32(localView, 14, crc);
+    writeUint32(localView, 18, data.length);
+    writeUint32(localView, 22, data.length);
+    writeUint16(localView, 26, nameBytes.length);
+    writeUint16(localView, 28, 0);
+    local.set(nameBytes, 30);
+    local.set(data, 30 + nameBytes.length);
+    localParts.push(local);
+
+    const central = new Uint8Array(46 + nameBytes.length);
+    const centralView = new DataView(central.buffer);
+    writeUint32(centralView, 0, 0x02014b50);
+    writeUint16(centralView, 4, 20);
+    writeUint16(centralView, 6, 20);
+    writeUint16(centralView, 8, 0);
+    writeUint16(centralView, 10, 0);
+    writeUint16(centralView, 12, now.dosTime);
+    writeUint16(centralView, 14, now.dosDate);
+    writeUint32(centralView, 16, crc);
+    writeUint32(centralView, 20, data.length);
+    writeUint32(centralView, 24, data.length);
+    writeUint16(centralView, 28, nameBytes.length);
+    writeUint16(centralView, 30, 0);
+    writeUint16(centralView, 32, 0);
+    writeUint16(centralView, 34, 0);
+    writeUint16(centralView, 36, 0);
+    writeUint32(centralView, 38, 0);
+    writeUint32(centralView, 42, offset);
+    central.set(nameBytes, 46);
+    centralParts.push(central);
+
+    offset += local.length;
+  });
+
+  const centralDirectory = concatUint8(centralParts);
+  const end = new Uint8Array(22);
+  const endView = new DataView(end.buffer);
+  writeUint32(endView, 0, 0x06054b50);
+  writeUint16(endView, 4, 0);
+  writeUint16(endView, 6, 0);
+  writeUint16(endView, 8, centralParts.length);
+  writeUint16(endView, 10, centralParts.length);
+  writeUint32(endView, 12, centralDirectory.length);
+  writeUint32(endView, 16, offset);
+  writeUint16(endView, 20, 0);
+
+  return new Blob([concatUint8([...localParts, centralDirectory, end])], {
+    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  });
+}
+
+function buildIdeaBoxDocxBlob(data) {
+  return makeZipBlob(buildDocxFiles(data));
+}
+
+function currencyOptionsHTML(selected = 'USD') {
+  const display = typeof Intl.DisplayNames === 'function'
+    ? new Intl.DisplayNames(['zh-TW', 'en'], { type: 'currency' })
+    : null;
+  const browserCodes = typeof Intl.supportedValuesOf === 'function'
+    ? Intl.supportedValuesOf('currency')
+    : [];
+  const codes = [...new Set([...COMMON_CURRENCIES, ...browserCodes])].sort();
+  const priority = ['USD','TWD','JPY','EUR','GBP','CNY','HKD','SGD','KRW','AUD','CAD','CHF'];
+  const ordered = [...priority, ...codes.filter(code => !priority.includes(code))];
+  return ordered.map(code => {
+    let name = code;
+    try { name = display?.of(code) || code; } catch { name = code; }
+    return `<option value="${code}" ${code === selected ? 'selected' : ''}>${code} — ${escapeHTML(name)}</option>`;
+  }).join('');
+}
 
 const renderFields = {
   home: () => `
@@ -231,13 +666,25 @@ const renderFields = {
   tz: () => {
     return `
       <div class="input-group">
-        <label>搜尋國家或城市 (中英文皆可)</label>
-        <input id="tz-search" class="glass-input" placeholder="例如: 台北, Tokyo, 美國..." oninput="UI.filterTZ()" style="width: 100%; border-radius: 6px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; padding: 12px; font-size: 1rem; outline: none; margin-bottom: 8px;" />
-        <div id="tz-list" class="glass" style="max-height: 200px; overflow-y: auto; border-radius: 8px; border: 1px solid var(--glass-border); display: none;"></div>
+        <label>洲別 / 區域</label>
+        <select id="tz-region" onchange="UI.handleTZRegionChange()"></select>
+      </div>
+      <div class="input-group">
+        <label>國家</label>
+        <select id="tz-country" onchange="UI.handleTZCountryChange()"></select>
+      </div>
+      <div class="input-group">
+        <label>城市快速搜尋 (中英文皆可)</label>
+        <input id="tz-search" class="glass-input" placeholder="例如：台北、Tokyo、Los Angeles、Osaka" oninput="UI.filterTZ()" />
+      </div>
+      <div class="input-group">
+        <label>城市</label>
+        <select id="tz-city" size="8" onchange="UI.selectTZFromDropdown()" style="min-height:220px;"></select>
+        <div id="tz-count" style="color:var(--muted);font-size:0.85rem;margin-top:8px;"></div>
       </div>
       <div class="output" id="tz-output" style="margin-top: 20px; text-align: center;">
         <div id="tz-clock" style="font-size: 2.5rem; font-weight: 300; font-family: monospace;">--:--:--</div>
-        <div id="tz-date" style="color: var(--muted); margin-top: 10px;">請搜尋並選擇時區</div>
+        <div id="tz-date" style="color: var(--muted); margin-top: 10px;">請選擇洲別、國家與城市</div>
         <div id="tz-offset" style="font-size: 0.8rem; color: var(--muted); margin-top: 4px;"></div>
       </div>
     `;
@@ -251,14 +698,16 @@ const renderFields = {
         </div>
         <div style="flex:1;min-width:100px">
           <label>基準貨幣 (Base)</label>
-          <input list="fx-currencies" id="fx-base" class="glass-input" value="USD" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;" onchange="UI.handleFX()" />
+          <select id="fx-base" onchange="UI.handleFX()">${currencyOptionsHTML('USD')}</select>
+        </div>
+        <div style="display:flex;align-items:end;">
+          <button class="btn" onclick="UI.handleFXSwap()" title="交換幣別" style="margin-right:0;">交換</button>
         </div>
         <div style="flex:1;min-width:100px">
           <label>目標貨幣 (Target)</label>
-          <input list="fx-currencies" id="fx-target" class="glass-input" value="TWD" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;" onchange="UI.handleFX()" />
+          <select id="fx-target" onchange="UI.handleFX()">${currencyOptionsHTML('TWD')}</select>
         </div>
       </div>
-      <datalist id="fx-currencies"></datalist>
       <div class="output" id="fx-output" style="margin-top:20px; text-align:center;">
          <div style="color:var(--muted); font-size:0.9rem; margin-bottom:8px;">報價來自全球開源匯率 API (中價基準)</div>
          <div id="fx-result" style="font-size:1.5rem; line-height: 1.8;">載入中...</div>
@@ -402,6 +851,62 @@ const renderFields = {
       </div>
       <a id="imgzip-download" class="btn" download style="display:none;">⬇️ 下載壓縮圖</a>
     </div>
+  `,
+  ideabox: () => `
+    <div class="ideabox-grid">
+      <section class="ideabox-panel">
+        <div class="input-group">
+          <label>提案單位</label>
+          <select id="idea-company">
+            <option value="台灣人壽">台灣人壽</option>
+            <option value="中信產險">中信產險</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>部門名稱</label>
+          <input id="idea-department" placeholder="例如：資訊處、客戶服務處" />
+        </div>
+        <div class="input-group">
+          <label>團隊成員</label>
+          <input id="idea-members" placeholder="姓名 / 部門，每組 1~5 人" />
+        </div>
+        <div class="input-group">
+          <label>提案名稱</label>
+          <input id="idea-title" placeholder="請輸入提案名稱" />
+        </div>
+        <div class="input-group">
+          <label>應用構面</label>
+          <select id="idea-dimension">
+            <option value="公平待客">公平待客</option>
+            <option value="業績提升">業績提升</option>
+            <option value="流程優化" selected>流程優化</option>
+            <option value="專業知能">專業知能</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>決策分析方式</label>
+          <select id="idea-analysis-type">
+            <option value="優缺點清單">優缺點清單</option>
+            <option value="比較表格">比較表格</option>
+            <option value="SWOT分析">SWOT 分析</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>構想說明</label>
+          <textarea id="idea-content" rows="7" placeholder="請描述想解決的問題、初步構想、可能使用 AI 的方式與期待成效。"></textarea>
+        </div>
+        <button class="btn" onclick="UI.handleIdeaBoxGenerate()" id="idea-generate-btn">生成提案書</button>
+      </section>
+      <section class="ideabox-preview">
+        <div class="ideabox-actions">
+          <button class="btn" onclick="UI.copyIdeaBox()" id="idea-copy-btn" disabled>複製純文字</button>
+          <button class="btn" onclick="UI.downloadIdeaBoxDoc()" id="idea-download-btn" disabled>下載 Word</button>
+        </div>
+        <div id="idea-output" class="idea-document">
+          <div class="idea-empty">填寫左側資料後，這裡會產生可直接閱讀與再編修的 IDEA Box 提案書。</div>
+        </div>
+      </section>
+    </div>
   `
 };
 
@@ -529,50 +1034,83 @@ const UI = {
     const v = document.getElementById('text-input').value;
     document.getElementById('text-output').textContent = v.trim();
   },
-  filterTZ() {
-    const searchEl = document.getElementById('tz-search');
-    const listEl = document.getElementById('tz-list');
-    if (!searchEl || !listEl) return;
-    
-    const query = searchEl.value.trim().toLowerCase();
-    if (!query) {
-      listEl.style.display = 'none';
-      listEl.innerHTML = '';
-      return;
-    }
-    
-    const results = window.tzDatabase.filter(t => {
-      const searchStr = `${t.region} ${t.country} ${t.city} ${t.tz}`.toLowerCase();
-      return searchStr.includes(query);
+  initTZ() {
+    const data = window.tzDatabase || [];
+    const regionEl = document.getElementById('tz-region');
+    if (!regionEl || data.length === 0) return;
+    const regions = [...new Set(data.map(item => item.region))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+    regionEl.innerHTML = `<option value="">全部洲別 / 區域</option>${regions.map(region => `<option value="${escapeHTML(region)}">${escapeHTML(region)}</option>`).join('')}`;
+    regionEl.value = regions.includes('亞洲 (Asia)') ? '亞洲 (Asia)' : '';
+    this.populateTZCountries();
+    this.populateTZCities(true);
+  },
+  populateTZCountries() {
+    const data = window.tzDatabase || [];
+    const region = document.getElementById('tz-region')?.value || '';
+    const countryEl = document.getElementById('tz-country');
+    if (!countryEl) return;
+    const countries = [...new Set(data
+      .filter(item => !region || item.region === region)
+      .map(item => item.country)
+    )].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+    countryEl.innerHTML = `<option value="">全部國家</option>${countries.map(country => `<option value="${escapeHTML(country)}">${escapeHTML(country)}</option>`).join('')}`;
+    const preferred = region === '亞洲 (Asia)' ? '台灣 (Taiwan)' : '';
+    countryEl.value = countries.includes(preferred) ? preferred : '';
+  },
+  populateTZCities(selectFirst = false) {
+    const data = window.tzDatabase || [];
+    const region = document.getElementById('tz-region')?.value || '';
+    const country = document.getElementById('tz-country')?.value || '';
+    const query = (document.getElementById('tz-search')?.value || '').trim().toLowerCase();
+    const cityEl = document.getElementById('tz-city');
+    const countEl = document.getElementById('tz-count');
+    if (!cityEl) return;
+
+    window.tzFiltered = data.filter(item => {
+      const haystack = `${item.region} ${item.country} ${item.city} ${item.tz}`.toLowerCase();
+      return (!region || item.region === region)
+        && (!country || item.country === country)
+        && (!query || haystack.includes(query));
     });
-    
-    if (results.length === 0) {
-      listEl.style.display = 'block';
-      listEl.innerHTML = '<div style="padding: 12px; color: var(--text-muted); text-align: center;">找不到符合的城市</div>';
+
+    if (window.tzFiltered.length === 0) {
+      cityEl.innerHTML = '<option value="">找不到符合的城市，請放寬國家或搜尋字</option>';
+      if (countEl) countEl.textContent = '目前沒有符合的城市。';
       return;
     }
-    
-    listEl.style.display = 'block';
-    listEl.innerHTML = results.map(t => `
-      <div onclick="UI.selectTZ('${t.tz}', '${t.city}')" 
-           style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;"
-           onmouseenter="this.style.background='rgba(0,242,255,0.1)'" 
-           onmouseleave="this.style.background='transparent'">
-        <span style="color: var(--accent); font-weight: 500;">${t.city}</span>
-        <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 8px;">${t.country} · ${t.region}</span>
-      </div>
+
+    cityEl.innerHTML = window.tzFiltered.map((item, index) => `
+      <option value="${index}">${escapeHTML(item.city)} · ${escapeHTML(item.country)} · ${escapeHTML(item.tz)}</option>
     `).join('');
+    if (countEl) countEl.textContent = `可選 ${window.tzFiltered.length.toLocaleString()} 個城市 / 時區，資料含常用城市與瀏覽器支援的 IANA 時區。`;
+    if (selectFirst || !window.selectedTZ) {
+      cityEl.selectedIndex = 0;
+      this.selectTZFromDropdown();
+    }
+  },
+  handleTZRegionChange() {
+    const searchEl = document.getElementById('tz-search');
+    if (searchEl) searchEl.value = '';
+    this.populateTZCountries();
+    this.populateTZCities(true);
+  },
+  handleTZCountryChange() {
+    const searchEl = document.getElementById('tz-search');
+    if (searchEl) searchEl.value = '';
+    this.populateTZCities(true);
+  },
+  filterTZ() {
+    this.populateTZCities(true);
+  },
+  selectTZFromDropdown() {
+    const cityEl = document.getElementById('tz-city');
+    const item = window.tzFiltered?.[parseInt(cityEl?.value || '0', 10)];
+    if (!item) return;
+    this.selectTZ(item.tz, `${item.city} · ${item.country}`);
   },
   selectTZ(tz, displayName = tz) {
     window.selectedTZ = tz;
     window.selectedTZName = displayName;
-    
-    // 關閉搜尋下拉選單
-    const listEl = document.getElementById('tz-list');
-    const searchEl = document.getElementById('tz-search');
-    if (listEl) listEl.style.display = 'none';
-    if (searchEl) searchEl.value = displayName;
-    
     this.updateTZDisplay();
   },
   updateTZDisplay() {
@@ -619,6 +1157,148 @@ const UI = {
     const str = `box-shadow: ${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5);`;
     document.getElementById('css-output').textContent = str;
     document.getElementById('css-preview').style.boxShadow = `${x}px ${y}px ${b}px ${s}px rgba(0,0,0,0.5)`;
+  },
+  handleFXSwap() {
+    const baseEl = document.getElementById('fx-base');
+    const targetEl = document.getElementById('fx-target');
+    if (!baseEl || !targetEl) return;
+    const currentBase = baseEl.value;
+    baseEl.value = targetEl.value;
+    targetEl.value = currentBase;
+    this.handleFX();
+  },
+  getIdeaBoxFormData() {
+    const get = id => stripMarkdown(document.getElementById(id)?.value || '');
+    return {
+      company: get('idea-company') || '台灣人壽',
+      department: get('idea-department') || '未填寫',
+      members: get('idea-members') || '未填寫',
+      title: get('idea-title'),
+      dimension: get('idea-dimension') || '流程優化',
+      analysisType: get('idea-analysis-type') || '優缺點清單',
+      idea: get('idea-content')
+    };
+  },
+  buildIdeaAnalysisRows(type, idea, dimension) {
+    const rows = {
+      '比較表格': [
+        ['方案', '適用情境', '主要價值', '注意事項'],
+        ['維持現況', '短期資源有限，暫不調整流程。', '不需額外投入，但問題改善有限。', '容易累積重複作業與服務落差。'],
+        ['小規模試辦', `先針對「${dimension}」挑選一個流程或團隊測試。`, '可用低風險方式驗證效益，取得真實回饋。', '需要明確定義試辦範圍與衡量指標。'],
+        ['正式導入', '試辦成果穩定後，擴大到更多單位使用。', '可形成標準化作業與長期改善機制。', '需安排教育訓練、權責分工與維運機制。']
+      ],
+      'SWOT分析': [
+        ['面向', '內容', '建議作法'],
+        ['優勢 Strength', '構想已聚焦在實際痛點，容易讓使用者理解改善方向。', '先整理高頻情境，優先處理最有感的問題。'],
+        ['劣勢 Weakness', '初期可能缺少足夠資料或跨部門共識。', '用小型試辦累積案例，降低一次到位的壓力。'],
+        ['機會 Opportunity', 'AI 工具可協助整理資訊、提醒風險、縮短人工作業時間。', '建立可量化指標，讓效益能被追蹤。'],
+        ['威脅 Threat', '若流程沒有治理，可能出現品質不一致或權責不清。', '設定審核規則、資料權限與例外處理方式。']
+      ],
+      '優缺點清單': [
+        ['項目', '觀察', '建議'],
+        ['優點', '可把零散想法整理成明確流程，協助團隊更快對焦問題與目標。', '先從一個高頻流程開始，避免範圍過大。'],
+        ['缺點', '若輸入資料不完整，產出內容可能需要人工補強。', '設計必要欄位與檢核清單，確保內容品質。'],
+        ['風險', '導入 AI 輔助時需注意資料保護、審核責任與使用者信任。', '保留人工確認節點，並建立使用紀錄。'],
+        ['成功條件', `提案需與「${dimension}」的實際工作指標連結。`, '以節省時間、降低錯誤、提升體驗等指標驗證。']
+      ]
+    };
+    const selected = rows[type] || rows['優缺點清單'];
+    selected[1][1] = `${selected[1][1]} 目前構想重點為：${idea.slice(0, 80)}${idea.length > 80 ? '...' : ''}`;
+    return selected;
+  },
+  renderIdeaTable(rows) {
+    const [head, ...body] = rows;
+    return `
+      <table>
+        <thead><tr>${head.map(cell => `<th>${escapeHTML(cell)}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${body.map(row => `<tr>${row.map(cell => `<td>${escapeHTML(cell)}</td>`).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
+    `;
+  },
+  buildLocalIdeaBox(form) {
+    const rows = this.buildIdeaAnalysisRows(form.analysisType, form.idea, form.dimension);
+    return normalizeGeneratedIdea({
+      analysisRows: rows,
+      purpose: `本提案希望改善目前流程中資訊分散、人工整理耗時、回覆品質不易一致的問題。透過把「${form.title}」轉化為可執行的服務或作業設計，讓團隊在處理相關情境時能更快掌握重點，降低重複作業，並提升使用者感受與長期競爭力。`,
+      description: `提案方向是以使用者輸入的構想為核心，建立一套清楚、可追蹤、可調整的作業流程。構想內容為：${form.idea}。實作上可先選定一個高頻場景試辦，整理所需資料欄位、處理步驟、審核節點與輸出格式，再逐步擴大到其他相似場景。`,
+      aiApplication: 'AI 可擔任資料整理、初稿產生、重點摘要、風險提醒與內容一致性檢查的輔助角色。使用者輸入需求後，AI 先產生易讀版本，再由負責同仁確認正確性與合規性，保留人工判斷，避免完全自動化造成誤用。',
+      expectedBenefits: '預期效益包含縮短初稿整理時間、降低遺漏重點的機率、讓跨部門溝通更容易對齊，並提升服務或內部作業的一致性。可用平均處理時間、重工次數、使用者滿意度、試辦採用率與錯誤率作為量化追蹤指標。',
+      feasibility: '建議採短期試辦方式推進。三個月內完成需求盤點與原型，六個月內進行小範圍測試，一年內依結果評估是否擴大導入。此構想需要業務單位提供場景與資料範例，資訊或數位單位協助工具建置，法遵或風控單位確認資料與流程邊界。',
+      cooperatingDepartment: form.department === '未填寫' ? '資訊處、流程權責單位、法遵或風控單位' : `${form.department}、資訊處、法遵或風控單位`,
+      cooperationDetails: '提供試辦情境、確認資料權限、定義審核規則、追蹤成效指標。'
+    }, form);
+  },
+  async handleIdeaBoxGenerate() {
+    const form = this.getIdeaBoxFormData();
+    if (!form.title || !form.idea) {
+      alert('請至少填寫提案名稱與構想說明');
+      return;
+    }
+
+    const output = document.getElementById('idea-output');
+    const copyBtn = document.getElementById('idea-copy-btn');
+    const downloadBtn = document.getElementById('idea-download-btn');
+    const generateBtn = document.getElementById('idea-generate-btn');
+    if (copyBtn) copyBtn.disabled = true;
+    if (downloadBtn) downloadBtn.disabled = true;
+    if (generateBtn) {
+      generateBtn.disabled = true;
+      generateBtn.textContent = '生成中...';
+    }
+    if (output) output.innerHTML = '<div class="idea-empty">正在生成提案內容...</div>';
+
+    let data;
+    let warning = '';
+    try {
+      const response = await fetch('/api/ideabox', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'AI 生成失敗');
+      data = normalizeGeneratedIdea(payload, form);
+    } catch (error) {
+      console.warn(error);
+      data = this.buildLocalIdeaBox(form);
+      warning = '<p class="idea-warning">AI API 尚未可用，已先產生本機範本。Cloudflare Secret 設定完成後會改用 AI 內容。</p>';
+    } finally {
+      if (generateBtn) {
+        generateBtn.disabled = false;
+        generateBtn.textContent = '生成提案書';
+      }
+    }
+
+    window.ideaBoxData = data;
+    window.ideaBoxHtml = buildIdeaBoxHtml(data);
+    window.ideaBoxPlainText = buildIdeaBoxPlainText(data);
+
+    if (output) output.innerHTML = `${warning}${window.ideaBoxHtml}`;
+    if (copyBtn) copyBtn.disabled = false;
+    if (downloadBtn) downloadBtn.disabled = false;
+  },
+  async copyIdeaBox() {
+    if (!window.ideaBoxPlainText) return;
+    await navigator.clipboard.writeText(window.ideaBoxPlainText);
+    const btn = document.getElementById('idea-copy-btn');
+    if (btn) {
+      const original = btn.textContent;
+      btn.textContent = '已複製';
+      setTimeout(() => { btn.textContent = original; }, 1200);
+    }
+  },
+  downloadIdeaBoxDoc() {
+    if (!window.ideaBoxData) return;
+    const title = stripMarkdown(document.getElementById('idea-title')?.value || '未命名') || '未命名';
+    const blob = buildIdeaBoxDocxBlob(window.ideaBoxData);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `IDEA_Box_提案書_${title}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
   },
   navigate(path) {
     if (location.pathname !== path) {
@@ -767,6 +1447,7 @@ function renderRoute() {
       route = 'home';
   }
   const app = document.getElementById('app');
+  app.classList.toggle('wide-page', route === 'ideabox');
 
   const meta = metaList[route] || (route === 'home' ? { title: '多功能工具箱', desc: '純客戶端、無需伺服器的實用戰備箱' } : { title: '工具', desc: '' });
 
@@ -802,16 +1483,11 @@ function renderRoute() {
     });
   }
   if (route === 'tz') {
-    // 不做 filterTZ，避免空搜尋時出錯，只啟動時鐘
+    UI.initTZ();
     if (tzTimer) clearInterval(tzTimer);
     tzTimer = setInterval(() => UI.updateTZDisplay(), 1000);
   } else if (route === 'fx') {
-    // 填充貨幣 datalist
-    const currencies = ['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNY','TWD','HKD','SGD','KRW','THB','MYR','PHP','IDR','INR','VND','NZD','SEK','NOK','DKK','MXN','BRL','ARS','ZAR','TRY','AED','SAR','EGP','RUB','PLN','CZK','HUF','ILS','KWD','QAR','BHD'];
-    const datalist = document.getElementById('fx-currencies');
-    if (datalist) {
-      datalist.innerHTML = currencies.map(c => `<option value="${c}">`).join('');
-    }
+    document.getElementById('fx-amt')?.addEventListener('input', () => UI.handleFX());
     UI.handleFX();
   } else {
     if (tzTimer) {

@@ -5,5 +5,6 @@ import * as hash from './hash.js';
 import * as id from './id.js';
 import * as unit from './unit.js';
 import * as imgzip from './imgzip.js';
+import * as timezones from './timezones.js';
 
-export { color, qr, diff, hash, id, unit, imgzip };
+export { color, qr, diff, hash, id, unit, imgzip, timezones };
