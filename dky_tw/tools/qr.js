@@ -3,7 +3,7 @@ const loadQRLib = () => {
   return new Promise((resolve, reject) => {
     if (typeof QRCode !== 'undefined') return resolve();
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js';
     s.onload = resolve;
     s.onerror = reject;
     document.head.appendChild(s);

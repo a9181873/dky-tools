@@ -753,38 +753,63 @@ const renderFields = {
     <button class="btn" onclick="UI.handleRegex()">測試匹配</button>
     <div class="output" id="regex-output" style="white-space: pre-wrap;"></div>
   `,
-  id: () => `
+  id: () => {
+    const cities = tools.id?.getCities?.() || [];
+    const cityOptions = cities.map(c => `<option value="${c.letter}">${c.label}</option>`).join('');
+    return `
     <div style="background: rgba(255, 193, 7, 0.1); color: #FFC107; padding: 10px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem;">
       <strong>⚠️ 警語</strong>: 本工具純粹依據官方數學邏輯隨機演算生成。產生的字號僅供「程式開發」與「系統測試」使用，有機率與真實字號巧合相同，切勿用於任何真實網站註冊或非法用途！
     </div>
     <div style="display:flex; gap: 20px; flex-wrap: wrap;">
         <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.2);">
-            <h3 style="margin-top:0;">✨ 隨機產生器</h3>
+            <h3 style="margin-top:0;">✨ 產生器</h3>
             <div class="input-group">
-                <label>性別選項</label>
-                <select id="id-gender" class="glass-input" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+                <label>縣市 / 區域</label>
+                <select id="id-city" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
                     <option value="">隨機</option>
-                    <option value="1">男性 (1)</option>
-                    <option value="2">女性 (2)</option>
-                    <option value="8">外國男 (8)</option>
-                    <option value="9">外國女 (9)</option>
+                    ${cityOptions}
                 </select>
             </div>
-            <button class="btn" onclick="UI.handleIdGen()">抽出一組字號</button>
-            <div class="output" id="id-gen-output" style="font-size: 1.5rem; text-align: center; letter-spacing: 3px; margin-top: 10px;">點擊產生</div>
+            <div class="input-group">
+                <label>性別</label>
+                <select id="id-gender" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+                    <option value="">隨機</option>
+                    <option value="1">1 — 男性 (本國籍)</option>
+                    <option value="2">2 — 女性 (本國籍)</option>
+                    <option value="8">8 — 男性 (外國籍)</option>
+                    <option value="9">9 — 女性 (外國籍)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>自訂流水號 (7 碼數字，留空則隨機)</label>
+                <input id="id-serial" placeholder="例如: 2345678" maxlength="7" style="letter-spacing:2px;" />
+            </div>
+            <div class="input-group">
+                <label>批量產生數量</label>
+                <select id="id-batch" style="width:100%;border-radius:6px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.3);color:white;padding:12px;font-size:1rem;outline:none;margin-bottom:8px;">
+                    <option value="1" selected>1 組</option>
+                    <option value="5">5 組</option>
+                    <option value="10">10 組</option>
+                    <option value="20">20 組</option>
+                    <option value="50">50 組</option>
+                </select>
+            </div>
+            <button class="btn" onclick="UI.handleIdGen()">產生字號</button>
+            <div class="output" id="id-gen-output" style="font-size: 1.1rem; text-align: center; letter-spacing: 3px; margin-top: 10px; font-family: monospace; line-height: 2;">點擊產生</div>
         </div>
         
         <div style="flex: 1; min-width: 280px; padding: 15px; border: 1px solid var(--glass-border); border-radius: 8px; background: rgba(0,0,0,0.2);">
             <h3 style="margin-top:0;">🛡️ 真偽驗證器</h3>
             <div class="input-group">
                 <label>輸入身分證字號</label>
-                <input id="id-val-input" placeholder="例如: A123456789" maxlength="10" />
+                <input id="id-val-input" placeholder="例如: A123456789" maxlength="10" style="letter-spacing:3px; font-size:1.2rem;" />
             </div>
             <button class="btn" onclick="UI.handleIdVal()">驗證</button>
-            <div class="output" id="id-val-output" style="text-align: center; margin-top: 10px;">等待驗證</div>
+            <div class="output" id="id-val-output" style="margin-top: 10px; line-height: 1.8;">等待驗證</div>
         </div>
     </div>
-  `,
+  `;
+  },
   unit: () => {
     const cats = tools.unit?.getCategories?.() || [];
     const defaultCat = cats[0] || { key: '', units: [] };
@@ -1403,26 +1428,41 @@ const UI = {
     }
   },
   handleIdGen() {
-    const sel = document.getElementById('id-gender').value;
-    const gender = sel ? sel : null;
-    if (tools.id?.generate) {
-      document.getElementById('id-gen-output').textContent = tools.id.generate(gender);
+    const city = document.getElementById('id-city')?.value || null;
+    const gender = document.getElementById('id-gender')?.value || null;
+    const serial = document.getElementById('id-serial')?.value?.trim() || null;
+    const batch = parseInt(document.getElementById('id-batch')?.value || '1', 10);
+    const out = document.getElementById('id-gen-output');
+    if (!tools.id?.generate) { alert('產生器載入失敗'); return; }
+    if (serial && !/^\d{7}$/.test(serial)) { alert('流水號必須為 7 碼純數字'); return; }
+    const options = {};
+    if (city) options.city = city;
+    if (gender) options.gender = gender;
+    if (serial) options.serial = serial;
+    if (batch <= 1) {
+      out.textContent = tools.id.generate(options);
     } else {
-      alert('產生器載入失敗');
+      const results = tools.id.generateBatch(batch, options);
+      out.innerHTML = results.map(id => `<div>${escapeHTML(id)}</div>`).join('');
     }
   },
   handleIdVal() {
-    const val = document.getElementById('id-val-input').value;
-    if (tools.id?.validate) {
-      const result = tools.id.validate(val);
-      const out = document.getElementById('id-val-output');
-      if (result.valid) {
-          out.innerHTML = `<span style="color:#4CAF50; font-weight:bold;">${result.msg}</span>`;
-      } else {
-          out.innerHTML = `<span style="color:#FF5252; font-weight:bold;">${result.msg}</span>`;
-      }
+    const val = document.getElementById('id-val-input')?.value || '';
+    const out = document.getElementById('id-val-output');
+    if (!tools.id?.validate) { alert('驗證器載入失敗'); return; }
+    const r = tools.id.validate(val);
+    if (r.valid) {
+      out.innerHTML = `
+        <div style="color:#4CAF50; font-weight:bold; font-size:1.2rem; margin-bottom:12px;">✅ ${escapeHTML(r.msg)}</div>
+        <table style="width:100%; text-align:left; font-size:0.95rem;">
+          <tr><td style="color:var(--muted); padding:4px 8px;">字號</td><td style="padding:4px 8px; font-family:monospace; letter-spacing:2px;">${escapeHTML(r.input)}</td></tr>
+          <tr><td style="color:var(--muted); padding:4px 8px;">縣市</td><td style="padding:4px 8px;">${escapeHTML(r.letter)} — ${escapeHTML(r.cityName)}</td></tr>
+          <tr><td style="color:var(--muted); padding:4px 8px;">性別</td><td style="padding:4px 8px;">${escapeHTML(r.genderCode)} — ${escapeHTML(r.genderName)}</td></tr>
+          <tr><td style="color:var(--muted); padding:4px 8px;">流水號</td><td style="padding:4px 8px; font-family:monospace;">${escapeHTML(r.serial)}</td></tr>
+          <tr><td style="color:var(--muted); padding:4px 8px;">檢查碼</td><td style="padding:4px 8px; font-family:monospace;">${escapeHTML(r.checkDigit)}</td></tr>
+        </table>`;
     } else {
-      alert('驗證器載入失敗');
+      out.innerHTML = `<div style="color:#FF5252; font-weight:bold;">❌ ${escapeHTML(r.msg)}</div>`;
     }
   },
   handleUnitCatChange() {
@@ -1511,7 +1551,7 @@ function renderRoute() {
 
   if (route === 'qr' && typeof QRCode === 'undefined') {
     const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js';
     document.head.appendChild(s);
   }
   if (route === 'color') {
