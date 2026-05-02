@@ -9,7 +9,7 @@ const FIELD_LIMITS = {
   members: 160,
   title: 120,
   dimension: 20,
-  analysisType: 20,
+  analysisType: 40,
   idea: 4000
 };
 
@@ -86,6 +86,13 @@ function buildPrompt(form) {
 3. 內容要具體、正式、可落地，避免空泛口號。
 4. 預期效益要包含量化與質化指標。
 5. 可行性要包含短期 1 年內的階段、合作部門與配合事項。
+6. analysisRows 必須依決策分析方式產生表格資料：
+   可行性分析：評估技術、組織、時程、擴充性。
+   成本效益分析：比較投入成本、營運成本、量化效益、質化效益。
+   風險與因應分析：列出資料、品質、導入、維運風險與因應措施。
+   5W1H分析：整理 Why、What、Who、When、Where、How。
+   KPI指標分析：列出效率、品質、使用、體驗、治理指標。
+   使用者旅程分析：依需求提出、資料整理、審核確認、執行追蹤分析痛點與 AI 輔助機會。
 
 使用者資料：
 提案單位：${form.company}
@@ -123,7 +130,7 @@ function normalizeForm(body = {}) {
     members: requireText(limitText(body.members, 'members'), '未填寫'),
     title: requireText(limitText(body.title, 'title')),
     dimension: requireText(limitText(body.dimension, 'dimension'), '流程優化'),
-    analysisType: requireText(limitText(body.analysisType, 'analysisType'), '優缺點清單'),
+    analysisType: requireText(limitText(body.analysisType, 'analysisType'), '可行性分析'),
     idea: requireText(limitText(body.idea, 'idea'))
   };
 }
