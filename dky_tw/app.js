@@ -28,7 +28,7 @@ const metaList = {
   json: { icon: '{}', title: 'JSON 格式整理', desc: '當拿到一大串擠在一起的 {} 程式亂碼時，點擊就能瞬間幫你排版成有縮排、有顏色的完美格式，還能揪出哪裡少打引號！' },
   color: { icon: '🎨', title: '色彩代碼轉換', desc: '設計師專用！如果你拿到色號 #00F2FF 卻不知道 RGB 是多少，貼上即可算出所有的色彩代碼 (HEX/RGB/HSL)。' },
   base64: { icon: '📦', title: 'Base64 加解密', desc: '可以把任何文字，或者直接將「圖片檔案」拖曳進來，編碼成亂碼文字方便藏在網頁碼裡，也能隨時無損還原。' },
-  diff: { icon: '⚖️', title: '左右文字比對', desc: '當你有兩段差不多長的文章或程式碼時，貼上來它會像改錯字一樣，把「多出來」或「刪掉」的地方用紅綠色標出來！' },
+  diff: { icon: '⚖️', title: '文字 / PDF 比對', desc: '貼上文字或上傳兩份 PDF，自動抽取內容並逐行比對差異。新增刪除一目瞭然，保險文件、合約比對必備利器！' },
   jwt: { icon: '🔑', title: 'JWT Token 解密', desc: '開發者必備：拿到一串 "eyJ" 開頭的登入亂碼通行證時，貼上來即可解析出裡面藏的過期時間或 ID，純本地運算超安全。' },
   pwd: { icon: '🛡️', title: '安全密碼產生', desc: '需要超複雜密碼？這個工具啟用你電腦 CPU 最底層的硬體亂數引擎，生成駭客也猜不到的高強度隨機密碼！' },
   url: { icon: '🔗', title: '網址亂碼還原', desc: '複製中文網址常變成 "%E6%B8%AC" 這種超長亂碼，透過「解碼」就能還原成看得懂的中文；當然也能反向「編碼」。' },
@@ -40,7 +40,7 @@ const metaList = {
   regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
-  imgzip: { icon: '🖼️', title: '圖片壓縮工具', desc: '上傳 JPG/PNG/WEBP，在瀏覽器本地壓縮後下載，品質、大小一目瞭然。⚠️ 不支援 GIF/SVG，所有運算本地完成，不上傳任何資料。' },
+  imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
   ideabox: { icon: '💡', title: 'IDEA Box 提案產生器', desc: '輸入構想、單位與應用構面，一鍵整理成清楚可讀的 IDEA Box 提案書，輸出內容不含 Markdown 符號。' }
 };
 
@@ -614,16 +614,50 @@ const renderFields = {
     <a id="base64-download" class="btn" style="display:none" download>下載檔案</a>
   `,
   diff: () => `
-    <div class="input-group">
-      <label>原文 A</label>
-      <textarea id="diff-a" rows="4" placeholder="第一行\n第二行"></textarea>
+    <div class="diff-tabs">
+      <button class="diff-tab active" onclick="UI.switchDiffMode('text')">📝 文字比對</button>
+      <button class="diff-tab" onclick="UI.switchDiffMode('pdf')">📄 PDF 比對</button>
     </div>
-    <div class="input-group">
-      <label>比較 B</label>
-      <textarea id="diff-b" rows="4" placeholder="第一行\n改為第二行"></textarea>
+    <div id="diff-mode-text">
+      <div class="input-group">
+        <label>原文 A</label>
+        <textarea id="diff-a" rows="4" placeholder="第一行&#10;第二行"></textarea>
+      </div>
+      <div class="input-group">
+        <label>比較 B</label>
+        <textarea id="diff-b" rows="4" placeholder="第一行&#10;改為第二行"></textarea>
+      </div>
     </div>
-    <button class="btn" onclick="UI.handleDiff()">比對</button>
-    <div class="output" id="diff-output" style="font-family: monospace; white-space: pre-wrap;"></div>
+    <div id="diff-mode-pdf" style="display:none;">
+      <div class="diff-pdf-row">
+        <div class="diff-pdf-col">
+          <label>PDF 檔案 A</label>
+          <div class="diff-pdf-drop" id="diff-pdf-drop-a">
+            <input type="file" id="diff-pdf-a" accept=".pdf,application/pdf" onchange="UI.handlePdfSelect('a')" />
+            <span class="diff-pdf-placeholder">📁 點擊或拖曳 PDF</span>
+            <span class="diff-pdf-loaded" id="diff-pdf-name-a"></span>
+          </div>
+        </div>
+        <div class="diff-pdf-col">
+          <label>PDF 檔案 B</label>
+          <div class="diff-pdf-drop" id="diff-pdf-drop-b">
+            <input type="file" id="diff-pdf-b" accept=".pdf,application/pdf" onchange="UI.handlePdfSelect('b')" />
+            <span class="diff-pdf-placeholder">📁 點擊或拖曳 PDF</span>
+            <span class="diff-pdf-loaded" id="diff-pdf-name-b"></span>
+          </div>
+        </div>
+      </div>
+      <div style="color:var(--muted);font-size:0.8rem;margin-top:4px;">⚠️ PDF 文字抽取在瀏覽器端完成，大檔案（50 頁以上）可能需要數秒。</div>
+    </div>
+    <div class="input-group" style="margin-top:12px;">
+      <label>比對模式</label>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm diff-mode-btn active" data-mode="lines" onclick="UI.setDiffMode('lines', this)">逐行比對</button>
+        <button class="btn btn-sm diff-mode-btn" data-mode="words" onclick="UI.setDiffMode('words', this)">逐字比對</button>
+      </div>
+    </div>
+    <button class="btn" onclick="UI.handleDiff()">開始比對</button>
+    <div class="output" id="diff-output" style="font-family: monospace; white-space: pre-wrap; min-height:100px; max-height:500px; overflow-y:auto;"></div>
   `,
   jwt: () => `
     <div class="input-group">
@@ -851,30 +885,38 @@ const renderFields = {
   },
   imgzip: () => `
     <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
-      ⚠️ <strong>注意</strong>：支援 JPG / PNG / WEBP，<strong>不支援 GIF / SVG</strong>。所有壓縮在瀏覽器本地完成，不上傳任何資料到伺服器，請放心使用。
+      ⚠️ <strong>支援</strong>：JPG / PNG / WEBP，可輸出為 WebP / JPEG / PNG / AVIF（AVIF 需瀏覽器支援）。所有壓縮在瀏覽器本地完成。
     </div>
     <div class="input-group">
-      <label>選擇圖片</label>
-      <input id="imgzip-file" type="file" accept="image/jpeg,image/png,image/webp" onchange="UI.handleImgZipPreview()" />
-    </div>
-    <div class="input-group">
-      <label>壓縮品質 (<span id="imgzip-quality-label">80</span>%)</label>
-      <input id="imgzip-quality" type="range" min="10" max="100" value="80" oninput="document.getElementById('imgzip-quality-label').textContent=this.value; UI.handleImgZipCompress()" style="width:100%;accent-color:var(--accent);" />
-    </div>
-    <div id="imgzip-preview-wrap" style="display:none;">
-      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
-        <div style="flex:1;min-width:200px;text-align:center;">
-          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">原圖</div>
-          <img id="imgzip-original" style="max-width:100%;border-radius:8px;border:1px solid var(--border-light);" />
-          <div id="imgzip-original-size" style="margin-top:6px;font-size:0.85rem;color:var(--text-muted);"></div>
-        </div>
-        <div style="flex:1;min-width:200px;text-align:center;">
-          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">壓縮後</div>
-          <img id="imgzip-result" style="max-width:100%;border-radius:8px;border:1px solid var(--border-light);" />
-          <div id="imgzip-result-size" style="margin-top:6px;font-size:0.85rem;color:#81c784;"></div>
-        </div>
+      <label>選擇圖片（可多選或拖曳）</label>
+      <div class="imgzip-dropzone" id="imgzip-dropzone">
+        <input id="imgzip-file" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="UI.handleImgZipFiles()" />
+        <span class="imgzip-drop-text">📁 點擊選取或拖曳多張圖片到這裡</span>
       </div>
-      <a id="imgzip-download" class="btn" download style="display:none;">⬇️ 下載壓縮圖</a>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
+      <div class="input-group" style="flex:0 1 auto;min-width:160px;margin-bottom:0;">
+        <label>輸出格式</label>
+        <select id="imgzip-format" onchange="UI.handleImgZipRecompress()" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:1rem;outline:none;">
+          <option value="webp" selected>WebP（體積最小，推薦）</option>
+          <option value="jpeg">JPEG（最通用）</option>
+          <option value="png">PNG（支援透明）</option>
+          <option value="avif">AVIF（最新格式）</option>
+        </select>
+      </div>
+      <div class="input-group" style="flex:1;min-width:200px;margin-bottom:0;">
+        <label>壓縮品質 (<span id="imgzip-quality-label">80</span>%)</label>
+        <input id="imgzip-quality" type="range" min="10" max="100" value="80" oninput="document.getElementById('imgzip-quality-label').textContent=this.value; UI.handleImgZipRecompress()" style="width:100%;accent-color:var(--accent);" />
+      </div>
+    </div>
+    <div id="imgzip-total-stats" style="display:none;margin-bottom:16px;padding:12px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:8px;text-align:center;">
+      <span style="color:var(--muted);">總計 </span>
+      <strong id="imgzip-total-count">0</strong><span style="color:var(--muted);"> 張圖片，共節省 </span>
+      <strong style="color:#81c784;" id="imgzip-total-saved">0 KB</strong><span style="color:var(--muted);">（</span><strong style="color:#81c784;" id="imgzip-total-percent">0%</strong><span style="color:var(--muted);">）</span>
+    </div>
+    <div id="imgzip-list" style="display:flex;flex-direction:column;gap:16px;"></div>
+    <div id="imgzip-actions" style="display:none;margin-top:16px;text-align:center;">
+      <button class="btn" onclick="UI.handleImgZipDownloadAll()">⬇️ 批次下載全部</button>
     </div>
   `,
   ideabox: () => `
@@ -1007,19 +1049,75 @@ const UI = {
       else out.textContent = decodeURI(atob(v));
     } catch { alert('編解碼失敗'); }
   },
-  async handleDiff() {
-    const a = document.getElementById('diff-a').value.split('\n');
-    const b = document.getElementById('diff-b').value.split('\n');
-    
-    if (tools.diff?.compare) {
-        document.getElementById('diff-output').innerHTML = '<span style="color:var(--muted)">比對中...</span>';
-        try {
-            document.getElementById('diff-output').innerHTML = await tools.diff.compare(a, b);
-        } catch (e) {
-            document.getElementById('diff-output').innerHTML = '比對錯誤: ' + e.message;
-        }
+  diffMode: 'lines',
+  diffInputMode: 'text',
+  switchDiffMode(mode) {
+    this.diffInputMode = mode;
+    const textEl = document.getElementById('diff-mode-text');
+    const pdfEl = document.getElementById('diff-mode-pdf');
+    const tabs = document.querySelectorAll('.diff-tab');
+    if (mode === 'text') {
+      if (textEl) textEl.style.display = 'block';
+      if (pdfEl) pdfEl.style.display = 'none';
+      tabs[0]?.classList.add('active');
+      tabs[1]?.classList.remove('active');
     } else {
-        document.getElementById('diff-output').innerHTML = '未實現';
+      if (textEl) textEl.style.display = 'none';
+      if (pdfEl) pdfEl.style.display = 'block';
+      tabs[0]?.classList.remove('active');
+      tabs[1]?.classList.add('active');
+    }
+  },
+  setDiffMode(mode, btn) {
+    this.diffMode = mode;
+    document.querySelectorAll('.diff-mode-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+  },
+  handlePdfSelect(side) {
+    const file = document.getElementById(`diff-pdf-${side}`)?.files?.[0];
+    const nameEl = document.getElementById(`diff-pdf-name-${side}`);
+    const placeholderEl = document.querySelector(`#diff-pdf-drop-${side} .diff-pdf-placeholder`);
+    if (file && nameEl) {
+      nameEl.textContent = `✅ ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      nameEl.style.display = 'block';
+      if (placeholderEl) placeholderEl.style.display = 'none';
+    }
+  },
+  async handleDiff() {
+    const output = document.getElementById('diff-output');
+    output.innerHTML = '<span style="color:var(--muted)">比對中...</span>';
+
+    try {
+      let textA, textB;
+
+      if (this.diffInputMode === 'pdf') {
+        const fileA = document.getElementById('diff-pdf-a')?.files?.[0];
+        const fileB = document.getElementById('diff-pdf-b')?.files?.[0];
+        if (!fileA || !fileB) {
+          output.innerHTML = '⚠️ 請先選擇兩份 PDF 檔案';
+          return;
+        }
+        output.innerHTML = '<span style="color:var(--muted)">正在抽取 PDF A 文字...</span>';
+        textA = await tools.diff.extractPdfText(fileA);
+        output.innerHTML = '<span style="color:var(--muted)">正在抽取 PDF B 文字...</span>';
+        textB = await tools.diff.extractPdfText(fileB);
+        output.innerHTML = '<span style="color:var(--muted)">正在比對差異...</span>';
+      } else {
+        textA = document.getElementById('diff-a')?.value || '';
+        textB = document.getElementById('diff-b')?.value || '';
+        if (!textA && !textB) {
+          output.innerHTML = '⚠️ 請在兩邊輸入文字';
+          return;
+        }
+      }
+
+      if (this.diffMode === 'lines') {
+        output.innerHTML = await tools.diff.compareLines(textA, textB);
+      } else {
+        output.innerHTML = await tools.diff.compare(textA, textB);
+      }
+    } catch (e) {
+      output.innerHTML = `比對錯誤: ${e.message}`;
     }
   },
   handleJWT() {
@@ -1488,40 +1586,169 @@ const UI = {
     const toLabel   = document.getElementById('unit-to').options[document.getElementById('unit-to').selectedIndex]?.text || toKey;
     out.innerHTML = `<span style="color:var(--accent); font-size:2rem;">${result.toLocaleString(undefined, {maximumFractionDigits: 8})}</span><br><span style="font-size:0.85rem;color:var(--text-muted);">${val} ${fromLabel} = ${result.toLocaleString(undefined, {maximumFractionDigits: 8})} ${toLabel}</span>`;
   },
-  handleImgZipPreview() {
-    const file = document.getElementById('imgzip-file').files[0];
-    if (!file) return;
-    const wrap = document.getElementById('imgzip-preview-wrap');
-    wrap.style.display = 'block';
-    const origImg = document.getElementById('imgzip-original');
-    const origSize = document.getElementById('imgzip-original-size');
-    const url = URL.createObjectURL(file);
-    origImg.src = url;
-    origSize.textContent = `原始大小：${(file.size / 1024).toFixed(1)} KB`;
-    window._imgzipFile = file;
-    this.handleImgZipCompress();
+  imgZipFiles: [],
+  handleImgZipFiles() {
+    const input = document.getElementById('imgzip-file');
+    const files = Array.from(input.files || []);
+    if (!files.length) return;
+
+    this.imgZipFiles = files;
+    const listEl = document.getElementById('imgzip-list');
+    const dropText = document.querySelector('.imgzip-drop-text');
+    if (dropText) dropText.textContent = `📁 已選取 ${files.length} 張圖片，點擊可更換`;
+
+    listEl.innerHTML = files.map((file, i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border-light);border-radius:8px;">
+        <div style="flex:0 0 60px;text-align:center;font-size:0.75rem;color:var(--muted);">
+          <img src="${URL.createObjectURL(file)}" style="max-width:60px;max-height:60px;border-radius:4px;display:block;margin-bottom:4px;" />
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHTML(file.name)}</div>
+          <div style="font-size:0.75rem;color:var(--muted);">原始 ${tools.imgzip.formatSize(file.size)}</div>
+        </div>
+        <div style="flex:0 0 auto;text-align:right;" id="imgzip-result-${i}">
+          <span style="color:var(--muted);font-size:0.8rem;">等待壓縮</span>
+        </div>
+        <div style="flex:0 0 auto;">
+          <a id="imgzip-dl-${i}" class="btn btn-sm" style="display:none;" download>⬇️</a>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('imgzip-actions').style.display = 'block';
+    this.handleImgZipRecompress();
   },
-  async handleImgZipCompress() {
-    const file = window._imgzipFile;
-    if (!file) return;
-    const quality = parseInt(document.getElementById('imgzip-quality').value) / 100;
-    try {
-      const result = await tools.imgzip.compress(file, quality);
-      const resultImg = document.getElementById('imgzip-result');
-      const resultSize = document.getElementById('imgzip-result-size');
-      const dlBtn = document.getElementById('imgzip-download');
-      resultImg.src = result.dataUrl;
-      const compressed = result.size;
-      const ratio = ((1 - compressed / file.size) * 100).toFixed(1);
-      resultSize.innerHTML = `壓縮後大小：<strong>${(compressed / 1024).toFixed(1)} KB</strong><br><span style="color:var(--accent)">節省 ${ratio}%</span>`;
-      dlBtn.style.display = 'inline-flex';
-      dlBtn.href = result.dataUrl;
-      const ext = result.mimeType === 'image/webp' ? 'webp' : result.mimeType === 'image/png' ? 'png' : 'jpg';
-      dlBtn.download = `compressed_q${Math.round(quality * 100)}.${ext}`;
-    } catch(e) {
-      document.getElementById('imgzip-result-size').textContent = '壓縮失敗: ' + e.message;
+  async handleImgZipRecompress() {
+    if (!this.imgZipFiles.length) return;
+    const quality = parseInt(document.getElementById('imgzip-quality')?.value || 80) / 100;
+    const format = document.getElementById('imgzip-format')?.value || 'webp';
+    const ext = tools.imgzip.OUT_FORMATS[format]?.ext || '.webp';
+
+    let totalOriginal = 0;
+    let totalCompressed = 0;
+
+    for (let i = 0; i < this.imgZipFiles.length; i++) {
+      const file = this.imgZipFiles[i];
+      const resultEl = document.getElementById(`imgzip-result-${i}`);
+      const dlEl = document.getElementById(`imgzip-dl-${i}`);
+      if (!resultEl) continue;
+
+      resultEl.innerHTML = '<span style="color:var(--muted);font-size:0.8rem;">壓縮中...</span>';
+
+      try {
+        const result = await tools.imgzip.compress(file, quality, format);
+        const saved = tools.imgzip.savingsPercent(file.size, result.size);
+        const color = saved > 50 ? '#81c784' : saved > 20 ? '#ffc107' : '#ff9800';
+
+        resultEl.innerHTML = `
+          <div style="color:var(--muted);font-size:0.75rem;">${tools.imgzip.formatSize(result.size)}</div>
+          <div style="color:${color};font-size:0.85rem;font-weight:600;">節省 ${saved}%</div>
+          ${result.fallback ? '<div style="color:#ffc107;font-size:0.7rem;">(AVIF 不支援→WebP)</div>' : ''}
+        `;
+
+        if (dlEl) {
+          dlEl.style.display = 'inline-flex';
+          dlEl.href = result.dataUrl;
+          const baseName = file.name.replace(/\.[^.]+$/, '');
+          dlEl.download = `${baseName}_q${Math.round(quality * 100)}${ext}`;
+        }
+
+        totalOriginal += file.size;
+        totalCompressed += result.size;
+
+        // Store result for batch download
+        if (!file._compressResult) file._compressResult = {};
+        file._compressResult = result;
+      } catch (e) {
+        resultEl.innerHTML = `<span style="color:#e57373;font-size:0.8rem;">壓縮失敗</span>`;
+      }
     }
-  }
+
+    // Update total stats
+    const countEl = document.getElementById('imgzip-total-count');
+    const savedEl = document.getElementById('imgzip-total-saved');
+    const percentEl = document.getElementById('imgzip-total-percent');
+    const statsEl = document.getElementById('imgzip-total-stats');
+
+    if (totalOriginal > 0) {
+      const totalSaved = totalOriginal - totalCompressed;
+      const totalPercent = Math.round((totalSaved / totalOriginal) * 100);
+      if (countEl) countEl.textContent = this.imgZipFiles.length;
+      if (savedEl) savedEl.textContent = tools.imgzip.formatSize(totalSaved);
+      if (percentEl) percentEl.textContent = `${totalPercent}%`;
+      if (statsEl) statsEl.style.display = 'block';
+    }
+  },
+  handleImgZipDownloadAll() {
+    if (!this.imgZipFiles.length) return;
+    this.imgZipFiles.forEach((file, i) => {
+      const result = file._compressResult;
+      if (result?.dataUrl) {
+        setTimeout(() => {
+          const ext = tools.imgzip.OUT_FORMATS[result.format]?.ext || '.webp';
+          const baseName = file.name.replace(/\.[^.]+$/, '');
+          const a = document.createElement('a');
+          a.href = result.dataUrl;
+          a.download = `${baseName}${ext}`;
+          a.click();
+        }, i * 200);
+      }
+    });
+  },
+  toggleSearch() {
+    let overlay = document.getElementById('search-overlay');
+    if (overlay) {
+      overlay.remove();
+      return;
+    }
+    const toolsList = Object.entries(metaList).map(([k, meta]) => ({ key: k, icon: meta.icon, title: meta.title, desc: meta.desc }));
+    overlay = document.createElement('div');
+    overlay.id = 'search-overlay';
+    overlay.innerHTML = `
+      <div class="search-backdrop" onclick="UI.toggleSearch()"></div>
+      <div class="search-modal">
+        <div class="search-input-wrap">
+          <span style="color:var(--accent);font-size:1.2rem;">🔍</span>
+          <input id="search-input" class="search-input" placeholder="搜尋工具... (例如：PDF、圖片、密碼)" autofocus />
+          <span style="color:var(--muted);font-size:0.75rem;">ESC 關閉</span>
+        </div>
+        <div id="search-results" class="search-results">
+          ${toolsList.map(t => `
+            <div class="search-item" data-key="${t.key}" onclick="UI.searchSelect('${t.key}')">
+              <span class="search-item-icon">${t.icon}</span>
+              <div>
+                <div class="search-item-title">${escapeHTML(t.title)}</div>
+                <div class="search-item-desc">${escapeHTML(t.desc)}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    const input = document.getElementById('search-input');
+    input.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll('.search-item').forEach(item => {
+        const key = item.dataset.key;
+        const meta = metaList[key];
+        const match = !q || (meta.title.toLowerCase().includes(q) || meta.desc.toLowerCase().includes(q) || key.includes(q));
+        item.style.display = match ? 'flex' : 'none';
+      });
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.toggleSearch();
+      if (e.key === 'Enter') {
+        const visible = document.querySelector('.search-item[style*="flex"]') || document.querySelector('.search-item:not([style*="none"])');
+        if (visible) this.searchSelect(visible.dataset.key);
+      }
+    });
+    setTimeout(() => input.focus(), 50);
+  },
+  searchSelect(key) {
+    document.getElementById('search-overlay')?.remove();
+    this.navigate(`/${key}`);
+  },
 };
 
 let tzTimer = null;
@@ -1585,10 +1812,17 @@ function renderRoute() {
 
 window.addEventListener('popstate', renderRoute);
 window.addEventListener('DOMContentLoaded', () => {
-  // 自動將帶有 #/ 的舊版網址轉為新版路徑
   if (location.hash.startsWith('#/')) {
     const cleanPath = location.hash.replace('#', '');
     history.replaceState(null, '', cleanPath);
   }
   renderRoute();
+});
+
+// 快捷指令列：Ctrl+K / Cmd+K 全域搜尋
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    UI.toggleSearch();
+  }
 });
