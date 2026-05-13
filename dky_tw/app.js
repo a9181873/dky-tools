@@ -20,7 +20,8 @@ const ROUTES = {
   '/id': 'id',
   '/unit': 'unit',
   '/imgzip': 'imgzip',
-  '/ideabox': 'ideabox'
+  '/ideabox': 'ideabox',
+  '/usstocks': 'usstocks'
 };
 
 const metaList = {
@@ -41,7 +42,8 @@ const metaList = {
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
-  ideabox: { icon: '💡', title: 'IDEA Box 提案產生器', desc: '輸入構想、單位與應用構面，一鍵整理成清楚可讀的 IDEA Box 提案書，輸出內容不含 Markdown 符號。' }
+  ideabox: { icon: '💡', title: 'IDEA Box 提案產生器', desc: '輸入構想、單位與應用構面，一鍵整理成清楚可讀的 IDEA Box 提案書，輸出內容不含 Markdown 符號。' },
+  usstocks: { icon: '📈', title: '美股投資組合追蹤', desc: '密碼保護的個人美股管理工具。即時股價、自動計算損益、支援 Google Sheets 雲端同步。' }
 };
 
 window.tzDatabase = [
@@ -980,7 +982,8 @@ const renderFields = {
         </div>
       </section>
     </div>
-  `
+  `,
+  usstocks: () => tools.usstocks.render(),
 };
 
 const UI = {
@@ -1802,6 +1805,8 @@ function renderRoute() {
   } else if (route === 'fx') {
     document.getElementById('fx-amt')?.addEventListener('input', () => UI.handleFX());
     UI.handleFX();
+  } else if (route === 'usstocks') {
+    if (tools.usstocks && tools.usstocks.init) tools.usstocks.init();
   } else {
     if (tzTimer) {
       clearInterval(tzTimer);
