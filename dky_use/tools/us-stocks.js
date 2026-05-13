@@ -532,15 +532,14 @@ window.USStocks = USStocks;
 // 提供 render function 給 app.js 的 renderFields
 export function render() {
   loadPortfolio();
-  return `<div id="stock-container">${stockState.authenticated ? renderPortfolio() : renderAuthGate()}</div>`;
+  return `<div id="stock-container">${renderPortfolio()}</div>`;
 }
 
 export function init() {
   loadPortfolio();
-  stockState.authenticated = false;  // 每次導航重設，需重新輸入密碼
   USStocks.init();
   const container = document.getElementById('stock-container');
-  if (container && stockState.authenticated) {
+  if (container) {
     container.innerHTML = renderPortfolio();
     USStocks.init();
   }

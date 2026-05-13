@@ -19,9 +19,7 @@ const ROUTES = {
   '/regex': 'regex',
   '/id': 'id',
   '/unit': 'unit',
-  '/imgzip': 'imgzip',
-  '/ideabox': 'ideabox',
-  '/usstocks': 'usstocks'
+  '/imgzip': 'imgzip'
 };
 
 const metaList = {
@@ -41,9 +39,7 @@ const metaList = {
   regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
-  imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
-  ideabox: { icon: '💡', title: 'IDEA Box 提案產生器', desc: '輸入構想、單位與應用構面，一鍵整理成清楚可讀的 IDEA Box 提案書，輸出內容不含 Markdown 符號。' },
-  usstocks: { icon: '📈', title: '美股投資組合追蹤', desc: '密碼保護的個人美股管理工具。即時股價、自動計算損益、支援 Google Sheets 雲端同步。' }
+  imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' }
 };
 
 window.tzDatabase = [
@@ -921,69 +917,6 @@ const renderFields = {
       <button class="btn" onclick="UI.handleImgZipDownloadAll()">⬇️ 批次下載全部</button>
     </div>
   `,
-  ideabox: () => `
-    <div class="ideabox-grid">
-      <section class="ideabox-panel">
-        <div class="input-group">
-          <label>提案單位</label>
-          <select id="idea-company">
-            <option value="台灣人壽">台灣人壽</option>
-            <option value="中信產險">中信產險</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label>部門名稱</label>
-          <input id="idea-department" placeholder="例如：資訊處、客戶服務處" />
-        </div>
-        <div class="input-group">
-          <label>團隊成員</label>
-          <input id="idea-members" placeholder="姓名 / 部門，每組 1~5 人" />
-        </div>
-        <div class="input-group">
-          <label>提案名稱</label>
-          <input id="idea-title" placeholder="請輸入提案名稱" />
-        </div>
-        <div class="input-group">
-          <label>應用構面</label>
-          <select id="idea-dimension">
-            <option value="公平待客">公平待客</option>
-            <option value="業績提升">業績提升</option>
-            <option value="流程優化" selected>流程優化</option>
-            <option value="專業知能">專業知能</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label>決策分析方式</label>
-          <select id="idea-analysis-type">
-            <option value="可行性分析" selected>可行性分析</option>
-            <option value="成本效益分析">成本效益分析</option>
-            <option value="風險與因應分析">風險與因應分析</option>
-            <option value="5W1H分析">5W1H 分析</option>
-            <option value="KPI指標分析">KPI 指標分析</option>
-            <option value="使用者旅程分析">使用者旅程分析</option>
-            <option value="優缺點清單">優缺點清單</option>
-            <option value="比較表格">比較表格</option>
-            <option value="SWOT分析">SWOT 分析</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label>構想說明</label>
-          <textarea id="idea-content" rows="7" placeholder="請描述想解決的問題、初步構想、可能使用 AI 的方式與期待成效。"></textarea>
-        </div>
-        <button class="btn" onclick="UI.handleIdeaBoxGenerate()" id="idea-generate-btn">生成提案書</button>
-      </section>
-      <section class="ideabox-preview">
-        <div class="ideabox-actions">
-          <button class="btn" onclick="UI.copyIdeaBox()" id="idea-copy-btn" disabled>複製純文字</button>
-          <button class="btn" onclick="UI.downloadIdeaBoxDoc()" id="idea-download-btn" disabled>下載 Word</button>
-        </div>
-        <div id="idea-output" class="idea-document">
-          <div class="idea-empty">填寫左側資料後，這裡會產生可直接閱讀與再編修的 IDEA Box 提案書。</div>
-        </div>
-      </section>
-    </div>
-  `,
-  usstocks: () => tools.usstocks.render(),
 };
 
 const UI = {
@@ -1767,20 +1700,6 @@ function renderRoute() {
       route = 'home';
   }
   const app = document.getElementById('app');
-  app.classList.toggle('wide-page', route === 'ideabox');
-
-  // 美股工具：禁止搜尋引擎索引
-  let robotsMeta = document.querySelector('meta[name="robots"]');
-  if (route === 'usstocks') {
-    if (!robotsMeta) {
-      robotsMeta = document.createElement('meta');
-      robotsMeta.name = 'robots';
-      document.head.appendChild(robotsMeta);
-    }
-    robotsMeta.content = 'noindex, nofollow';
-  } else if (robotsMeta) {
-    robotsMeta.content = 'index, follow';
-  }
 
   const meta = metaList[route] || (route === 'home' ? { title: '多功能工具箱', desc: '純客戶端、無需伺服器的實用戰備箱' } : { title: '工具', desc: '' });
 
@@ -1818,8 +1737,6 @@ function renderRoute() {
   } else if (route === 'fx') {
     document.getElementById('fx-amt')?.addEventListener('input', () => UI.handleFX());
     UI.handleFX();
-  } else if (route === 'usstocks') {
-    if (tools.usstocks && tools.usstocks.init) tools.usstocks.init();
   } else {
     if (tzTimer) {
       clearInterval(tzTimer);

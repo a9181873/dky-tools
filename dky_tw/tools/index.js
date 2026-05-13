@@ -6,6 +6,5 @@ import * as id from './id.js';
 import * as unit from './unit.js';
 import * as imgzip from './imgzip.js';
 import * as timezones from './timezones.js';
-import * as usstocks from './us-stocks.js';
 
-export { color, qr, diff, hash, id, unit, imgzip, timezones, usstocks };
+export { color, qr, diff, hash, id, unit, imgzip, timezones };
