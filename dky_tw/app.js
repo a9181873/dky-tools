@@ -1769,6 +1769,19 @@ function renderRoute() {
   const app = document.getElementById('app');
   app.classList.toggle('wide-page', route === 'ideabox');
 
+  // 美股工具：禁止搜尋引擎索引
+  let robotsMeta = document.querySelector('meta[name="robots"]');
+  if (route === 'usstocks') {
+    if (!robotsMeta) {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.name = 'robots';
+      document.head.appendChild(robotsMeta);
+    }
+    robotsMeta.content = 'noindex, nofollow';
+  } else if (robotsMeta) {
+    robotsMeta.content = 'index, follow';
+  }
+
   const meta = metaList[route] || (route === 'home' ? { title: '多功能工具箱', desc: '純客戶端、無需伺服器的實用戰備箱' } : { title: '工具', desc: '' });
 
   app.innerHTML = `
