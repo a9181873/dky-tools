@@ -549,6 +549,53 @@ footer.glass {
 .is-negative { color: var(--stock-red) !important; }
 .is-income { color: var(--stock-income) !important; }
 
+.stat-twd {
+  display: inline-block;
+  margin-left: 6px;
+  color: var(--stock-muted);
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+}
+.stock-twd-ref {
+  display: block;
+  color: var(--stock-muted);
+  font-size: 0.72rem;
+  margin-top: 2px;
+  font-family: var(--font-mono);
+}
+.stock-twd-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stock-twd-input label {
+  font-size: 0.78rem;
+  color: var(--stock-muted);
+  white-space: nowrap;
+}
+.stock-twd-input input {
+  width: 80px;
+  padding: 7px 10px;
+  border: 1px solid var(--stock-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--stock-text);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  outline: none;
+}
+.stock-twd-input input:focus {
+  border-color: var(--stock-border-strong);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+}
+.stock-totals-row td {
+  border-top: 2px solid var(--stock-border-strong) !important;
+  border-bottom: none !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
 .allocation-list {
   padding: 12px 14px 14px;
   display: flex;

@@ -9,9 +9,12 @@ const LEGACY_STORAGE = 'dky_us_stocks_v1';
 const GAS_URL_STORAGE = 'dky_us_stocks_gas_url';
 
 // ── Config ──
+const TWD_RATE_STORAGE = 'dky_us_stocks_twd_rate';
+
 const STOCK_CONFIG = {
   cacheMinutes: 5,
   gasUrl: '',
+  cfProxyUrl: '/api/yahoo-finance',
   popularStocks: [
     { symbol: 'AAPL', name: 'Apple' },
     { symbol: 'MSFT', name: 'Microsoft' },
@@ -27,6 +30,20 @@ const STOCK_CONFIG = {
 // ── State ──
 let stockState = emptyState();
 let _updateTimer = null;
+let _twdRate = loadTwdRate();
+
+function loadTwdRate() {
+  try {
+    const saved = localStorage.getItem(TWD_RATE_STORAGE);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return { rate: 30.5, updatedAt: 0 };
+}
+
+function saveTwdRate(rate) {
+  _twdRate = { rate: toNumber(rate, 0), updatedAt: Date.now() };
+  localStorage.setItem(TWD_RATE_STORAGE, JSON.stringify(_twdRate));
+}
 
 function emptyState() {
   const accounts = ['A', 'B', 'C'].map(name => createAccount(name));
@@ -91,6 +108,12 @@ function escapeHTML(value = '') {
 
 function escapeAttr(value = '') {
   return escapeHTML(value);
+}
+
+function formatTWD(usdValue) {
+  if (!_twdRate.rate) return '';
+  const twd = toNumber(usdValue) * _twdRate.rate;
+  return `NT$${Math.round(twd).toLocaleString('en-US')}`;
 }
 
 function formatMoney(value, digits = 2) {
@@ -190,6 +213,7 @@ function normalizeLot(lot = {}) {
     name: String(lot.name || symbol).trim() || symbol,
     shares: Math.max(0, toNumber(lot.shares)),
     avgCost: Math.max(0, toNumber(lot.avgCost)),
+    twdRate: toNumber(lot.twdRate, 0),
     buyDate: normalizeDate(lot.buyDate || lot.date),
     tag: String(lot.tag || '').trim(),
     note: String(lot.note || '').trim(),
@@ -298,7 +322,17 @@ function setActiveAccount(accountId) {
   }
 }
 
-// ── Yahoo Finance / GAS Price API ──
+// ── Yahoo Finance / GAS / CF Proxy Price API ──
+async function fetchPricesViaCfProxy(symbols) {
+  if (symbols.length === 0) return {};
+  const url = `${STOCK_CONFIG.cfProxyUrl}?action=quote&symbols=${encodeURIComponent(symbols.join(','))}`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`CF Proxy HTTP ${resp.status}`);
+  const data = await resp.json();
+  if (!data.success) throw new Error(data.error || 'CF proxy failed');
+  return normalizePrices(data.prices || {});
+}
+
 async function fetchPricesViaGas(symbols) {
   if (!STOCK_CONFIG.gasUrl || symbols.length === 0) return {};
   const url = `${STOCK_CONFIG.gasUrl}?action=prices&symbols=${encodeURIComponent(symbols.join(','))}`;
@@ -309,85 +343,31 @@ async function fetchPricesViaGas(symbols) {
   return normalizePrices(data.prices || {});
 }
 
-async function fetchPricesViaYahooQuote(symbols) {
-  if (symbols.length === 0) return {};
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols.join(','))}`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`Yahoo quote HTTP ${resp.status}`);
-  const data = await resp.json();
-  const results = data?.quoteResponse?.result || [];
-  const prices = {};
-
-  results.forEach(item => {
-    const symbol = normalizeSymbol(item.symbol);
-    const price = normalizePrice({
-      symbol,
-      price: item.regularMarketPrice,
-      previousClose: item.regularMarketPreviousClose,
-      change: item.regularMarketChange,
-      changePercent: item.regularMarketChangePercent,
-      currency: item.currency || 'USD',
-      name: item.longName || item.shortName || symbol,
-      updatedAt: Date.now(),
-      source: 'Yahoo quote',
-    });
-    if (price) prices[symbol] = price;
-  });
-
-  return prices;
-}
-
-async function fetchPriceViaYahooChart(symbol) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`Yahoo chart HTTP ${resp.status}`);
-  const data = await resp.json();
-  const result = data?.chart?.result?.[0];
-  const meta = result?.meta;
-  if (!meta) throw new Error('No chart metadata');
-
-  const price = normalizePrice({
-    symbol,
-    price: meta.regularMarketPrice,
-    previousClose: meta.previousClose || meta.chartPreviousClose,
-    currency: meta.currency || 'USD',
-    name: meta.longName || meta.shortName || symbol,
-    updatedAt: Date.now(),
-    source: 'Yahoo chart',
-  });
-
-  return price ? { [price.symbol]: price } : {};
-}
-
 async function fetchStockPrices(symbols) {
   const uniqueSymbols = [...new Set(symbols.map(normalizeSymbol).filter(Boolean))];
   let prices = {};
 
+  // 1) CF Proxy (best: server-side, no CORS)
   try {
-    prices = await fetchPricesViaGas(uniqueSymbols);
+    prices = await fetchPricesViaCfProxy(uniqueSymbols);
   } catch (e) {
-    console.warn('GAS price proxy failed:', e.message);
+    console.warn('CF Proxy failed:', e.message);
   }
 
-  const missingAfterGas = uniqueSymbols.filter(symbol => !prices[symbol]);
-  if (missingAfterGas.length > 0) {
+  // 2) GAS fallback
+  const missingAfterCf = uniqueSymbols.filter(s => !prices[s]);
+  if (missingAfterCf.length > 0) {
     try {
-      prices = { ...prices, ...(await fetchPricesViaYahooQuote(missingAfterGas)) };
+      prices = { ...prices, ...(await fetchPricesViaGas(missingAfterCf)) };
     } catch (e) {
-      console.warn('Yahoo quote failed:', e.message);
+      console.warn('GAS fallback failed:', e.message);
     }
-  }
-
-  const missingAfterQuote = uniqueSymbols.filter(symbol => !prices[symbol]);
-  if (missingAfterQuote.length > 0) {
-    const chartResults = await Promise.allSettled(missingAfterQuote.map(fetchPriceViaYahooChart));
-    chartResults.forEach(result => {
-      if (result.status === 'fulfilled') prices = { ...prices, ...result.value };
-    });
   }
 
   return prices;
 }
+
+
 
 function getTrackedSymbols() {
   const account = getActiveAccount();
@@ -618,6 +598,7 @@ function renderAccountTabs() {
 
 function renderSummary() {
   const summary = calcSummary();
+  const twdRef = (usd) => _twdRate.rate > 0 ? `<span class="stat-twd">${formatTWD(usd)}</span>` : '';
   const stat = (label, value, extraClass = '', sub = '') => `
     <div class="stat-card stock-stat">
       <div class="stat-label">${label}</div>
@@ -628,12 +609,12 @@ function renderSummary() {
 
   return `
     <div class="stock-summary-grid">
-      ${stat('目前成本', formatMoney(summary.totalCost), '', `${summary.lots} 筆買入 / ${summary.positions} 檔持股`)}
-      ${stat('目前市值', formatMoney(summary.totalValue))}
-      ${stat('未實現損益', formatSignedMoney(summary.unrealizedPL), valueClass(summary.unrealizedPL), formatPercent(summary.unrealizedPercent))}
-      ${stat('已實現損益', formatSignedMoney(summary.realizedPL), valueClass(summary.realizedPL), `${summary.sales} 筆賣出`)}
-      ${stat('配息收入', formatMoney(summary.dividendIncome), 'is-income', `${summary.dividends} 筆收入`)}
-      ${stat('總報酬', formatSignedMoney(summary.totalReturn), valueClass(summary.totalReturn), formatPercent(summary.totalReturnPercent))}
+      ${stat('目前成本', formatMoney(summary.totalCost), '', `${summary.lots} 筆買入 / ${summary.positions} 檔持股${twdRef(summary.totalCost)}`)}
+      ${stat('目前市值', formatMoney(summary.totalValue), '', twdRef(summary.totalValue))}
+      ${stat('未實現損益', formatSignedMoney(summary.unrealizedPL), valueClass(summary.unrealizedPL), `${formatPercent(summary.unrealizedPercent)}${twdRef(summary.unrealizedPL)}`)}
+      ${stat('已實現損益', formatSignedMoney(summary.realizedPL), valueClass(summary.realizedPL), `${summary.sales} 筆賣出${twdRef(summary.realizedPL)}`)}
+      ${stat('配息收入', formatMoney(summary.dividendIncome), 'is-income', `${summary.dividends} 筆收入${twdRef(summary.dividendIncome)}`)}
+      ${stat('總報酬', formatSignedMoney(summary.totalReturn), valueClass(summary.totalReturn), `${formatPercent(summary.totalReturnPercent)}${twdRef(summary.totalReturn)}`)}
     </div>
   `;
 }
@@ -649,6 +630,10 @@ function renderToolbar() {
       </div>
       <div class="stock-toolbar-secondary">
         <input class="stock-search" id="stock-filter" value="${escapeAttr(stockState.filter)}" oninput="USStocks.setFilter(this.value)" placeholder="搜尋代碼 / 名稱 / 標籤" />
+        <div class="stock-twd-input">
+          <label>台幣匯率</label>
+          <input id="stock-twd-rate" type="number" step="0.01" min="0" value="${_twdRate.rate || ''}" placeholder="30.50" onchange="USStocks.saveTwdRate(this.value)" />
+        </div>
         <button class="btn-sm" onclick="USStocks.exportCsv()">匯出 CSV</button>
         <button class="btn-sm" onclick="document.getElementById('stock-import-file').click()">匯入 CSV</button>
         <input id="stock-import-file" type="file" accept=".csv,text/csv" style="display:none" onchange="USStocks.importCsv(event)" />
@@ -702,6 +687,10 @@ function renderBuyForm() {
         <div class="input-group">
           <label>標籤 / 場景</label>
           <input id="stock-tag" placeholder="長期、短線、退休金..." value="${escapeAttr(editingLot?.tag || '')}" />
+        </div>
+        <div class="input-group">
+          <label>台幣匯率 (TWD/USD)</label>
+          <input id="stock-twd" type="number" step="0.01" min="0" placeholder="${_twdRate.rate || '30.50'}" value="${editingLot?.twdRate || escapeAttr(_twdRate.rate || '')}" />
         </div>
         <div class="input-group stock-form-wide">
           <label>備註</label>
@@ -877,6 +866,30 @@ function renderHoldingsTable() {
                 </tr>
               `;
             }).join('')}
+            ${rows.length > 0 ? (() => {
+              const totals = rows.reduce((acc, r) => {
+                acc.costBasis += r.costBasis;
+                acc.marketValue += r.marketValue;
+                acc.unrealizedPL += r.unrealizedPL;
+                return acc;
+              }, { costBasis: 0, marketValue: 0, unrealizedPL: 0 });
+              const totalPercent = totals.costBasis > 0 ? (totals.unrealizedPL / totals.costBasis) * 100 : 0;
+              const twdCost = _twdRate.rate > 0 ? `<span class="stock-twd-ref">${formatTWD(totals.costBasis)}</span>` : '';
+              const twdValue = _twdRate.rate > 0 ? `<span class="stock-twd-ref">${formatTWD(totals.marketValue)}</span>` : '';
+              const twdPL = _twdRate.rate > 0 ? `<span class="stock-twd-ref">${formatTWD(totals.unrealizedPL)}</span>` : '';
+              return `
+                <tr class="stock-totals-row">
+                  <td><strong>合計</strong></td>
+                  <td></td>
+                  <td>${formatMoney(totals.costBasis)}${twdCost}</td>
+                  <td></td>
+                  <td>${formatMoney(totals.marketValue)}${twdValue}</td>
+                  <td class="${valueClass(totals.unrealizedPL)}">${formatSignedMoney(totals.unrealizedPL)}${twdPL}</td>
+                  <td class="${valueClass(totalPercent)}">${formatPercent(totalPercent)}</td>
+                  <td></td>
+                </tr>
+              `;
+            })() : ''}
           </tbody>
         </table>
       </div>
@@ -908,15 +921,18 @@ function renderLotsTable() {
               <th>股數</th>
               <th>成本 / 股</th>
               <th>成本總額</th>
+              <th>匯率</th>
+              <th>台幣成本</th>
               <th>標籤</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
             ${lots.length === 0 ? `
-              <tr><td colspan="7" class="stock-empty">尚無買入紀錄</td></tr>
+              <tr><td colspan="9" class="stock-empty">尚無買入紀錄</td></tr>
             ` : lots.map(lot => {
               const costBasis = lot.shares * lot.avgCost;
+              const twdCost = lot.twdRate > 0 ? costBasis * lot.twdRate : 0;
               return `
                 <tr class="${lot.shares <= 0 ? 'stock-row-muted' : ''}">
                   <td>${escapeHTML(lot.buyDate)}</td>
@@ -927,6 +943,8 @@ function renderLotsTable() {
                   <td>${formatNumber(lot.shares)}${lot.shares <= 0 ? '<span class="stock-badge">已結清</span>' : ''}</td>
                   <td>${formatMoney(lot.avgCost)}</td>
                   <td>${formatMoney(costBasis)}</td>
+                  <td>${lot.twdRate > 0 ? lot.twdRate.toFixed(2) : '<span class="stock-muted">-</span>'}</td>
+                  <td>${twdCost > 0 ? `NT$${Math.round(twdCost).toLocaleString('en-US')}` : '<span class="stock-muted">-</span>'}</td>
                   <td>${lot.tag ? `<span class="stock-tag">${escapeHTML(lot.tag)}</span>` : '<span class="stock-muted">-</span>'}</td>
                   <td class="stock-actions">
                     <button class="btn-sm" onclick="USStocks.editBuy('${escapeAttr(lot.id)}')">編輯</button>
@@ -1173,12 +1191,12 @@ function buildCsv() {
   const account = getActiveAccount();
   const rows = [[
     'Type', 'Account', 'Symbol', 'Name', 'Shares', 'CostPerShare', 'SellPrice',
-    'Fee', 'GrossAmount', 'Tax', 'Date', 'Tag', 'Note',
+    'Fee', 'GrossAmount', 'Tax', 'Date', 'Tag', 'Note', 'TwdRate',
   ]];
 
   account.portfolio.forEach(lot => rows.push([
     'BUY', account.name, lot.symbol, lot.name, lot.shares, lot.avgCost, '',
-    '', '', '', lot.buyDate, lot.tag, lot.note,
+    '', '', '', lot.buyDate, lot.tag, lot.note, lot.twdRate || '',
   ]));
   account.sales.forEach(sale => rows.push([
     'SELL', account.name, sale.symbol, '', sale.shares, sale.costPerShare, sale.sellPrice,
@@ -1248,6 +1266,7 @@ function importCsvRows(rows) {
         name: get(row, 'Name'),
         shares: get(row, 'Shares'),
         avgCost: get(row, 'CostPerShare'),
+        twdRate: get(row, 'TwdRate'),
         buyDate: get(row, 'Date'),
         tag: get(row, 'Tag'),
         note: get(row, 'Note'),
@@ -1396,6 +1415,7 @@ const USStocks = {
     const buyDate = getInputValue('stock-date') || new Date().toISOString().slice(0, 10);
     const tag = getInputValue('stock-tag');
     const note = getInputValue('stock-note');
+    const twdRate = toNumber(getInputValue('stock-twd'), _twdRate.rate || 0);
 
     if (!symbol || !Number.isFinite(shares) || shares <= 0 || !Number.isFinite(avgCost) || avgCost < 0) {
       alert('請填寫完整的股票代碼、股數和成本');
@@ -1408,6 +1428,7 @@ const USStocks = {
       name: name || stockState.prices[symbol]?.name || symbol,
       shares,
       avgCost,
+      twdRate,
       buyDate,
       tag,
       note,
@@ -1569,6 +1590,17 @@ const USStocks = {
     } else {
       alert('載入失敗，請確認 Apps Script URL 正確且已部署新版後端');
     }
+  },
+
+  saveTwdRate(value) {
+    const rate = toNumber(value, 0);
+    if (rate <= 0) {
+      showToast('請輸入有效的匯率');
+      return;
+    }
+    saveTwdRate(rate);
+    renderStockUI();
+    showToast(`台幣匯率已設為 ${rate}`);
   },
 
   saveGasUrl() {
