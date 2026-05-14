@@ -5,18 +5,8 @@
 
 const US_STOCKS_STORAGE = 'dky_us_stocks_v1';
 
-// ── SHA-256 實作 (純 JavaScript, 無外部依賴) ──
-async function sha256(message) {
-  const msgUint8 = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 // ── Config ──
 const STOCK_CONFIG = {
-  // 密碼 SHA-256 hash (預設: "dky2026")
-  passwordHash: '43c7888984dce5550b5abb63ca77ac83866da682f21e5ce6ddeb714b4b00ba8e',
   // 價格快取時間 (分鐘)
   cacheMinutes: 5,
   // Google Apps Script Web App URL (用戶部署後填入)
@@ -34,7 +24,6 @@ const STOCK_CONFIG = {
 
 // ── State ──
 let stockState = {
-  authenticated: false,
   portfolio: [],       // { symbol, name, shares, avgCost, buyDate }
   prices: {},          // { symbol: { price, change, changePercent, updatedAt } }
   editing: null,       // 編輯中的 index
@@ -211,21 +200,6 @@ async function loadFromGoogleSheets() {
 }
 
 // ── Render ──
-function renderAuthGate() {
-  return `
-    <div style="max-width:400px;margin:40px auto;text-align:center">
-      <div style="font-size:3rem;margin-bottom:16px">📈</div>
-      <h3>美股投資組合追蹤</h3>
-      <p style="color:var(--muted);margin-bottom:20px">請輸入密碼以查看投資組合</p>
-      <div class="input-group">
-        <input id="stock-pwd" type="password" placeholder="輸入密碼" style="text-align:center" />
-      </div>
-      <button class="btn" id="stock-login-btn" style="width:100%;margin-top:12px">解鎖</button>
-      <p id="stock-login-error" style="color:#ef4444;font-size:0.85rem;margin-top:8px;display:none">密碼錯誤</p>
-    </div>
-  `;
-}
-
 function renderPortfolio() {
   const summary = calcSummary();
   const plClass = summary.totalPL >= 0 ? 'color:var(--green, #10b981)' : 'color:var(--red, #ef4444)';
@@ -369,24 +343,6 @@ function renderPortfolio() {
 const USStocks = {
   init() {
     loadPortfolio();
-    const pwdInput = document.getElementById('stock-pwd');
-    const loginBtn = document.getElementById('stock-login-btn');
-    const errEl = document.getElementById('stock-login-error');
-
-    if (pwdInput && loginBtn) {
-      const doLogin = async () => {
-        const hash = await sha256(pwdInput.value);
-        if (hash === STOCK_CONFIG.passwordHash) {
-          stockState.authenticated = true;
-          renderStockUI();
-        } else {
-          errEl.style.display = 'block';
-          pwdInput.value = '';
-        }
-      };
-      loginBtn.onclick = doLogin;
-      pwdInput.onkeydown = (e) => { if (e.key === 'Enter') doLogin(); };
-    }
 
     // 更新時間戳（清除舊 timer 避免多次導航累積）
     updateTimeDisplay();
@@ -500,13 +456,8 @@ const USStocks = {
 function renderStockUI() {
   const container = document.getElementById('stock-container');
   if (!container) return;
-  if (!stockState.authenticated) {
-    container.innerHTML = renderAuthGate();
-    USStocks.init();
-  } else {
-    container.innerHTML = renderPortfolio();
-    USStocks.init();
-  }
+  container.innerHTML = renderPortfolio();
+  USStocks.init();
 }
 
 function showToast(msg) {
