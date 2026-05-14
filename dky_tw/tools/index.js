@@ -6,5 +6,6 @@ import * as id from './id.js';
 import * as unit from './unit.js';
 import * as imgzip from './imgzip.js';
 import * as timezones from './timezones.js';
+import * as ideabox from './ideabox.js';
 
-export { color, qr, diff, hash, id, unit, imgzip, timezones };
+export { color, qr, diff, hash, id, unit, imgzip, timezones, ideabox };

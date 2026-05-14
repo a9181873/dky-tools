@@ -57,7 +57,8 @@ function getNumber(value, fallback, min, max) {
 
 function isAllowedOrigin(request, env) {
   const allowed = cleanText(env.ALLOWED_ORIGIN);
-  if (!allowed) return true;
+  if (!allowed) return false;  // fail-safe：未設定 = 拒絕所有來源
+  if (allowed === '*') return true;
 
   const origin = request.headers.get('Origin') || '';
   const referer = request.headers.get('Referer') || '';
@@ -249,8 +250,21 @@ async function callGemini(form, env) {
   }
 }
 
-export async function onRequestOptions() {
-  return new Response(null, { status: 204, headers: JSON_HEADERS });
+export async function onRequestOptions(context) {
+  const origin = context.request.headers.get('Origin') || '';
+  const allowed = cleanText(context.env.ALLOWED_ORIGIN || '');
+  const origins = allowed === '*' ? null : allowed.split(',').map(s => s.trim()).filter(Boolean);
+  const allowOrigin = allowed === '*' || (origins && origins.includes(origin)) ? origin : 'null';
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...JSON_HEADERS,
+      'Access-Control-Allow-Origin': allowOrigin,
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
+    }
+  });
 }
 
 export async function onRequestPost(context) {
@@ -259,12 +273,14 @@ export async function onRequestPost(context) {
       return jsonResponse({ error: '來源網域不允許使用此 API' }, { status: 403 });
     }
 
-    const contentLength = Number(context.request.headers.get('Content-Length') || 0);
-    if (contentLength > 12000) {
+    const rawBody = await context.request.text();
+    if (rawBody.length > 12000) {
       return jsonResponse({ error: '輸入內容過長' }, { status: 413 });
     }
-
-    const body = await context.request.json();
+    let body;
+    try { body = JSON.parse(rawBody); } catch {
+      return jsonResponse({ error: '請求格式無效' }, { status: 400 });
+    }
     const form = normalizeForm(body);
     if (!form.title || !form.idea) {
       return jsonResponse({ error: '請至少填寫提案名稱與構想說明' }, { status: 400 });

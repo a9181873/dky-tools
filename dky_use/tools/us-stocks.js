@@ -39,6 +39,7 @@ let stockState = {
   prices: {},          // { symbol: { price, change, changePercent, updatedAt } }
   editing: null,       // 編輯中的 index
 };
+let _updateTimer = null;
 
 // ── Portfolio CRUD ──
 function loadPortfolio() {
@@ -255,7 +256,7 @@ function renderPortfolio() {
       <!-- 工具列 -->
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
         <button class="btn" onclick="USStocks.showAddForm()">＋ 新增持股</button>
-        <button class="btn" onclick="USStocks.refreshPrices()">🔄 更新股價</button>
+        <button class="btn" id="stock-refresh-btn" onclick="USStocks.refreshPrices()">🔄 更新股價</button>
         ${STOCK_CONFIG.gasUrl ? `
           <button class="btn" onclick="USStocks.syncToSheets()">📤 同步至 Sheets</button>
           <button class="btn" onclick="USStocks.loadFromSheets()">📥 從 Sheets 載入</button>
@@ -387,9 +388,10 @@ const USStocks = {
       pwdInput.onkeydown = (e) => { if (e.key === 'Enter') doLogin(); };
     }
 
-    // 更新時間戳
+    // 更新時間戳（清除舊 timer 避免多次導航累積）
     updateTimeDisplay();
-    setInterval(updateTimeDisplay, 30000);
+    if (_updateTimer) clearInterval(_updateTimer);
+    _updateTimer = setInterval(updateTimeDisplay, 30000);
   },
 
   showAddForm() {
@@ -457,10 +459,11 @@ const USStocks = {
   },
 
   async refreshPrices() {
-    const btn = document.querySelector('#app button.onclick*="refreshPrices"');
+    const btn = document.getElementById('stock-refresh-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '更新中...'; }
     showToast('正在更新股價...');
     await refreshAllPrices();
-    renderStockUI();
+    renderStockUI();  // 重新渲染後按鈕自動恢復
     showToast('股價已更新');
   },
 
@@ -481,8 +484,13 @@ const USStocks = {
 
   saveGasUrl() {
     const url = document.getElementById('stock-gas-url').value.trim();
+    if (url && !url.startsWith('https://script.google.com/')) {
+      alert('GAS URL 必須是 https://script.google.com/ 開頭的網址');
+      return;
+    }
     STOCK_CONFIG.gasUrl = url;
-    localStorage.setItem('dky_us_stocks_gas_url', url);
+    url ? localStorage.setItem('dky_us_stocks_gas_url', url)
+        : localStorage.removeItem('dky_us_stocks_gas_url');
     renderStockUI();
     showToast('設定已儲存');
   },
@@ -531,16 +539,10 @@ window.USStocks = USStocks;
 
 // 提供 render function 給 app.js 的 renderFields
 export function render() {
-  loadPortfolio();
-  return `<div id="stock-container">${renderPortfolio()}</div>`;
+  return `<div id="stock-container"></div>`;
 }
 
 export function init() {
   loadPortfolio();
-  USStocks.init();
-  const container = document.getElementById('stock-container');
-  if (container) {
-    container.innerHTML = renderPortfolio();
-    USStocks.init();
-  }
+  renderStockUI();
 }
