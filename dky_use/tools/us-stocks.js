@@ -647,7 +647,33 @@ function renderForm() {
   if (stockState.form.type === 'buy') return renderBuyForm();
   if (stockState.form.type === 'sell') return renderSellForm();
   if (stockState.form.type === 'dividend') return renderDividendForm();
+  if (stockState.form.type === 'account') return renderAccountForm();
   return '';
+}
+
+function renderAccountForm() {
+  const isEditing = stockState.form.editingId === 'rename';
+  const account = getActiveAccount();
+  const defaultName = isEditing ? account.name : `帳戶 ${stockState.accounts.length + 1}`;
+
+  return `
+    <section class="stock-form-panel" style="max-width: 400px; margin: 0 auto;">
+      <div class="stock-form-head">
+        <h3>${isEditing ? '重新命名帳戶' : '新增帳戶'}</h3>
+        <button class="btn-sm" onclick="USStocks.hideForm()">關閉</button>
+      </div>
+      <div class="stock-form-grid" style="grid-template-columns: 1fr;">
+        <div class="input-group">
+          <label>帳戶名稱</label>
+          <input id="stock-account-name" value="${escapeAttr(defaultName)}" placeholder="請輸入帳戶名稱" />
+        </div>
+      </div>
+      <div class="stock-form-actions">
+        <button class="btn" onclick="USStocks.saveAccount()">${isEditing ? '儲存' : '新增'}</button>
+        <button class="btn btn-muted" onclick="USStocks.hideForm()">取消</button>
+      </div>
+    </section>
+  `;
 }
 
 function renderBuyForm() {
@@ -1324,20 +1350,28 @@ const USStocks = {
   },
 
   addAccount() {
-    const name = prompt('請輸入帳戶名稱', `帳戶 ${stockState.accounts.length + 1}`);
-    if (!name?.trim()) return;
-    const account = createAccount(name.trim());
-    stockState.accounts.push(account);
-    stockState.activeAccountId = account.id;
-    savePortfolio();
-    renderStockUI();
+    setForm('account', null);
   },
 
   renameAccount() {
-    const account = getActiveAccount();
-    const name = prompt('請輸入新的帳戶名稱', account.name);
-    if (!name?.trim()) return;
-    account.name = name.trim();
+    setForm('account', 'rename');
+  },
+
+  saveAccount() {
+    const name = getInputValue('stock-account-name');
+    if (!name) return alert('請輸入帳戶名稱');
+    
+    if (stockState.form.editingId === 'rename') {
+      const account = getActiveAccount();
+      account.name = name;
+    } else {
+      const account = createAccount(name);
+      stockState.accounts.push(account);
+      stockState.activeAccountId = account.id;
+    }
+    
+    stockState.form.type = null;
+    stockState.form.editingId = null;
     savePortfolio();
     renderStockUI();
   },
