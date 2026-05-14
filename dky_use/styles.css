@@ -282,12 +282,12 @@ footer.glass {
   min-height: 104px;
 }
 .stat-label {
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   color: var(--stock-muted);
   margin-bottom: 6px;
 }
 .stat-value {
-  font-size: 1.12rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--stock-text);
   font-family: var(--font-mono);
@@ -443,20 +443,20 @@ footer.glass {
 .stock-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.86rem;
+  font-size: 0.8rem;
 }
 .stock-table th {
   background: rgba(255, 255, 255, 0.03);
-  padding: 10px 12px;
+  padding: 8px 10px;
   text-align: left;
   font-weight: 600;
   color: var(--stock-muted);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   border-bottom: 1px solid var(--stock-border);
   white-space: nowrap;
 }
 .stock-table td {
-  padding: 11px 12px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--stock-border);
   vertical-align: middle;
   white-space: nowrap;
@@ -471,7 +471,7 @@ footer.glass {
 .stock-price-age {
   display: block;
   color: var(--stock-muted);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   line-height: 1.35;
   margin-top: 2px;
   max-width: 220px;
@@ -675,9 +675,9 @@ footer.glass {
   .stock-toolbar-secondary .btn-sm,
   .stock-search { flex: 1 1 100%; }
   .stock-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .stock-table { font-size: 0.82rem; }
+  .stock-table { font-size: 0.76rem; }
   .stock-table th,
-  .stock-table td { padding: 9px 10px; }
+  .stock-table td { padding: 6px 8px; }
   .card { padding: 28px 20px; }
   .idea-document { padding: 18px; }
 }

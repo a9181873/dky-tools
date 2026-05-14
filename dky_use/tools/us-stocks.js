@@ -1069,15 +1069,16 @@ function renderAllocation() {
   const topWeight = rows[0]?.weight || 0;
 
   return `
-    <section class="stock-section stock-allocation">
-      <div class="stock-section-head">
-        <h3>資產配置</h3>
-        <span>${topWeight >= 50 ? '單一持股集中度偏高' : '配置正常'}</span>
-      </div>
-      ${rows.length === 0 ? `<div class="stock-empty">尚無可計算的資產配置</div>` : `
-        <div class="allocation-list">
+    <details class="stock-section stock-settings stock-allocation">
+      <summary style="display:flex; justify-content:space-between; align-items:center; font-weight:600;">
+        <span style="font-size: 0.98rem; color:var(--stock-text);">資產配置</span>
+        <span style="font-size: 0.76rem; font-weight:normal; color:var(--stock-muted)">點擊展開 · ${topWeight >= 50 ? '集中度偏高' : '配置正常'}</span>
+      </summary>
+      <div class="stock-settings-body" style="padding-top: 4px;">
+      ${rows.length === 0 ? `<div class="stock-empty" style="padding:16px 12px;">尚無可計算的資產配置</div>` : `
+        <div class="allocation-list" style="padding: 0;">
           ${rows.map(row => `
-            <div class="allocation-row">
+            <div class="allocation-row" style="margin-bottom:12px;">
               <div class="allocation-meta">
                 <strong>${escapeHTML(row.symbol)}</strong>
                 <span>${formatMoney(row.marketValue)} · ${row.weight.toFixed(1)}%</span>
@@ -1089,7 +1090,8 @@ function renderAllocation() {
           `).join('')}
         </div>
       `}
-    </section>
+      </div>
+    </details>
   `;
 }
 
