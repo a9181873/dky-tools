@@ -4,7 +4,7 @@
 import * as tools from './tools/index.js';
 
 // ── 密碼系統 ──
-const PASSWORD_HASH = '43c7888984dce5550b5abb63ca77ac83866da682f21e5ce6ddeb714b4b00ba8e'; // "dky2026"
+const PASSWORD_HASH = 'bcd67b59cd18fdd2c7e4675c46e0126a3d6cacdf4811263e8c3725436f3c4fb2'; // "611118"
 
 async function sha256(message) {
   const msgUint8 = new TextEncoder().encode(message);
