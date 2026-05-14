@@ -9,7 +9,7 @@
  *
  * Sheet 結構會自動建立：
  *   Accounts: AccountId | AccountName
- *   Lots: AccountId | AccountName | LotId | Symbol | Name | Shares | AvgCost | BuyDate | Tag | Note
+ *   Lots: AccountId | AccountName | LotId | Symbol | Name | Shares | AvgCost | BuyDate | Tag | Note | TwdRate
  *   Sales: AccountId | AccountName | SaleId | SourceLotId | Symbol | Shares | CostPerShare | SellPrice | Fee | RealizedPL | SellDate | Note
  *   Dividends: AccountId | AccountName | DividendId | Symbol | Amount | Tax | NetAmount | PayDate | Note
  *   Prices: Symbol | Name | Price | Change | ChangePercent | Currency | Source | UpdatedAt
@@ -183,6 +183,7 @@ function normalizeLot(lot) {
     name: lot.name || symbol,
     shares: Number(lot.shares) || 0,
     avgCost: Number(lot.avgCost) || 0,
+    twdRate: Number(lot.twdRate) || 0,
     buyDate: formatDateValue(lot.buyDate || lot.date),
     tag: lot.tag || '',
     note: lot.note || '',
@@ -252,7 +253,7 @@ function readStateFromSheets(ss) {
         symbol: row[0], name: row[1], shares: row[2], avgCost: row[3], buyDate: row[4],
       } : {
         id: row[2], symbol: row[3], name: row[4], shares: row[5], avgCost: row[6],
-        buyDate: row[7], tag: row[8], note: row[9],
+        buyDate: row[7], tag: row[8], note: row[9], twdRate: row[10],
       });
       if (lot) account.portfolio.push(lot);
     });
@@ -315,13 +316,13 @@ function writeAccounts(ss, accounts) {
 }
 
 function writeLots(ss, accounts) {
-  const headers = ['AccountId', 'AccountName', 'LotId', 'Symbol', 'Name', 'Shares', 'AvgCost', 'BuyDate', 'Tag', 'Note'];
+  const headers = ['AccountId', 'AccountName', 'LotId', 'Symbol', 'Name', 'Shares', 'AvgCost', 'BuyDate', 'Tag', 'Note', 'TwdRate'];
   const sheet = getOrCreateSheet(ss, SHEET_LOTS, headers);
   clearData(sheet, headers.length);
   const rows = [];
   accounts.forEach(function(account) {
     account.portfolio.forEach(function(lot) {
-      rows.push([account.id, account.name, lot.id, lot.symbol, lot.name, lot.shares, lot.avgCost, lot.buyDate, lot.tag, lot.note]);
+      rows.push([account.id, account.name, lot.id, lot.symbol, lot.name, lot.shares, lot.avgCost, lot.buyDate, lot.tag, lot.note, lot.twdRate || 0]);
     });
   });
   writeRows(sheet, rows);
