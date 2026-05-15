@@ -7,5 +7,6 @@ import * as unit from './unit.js';
 import * as imgzip from './imgzip.js';
 import * as timezones from './timezones.js';
 import * as ideabox from './ideabox.js';
+import * as pdftext from './pdftext.js';
 
-export { color, qr, diff, hash, id, unit, imgzip, timezones, ideabox };
+export { color, qr, diff, hash, id, unit, imgzip, timezones, ideabox, pdftext };

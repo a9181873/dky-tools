@@ -19,7 +19,8 @@ const ROUTES = {
   '/regex': 'regex',
   '/id': 'id',
   '/unit': 'unit',
-  '/imgzip': 'imgzip'
+  '/imgzip': 'imgzip',
+  '/pdf': 'pdf'
 };
 
 const metaList = {
@@ -39,7 +40,8 @@ const metaList = {
   regex: { icon: '🔎', title: '正則表達測試', desc: '寫程式檢查 Email 格式最頭痛。輸入表達式，它會在下方文章中即時把配對到的字高亮標示出來。' },
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
-  imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' }
+  imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
+  pdf: { icon: '📄', title: 'PDF 文字擷取', desc: '上傳任意 PDF，自動抽取所有頁面的文字內容。結果可一鍵複製或下載為 .txt，方便後續編輯使用。純本地運算，不上傳任何資料！' }
 };
 
 window.tzDatabase = [
@@ -523,6 +525,47 @@ const renderFields = {
       <button class="btn" onclick="UI.handleImgZipDownloadAll()">⬇️ 批次下載全部</button>
     </div>
   `,
+  pdf: () => {
+    const methodOpts = Object.entries(tools.pdftext?.METHODS || {})
+      .map(([k, v]) => `<option value="${k}">${escapeHTML(v)}</option>`).join('');
+    const langOpts = Object.entries(tools.pdftext?.LANGS || {})
+      .map(([k, v]) => `<option value="${k}">${escapeHTML(v)}</option>`).join('');
+    return `
+    <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+      ℹ️ 預設使用 <strong>後端引擎 (pdf-api.dky.tw)</strong>：四層 fallback (PyMuPDF → Docling → pdftotext → Tesseract OCR)，支援掃描件與多語言。後端離線時自動降級到瀏覽器 pdf.js（僅文字層）。
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
+      <div class="input-group" style="flex:1;min-width:220px;margin-bottom:0;">
+        <label>處理方法</label>
+        <select id="pdf-method" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:0.95rem;outline:none;">
+          ${methodOpts}
+        </select>
+      </div>
+      <div class="input-group" style="flex:1;min-width:220px;margin-bottom:0;">
+        <label>OCR 語言（僅 docling/tesseract 使用）</label>
+        <select id="pdf-langs" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:12px;font-size:0.95rem;outline:none;">
+          ${langOpts}
+        </select>
+      </div>
+    </div>
+    <div class="input-group">
+      <label>選擇 PDF 檔案（拖曳或點擊）</label>
+      <div class="imgzip-dropzone" id="pdf-dropzone">
+        <input id="pdf-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfExtract()" />
+        <span id="pdf-drop-text" class="imgzip-drop-text">📁 點擊或拖曳 PDF 到這裡（最大 20MB）</span>
+      </div>
+    </div>
+    <div id="pdf-status" style="display:none; color:var(--muted); margin: 10px 0; font-size:0.9rem;"></div>
+    <div id="pdf-engine-badge" style="display:none; margin: 8px 0; font-size:0.8rem;"></div>
+    <div id="pdf-actions" style="display:none; gap:8px; margin: 12px 0; flex-wrap:wrap;">
+      <button class="btn" onclick="UI.handlePdfCopy()">📋 複製全文</button>
+      <button class="btn" onclick="UI.handlePdfDownload()">⬇️ 下載 .txt</button>
+      <button class="btn" onclick="UI.handlePdfExtract()" style="background:rgba(255,255,255,0.05);">🔄 重新抽取</button>
+    </div>
+    <div id="pdf-page-info" style="display:none; color:var(--muted); font-size:0.8rem; margin-bottom:8px;"></div>
+    <div id="pdf-output" class="output" style="white-space: pre-wrap; font-family: monospace; max-height: 60vh; overflow-y: auto; display:none;"></div>
+  `;
+  },
 };
 
 const UI = {
@@ -1282,6 +1325,96 @@ const UI = {
   searchSelect(key) {
     document.getElementById('search-overlay')?.remove();
     this.navigate(`/${key}`);
+  },
+
+  pdfExtractedText: '',
+  _pdfShowResult(result, badgeHtml) {
+    const output = document.getElementById('pdf-output');
+    const actions = document.getElementById('pdf-actions');
+    const pageInfo = document.getElementById('pdf-page-info');
+    const badge = document.getElementById('pdf-engine-badge');
+    this.pdfExtractedText = result.text || '';
+    output.textContent = this.pdfExtractedText;
+    output.style.display = 'block';
+    actions.style.display = 'flex';
+    if (pageInfo) {
+      const pages = result.page_count || 0;
+      const chars = (result.char_count ?? this.pdfExtractedText.length).toLocaleString();
+      pageInfo.textContent = `共 ${pages} 頁，${chars} 個字元`;
+      pageInfo.style.display = 'block';
+    }
+    if (badge) {
+      badge.innerHTML = badgeHtml;
+      badge.style.display = 'block';
+    }
+  },
+  async handlePdfExtract() {
+    const file = document.getElementById('pdf-file')?.files?.[0];
+    if (!file) return;
+    const method = document.getElementById('pdf-method')?.value || 'auto';
+    const langs = document.getElementById('pdf-langs')?.value || 'zh,en';
+    const status = document.getElementById('pdf-status');
+    const output = document.getElementById('pdf-output');
+    const actions = document.getElementById('pdf-actions');
+    const pageInfo = document.getElementById('pdf-page-info');
+    const badge = document.getElementById('pdf-engine-badge');
+    const dropText = document.getElementById('pdf-drop-text');
+
+    status.style.display = 'block';
+    output.style.display = 'none';
+    actions.style.display = 'none';
+    if (pageInfo) pageInfo.style.display = 'none';
+    if (badge) badge.style.display = 'none';
+    this.pdfExtractedText = '';
+    if (dropText) dropText.textContent = `📄 ${file.name}（點擊更換）`;
+
+    // 1. 先嘗試遠端後端
+    status.innerHTML = `⏳ 後端引擎處理中（${escapeHTML(file.name)}, ${method}, ${langs}）…`;
+    try {
+      const r = await tools.pdftext.extractRemote(file, { method, langs });
+      const took = r.took_ms != null ? `${(r.took_ms / 1000).toFixed(2)}s` : '';
+      status.innerHTML = `✅ 抽取完成`;
+      this._pdfShowResult(r, `<span style="background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.4);color:#81c784;padding:4px 10px;border-radius:6px;">🟢 後端引擎：${escapeHTML(r.method_used || method)} ${took ? `· ${took}` : ''}</span>`);
+      return;
+    } catch (e) {
+      status.innerHTML = `⚠️ 後端不可用 (${escapeHTML(e.message || String(e))})，改用瀏覽器引擎…`;
+    }
+
+    // 2. 後端失敗 → 瀏覽器 fallback
+    try {
+      const r = await tools.pdftext.extractLocal(file);
+      status.innerHTML = `✅ 瀏覽器引擎完成（功能有限，僅文字層）`;
+      this._pdfShowResult(r, `<span style="background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.4);color:#ffc107;padding:4px 10px;border-radius:6px;">🟡 瀏覽器引擎：pdf.js · 後端離線備援</span>`);
+    } catch (e2) {
+      status.innerHTML = `❌ 抽取失敗：${escapeHTML(e2.message || String(e2))}`;
+    }
+  },
+  handlePdfCopy() {
+    if (!this.pdfExtractedText) return;
+    const btn = document.querySelector('#pdf-actions .btn');
+    navigator.clipboard.writeText(this.pdfExtractedText).then(() => {
+      if (btn) { const orig = btn.textContent; btn.textContent = '✅ 已複製！'; setTimeout(() => btn.textContent = orig, 1500); }
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = this.pdfExtractedText;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (btn) { const orig = btn.textContent; btn.textContent = '✅ 已複製！'; setTimeout(() => btn.textContent = orig, 1500); }
+    });
+  },
+  handlePdfDownload() {
+    if (!this.pdfExtractedText) return;
+    const file = document.getElementById('pdf-file')?.files?.[0];
+    const baseName = file ? file.name.replace(/\.pdf$/i, '') : 'extracted';
+    const blob = new Blob([this.pdfExtractedText], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${baseName}_text.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 };
 
