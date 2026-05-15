@@ -1,5 +1,5 @@
 // Simple Service Worker: precache core assets and enable offline-first navigation
-const CACHE_NAME = 'dky-tools-v9';
+const CACHE_NAME = 'dky-tools-v10';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
