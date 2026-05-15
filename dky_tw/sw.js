@@ -1,5 +1,5 @@
 // Simple Service Worker: precache core assets and enable offline-first navigation
-const CACHE_NAME = 'dky-tools-v8';
+const CACHE_NAME = 'dky-tools-v9';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
@@ -11,6 +11,8 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener('install', (event) => {
+  // skipWaiting 讓新 SW 不卡 waiting，部署立刻生效
+  self.skipWaiting();
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)));
 });
 
@@ -38,6 +40,8 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null))))
+    caches.keys()
+      .then((keys) => Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null))))
+      .then(() => self.clients.claim())  // 立刻接管現有 tab，不用等 reload
   );
 });
