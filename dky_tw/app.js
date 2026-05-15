@@ -41,7 +41,7 @@ const metaList = {
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
-  pdf: { icon: '📄', title: 'PDF 文字擷取', desc: '上傳任意 PDF，自動抽取所有頁面的文字內容。結果可一鍵複製或下載為 .txt，方便後續編輯使用。純本地運算，不上傳任何資料！' }
+  pdf: { icon: '📄', title: 'PDF 文字擷取', desc: '上傳 PDF → 後端引擎自動抽取文字（四層 fallback 含 Tesseract OCR，支援掃描件與多語言）。複製或下載 .txt。檔案會傳到 dky.tw 自架後端處理；後端離線時自動切換瀏覽器引擎（純本地，僅文字層）。' }
 };
 
 window.tzDatabase = [
@@ -531,8 +531,11 @@ const renderFields = {
     const langOpts = Object.entries(tools.pdftext?.LANGS || {})
       .map(([k, v]) => `<option value="${k}">${escapeHTML(v)}</option>`).join('');
     return `
-    <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
-      ℹ️ 預設使用 <strong>後端引擎 (pdf-api.dky.tw)</strong>：四層 fallback (PyMuPDF → Docling → pdftotext → Tesseract OCR)，支援掃描件與多語言。後端離線時自動降級到瀏覽器 pdf.js（僅文字層）。
+    <div style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255,193,7,0.3); color: #ffc107; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 0.85rem;">
+      ⚠️ <strong>檔案會上傳到 dky.tw 自架後端 (pdf-api.dky.tw / OCI 機器)</strong> 進行解析，請勿上傳機密文件。後端不留存檔案（處理完即丟），但仍非完全本地。
+    </div>
+    <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem;">
+      ℹ️ 預設使用 <strong>後端引擎</strong>：四層 fallback (PyMuPDF → Docling → pdftotext → Tesseract OCR)，支援掃描件與多語言。後端離線時自動降級到瀏覽器 pdf.js（純本地，僅文字層）。
     </div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:end;margin-bottom:16px;">
       <div class="input-group" style="flex:1;min-width:220px;margin-bottom:0;">
@@ -551,16 +554,25 @@ const renderFields = {
     <div class="input-group">
       <label>選擇 PDF 檔案（拖曳或點擊）</label>
       <div class="imgzip-dropzone" id="pdf-dropzone">
-        <input id="pdf-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfExtract()" />
+        <input id="pdf-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfFileChange()" />
         <span id="pdf-drop-text" class="imgzip-drop-text">📁 點擊或拖曳 PDF 到這裡（最大 20MB）</span>
       </div>
+    </div>
+    <div id="pdf-controls" style="display:flex; gap:8px; margin: 12px 0; flex-wrap:wrap;">
+      <button class="btn" id="pdf-start-btn" onclick="UI.handlePdfStart()" disabled style="opacity:0.5; cursor:not-allowed;">🚀 開始抽取</button>
+      <button class="btn" id="pdf-cancel-btn" onclick="UI.handlePdfCancel()" style="display:none; background:#e57373; color:#fff; border-color:#e57373;">⛔ 取消</button>
+    </div>
+    <div id="pdf-progress" style="display:none; margin: 12px 0;">
+      <div style="background:rgba(255,255,255,0.08); border-radius:8px; height:10px; overflow:hidden; position:relative;">
+        <div id="pdf-progress-bar" style="background:linear-gradient(90deg,var(--accent),#7ee8fa); height:100%; width:0%; transition:width 0.3s ease; border-radius:8px;"></div>
+      </div>
+      <div id="pdf-progress-text" style="margin-top:6px; font-size:0.8rem; color:var(--muted); text-align:center;"></div>
     </div>
     <div id="pdf-status" style="display:none; color:var(--muted); margin: 10px 0; font-size:0.9rem;"></div>
     <div id="pdf-engine-badge" style="display:none; margin: 8px 0; font-size:0.8rem;"></div>
     <div id="pdf-actions" style="display:none; gap:8px; margin: 12px 0; flex-wrap:wrap;">
       <button class="btn" onclick="UI.handlePdfCopy()">📋 複製全文</button>
       <button class="btn" onclick="UI.handlePdfDownload()">⬇️ 下載 .txt</button>
-      <button class="btn" onclick="UI.handlePdfExtract()" style="background:rgba(255,255,255,0.05);">🔄 重新抽取</button>
     </div>
     <div id="pdf-page-info" style="display:none; color:var(--muted); font-size:0.8rem; margin-bottom:8px;"></div>
     <div id="pdf-output" class="output" style="white-space: pre-wrap; font-family: monospace; max-height: 60vh; overflow-y: auto; display:none;"></div>
@@ -1328,6 +1340,7 @@ const UI = {
   },
 
   pdfExtractedText: '',
+  pdfAbortController: null,
   _pdfShowResult(result, badgeHtml) {
     const output = document.getElementById('pdf-output');
     const actions = document.getElementById('pdf-actions');
@@ -1348,9 +1361,54 @@ const UI = {
       badge.style.display = 'block';
     }
   },
-  async handlePdfExtract() {
+  _pdfSetProgress(percent, text) {
+    const wrap = document.getElementById('pdf-progress');
+    const bar = document.getElementById('pdf-progress-bar');
+    const txt = document.getElementById('pdf-progress-text');
+    if (!wrap) return;
+    wrap.style.display = 'block';
+    if (bar) bar.style.width = (percent == null ? 100 : percent) + '%';
+    if (bar) bar.style.opacity = (percent == null) ? '0.6' : '1';
+    if (bar) bar.style.animation = (percent == null) ? 'pulse 1.2s ease-in-out infinite' : 'none';
+    if (txt) txt.textContent = text || '';
+  },
+  _pdfHideProgress() {
+    const wrap = document.getElementById('pdf-progress');
+    if (wrap) wrap.style.display = 'none';
+  },
+  _pdfBusy(busy) {
+    const startBtn = document.getElementById('pdf-start-btn');
+    const cancelBtn = document.getElementById('pdf-cancel-btn');
+    const fileInput = document.getElementById('pdf-file');
+    if (startBtn) {
+      startBtn.disabled = busy || !fileInput?.files?.length;
+      startBtn.style.opacity = startBtn.disabled ? '0.5' : '1';
+      startBtn.style.cursor = startBtn.disabled ? 'not-allowed' : 'pointer';
+      startBtn.textContent = busy ? '⏳ 處理中…' : (this.pdfExtractedText ? '🔄 重新抽取' : '🚀 開始抽取');
+    }
+    if (cancelBtn) cancelBtn.style.display = busy ? 'inline-flex' : 'none';
+  },
+  handlePdfFileChange() {
+    const file = document.getElementById('pdf-file')?.files?.[0];
+    const dropText = document.getElementById('pdf-drop-text');
+    if (file && dropText) dropText.textContent = `📄 ${file.name}（點擊更換）`;
+    // 重置上一次結果但不清掉
+    this._pdfBusy(false);
+  },
+  handlePdfCancel() {
+    if (this.pdfAbortController) {
+      this.pdfAbortController.abort();
+    }
+  },
+  async handlePdfStart() {
     const file = document.getElementById('pdf-file')?.files?.[0];
     if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      const status = document.getElementById('pdf-status');
+      status.style.display = 'block';
+      status.innerHTML = `❌ 檔案 ${(file.size / 1024 / 1024).toFixed(1)}MB 超過 20MB 上限`;
+      return;
+    }
     const method = document.getElementById('pdf-method')?.value || 'auto';
     const langs = document.getElementById('pdf-langs')?.value || 'zh,en';
     const status = document.getElementById('pdf-status');
@@ -1358,35 +1416,63 @@ const UI = {
     const actions = document.getElementById('pdf-actions');
     const pageInfo = document.getElementById('pdf-page-info');
     const badge = document.getElementById('pdf-engine-badge');
-    const dropText = document.getElementById('pdf-drop-text');
 
-    status.style.display = 'block';
+    this.pdfExtractedText = '';
     output.style.display = 'none';
     actions.style.display = 'none';
     if (pageInfo) pageInfo.style.display = 'none';
     if (badge) badge.style.display = 'none';
-    this.pdfExtractedText = '';
-    if (dropText) dropText.textContent = `📄 ${file.name}（點擊更換）`;
+    status.style.display = 'block';
 
-    // 1. 先嘗試遠端後端
-    status.innerHTML = `⏳ 後端引擎處理中（${escapeHTML(file.name)}, ${method}, ${langs}）…`;
+    this._pdfBusy(true);
+    this.pdfAbortController = new AbortController();
+    const signal = this.pdfAbortController.signal;
+    const startedAt = Date.now();
+
+    // 1. 嘗試遠端後端
+    status.innerHTML = `⏳ 連線後端引擎…`;
+    this._pdfSetProgress(0, '準備上傳…');
     try {
-      const r = await tools.pdftext.extractRemote(file, { method, langs });
-      const took = r.took_ms != null ? `${(r.took_ms / 1000).toFixed(2)}s` : '';
-      status.innerHTML = `✅ 抽取完成`;
-      this._pdfShowResult(r, `<span style="background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.4);color:#81c784;padding:4px 10px;border-radius:6px;">🟢 後端引擎：${escapeHTML(r.method_used || method)} ${took ? `· ${took}` : ''}</span>`);
+      const r = await tools.pdftext.extractRemote(file, {
+        method, langs, signal,
+        onProgress: ({ phase, percent }) => {
+          if (phase === 'uploading') {
+            this._pdfSetProgress(percent, `📤 上傳中 ${percent.toFixed(0)}%（${(file.size * percent / 100 / 1024).toFixed(0)} / ${(file.size / 1024).toFixed(0)} KB）`);
+          } else if (phase === 'processing') {
+            this._pdfSetProgress(null, `⚙️ 後端處理中（${method === 'tesseract' || method === 'docling' ? 'OCR 可能需要 5-30 秒' : '一般約 1-3 秒'}）…`);
+          }
+        }
+      });
+      const took = r.took_ms != null ? `${(r.took_ms / 1000).toFixed(2)}s` : `${((Date.now() - startedAt) / 1000).toFixed(2)}s`;
+      this._pdfHideProgress();
+      status.innerHTML = `✅ 抽取完成（總耗時 ${((Date.now() - startedAt) / 1000).toFixed(1)}s）`;
+      this._pdfShowResult(r, `<span style="background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.4);color:#81c784;padding:4px 10px;border-radius:6px;">🟢 後端引擎：${escapeHTML(r.method_used || method)} · ${took}</span>`);
       return;
     } catch (e) {
+      if (e.name === 'AbortError') {
+        this._pdfHideProgress();
+        status.innerHTML = `🛑 已取消`;
+        return;
+      }
       status.innerHTML = `⚠️ 後端不可用 (${escapeHTML(e.message || String(e))})，改用瀏覽器引擎…`;
+    } finally {
+      this._pdfBusy(false);
+      this.pdfAbortController = null;
     }
 
-    // 2. 後端失敗 → 瀏覽器 fallback
+    // 2. 後端失敗 → 瀏覽器 fallback (不可取消，本機通常很快)
+    this._pdfBusy(true);
+    this._pdfSetProgress(null, '🌐 使用瀏覽器 pdf.js 抽取…');
     try {
       const r = await tools.pdftext.extractLocal(file);
-      status.innerHTML = `✅ 瀏覽器引擎完成（功能有限，僅文字層）`;
+      this._pdfHideProgress();
+      status.innerHTML = `✅ 瀏覽器引擎完成（僅文字層，掃描件無法辨識）`;
       this._pdfShowResult(r, `<span style="background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.4);color:#ffc107;padding:4px 10px;border-radius:6px;">🟡 瀏覽器引擎：pdf.js · 後端離線備援</span>`);
     } catch (e2) {
+      this._pdfHideProgress();
       status.innerHTML = `❌ 抽取失敗：${escapeHTML(e2.message || String(e2))}`;
+    } finally {
+      this._pdfBusy(false);
     }
   },
   handlePdfCopy() {

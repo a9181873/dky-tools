@@ -151,7 +151,8 @@ def _with_tesseract(pdf_bytes: bytes, langs: list[str]) -> tuple[str, int]:
 
 
 # -------- 主入口 --------
-METHODS_ORDER = ("fitz", "docling", "pdftotext", "tesseract")
+# auto 模式 fallback 順序：跳過 docling (中文/表格效果不穩，保留為手動選項)
+METHODS_ORDER = ("fitz", "pdftotext", "tesseract")
 
 
 def extract(pdf_bytes: bytes, method: str = "auto",

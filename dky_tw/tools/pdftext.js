@@ -3,7 +3,7 @@
 import { extractPdfText as _extractLocal } from './diff.js';
 
 export const title = 'PDF 文字擷取';
-export const desc = '上傳任意 PDF，後端引擎自動四層 fallback (PyMuPDF → Docling → pdftotext → Tesseract OCR) 抽取文字。後端離線時自動切換到瀏覽器 pdf.js 引擎。';
+export const desc = '上傳 PDF → 後端引擎抽取文字（四層 fallback 含 OCR，支援掃描件與多語言）。檔案會傳到 dky.tw 自架後端，處理完即丟。後端離線時切換瀏覽器引擎（純本地）。';
 export const icon = '📄';
 
 export const API_BASE = 'https://pdf-api.dky.tw';
@@ -32,28 +32,48 @@ export const LANGS = {
 
 /**
  * 呼叫後端 API 抽取 PDF 文字
+ * @param {File} file
+ * @param {Object} opts
+ * @param {string} [opts.method='auto']
+ * @param {string} [opts.langs='zh,en']
+ * @param {AbortSignal} [opts.signal] 用來取消請求
+ * @param {(p:{phase:'uploading'|'processing', percent:number|null}) => void} [opts.onProgress]
  * @returns {Promise<{method_used, text, page_count, char_count, took_ms}>}
  */
-export const extractRemote = async (file, { method = 'auto', langs = 'zh,en' } = {}) => {
-  const fd = new FormData();
-  fd.append('file', file);
-  const url = new URL(`${API_BASE}/api/extract`);
-  url.searchParams.set('method', method);
-  url.searchParams.set('langs', langs);
-  url.searchParams.set('output', 'json');
+export const extractRemote = (file, { method = 'auto', langs = 'zh,en', signal, onProgress } = {}) => {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(new DOMException('Aborted', 'AbortError'));
 
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 90000);
-  try {
-    const res = await fetch(url, { method: 'POST', body: fd, signal: ctrl.signal });
-    if (!res.ok) {
-      const errText = await res.text().catch(() => '');
-      throw new Error(`HTTP ${res.status}${errText ? `: ${errText.slice(0, 200)}` : ''}`);
+    const xhr = new XMLHttpRequest();
+    const url = `${API_BASE}/api/extract?method=${encodeURIComponent(method)}&langs=${encodeURIComponent(langs)}&output=json`;
+    xhr.open('POST', url);
+    xhr.timeout = 120000;
+
+    if (xhr.upload && onProgress) {
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress({ phase: 'uploading', percent: (e.loaded / e.total) * 100 });
+      };
+      xhr.upload.onload = () => onProgress({ phase: 'processing', percent: null });
     }
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
-  }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch (e) { reject(new Error('Invalid JSON: ' + e.message)); }
+      } else {
+        reject(new Error(`HTTP ${xhr.status}: ${(xhr.responseText || '').slice(0, 200)}`));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Network error / CORS'));
+    xhr.ontimeout = () => reject(new Error('Timeout (>120s)'));
+    xhr.onabort = () => reject(new DOMException('Aborted', 'AbortError'));
+
+    if (signal) signal.addEventListener('abort', () => xhr.abort(), { once: true });
+
+    const fd = new FormData();
+    fd.append('file', file);
+    xhr.send(fd);
+  });
 };
 
 /**
