@@ -348,6 +348,16 @@ footer.glass {
   color: var(--stock-muted);
   font-size: 0.76rem;
 }
+.stock-sync-status {
+  min-height: 18px;
+  font-size: 0.76rem;
+  margin-left: 12px;
+  color: var(--stock-muted);
+}
+.stock-sync-status[data-status="ok"] { color: #4ade80; }
+.stock-sync-status[data-status="syncing"] { color: var(--stock-muted); }
+.stock-sync-status[data-status="offline"] { color: #f59e0b; }
+.stock-sync-status[data-status="idle"] { color: transparent; }
 
 .stock-form-panel,
 .stock-section,

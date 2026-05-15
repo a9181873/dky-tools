@@ -1,19 +1,19 @@
 /* DKY US Stocks - 美股投資組合追蹤工具
- * 功能：多帳戶、多筆買入 lots、賣出已實現損益、配息、資產配置、CSV、Google Sheets 同步
- * 股價來源：Google Apps Script 後端代理優先，瀏覽器端 Yahoo Finance 備援
+ * 功能：多帳戶、多筆買入 lots、賣出已實現損益、配息、資產配置、CSV、Cloudflare KV 自動雲端同步
+ * 股價來源：Cloudflare Pages Function 代理 Yahoo Finance
  */
 
 const STORAGE_VERSION = 2;
 const US_STOCKS_STORAGE = 'dky_us_stocks_v2';
 const LEGACY_STORAGE = 'dky_us_stocks_v1';
-const GAS_URL_STORAGE = 'dky_us_stocks_gas_url';
 
 // ── Config ──
 const TWD_RATE_STORAGE = 'dky_us_stocks_twd_rate';
+const CLOUD_SYNC_URL = '/api/state';
+const CLOUD_SYNC_DEBOUNCE_MS = 1500;
 
 const STOCK_CONFIG = {
   cacheMinutes: 5,
-  gasUrl: '',
   cfProxyUrl: '/api/yahoo-finance',
   popularStocks: [
     { symbol: 'AAPL', name: 'Apple' },
@@ -289,6 +289,7 @@ function migrateLegacyPortfolio(legacyPortfolio) {
 
 function savePortfolio() {
   localStorage.setItem(US_STOCKS_STORAGE, JSON.stringify(getPersistableState()));
+  scheduleAutoSync();
 }
 
 function getPersistableState() {
@@ -322,7 +323,7 @@ function setActiveAccount(accountId) {
   }
 }
 
-// ── Yahoo Finance / GAS / CF Proxy Price API ──
+// ── Price API (Cloudflare Pages Function proxy → Yahoo Finance) ──
 async function fetchPricesViaCfProxy(symbols) {
   if (symbols.length === 0) return {};
   const url = `${STOCK_CONFIG.cfProxyUrl}?action=quote&symbols=${encodeURIComponent(symbols.join(','))}`;
@@ -333,38 +334,14 @@ async function fetchPricesViaCfProxy(symbols) {
   return normalizePrices(data.prices || {});
 }
 
-async function fetchPricesViaGas(symbols) {
-  if (!STOCK_CONFIG.gasUrl || symbols.length === 0) return {};
-  const url = `${STOCK_CONFIG.gasUrl}?action=prices&symbols=${encodeURIComponent(symbols.join(','))}`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error(`GAS HTTP ${resp.status}`);
-  const data = await resp.json();
-  if (!data.success) throw new Error(data.error || 'GAS price proxy failed');
-  return normalizePrices(data.prices || {});
-}
-
 async function fetchStockPrices(symbols) {
   const uniqueSymbols = [...new Set(symbols.map(normalizeSymbol).filter(Boolean))];
-  let prices = {};
-
-  // 1) CF Proxy (best: server-side, no CORS)
   try {
-    prices = await fetchPricesViaCfProxy(uniqueSymbols);
+    return await fetchPricesViaCfProxy(uniqueSymbols);
   } catch (e) {
     console.warn('CF Proxy failed:', e.message);
+    return {};
   }
-
-  // 2) GAS fallback
-  const missingAfterCf = uniqueSymbols.filter(s => !prices[s]);
-  if (missingAfterCf.length > 0) {
-    try {
-      prices = { ...prices, ...(await fetchPricesViaGas(missingAfterCf)) };
-    } catch (e) {
-      console.warn('GAS fallback failed:', e.message);
-    }
-  }
-
-  return prices;
 }
 
 
@@ -518,55 +495,101 @@ function calcAllocationRows(account = getActiveAccount()) {
   }));
 }
 
-// ── Google Sheets Sync (via Apps Script) ──
-async function syncToGoogleSheets() {
-  if (!STOCK_CONFIG.gasUrl) {
-    alert('尚未設定 Google Sheets 後端。請先部署 Google Apps Script 並填入 URL。');
+// ── Cloud Sync (Cloudflare KV via /api/state) ──
+let _cloudSyncTimer = null;
+let _cloudSyncInFlight = false;
+let _cloudSyncStatus = 'idle'; // 'idle' | 'syncing' | 'ok' | 'offline'
+let _cloudSyncSuppressed = false;
+
+function getAuthToken() {
+  return (typeof window !== 'undefined' && window.__AUTH_TOKEN) || '';
+}
+
+function setSyncStatus(status) {
+  _cloudSyncStatus = status;
+  const el = document.getElementById('stock-sync-status');
+  if (!el) return;
+  const label = {
+    syncing: '⏳ 同步中',
+    ok: '☁️ 已同步',
+    offline: '⚠️ 離線（資料僅本機）',
+    idle: '',
+  }[status] || '';
+  el.textContent = label;
+  el.dataset.status = status;
+}
+
+async function pushStateToCloud() {
+  const token = getAuthToken();
+  if (!token) return false;
+  if (_cloudSyncInFlight) {
+    scheduleAutoSync();
     return false;
   }
+  _cloudSyncInFlight = true;
+  setSyncStatus('syncing');
   try {
-    const payload = {
-      action: 'sync',
-      state: getPersistableState(),
-      prices: stockState.prices,
-    };
-    const resp = await fetch(STOCK_CONFIG.gasUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
+    const resp = await fetch(CLOUD_SYNC_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        state: getPersistableState(),
+        updatedAt: Date.now(),
+      }),
     });
-    const result = await resp.json();
-    if (result.success) {
-      showToast(`已同步至 Google Sheets (${result.rows || 0} 筆)`);
-      return true;
-    }
-    alert('同步失敗: ' + (result.error || '未知錯誤'));
-    return false;
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'sync failed');
+    setSyncStatus('ok');
+    return true;
   } catch (e) {
-    alert('同步失敗: ' + e.message);
+    console.warn('Cloud sync push failed:', e.message);
+    setSyncStatus('offline');
     return false;
+  } finally {
+    _cloudSyncInFlight = false;
   }
 }
 
-async function loadFromGoogleSheets() {
-  if (!STOCK_CONFIG.gasUrl) return false;
+async function pullStateFromCloud() {
+  const token = getAuthToken();
+  if (!token) return { ok: false, hasRemote: false };
+  setSyncStatus('syncing');
   try {
-    const resp = await fetch(`${STOCK_CONFIG.gasUrl}?action=load`);
-    const result = await resp.json();
-    if (result.success && result.state) {
-      stockState = hydrateState(result.state);
-      savePortfolio();
-      return true;
+    const resp = await fetch(CLOUD_SYNC_URL, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'load failed');
+    if (data.state) {
+      _cloudSyncSuppressed = true;
+      stockState = hydrateState(data.state);
+      localStorage.setItem(US_STOCKS_STORAGE, JSON.stringify(getPersistableState()));
+      _cloudSyncSuppressed = false;
+      setSyncStatus('ok');
+      return { ok: true, hasRemote: true };
     }
-    if (result.success && result.portfolio) {
-      stockState = migrateLegacyPortfolio(result.portfolio);
-      savePortfolio();
-      return true;
-    }
-    return false;
-  } catch {
-    return false;
+    setSyncStatus('ok');
+    return { ok: true, hasRemote: false };
+  } catch (e) {
+    console.warn('Cloud sync pull failed:', e.message);
+    setSyncStatus('offline');
+    return { ok: false, hasRemote: false };
   }
+}
+
+function scheduleAutoSync() {
+  if (_cloudSyncSuppressed) return;
+  if (!getAuthToken()) return;
+  if (_cloudSyncTimer) clearTimeout(_cloudSyncTimer);
+  _cloudSyncTimer = setTimeout(() => {
+    _cloudSyncTimer = null;
+    pushStateToCloud();
+  }, CLOUD_SYNC_DEBOUNCE_MS);
 }
 
 // ── Rendering helpers ──
@@ -639,6 +662,7 @@ function renderToolbar() {
         <input id="stock-import-file" type="file" accept=".csv,text/csv" style="display:none" onchange="USStocks.importCsv(event)" />
       </div>
       <span class="stock-update-time" id="stock-update-time"></span>
+      <span class="stock-sync-status" id="stock-sync-status" data-status="idle"></span>
     </div>
   `;
 }
@@ -1121,23 +1145,6 @@ function renderAllocation() {
   `;
 }
 
-function renderSettings() {
-  return `
-    <details class="stock-settings">
-      <summary>Google Sheets 同步設定</summary>
-      <div class="stock-settings-body">
-        <div class="input-group">
-          <label>Apps Script Web App URL</label>
-          <input id="stock-gas-url" value="${escapeAttr(STOCK_CONFIG.gasUrl)}" placeholder="https://script.google.com/macros/s/..." />
-        </div>
-        <button class="btn" onclick="USStocks.saveGasUrl()">儲存設定</button>
-        <button class="btn btn-muted" onclick="USStocks.syncToSheets()">同步至 Sheets</button>
-        <button class="btn btn-muted" onclick="USStocks.loadFromSheets()">從 Sheets 載入</button>
-      </div>
-    </details>
-  `;
-}
-
 function renderPortfolio() {
   return `
     <div class="us-stocks">
@@ -1154,7 +1161,6 @@ function renderPortfolio() {
         </div>
         <aside class="stock-side-column">
           ${renderAllocation()}
-          ${renderSettings()}
         </aside>
       </div>
     </div>
@@ -1609,22 +1615,7 @@ const USStocks = {
     } else if (result.updated > 0) {
       showToast(`已更新 ${result.updated} 檔，${result.failed.join(', ')} 更新失敗`);
     } else {
-      showToast(STOCK_CONFIG.gasUrl ? '股價更新失敗' : '股價更新失敗，可設定 GAS URL 使用後端代理');
-    }
-  },
-
-  async syncToSheets() {
-    await syncToGoogleSheets();
-  },
-
-  async loadFromSheets() {
-    const ok = await loadFromGoogleSheets();
-    if (ok) {
-      await refreshAllPrices();
-      renderStockUI();
-      showToast('已從 Google Sheets 載入');
-    } else {
-      alert('載入失敗，請確認 Apps Script URL 正確且已部署新版後端');
+      showToast('股價更新失敗，請稍後再試');
     }
   },
 
@@ -1637,18 +1628,6 @@ const USStocks = {
     saveTwdRate(rate);
     renderStockUI();
     showToast(`台幣匯率已設為 ${rate}`);
-  },
-
-  saveGasUrl() {
-    const url = getInputValue('stock-gas-url');
-    if (url && !url.startsWith('https://script.google.com/')) {
-      alert('GAS URL 必須是 https://script.google.com/ 開頭的網址');
-      return;
-    }
-    STOCK_CONFIG.gasUrl = url;
-    url ? localStorage.setItem(GAS_URL_STORAGE, url) : localStorage.removeItem(GAS_URL_STORAGE);
-    renderStockUI();
-    showToast('設定已儲存');
   },
 
   exportCsv() {
@@ -1712,11 +1691,8 @@ function updateTimeDisplay() {
   const latest = Math.max(...prices.map(p => p.updatedAt));
   const mins = Math.round((Date.now() - latest) / 60000);
   el.textContent = mins <= 0 ? '剛剛更新' : `${mins} 分鐘前更新`;
+  setSyncStatus(_cloudSyncStatus);
 }
-
-// ── 初始化：載入 localStorage 中的 GAS URL ──
-const savedGasUrl = localStorage.getItem(GAS_URL_STORAGE);
-if (savedGasUrl) STOCK_CONFIG.gasUrl = savedGasUrl;
 
 // 暴露到全域
 window.USStocks = USStocks;
@@ -1730,5 +1706,17 @@ export function init() {
   loadPortfolio();
   renderStockUI();
   USStocks.init();
-  refreshAllPrices().then(() => renderStockUI());
+
+  (async () => {
+    const localHasData = stockState.accounts.some(a =>
+      a.portfolio.length || a.sales.length || a.dividends.length
+    );
+    const pull = await pullStateFromCloud();
+    if (pull.ok && pull.hasRemote) {
+      renderStockUI();
+    } else if (pull.ok && !pull.hasRemote && localHasData) {
+      await pushStateToCloud();
+    }
+    refreshAllPrices().then(() => renderStockUI());
+  })();
 }
