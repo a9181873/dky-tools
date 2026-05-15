@@ -1,0 +1,32 @@
+services:
+  pdf-text-api:
+    build: .
+    container_name: pdf-text-api
+    restart: unless-stopped
+    environment:
+      - MAX_FILE_MB=20
+    networks:
+      - pdfnet
+    # 若不使用 Cloudflare Tunnel，可取消下列 ports 改為直接對外
+    # ports:
+    #   - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: pdf-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    networks:
+      - pdfnet
+    depends_on:
+      - pdf-text-api
+
+networks:
+  pdfnet:
+    driver: bridge
