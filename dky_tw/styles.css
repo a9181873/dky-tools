@@ -408,6 +408,11 @@ footer {
   .idea-document { padding: 18px; }
 }
 
+/* Compact card (PDF Viewer 等需要更多畫面空間的工具) */
+.card--compact { padding: 18px 20px; }
+.card--compact h2 { font-size: 1.15rem; margin: 0; }
+.card--compact > p { font-size: 0.78rem; margin-top: 2px !important; margin-bottom: 10px; line-height: 1.4; }
+
 /* PDF Viewer */
 .pdf-toolbar {
   display: flex; flex-wrap: wrap; gap: 12px;
@@ -447,17 +452,17 @@ footer {
 }
 .pdf-page canvas { display: block; }
 
-/* pdf.js text layer — 透明覆蓋，僅作為選取目標 */
+/* pdf.js v4 text layer — 透明覆蓋，spans 用 color:transparent 隱形 */
 .textLayer {
   position: absolute; left: 0; top: 0; right: 0; bottom: 0;
   overflow: hidden;
-  opacity: 0.25;
   line-height: 1.0;
   user-select: text;
   -webkit-user-select: text;
   forced-color-adjust: none;
   transform-origin: 0 0;
   z-index: 2;
+  caret-color: transparent;
 }
 .textLayer span,
 .textLayer br {
@@ -467,13 +472,12 @@ footer {
   cursor: text;
   transform-origin: 0% 0%;
 }
+.textLayer span.markedContent { top: 0; height: 0; }
 .textLayer ::selection {
-  background: rgba(0, 242, 255, 0.45);
-  color: transparent;
+  background: rgba(0, 180, 255, 0.4);
 }
 .textLayer ::-moz-selection {
-  background: rgba(0, 242, 255, 0.45);
-  color: transparent;
+  background: rgba(0, 180, 255, 0.4);
 }
 .textLayer .endOfContent {
   display: block; position: absolute;

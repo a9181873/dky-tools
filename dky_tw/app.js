@@ -41,7 +41,7 @@ const metaList = {
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
-  pdf: { icon: '📄', title: 'PDF 檢視 / 文字選取', desc: '直接顯示 PDF 原始樣貌，用滑鼠拖曳即可選取想要的文字或數字 → Ctrl/Cmd+C 複製。純本地渲染（pdf.js text layer），檔案不會上傳。若為掃描件選不到字，可按「複製全頁文字」走後端 OCR。' }
+  pdf: { icon: '📄', title: 'PDF 檢視 / 文字選取', desc: '滑鼠拖曳選字 → Ctrl/Cmd+C 複製（純本地）。掃描件選不到字時，按「複製全頁文字」會把檔案上傳後端 OCR。' }
 };
 
 window.tzDatabase = [
@@ -526,13 +526,10 @@ const renderFields = {
     </div>
   `,
   pdf: () => `
-    <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem;">
-      💡 直接在 PDF 上 <strong>拖曳滑鼠選字</strong>，再按 Ctrl/Cmd+C 複製。檔案完全在瀏覽器內處理，不會上傳。
-    </div>
-    <div class="input-group">
-      <div class="imgzip-dropzone" id="pdf-dropzone">
+    <div class="input-group" style="margin-bottom:10px;">
+      <div class="imgzip-dropzone" id="pdf-dropzone" style="padding:18px;">
         <input id="pdf-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfFileChange()" />
-        <span id="pdf-drop-text" class="imgzip-drop-text">📁 點擊或拖曳 PDF 到這裡</span>
+        <span id="pdf-drop-text" class="imgzip-drop-text" style="font-size:0.9rem;">📁 點擊或拖曳 PDF（純本地檢視，僅「複製全頁文字」會上傳）</span>
       </div>
     </div>
     <div id="pdf-toolbar" class="pdf-toolbar" style="display:none;">
@@ -1483,8 +1480,9 @@ function renderRoute() {
 
   const meta = metaList[route] || (route === 'home' ? { title: '多功能工具箱', desc: '純客戶端、無需伺服器的實用戰備箱' } : { title: '工具', desc: '' });
 
+  const cardClass = route === 'pdf' ? 'card card--compact' : 'card';
   app.innerHTML = `
-    <div class="card">
+    <div class="${cardClass}">
       <h2>${meta.title}</h2>
       <p style="color:var(--muted);margin-top:4px">${meta.desc}</p>
       ${renderFields[route]?.() || '<p>頁面未找到</p>'}
