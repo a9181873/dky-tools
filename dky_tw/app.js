@@ -41,7 +41,7 @@ const metaList = {
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
-  pdf: { icon: '📄', title: 'PDF 檢視 / 文字選取', desc: '滑鼠拖曳選字 → Ctrl/Cmd+C 複製（純本地）。掃描件選不到字時，按「複製全頁文字」會把檔案上傳後端 OCR。' }
+  pdf: { icon: '📄', title: 'PDF 檢視 / 文字選取', desc: '滑鼠拖曳選字 → Ctrl/Cmd+C 複製。檔案完全在瀏覽器內處理，不會上傳。' }
 };
 
 window.tzDatabase = [
@@ -529,7 +529,7 @@ const renderFields = {
     <div class="input-group" style="margin-bottom:10px;">
       <div class="imgzip-dropzone" id="pdf-dropzone" style="padding:18px;">
         <input id="pdf-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfFileChange()" />
-        <span id="pdf-drop-text" class="imgzip-drop-text" style="font-size:0.9rem;">📁 點擊或拖曳 PDF（純本地檢視，僅「複製全頁文字」會上傳）</span>
+        <span id="pdf-drop-text" class="imgzip-drop-text" style="font-size:0.9rem;">📁 點擊或拖曳 PDF（完全在瀏覽器內處理，不會上傳）</span>
       </div>
     </div>
     <div id="pdf-toolbar" class="pdf-toolbar" style="display:none;">
@@ -548,7 +548,6 @@ const renderFields = {
         <button class="btn pdf-tb-btn" onclick="UI.handlePdfZoom(0)" title="適合寬度">↔</button>
       </div>
       <div class="pdf-toolbar-group">
-        <button class="btn" onclick="UI.handlePdfCopyAll()" title="抓全頁純文字（掃描件會走後端 OCR）">📋 複製全頁文字</button>
         <button class="btn pdf-tb-btn" onclick="UI.handlePdfPrint()" title="列印">🖨</button>
       </div>
     </div>
@@ -1421,45 +1420,6 @@ const UI = {
     const url = URL.createObjectURL(this.pdfFile);
     const w = window.open(url, '_blank');
     if (w) setTimeout(() => { try { w.print(); } catch {} }, 800);
-  },
-
-  async handlePdfCopyAll() {
-    if (!this.pdfDoc) return;
-    const status = document.getElementById('pdf-status');
-    const btn = event?.target;
-    const origText = btn?.textContent;
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ 抽取中…'; }
-    if (status) { status.style.display = 'block'; status.textContent = '⏳ 抓全頁文字…'; }
-    try {
-      // 先用 text layer 直接抓（快、純本地、文字 PDF 完美）
-      let allText = '';
-      for (let i = 1; i <= this.pdfDoc.numPages; i++) {
-        const page = await this.pdfDoc.getPage(i);
-        const tc = await page.getTextContent();
-        const txt = tc.items.map(it => it.str).join(' ').trim();
-        allText += `[第 ${i} 頁]\n${txt}\n\n`;
-      }
-      // 若整份幾乎沒文字（掃描件），轉走後端 OCR
-      const nonWhite = allText.replace(/\[第 \d+ 頁\]/g, '').replace(/\s+/g, '');
-      let usedBackend = false;
-      if (nonWhite.length < 20 && this.pdfFile) {
-        if (status) status.textContent = '⏳ 偵測到掃描件，呼叫後端 OCR…';
-        try {
-          const r = await tools.pdftext.extractRemote(this.pdfFile, { method: 'auto', langs: 'zh,en' });
-          allText = r.text || allText;
-          usedBackend = true;
-        } catch (e) {
-          if (status) status.textContent = '⚠️ 後端 OCR 不可用：' + (e.message || e);
-        }
-      }
-      await navigator.clipboard.writeText(allText.trim());
-      if (btn) btn.textContent = '✅ 已複製！';
-      if (status) status.textContent = usedBackend ? '✅ 已複製（後端 OCR 結果）' : '✅ 已複製全頁文字到剪貼簿';
-    } catch (e) {
-      if (status) { status.style.display = 'block'; status.textContent = '❌ 失敗：' + (e.message || e); }
-    } finally {
-      if (btn && origText) setTimeout(() => { btn.disabled = false; btn.textContent = origText; }, 1800);
-    }
   },
 
 };
