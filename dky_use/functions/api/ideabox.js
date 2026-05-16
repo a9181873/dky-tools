@@ -55,26 +55,70 @@ function getNumber(value, fallback, min, max) {
   return Math.min(max, Math.max(min, Math.floor(number)));
 }
 
-function isAllowedOrigin(request, env) {
-  const allowed = cleanText(env.ALLOWED_ORIGIN);
-  if (!allowed) return false;  // fail-safe：未設定 = 拒絕所有來源
-  if (allowed === '*') return true;
+function normalizeOrigin(value = '') {
+  const text = String(value).trim().replace(/\/+$/, '');
+  if (!text) return '';
 
-  const origin = request.headers.get('Origin') || '';
+  try {
+    return new URL(text).origin;
+  } catch {
+    return text;
+  }
+}
+
+function getOriginPolicy(request, env) {
+  const allowed = cleanText(env.ALLOWED_ORIGIN);
+  if (allowed === '*') return { allowAll: true, origins: new Set() };
+
+  const origins = new Set();
+  try {
+    origins.add(new URL(request.url).origin);
+  } catch {
+    // Keep the explicit allow-list below even if the request URL is unusual.
+  }
+
+  allowed
+    .split(',')
+    .map(normalizeOrigin)
+    .filter(Boolean)
+    .forEach(origin => origins.add(origin));
+
+  return { allowAll: false, origins };
+}
+
+function isAllowedOrigin(request, env) {
+  const policy = getOriginPolicy(request, env);
+  if (policy.allowAll) return true;
+
+  const origin = normalizeOrigin(request.headers.get('Origin') || '');
   const referer = request.headers.get('Referer') || '';
-  const allowedOrigins = allowed.split(',').map(item => item.trim()).filter(Boolean);
-  if (origin && allowedOrigins.includes(origin)) return true;
+  if (origin) return policy.origins.has(origin);
 
   if (referer) {
     try {
       const refererOrigin = new URL(referer).origin;
-      return allowedOrigins.includes(refererOrigin);
+      return policy.origins.has(refererOrigin);
     } catch {
       return false;
     }
   }
 
   return false;
+}
+
+function getCorsAllowOrigin(request, env) {
+  const origin = request.headers.get('Origin') || '';
+  const policy = getOriginPolicy(request, env);
+  if (policy.allowAll) return origin || '*';
+
+  return origin && policy.origins.has(normalizeOrigin(origin)) ? origin : 'null';
+}
+
+function withCors(response, request, env) {
+  const allowOrigin = getCorsAllowOrigin(request, env);
+  response.headers.set('Access-Control-Allow-Origin', allowOrigin);
+  response.headers.set('Vary', 'Origin');
+  return response;
 }
 
 function buildPrompt(form) {
@@ -251,18 +295,15 @@ async function callGemini(form, env) {
 }
 
 export async function onRequestOptions(context) {
-  const origin = context.request.headers.get('Origin') || '';
-  const allowed = cleanText(context.env.ALLOWED_ORIGIN || '');
-  const origins = allowed === '*' ? null : allowed.split(',').map(s => s.trim()).filter(Boolean);
-  const allowOrigin = allowed === '*' || (origins && origins.includes(origin)) ? origin : 'null';
   return new Response(null, {
     status: 204,
     headers: {
       ...JSON_HEADERS,
-      'Access-Control-Allow-Origin': allowOrigin,
+      'Access-Control-Allow-Origin': getCorsAllowOrigin(context.request, context.env),
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Max-Age': '86400',
+      'Vary': 'Origin',
     }
   });
 }
@@ -270,23 +311,23 @@ export async function onRequestOptions(context) {
 export async function onRequestPost(context) {
   try {
     if (!isAllowedOrigin(context.request, context.env)) {
-      return jsonResponse({ error: '來源網域不允許使用此 API' }, { status: 403 });
+      return withCors(jsonResponse({ error: '來源網域不允許使用此 API' }, { status: 403 }), context.request, context.env);
     }
 
     const rawBody = await context.request.text();
     if (rawBody.length > 12000) {
-      return jsonResponse({ error: '輸入內容過長' }, { status: 413 });
+      return withCors(jsonResponse({ error: '輸入內容過長' }, { status: 413 }), context.request, context.env);
     }
     let body;
     try { body = JSON.parse(rawBody); } catch {
-      return jsonResponse({ error: '請求格式無效' }, { status: 400 });
+      return withCors(jsonResponse({ error: '請求格式無效' }, { status: 400 }), context.request, context.env);
     }
     const form = normalizeForm(body);
     if (!form.title || !form.idea) {
-      return jsonResponse({ error: '請至少填寫提案名稱與構想說明' }, { status: 400 });
+      return withCors(jsonResponse({ error: '請至少填寫提案名稱與構想說明' }, { status: 400 }), context.request, context.env);
     }
-    return await callGemini(form, context.env);
+    return withCors(await callGemini(form, context.env), context.request, context.env);
   } catch (error) {
-    return jsonResponse({ error: error.message || '伺服器發生錯誤' }, { status: 500 });
+    return withCors(jsonResponse({ error: error.message || '伺服器發生錯誤' }, { status: 500 }), context.request, context.env);
   }
 }
