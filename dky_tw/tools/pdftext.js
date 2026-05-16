@@ -90,4 +90,105 @@ export const renderPdfPage = async (pdfDoc, container, { pageNum = 1, scale = 1.
   return { width: viewport.width, height: viewport.height };
 };
 
-export default { title, desc, icon, loadPdfJs, loadPdfDocument, renderPdfPage };
+/**
+ * 把 PDF 單頁渲染成 Blob（給 C3 圖片匯出 / C2 縮圖用）
+ * @param {Object} pdfDoc
+ * @param {number} pageNum
+ * @param {{dpi?:number, mime?:string, quality?:number}} opts
+ * @returns {Promise<{blob:Blob, width:number, height:number}>}
+ */
+export const renderPageToBlob = async (pdfDoc, pageNum, { dpi = 150, mime = 'image/png', quality = 0.92 } = {}) => {
+  const page = await pdfDoc.getPage(pageNum);
+  const scale = dpi / 72; // PDF 原生 72 dpi
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.floor(viewport.width);
+  canvas.height = Math.floor(viewport.height);
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, mime, quality));
+  return { blob, width: canvas.width, height: canvas.height };
+};
+
+/**
+ * 渲染縮圖 (給 C2 編輯頁面用)，回傳 dataURL
+ */
+export const renderThumbnail = async (pdfDoc, pageNum, { maxSize = 180 } = {}) => {
+  const page = await pdfDoc.getPage(pageNum);
+  const vp1 = page.getViewport({ scale: 1 });
+  const scale = maxSize / Math.max(vp1.width, vp1.height);
+  const viewport = page.getViewport({ scale });
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.floor(viewport.width);
+  canvas.height = Math.floor(viewport.height);
+  const ctx = canvas.getContext('2d');
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  return canvas.toDataURL('image/png');
+};
+
+// ---- pdf-lib (用於 C2: 拆/合/旋/重排，純本地 PDF 編輯) ----
+let pdfLibLoading = null;
+export const loadPdfLib = () => {
+  if (pdfLibLoading) return pdfLibLoading;
+  if (typeof window !== 'undefined' && window.PDFLib) {
+    pdfLibLoading = Promise.resolve(window.PDFLib);
+    return pdfLibLoading;
+  }
+  pdfLibLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+    s.onload = () => window.PDFLib ? resolve(window.PDFLib) : reject(new Error('pdf-lib 載入失敗'));
+    s.onerror = () => reject(new Error('pdf-lib CDN 載入失敗'));
+    document.head.appendChild(s);
+  });
+  return pdfLibLoading;
+};
+
+// ---- JSZip (用於 C3: 圖片打包) ----
+let jsZipLoading = null;
+export const loadJSZip = () => {
+  if (jsZipLoading) return jsZipLoading;
+  if (typeof window !== 'undefined' && window.JSZip) {
+    jsZipLoading = Promise.resolve(window.JSZip);
+    return jsZipLoading;
+  }
+  jsZipLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+    s.onload = () => window.JSZip ? resolve(window.JSZip) : reject(new Error('JSZip 載入失敗'));
+    s.onerror = () => reject(new Error('JSZip CDN 載入失敗'));
+    document.head.appendChild(s);
+  });
+  return jsZipLoading;
+};
+
+/**
+ * 解析頁範圍字串 "1-3,5,7-9" → [1,2,3,5,7,8,9]，越界自動截斷
+ */
+export const parsePageRange = (input, total) => {
+  if (!input || !input.trim() || input.trim().toLowerCase() === 'all') {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const out = new Set();
+  for (const part of input.split(',')) {
+    const seg = part.trim();
+    if (!seg) continue;
+    const m = seg.match(/^(\d+)\s*-\s*(\d+)$/);
+    if (m) {
+      let a = parseInt(m[1], 10), b = parseInt(m[2], 10);
+      if (a > b) [a, b] = [b, a];
+      for (let i = Math.max(1, a); i <= Math.min(total, b); i++) out.add(i);
+    } else {
+      const n = parseInt(seg, 10);
+      if (Number.isFinite(n) && n >= 1 && n <= total) out.add(n);
+    }
+  }
+  return [...out].sort((a, b) => a - b);
+};
+
+export default {
+  title, desc, icon,
+  loadPdfJs, loadPdfDocument, renderPdfPage,
+  renderPageToBlob, renderThumbnail,
+  loadPdfLib, loadJSZip, parsePageRange,
+};

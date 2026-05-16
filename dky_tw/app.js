@@ -41,7 +41,7 @@ const metaList = {
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
-  pdf: { icon: '📄', title: 'PDF 檢視 / 文字選取', desc: '滑鼠拖曳選字 → Ctrl/Cmd+C 複製。檔案完全在瀏覽器內處理，不會上傳。' }
+  pdf: { icon: '📄', title: 'PDF 工具箱', desc: '檢視 + 文字選取 / 拆頁合併重排旋轉 / 轉成圖片 zip。完全在瀏覽器內處理，零上傳。' }
 };
 
 window.tzDatabase = [
@@ -526,33 +526,110 @@ const renderFields = {
     </div>
   `,
   pdf: () => `
-    <div class="input-group" style="margin-bottom:10px;">
-      <div class="imgzip-dropzone" id="pdf-dropzone" style="padding:18px;">
-        <input id="pdf-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfFileChange()" />
-        <span id="pdf-drop-text" class="imgzip-drop-text" style="font-size:0.9rem;">📁 點擊或拖曳 PDF（完全在瀏覽器內處理，不會上傳）</span>
-      </div>
+    <div class="pdf-tabs">
+      <button class="pdf-tab pdf-tab-active" data-tab="view" onclick="UI.switchPdfTab('view')">📖 檢視</button>
+      <button class="pdf-tab" data-tab="edit" onclick="UI.switchPdfTab('edit')">✂️ 編輯頁面</button>
+      <button class="pdf-tab" data-tab="export" onclick="UI.switchPdfTab('export')">🖼️ 轉圖片</button>
     </div>
-    <div id="pdf-toolbar" class="pdf-toolbar" style="display:none;">
-      <div class="pdf-toolbar-group">
-        <button class="btn pdf-tb-btn" id="pdf-prev" onclick="UI.handlePdfPage(-1)" title="上一頁">‹</button>
-        <span class="pdf-page-indicator">
-          <input type="number" id="pdf-page-input" min="1" value="1" onchange="UI.handlePdfJump()" />
-          <span>/ <span id="pdf-page-total">0</span></span>
-        </span>
-        <button class="btn pdf-tb-btn" id="pdf-next" onclick="UI.handlePdfPage(1)" title="下一頁">›</button>
+
+    <!-- ===== Tab 1: 檢視 ===== -->
+    <div class="pdf-tab-panel" id="pdf-tab-view">
+      <div class="input-group" style="margin-bottom:10px;">
+        <div class="imgzip-dropzone" id="pdf-dropzone" style="padding:18px;">
+          <input id="pdf-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfFileChange()" />
+          <span id="pdf-drop-text" class="imgzip-drop-text" style="font-size:0.9rem;">📁 點擊或拖曳 PDF（完全在瀏覽器內處理，不會上傳）</span>
+        </div>
       </div>
-      <div class="pdf-toolbar-group">
-        <button class="btn pdf-tb-btn" onclick="UI.handlePdfZoom(-1)" title="縮小">−</button>
-        <span class="pdf-zoom-indicator" id="pdf-zoom-label">125%</span>
-        <button class="btn pdf-tb-btn" onclick="UI.handlePdfZoom(1)" title="放大">+</button>
-        <button class="btn pdf-tb-btn" onclick="UI.handlePdfZoom(0)" title="適合寬度">↔</button>
+      <div id="pdf-toolbar" class="pdf-toolbar" style="display:none;">
+        <div class="pdf-toolbar-group">
+          <button class="btn pdf-tb-btn" id="pdf-prev" onclick="UI.handlePdfPage(-1)" title="上一頁">‹</button>
+          <span class="pdf-page-indicator">
+            <input type="number" id="pdf-page-input" min="1" value="1" onchange="UI.handlePdfJump()" />
+            <span>/ <span id="pdf-page-total">0</span></span>
+          </span>
+          <button class="btn pdf-tb-btn" id="pdf-next" onclick="UI.handlePdfPage(1)" title="下一頁">›</button>
+        </div>
+        <div class="pdf-toolbar-group">
+          <button class="btn pdf-tb-btn" onclick="UI.handlePdfZoom(-1)" title="縮小">−</button>
+          <span class="pdf-zoom-indicator" id="pdf-zoom-label">125%</span>
+          <button class="btn pdf-tb-btn" onclick="UI.handlePdfZoom(1)" title="放大">+</button>
+          <button class="btn pdf-tb-btn" onclick="UI.handlePdfZoom(0)" title="適合寬度">↔</button>
+        </div>
+        <div class="pdf-toolbar-group">
+          <button class="btn pdf-tb-btn" onclick="UI.handlePdfPrint()" title="列印">🖨</button>
+        </div>
       </div>
-      <div class="pdf-toolbar-group">
-        <button class="btn pdf-tb-btn" onclick="UI.handlePdfPrint()" title="列印">🖨</button>
-      </div>
+      <div id="pdf-status" style="display:none; color:var(--muted); margin: 10px 0; font-size:0.9rem;"></div>
+      <div id="pdf-viewer" class="pdf-viewer" style="display:none;"></div>
     </div>
-    <div id="pdf-status" style="display:none; color:var(--muted); margin: 10px 0; font-size:0.9rem;"></div>
-    <div id="pdf-viewer" class="pdf-viewer" style="display:none;"></div>
+
+    <!-- ===== Tab 2: 編輯頁面 ===== -->
+    <div class="pdf-tab-panel" id="pdf-tab-edit" style="display:none;">
+      <div class="input-group" style="margin-bottom:10px;">
+        <div class="imgzip-dropzone" style="padding:18px;">
+          <input id="pdf-edit-file" type="file" accept=".pdf,application/pdf" multiple onchange="UI.handlePdfEditFiles()" />
+          <span id="pdf-edit-drop-text" class="imgzip-drop-text" style="font-size:0.9rem;">📁 拖曳一或多個 PDF（會自動合併）</span>
+        </div>
+      </div>
+      <div id="pdf-edit-toolbar" class="pdf-toolbar" style="display:none;">
+        <div class="pdf-toolbar-group">
+          <span style="color:var(--muted); font-size:0.85rem;">共 <span id="pdf-edit-count">0</span> 頁</span>
+          <button class="btn pdf-tb-btn" onclick="UI.handlePdfEditSelectAll(true)" title="全選">☑ 全</button>
+          <button class="btn pdf-tb-btn" onclick="UI.handlePdfEditSelectAll(false)" title="全不選">☐ 無</button>
+        </div>
+        <div class="pdf-toolbar-group">
+          <button class="btn" onclick="UI.handlePdfEditSave()">💾 下載編輯後 PDF</button>
+          <button class="btn pdf-tb-btn" onclick="UI.handlePdfEditReset()" title="清空">🗑</button>
+        </div>
+      </div>
+      <div id="pdf-edit-status" style="display:none; color:var(--muted); margin: 8px 0; font-size:0.85rem;"></div>
+      <div id="pdf-edit-grid" class="pdf-thumb-grid" style="display:none;"></div>
+    </div>
+
+    <!-- ===== Tab 3: 轉圖片 ===== -->
+    <div class="pdf-tab-panel" id="pdf-tab-export" style="display:none;">
+      <div class="input-group" style="margin-bottom:10px;">
+        <div class="imgzip-dropzone" style="padding:18px;">
+          <input id="pdf-export-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfExportFile()" />
+          <span id="pdf-export-drop-text" class="imgzip-drop-text" style="font-size:0.9rem;">📁 拖曳一個 PDF</span>
+        </div>
+      </div>
+      <div id="pdf-export-options" style="display:none;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+          <div class="input-group" style="flex:1;min-width:160px;margin-bottom:0;">
+            <label>解析度 (DPI)</label>
+            <select id="pdf-export-dpi" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:10px;font-size:0.9rem;outline:none;">
+              <option value="72">72 — 螢幕用 (小)</option>
+              <option value="150" selected>150 — 一般</option>
+              <option value="300">300 — 印刷品質 (大)</option>
+              <option value="450">450 — 超高清</option>
+            </select>
+          </div>
+          <div class="input-group" style="flex:1;min-width:160px;margin-bottom:0;">
+            <label>格式</label>
+            <select id="pdf-export-format" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:10px;font-size:0.9rem;outline:none;">
+              <option value="image/png" selected>PNG (清晰、檔案大)</option>
+              <option value="image/jpeg">JPEG (小、有失真)</option>
+              <option value="image/webp">WebP (最小)</option>
+            </select>
+          </div>
+          <div class="input-group" style="flex:2;min-width:200px;margin-bottom:0;">
+            <label>頁範圍 (例：1-3,5,7-9，留空 = 全部)</label>
+            <input id="pdf-export-range" type="text" placeholder="all" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:10px;font-size:0.9rem;outline:none;" />
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn" onclick="UI.handlePdfExportRun()">📦 開始匯出並打包 zip</button>
+        </div>
+        <div id="pdf-export-progress" style="display:none; margin-top:12px;">
+          <div style="background:rgba(255,255,255,0.08); border-radius:8px; height:8px; overflow:hidden;">
+            <div id="pdf-export-bar" style="background:linear-gradient(90deg,var(--accent),#7ee8fa); height:100%; width:0%; transition:width 0.2s;"></div>
+          </div>
+          <div id="pdf-export-text" style="margin-top:6px; font-size:0.8rem; color:var(--muted); text-align:center;"></div>
+        </div>
+      </div>
+      <div id="pdf-export-status" style="display:none; color:var(--muted); margin: 10px 0; font-size:0.9rem;"></div>
+    </div>
   `,
 };
 
@@ -1420,6 +1497,295 @@ const UI = {
     const url = URL.createObjectURL(this.pdfFile);
     const w = window.open(url, '_blank');
     if (w) setTimeout(() => { try { w.print(); } catch {} }, 800);
+  },
+
+  // ============ Tab 切換 ============
+  switchPdfTab(tab) {
+    document.querySelectorAll('.pdf-tab').forEach(b => {
+      b.classList.toggle('pdf-tab-active', b.dataset.tab === tab);
+    });
+    document.querySelectorAll('.pdf-tab-panel').forEach(p => {
+      p.style.display = p.id === `pdf-tab-${tab}` ? '' : 'none';
+    });
+  },
+
+  // ============ C3: PDF → 圖片 zip ============
+  pdfExportDoc: null,
+  pdfExportFile: null,
+
+  async handlePdfExportFile() {
+    const file = document.getElementById('pdf-export-file')?.files?.[0];
+    if (!file) return;
+    const drop = document.getElementById('pdf-export-drop-text');
+    const opts = document.getElementById('pdf-export-options');
+    const status = document.getElementById('pdf-export-status');
+    if (drop) drop.textContent = `📄 ${file.name}（點擊更換）`;
+    if (status) { status.style.display = 'block'; status.textContent = '⏳ 載入中…'; }
+    try {
+      this.pdfExportFile = file;
+      this.pdfExportDoc = await tools.pdftext.loadPdfDocument(file);
+      const total = this.pdfExportDoc.numPages;
+      const rangeInput = document.getElementById('pdf-export-range');
+      if (rangeInput) rangeInput.placeholder = `all（共 ${total} 頁）`;
+      if (opts) opts.style.display = 'block';
+      if (status) status.textContent = `✅ 已載入，共 ${total} 頁`;
+    } catch (e) {
+      if (status) status.textContent = '❌ 載入失敗：' + (e.message || e);
+    }
+  },
+
+  async handlePdfExportRun() {
+    if (!this.pdfExportDoc) return;
+    const dpi = parseInt(document.getElementById('pdf-export-dpi').value, 10);
+    const mime = document.getElementById('pdf-export-format').value;
+    const rangeStr = document.getElementById('pdf-export-range').value;
+    const total = this.pdfExportDoc.numPages;
+    const pages = tools.pdftext.parsePageRange(rangeStr, total);
+    const status = document.getElementById('pdf-export-status');
+    const progress = document.getElementById('pdf-export-progress');
+    const bar = document.getElementById('pdf-export-bar');
+    const text = document.getElementById('pdf-export-text');
+
+    if (!pages.length) {
+      if (status) { status.style.display = 'block'; status.textContent = '⚠️ 頁範圍無效，請檢查格式'; }
+      return;
+    }
+
+    const ext = mime === 'image/jpeg' ? '.jpg' : mime === 'image/webp' ? '.webp' : '.png';
+    const baseName = (this.pdfExportFile?.name || 'pages').replace(/\.pdf$/i, '');
+
+    if (progress) progress.style.display = 'block';
+    if (status) { status.style.display = 'block'; status.textContent = `⏳ 正在渲染 ${pages.length} 頁…`; }
+
+    try {
+      const JSZipLib = await tools.pdftext.loadJSZip();
+      const zip = new JSZipLib();
+      const padLen = String(total).length;
+      for (let i = 0; i < pages.length; i++) {
+        const p = pages[i];
+        if (text) text.textContent = `渲染第 ${p} 頁 (${i + 1}/${pages.length})…`;
+        if (bar) bar.style.width = `${((i + 1) / pages.length) * 100}%`;
+        const { blob } = await tools.pdftext.renderPageToBlob(this.pdfExportDoc, p, { dpi, mime });
+        const fname = `${baseName}_p${String(p).padStart(padLen, '0')}${ext}`;
+        zip.file(fname, blob);
+      }
+      if (text) text.textContent = '打包 zip…';
+      const zipBlob = await zip.generateAsync({ type: 'blob' }, ({ percent }) => {
+        if (bar) bar.style.width = `${percent}%`;
+      });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${baseName}_images.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      const mb = (zipBlob.size / 1024 / 1024).toFixed(2);
+      if (status) status.textContent = `✅ 已下載 ${pages.length} 張圖片 (${mb} MB)`;
+      if (progress) setTimeout(() => { progress.style.display = 'none'; }, 1500);
+    } catch (e) {
+      if (status) status.textContent = '❌ 失敗：' + (e.message || e);
+      if (progress) progress.style.display = 'none';
+    }
+  },
+
+  // ============ C2: 編輯頁面（拆/合/旋/重排）============
+  // pdfEditPages: [{ docIdx:number, pageIdx:number(0-based原檔頁), rot:0|90|180|270, thumb:dataURL }]
+  pdfEditDocs: [],     // pdf.js documents（縮圖用）
+  pdfEditLibDocs: [],  // pdf-lib documents（匯出用）
+  pdfEditFiles: [],
+  pdfEditPages: [],
+  pdfEditSelected: new Set(), // Set<index in pdfEditPages>
+  pdfEditDragIdx: null,
+
+  async handlePdfEditFiles() {
+    const input = document.getElementById('pdf-edit-file');
+    const files = input?.files;
+    if (!files?.length) return;
+    const status = document.getElementById('pdf-edit-status');
+    const drop = document.getElementById('pdf-edit-drop-text');
+    if (status) { status.style.display = 'block'; status.textContent = `⏳ 載入 ${files.length} 個 PDF…`; }
+
+    try {
+      const PDFLib = await tools.pdftext.loadPdfLib();
+      for (const f of Array.from(files)) {
+        const docIdx = this.pdfEditDocs.length;
+        const buf = await f.arrayBuffer();
+        // 兩份：pdf.js 拿縮圖 + pdf-lib 拿頁來重組
+        const jsDoc = await tools.pdftext.loadPdfDocument(new Blob([buf]));
+        const libDoc = await PDFLib.PDFDocument.load(buf);
+        this.pdfEditDocs.push(jsDoc);
+        this.pdfEditLibDocs.push(libDoc);
+        this.pdfEditFiles.push(f);
+        for (let i = 0; i < jsDoc.numPages; i++) {
+          this.pdfEditPages.push({ docIdx, pageIdx: i, rot: 0, thumb: null });
+        }
+      }
+      if (drop) drop.textContent = `📄 已載入 ${this.pdfEditFiles.length} 個檔（點擊新增）`;
+      // 重置 selection
+      this.pdfEditSelected.clear();
+      this._renderPdfEditGrid();
+      // lazy render thumbnails
+      this._renderEditThumbnails();
+      if (status) status.textContent = `✅ 已載入 ${this.pdfEditPages.length} 頁，可拖曳重排、旋轉、刪除、勾選後匯出。`;
+      document.getElementById('pdf-edit-toolbar').style.display = 'flex';
+      document.getElementById('pdf-edit-grid').style.display = 'grid';
+      // 清空 input 才能重複選同一檔
+      input.value = '';
+    } catch (e) {
+      if (status) status.textContent = '❌ 載入失敗：' + (e.message || e);
+    }
+  },
+
+  async _renderEditThumbnails() {
+    // 依目前 pdfEditPages 順序逐張產生縮圖（背景跑）
+    for (let i = 0; i < this.pdfEditPages.length; i++) {
+      const p = this.pdfEditPages[i];
+      if (p.thumb) continue;
+      try {
+        p.thumb = await tools.pdftext.renderThumbnail(this.pdfEditDocs[p.docIdx], p.pageIdx + 1, { maxSize: 180 });
+        const img = document.querySelector(`.pdf-thumb[data-idx="${i}"] img`);
+        if (img) img.src = p.thumb;
+      } catch {}
+    }
+  },
+
+  _renderPdfEditGrid() {
+    const grid = document.getElementById('pdf-edit-grid');
+    if (!grid) return;
+    const count = document.getElementById('pdf-edit-count');
+    if (count) count.textContent = String(this.pdfEditPages.length);
+    grid.innerHTML = this.pdfEditPages.map((p, idx) => {
+      const fileName = this.pdfEditFiles[p.docIdx]?.name || '';
+      const selected = this.pdfEditSelected.has(idx) ? 'pdf-thumb-selected' : '';
+      const rotCSS = p.rot ? `transform:rotate(${p.rot}deg);` : '';
+      return `
+        <div class="pdf-thumb ${selected}" data-idx="${idx}" draggable="true"
+             ondragstart="UI.handlePdfEditDragStart(event,${idx})"
+             ondragover="event.preventDefault()"
+             ondragenter="event.currentTarget.classList.add('pdf-thumb-dragover')"
+             ondragleave="event.currentTarget.classList.remove('pdf-thumb-dragover')"
+             ondrop="UI.handlePdfEditDrop(event,${idx})"
+             onclick="UI.handlePdfEditToggle(${idx})">
+          <div class="pdf-thumb-img-wrap">
+            <img src="${p.thumb || ''}" alt="p${p.pageIdx+1}" style="${rotCSS}" />
+          </div>
+          <div class="pdf-thumb-meta">
+            <span>#${idx+1}</span>
+            <span title="${escapeHTML(fileName)}">${escapeHTML(fileName.length > 14 ? fileName.slice(0,12)+'…' : fileName)} p${p.pageIdx+1}</span>
+          </div>
+          <div class="pdf-thumb-actions">
+            <button class="pdf-thumb-btn" title="左轉" onclick="event.stopPropagation(); UI.handlePdfEditRotate(${idx},-90)">↺</button>
+            <button class="pdf-thumb-btn" title="右轉" onclick="event.stopPropagation(); UI.handlePdfEditRotate(${idx},90)">↻</button>
+            <button class="pdf-thumb-btn pdf-thumb-btn-danger" title="刪除" onclick="event.stopPropagation(); UI.handlePdfEditDelete(${idx})">✕</button>
+          </div>
+        </div>`;
+    }).join('');
+  },
+
+  handlePdfEditToggle(idx) {
+    if (this.pdfEditSelected.has(idx)) this.pdfEditSelected.delete(idx);
+    else this.pdfEditSelected.add(idx);
+    this._renderPdfEditGrid();
+  },
+
+  handlePdfEditSelectAll(all) {
+    this.pdfEditSelected.clear();
+    if (all) {
+      for (let i = 0; i < this.pdfEditPages.length; i++) this.pdfEditSelected.add(i);
+    }
+    this._renderPdfEditGrid();
+  },
+
+  handlePdfEditRotate(idx, delta) {
+    const p = this.pdfEditPages[idx];
+    if (!p) return;
+    p.rot = ((p.rot + delta) % 360 + 360) % 360;
+    this._renderPdfEditGrid();
+  },
+
+  handlePdfEditDelete(idx) {
+    this.pdfEditPages.splice(idx, 1);
+    // 重編 selected 索引
+    const newSel = new Set();
+    this.pdfEditSelected.forEach(i => {
+      if (i < idx) newSel.add(i);
+      else if (i > idx) newSel.add(i - 1);
+    });
+    this.pdfEditSelected = newSel;
+    this._renderPdfEditGrid();
+  },
+
+  handlePdfEditDragStart(e, idx) {
+    this.pdfEditDragIdx = idx;
+    try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(idx)); } catch {}
+  },
+
+  handlePdfEditDrop(e, targetIdx) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('pdf-thumb-dragover');
+    const from = this.pdfEditDragIdx;
+    this.pdfEditDragIdx = null;
+    if (from == null || from === targetIdx) return;
+    const moved = this.pdfEditPages.splice(from, 1)[0];
+    // 算插入位置
+    const insertAt = from < targetIdx ? targetIdx : targetIdx;
+    this.pdfEditPages.splice(insertAt, 0, moved);
+    // 重編 selected 索引
+    const remap = new Map();
+    let cur = 0;
+    // 簡化：清掉選取
+    this.pdfEditSelected.clear();
+    this._renderPdfEditGrid();
+  },
+
+  handlePdfEditReset() {
+    this.pdfEditDocs = [];
+    this.pdfEditLibDocs = [];
+    this.pdfEditFiles = [];
+    this.pdfEditPages = [];
+    this.pdfEditSelected.clear();
+    document.getElementById('pdf-edit-toolbar').style.display = 'none';
+    const grid = document.getElementById('pdf-edit-grid');
+    if (grid) { grid.style.display = 'none'; grid.innerHTML = ''; }
+    const status = document.getElementById('pdf-edit-status');
+    if (status) status.style.display = 'none';
+    const drop = document.getElementById('pdf-edit-drop-text');
+    if (drop) drop.textContent = '📁 拖曳一或多個 PDF（會自動合併）';
+  },
+
+  async handlePdfEditSave() {
+    if (!this.pdfEditPages.length) return;
+    const status = document.getElementById('pdf-edit-status');
+    if (status) { status.style.display = 'block'; status.textContent = '⏳ 組裝中…'; }
+    try {
+      const PDFLib = await tools.pdftext.loadPdfLib();
+      const out = await PDFLib.PDFDocument.create();
+      // 決定要匯出哪些頁：若有選取，只匯選取的；否則匯全部
+      const exportIdxs = this.pdfEditSelected.size
+        ? [...this.pdfEditSelected].sort((a,b)=>a-b)
+        : this.pdfEditPages.map((_, i) => i);
+      for (const idx of exportIdxs) {
+        const p = this.pdfEditPages[idx];
+        const [copied] = await out.copyPages(this.pdfEditLibDocs[p.docIdx], [p.pageIdx]);
+        if (p.rot) copied.setRotation(PDFLib.degrees((copied.getRotation().angle + p.rot) % 360));
+        out.addPage(copied);
+      }
+      const bytes = await out.save();
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const base = this.pdfEditFiles.length === 1
+        ? this.pdfEditFiles[0].name.replace(/\.pdf$/i, '')
+        : 'merged';
+      a.href = url;
+      a.download = `${base}_edited.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      const mb = (blob.size / 1024 / 1024).toFixed(2);
+      if (status) status.textContent = `✅ 已下載 ${exportIdxs.length} 頁 (${mb} MB)`;
+    } catch (e) {
+      if (status) status.textContent = '❌ 失敗：' + (e.message || e);
+    }
   },
 
 };
