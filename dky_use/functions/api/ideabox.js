@@ -14,6 +14,7 @@ const FIELD_LIMITS = {
 };
 
 const DEFAULT_TIMEOUT_MS = 25000;
+const MIN_TIMEOUT_MS = 15000;
 const DEFAULT_MAX_OUTPUT_TOKENS = 4096;
 
 function jsonResponse(data, init = {}) {
@@ -207,9 +208,9 @@ async function callGemini(form, env) {
 
   const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
   const maxOutputTokens = getNumber(env.GEMINI_MAX_OUTPUT_TOKENS, DEFAULT_MAX_OUTPUT_TOKENS, 1024, 8192);
-  const timeoutMs = getNumber(env.GEMINI_TIMEOUT_MS, DEFAULT_TIMEOUT_MS, 5000, 60000);
+  const timeoutMs = getNumber(env.GEMINI_TIMEOUT_MS, DEFAULT_TIMEOUT_MS, MIN_TIMEOUT_MS, 60000);
   const abortController = new AbortController();
-  const timeoutId = setTimeout(() => abortController.abort('Gemini API timeout'), timeoutMs);
+  const timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
   let geminiResponse;
   try {
@@ -264,7 +265,7 @@ async function callGemini(form, env) {
       })
     });
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (error.name === 'AbortError' || abortController.signal.aborted) {
       return jsonResponse({ error: 'Gemini API 回應逾時，請稍後再試' }, { status: 504 });
     }
     return jsonResponse({ error: 'Gemini API 連線失敗' }, { status: 502 });
