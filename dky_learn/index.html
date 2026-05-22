@@ -3,95 +3,204 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DKY 學習中心</title>
+<title>統計學習入門 (ISLP) — DKY 學習中心</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
 :root {
-  --bg: #0d1117; --fg: #c9d1d9; --accent: #58a6ff; --border: #30363d;
-  --heading: #f0f6fc; --card-bg: #161b22; --good: #3fb950;
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --fg: #c9d1d9; --fg-muted: #8b949e; --heading: #f0f6fc;
+  --accent: #58a6ff; --accent-dim: #1f6feb33;
+  --good: #3fb950; --warn: #d2991d; --bad: #f85149;
+  --sidebar-w: 260px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-  background: var(--bg); color: var(--fg); line-height: 1.7;
-  max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'PingFang TC', sans-serif;
+  background: var(--bg); color: var(--fg); line-height: 1.75;
+  display: flex; min-height: 100vh;
 }
-h1 {
-  color: var(--heading); font-size: 2rem; text-align: center;
-  padding: 2rem 0; border-bottom: 2px solid var(--border); margin-bottom: 2rem;
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
+  position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100;
+  display: flex; flex-direction: column;
 }
-.subject-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem; margin: 2rem 0;
+.sidebar-header {
+  padding: 1.2rem 1rem; border-bottom: 1px solid var(--border);
+  font-weight: 700; font-size: 1rem; color: var(--heading);
 }
-.card {
-  background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 1.5rem; transition: border-color 0.2s;
+.sidebar-header a { color: inherit; text-decoration: none; }
+.sidebar-header .sub { font-size: 0.75rem; color: var(--fg-muted); font-weight: 400; }
+.sidebar-nav { flex: 1; padding: 0.8rem 0; }
+.sidebar-nav .section-title {
+  padding: 0.4rem 1rem; font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--fg-muted);
 }
-.card:hover { border-color: var(--accent); }
-.card h2 { color: var(--accent); font-size: 1.2rem; margin-bottom: 0.5rem; }
-.card p { font-size: 0.9rem; color: #8b949e; margin-bottom: 1rem; }
-.card .lessons { font-size: 0.85rem; }
-.card .lessons a {
-  display: block; color: var(--fg); text-decoration: none;
-  padding: 0.3rem 0; border-bottom: 1px solid var(--border);
+.sidebar-nav a {
+  display: block; padding: 0.4rem 1rem 0.4rem 1.4rem; font-size: 0.88rem;
+  color: var(--fg); text-decoration: none; border-left: 2px solid transparent;
+  transition: all 0.15s;
 }
-.card .lessons a:hover { color: var(--accent); }
+.sidebar-nav a:hover, .sidebar-nav a.active {
+  color: var(--heading); background: var(--accent-dim); border-left-color: var(--accent);
+}
+.sidebar-nav a .badge {
+  float: right; font-size: 0.7rem; background: #1a2f1a; color: var(--good);
+  padding: 0.1rem 0.4rem; border-radius: 0.5rem;
+}
+.sidebar-footer {
+  padding: 0.8rem 1rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--fg-muted);
+}
+.sidebar-footer a { color: var(--accent); }
+
+/* ── Main ── */
+.main {
+  margin-left: var(--sidebar-w); flex: 1; max-width: 880px;
+  padding: 2rem 2.5rem 4rem;
+}
+.main h1 { font-size: 1.8rem; color: var(--heading); margin-bottom: 0.5rem; }
+.main h2 {
+  font-size: 1.3rem; color: var(--accent); margin: 2rem 0 0.6rem;
+  border-left: 3px solid var(--accent); padding-left: 0.7rem;
+}
+.main h3 { font-size: 1.05rem; color: var(--heading); margin: 1.5rem 0 0.4rem; }
+.main p { margin: 0.7rem 0; }
+.main a { color: var(--accent); }
+
+/* ── Meta bar ── */
+.meta-bar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.6rem 0 1.5rem; }
 .tag {
-  display: inline-block; background: #1a2f1a; color: var(--good);
-  padding: 0.15rem 0.6rem; border-radius: 1rem; font-size: 0.75rem; margin-right: 0.3rem;
+  font-size: 0.75rem; padding: 0.15rem 0.55rem; border-radius: 0.8rem;
+  background: #1f2937; color: var(--accent);
 }
-.footer { text-align: center; color: #484f58; margin-top: 3rem; font-size: 0.8rem; }
+.tag.diff { background: #1a2f1a; color: var(--good); }
+
+/* ── Reference box ── */
+.ref-box {
+  background: #111d2e; border: 1px solid #1a3a5c; font-size: 0.85rem;
+  padding: 0.5rem 0.9rem; margin: 0.6rem 0; border-radius: 4px;
+}
+
+/* ── Scenario ── */
+.scenario-box {
+  background: #0d1f17; border-left: 3px solid var(--good);
+  padding: 0.6rem 1rem; margin: 0.7rem 0;
+}
+
+/* ── Pros/cons grid ── */
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 0.8rem 0; }
+.pros { background: #0d1f17; border: 1px solid #1a3a2a; padding: 0.6rem 0.9rem; border-radius: 6px; }
+.cons { background: #1f1515; border: 1px solid #3a1a1a; padding: 0.6rem 0.9rem; border-radius: 6px; }
+.pros h4 { color: var(--good); }
+.cons h4 { color: var(--bad); }
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.88rem; }
+th, td { border: 1px solid var(--border); padding: 0.5rem 0.7rem; text-align: left; }
+th { background: #1c2128; color: var(--heading); }
+td { background: #0d1117; }
+tr:nth-child(even) td { background: #111820; }
+
+/* ── Code ── */
+pre { background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 0.8rem 1rem; overflow-x: auto; margin: 0.8rem 0; }
+code { font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 0.82rem; }
+p code, li code { background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 3px; }
+
+/* ── Key quote ── */
+.key-quote {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  border: 2px solid var(--warn); font-size: 1rem;
+  padding: 1rem; margin: 1.5rem 0; border-radius: 8px; text-align: center;
+}
+
+/* ── Lesson nav ── */
+.lesson-nav { display: flex; justify-content: space-between; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+.lesson-nav a { color: var(--accent); text-decoration: none; }
+.lesson-nav a:hover { text-decoration: underline; }
+
+/* ── Blockquote ── */
+blockquote {
+  border-left: 3px solid var(--warn); background: #1a1a1a;
+  margin: 0.8rem 0; padding: 0.6rem 1rem; color: #e6e6e6;
+}
+
+/* ── Formula box ── */
+.formula-box {
+  background: #0d1520; border: 1px solid var(--accent);
+  padding: 0.8rem; margin: 0.8rem 0; border-radius: 6px; overflow-x: auto;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding: 1.2rem; }
+  .pros-cons { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
-<h1>📚 DKY 學習中心</h1>
-
-<div class="subject-grid">
-
-  <div class="card">
-    <h2>📊 統計學習入門 (ISLP)</h2>
-    <p>基於 James, Witten, Hastie, Tibshirani (2023) 經典教材，含理論推導、Python 實作、應用場景。</p>
-    <span class="tag">第 2 章</span><span class="tag">進行中</span>
-    <div class="lessons">
-      <a href="statistics/02_What_Is_Statistical_Learning.html">§2.1 什麼是統計學習？</a>
-      <a href="statistics/02_Assessing_Model_Accuracy.html">§2.2 評估模型準確度</a>
-    </div>
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a href="index.html">📚 DKY 學習中心</a>
+    <div class="sub">統計學習 · 機器學習 · Python</div>
   </div>
+  <div class="sidebar-nav">
+    <div class="section-title">📊 統計學習入門 (ISLP)</div>
+    <a href="statistics/02_What_Is_Statistical_Learning.html" class="active">§2.1 什麼是統計學習？</a>
+    <a href="statistics/02_Assessing_Model_Accuracy.html">§2.2 評估模型準確度</a>
+    <a href="#" style="color:var(--fg-muted);cursor:default">§2.3 Lab: Python 入門 <span class="badge">製作中</span></a>
+    <a href="#" style="color:var(--fg-muted);cursor:default">§3.1 簡單線性迴歸 <span class="badge">待排程</span></a>
 
-  <div class="card">
-    <h2>🤖 機器學習</h2>
-    <p>監督學習、非監督學習、深度學習理論與實作。</p>
-    <span class="tag">敬請期待</span>
-    <div class="lessons">
-      <span style="color:#484f58">尚無課程</span>
-    </div>
+    <div class="section-title" style="margin-top:1rem">🤖 機器學習</div>
+    <a href="#" style="color:var(--fg-muted);cursor:default">敬請期待</a>
+
+    <div class="section-title" style="margin-top:1rem">🐍 Python</div>
+    <a href="#" style="color:var(--fg-muted);cursor:default">敬請期待</a>
   </div>
-
-  <div class="card">
-    <h2>🐍 Python 程式設計</h2>
-    <p>從基礎到進階，資料科學導向的 Python 教學。</p>
-    <span class="tag">敬請期待</span>
-    <div class="lessons">
-      <span style="color:#484f58">尚無課程</span>
-    </div>
+  <div class="sidebar-footer">
+    <a href="https://tools.dky.tw">🔧 工具箱</a> · 
+    <a href="https://use.dky.tw">🔐 工作台</a>
   </div>
+</nav>
 
-  <div class="card">
-    <h2>🔧 開發工具與部署</h2>
-    <p>Git、Docker、Cloudflare、Linux 系統管理等實用技能。</p>
-    <span class="tag">敬請期待</span>
-    <div class="lessons">
-      <span style="color:#484f58">尚無課程</span>
-    </div>
-  </div>
+<!-- ═══════════ MAIN CONTENT ═══════════ -->
+<main class="main">
 
+<h1>📊 統計學習入門 (ISLP)</h1>
+<p style="color:var(--fg-muted)">基於 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Applications in Python</em></p>
+
+<div class="meta-bar">
+  <span class="tag">第 2 章進行中</span>
+  <span class="tag">繁體中文</span>
+  <span class="tag">理論 + 程式碼 + 應用</span>
+  <span class="tag diff">永久免費</span>
 </div>
 
-<div class="footer">
-  learn.dky.tw · Powered by Cloudflare Pages · 
-  <a href="https://tools.dky.tw" style="color:#58a6ff">工具箱</a>
+<h2>課程目錄</h2>
+
+<table>
+<tr><th>章節</th><th>主題</th><th>狀態</th></tr>
+<tr><td><a href="statistics/02_What_Is_Statistical_Learning.html">§2.1</a></td><td>什麼是統計學習？— Y=f(X)+ε、預測vs推論、參數化vs非參數化</td><td>✅ 完成</td></tr>
+<tr><td><a href="statistics/02_Assessing_Model_Accuracy.html">§2.2</a></td><td>評估模型準確度 — Bias-Variance Tradeoff、Bayes Classifier、KNN</td><td>✅ 完成</td></tr>
+<tr><td>§2.3</td><td>Lab: Python 入門</td><td>🔨 製作中</td></tr>
+<tr><td>§3–9</td><td>線性迴歸、分類、重抽樣、模型選擇、非線性、樹、SVM、深度學習</td><td>📋 待排程</td></tr>
+</table>
+
+<div class="ref-box">
+📖 每節課包含：理論推導（附文獻佐證）→ 完整 Python 程式碼（Google Colab 相容）→ 真實應用場景 → 優缺點對照 → 類似技術比較表 → 今日關鍵句
 </div>
 
+<div class="key-quote" style="margin-top:2rem">
+  「統計學習的本質，就是從資料中估計 Y = f(X) + ε 中的未知函數 f。」<br>
+  <small>— ISLP §2.1</small>
+</div>
+
+</main>
 </body>
 </html>
