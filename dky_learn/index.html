@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DKY 學習中心</title>
+<style>
+:root {
+  --bg: #0d1117; --fg: #c9d1d9; --accent: #58a6ff; --border: #30363d;
+  --heading: #f0f6fc; --card-bg: #161b22; --good: #3fb950;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  background: var(--bg); color: var(--fg); line-height: 1.7;
+  max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem;
+}
+h1 {
+  color: var(--heading); font-size: 2rem; text-align: center;
+  padding: 2rem 0; border-bottom: 2px solid var(--border); margin-bottom: 2rem;
+}
+.subject-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem; margin: 2rem 0;
+}
+.card {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.5rem; transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--accent); }
+.card h2 { color: var(--accent); font-size: 1.2rem; margin-bottom: 0.5rem; }
+.card p { font-size: 0.9rem; color: #8b949e; margin-bottom: 1rem; }
+.card .lessons { font-size: 0.85rem; }
+.card .lessons a {
+  display: block; color: var(--fg); text-decoration: none;
+  padding: 0.3rem 0; border-bottom: 1px solid var(--border);
+}
+.card .lessons a:hover { color: var(--accent); }
+.tag {
+  display: inline-block; background: #1a2f1a; color: var(--good);
+  padding: 0.15rem 0.6rem; border-radius: 1rem; font-size: 0.75rem; margin-right: 0.3rem;
+}
+.footer { text-align: center; color: #484f58; margin-top: 3rem; font-size: 0.8rem; }
+</style>
+</head>
+<body>
+
+<h1>📚 DKY 學習中心</h1>
+
+<div class="subject-grid">
+
+  <div class="card">
+    <h2>📊 統計學習入門 (ISLP)</h2>
+    <p>基於 James, Witten, Hastie, Tibshirani (2023) 經典教材，含理論推導、Python 實作、應用場景。</p>
+    <span class="tag">第 2 章</span><span class="tag">進行中</span>
+    <div class="lessons">
+      <a href="statistics/02_What_Is_Statistical_Learning.html">§2.1 什麼是統計學習？</a>
+      <a href="statistics/02_Assessing_Model_Accuracy.html">§2.2 評估模型準確度</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🤖 機器學習</h2>
+    <p>監督學習、非監督學習、深度學習理論與實作。</p>
+    <span class="tag">敬請期待</span>
+    <div class="lessons">
+      <span style="color:#484f58">尚無課程</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🐍 Python 程式設計</h2>
+    <p>從基礎到進階，資料科學導向的 Python 教學。</p>
+    <span class="tag">敬請期待</span>
+    <div class="lessons">
+      <span style="color:#484f58">尚無課程</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔧 開發工具與部署</h2>
+    <p>Git、Docker、Cloudflare、Linux 系統管理等實用技能。</p>
+    <span class="tag">敬請期待</span>
+    <div class="lessons">
+      <span style="color:#484f58">尚無課程</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  learn.dky.tw · Powered by Cloudflare Pages · 
+  <a href="https://tools.dky.tw" style="color:#58a6ff">工具箱</a>
+</div>
+
+</body>
+</html>
