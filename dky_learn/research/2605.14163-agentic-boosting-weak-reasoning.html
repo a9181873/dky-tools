@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agentic Systems as Boosting Weak Reasoning Models — Research Notes</title>
+<title>Agentic Systems as Boosting Weak Reasoning Models — DKY 論文筆記</title>
 <style>
 :root {
   --bg: #0d1117; --card: #161b22; --border: #30363d;
@@ -35,78 +35,78 @@ th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.8
 td { font-size: 0.9em; }
 .one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
 .warn { background: #2a1a1a; border-left: 3px solid var(--red); padding: 10px 14px; font-size: 0.85em; border-radius: 0 6px 6px 0; margin: 10px 0; }
-.app-box { background: #1a2a1a; border-left: 3px solid var(--green); padding: 10px 14px; font-size: 0.85em; border-radius: 0 6px 6px 0; margin: 8px 0; }
+.app-box { background: #142a1a; border-left: 3px solid var(--green); padding: 10px 14px; font-size: 0.85em; border-radius: 0 6px 6px 0; margin: 8px 0; }
 @media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
 </style>
 </head>
 <body>
 
-<h1>Agentic Systems as Boosting Weak Reasoning Models</h1>
+<h1>用多智能體系統增強弱推理模型</h1>
 <div class="meta">
   arXiv: <a href="https://arxiv.org/abs/2605.14163" target="_blank">2605.14163</a> · 2026-05-13 · MIT / Tel Aviv University<br>
   Varun Sunkaraneni, Pierfrancesco Beneventano, Riccardo Neumarker, Tomaso Poggio, Tomer Galanti
 </div>
 
-<div class="one-liner">"A committee of weak model calls, paired with a verifier, can match the performance of much stronger standalone models."</div>
+<div class="one-liner">「弱模型的正確答案本來就在 proposal pool 裡，問題是怎麼挑出來。」</div>
 
 <div class="card">
-<h2>📊 Key Results</h2>
+<h2>📊 關鍵數據</h2>
 <table>
-  <tr><th>Approach</th><th>SWE-bench Verified</th></tr>
-  <tr><td>GPT-5.4 nano (single)</td><td style="color:var(--orange)">67.0%</td></tr>
-  <tr><td>GPT-5.4 nano ×8 + critic-comparator</td><td style="color:var(--green);font-weight:700">76.4%</td></tr>
-  <tr><td>Gemini 3 Pro / Claude Opus 4.5 (single)</td><td>~76%</td></tr>
-  <tr><td>Oracle best-of-8 (upper bound)</td><td style="color:var(--muted)">79.0%</td></tr>
+  <tr><th>方案</th><th>SWE-bench Verified</th></tr>
+  <tr><td>GPT-5.4 nano 單獨</td><td style="color:var(--orange)">67.0%</td></tr>
+  <tr><td>同模型 ×8 + critic-comparator</td><td style="color:var(--green);font-weight:700">76.4%</td></tr>
+  <tr><td>Gemini 3 Pro / Claude Opus 4.5 單獨</td><td>~76%</td></tr>
+  <tr><td>Oracle best-of-8 上限</td><td style="color:var(--muted)">79.0%</td></tr>
 </table>
-<p style="font-size:0.85em;margin-top:8px;">Weak model ×8 + verifier ≈ strong model alone. The 2.6% gap from the oracle bound comes from proposal-coverage failures — tasks no weak model can solve. Stronger selection alone cannot close it.</p>
+<p style="font-size:0.85em;margin-top:8px;">弱模型 ×8 + 驗證器 ≈ 強模型單獨。2.6% 差距來自 coverage 盲區——所有弱模型都不會解的題，換更強的 selector 也沒用。</p>
 </div>
 
 <div class="card">
-<h2>🧠 Mechanism</h2>
+<h2>🧠 機制拆解</h2>
 <table>
-  <tr><th>Component</th><th>Role</th><th>Limitation</th></tr>
-  <tr><td>Proposal</td><td>Repeated sampling amplifies coverage</td><td>Cannot produce its own critic</td></tr>
-  <tr><td>Critic</td><td>External soundness signal filters proposals</td><td>Requires execution / tests / proofs / type-checking</td></tr>
-  <tr><td>Comparator</td><td>Ranks and selects best proposal</td><td>Local selection errors compound into trajectory failures</td></tr>
+  <tr><th>元件</th><th>作用</th><th>限制</th></tr>
+  <tr><td>Proposal（生成）</td><td>重複採樣放大 coverage</td><td>無法自己產生 critic</td></tr>
+  <tr><td>Critic（驗證）</td><td>外部 verification signal 篩選</td><td>依賴 execution / test / proof 等可自動化驗證的信號</td></tr>
+  <tr><td>Comparator（比較）</td><td>排名挑選最佳 proposal</td><td>local selection error 會複合成 trajectory 誤差</td></tr>
 </table>
-<p style="font-size:0.85em;margin-top:8px;">Core bottleneck: <b>proposal coverage</b>, not selector accuracy. Remaining failures are shared blind spots across all weak proposals.</p>
+<p style="font-size:0.85em;margin-top:8px;">核心瓶頸：<b>proposal coverage（提案多樣性）</b>，而非 selector 精度。殘餘失敗全是 coverage 盲區。</p>
 </div>
 
 <div class="card">
-<h2>🏗️ Practical Applications</h2>
+<h2>🏗️ 落地應用建議</h2>
 
 <div class="app-box">
-<strong>Multi-Model Code Review</strong> (already implemented)<br>
-Our 4-model parallel review architecture with ≥2 consensus threshold directly aligns with this paper. Next step: expand model diversity (different architectures / training data) rather than tuning consensus parameters.
+<strong>① 多模型程式碼審查（已實作）</strong><br>
+4 模型同步審查、≥2 共識標記的架構完全對齊論文結論。下一步：擴充模型池多樣性（不同架構/訓練資料），而非調 consensus 參數。
 </div>
 
 <div class="app-box">
-<strong>Sub-Agent Task Strategy</strong><br>
-Route critical tasks through ≥3 heterogeneous weak models in parallel, take consensus. Avoids calling the strongest model for everything — potential 60-80% API cost reduction.
+<strong>② 子代理任務分配策略</strong><br>
+關鍵任務用 ≥3 個不同弱模型並行處理，取 consensus。不需每次都調用最強模型，可降 60-80% API 成本。
 </div>
 
 <div class="app-box">
-<strong>Automated Content QA Pipeline</strong><br>
-Generate → multi-model cross-scoring → automated verification (link validity, fact-alignment with official sources) → publish only passing content. Applicable to clinic price updates and health education content on this site.
+<strong>③ 自動化內容驗證 Pipeline</strong><br>
+生成內容 → 多模型交叉評分 → 自動化測試（連結有效性、事實對齊官方來源）→ 僅通過的內容上線。適用於診所價格更新、衛教內容 QA。
 </div>
 
 <div class="app-box">
-<strong>Coverage Blind-Spot Monitor</strong><br>
-Periodically analyze failure overlap across models. If joint failure rate exceeds 20%, coverage blind spots are too large — introduce heterogeneous models (different training data, architectures).
+<strong>④ 弱模型池覆蓋率監控</strong><br>
+定期分析各模型失敗案例重疊度。若多模型同時失敗率 > 20%，代表 coverage 盲區過大，需引入異質模型。
 </div>
 </div>
 
 <div class="warn">
-⚠️ Key constraint: external soundness signals (execution, type-checking, tests) are non-negotiable. Pure text tasks (writing, translation) are hard to auto-verify — coverage gains are limited without them.
+⚠️ 關鍵限制：外部驗證信號（execution、type check、test）是必須品。純文字任務（寫作、翻譯）難以自動化驗證，coverage 增益有限。
 </div>
 
 <div class="card">
-<h2>📖 Our Notes</h2>
-<p style="font-size:0.85em;">This paper directly validates our multi-model architecture. The key finding — <b>correct answers already exist in the weak-model proposal pool; the challenge is selecting them</b> — means our investment in diverse model pools and consensus mechanisms is the right bet. Future work: increase model heterogeneity rather than selector sophistication.</p>
+<h2>📖 我們的筆記</h2>
+<p style="font-size:0.85em;">這篇論文直接驗證我們的多模型審查架構。核心發現——正解已在弱模型 pool 中，瓶頸是 selection——代表我們在模型多樣性和共識機制上的投資方向正確。下一步：增加模型異質性，而非優化 selector。</p>
 </div>
 
 <p style="color:var(--muted);font-size:0.8em;margin-top:30px;">
-← <a href="/research/" style="color:var(--accent);">Back to Research Notes</a> · <a href="/" style="color:var(--accent);">DKY Learn</a>
+← <a href="/research/" style="color:var(--accent);">回論文筆記首頁</a> · <a href="/" style="color:var(--accent);">DKY 學習中心</a>
 </p>
 
 <script src="../sidebar.js"></script>

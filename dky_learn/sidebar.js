@@ -25,7 +25,7 @@
 
       <div class="section-title" style="margin-top:0.8rem">Python <span class="coming">即將推出</span></div>
 
-      <div class="section-title" style="margin-top:0.8rem">Research Papers</div>
+      <div class="section-title" style="margin-top:0.8rem">論文研究</div>
       <a href="/research/" class="nav-item-link">Agentic Boosting Weak Models</a>
     </div>
     <div class="sidebar-footer">
