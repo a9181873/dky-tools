@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic Systems as Boosting Weak Reasoning Models — DKY 論文筆記</title>
+<style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --orange: #d2991d; --red: #f85149;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin-left: 260px; padding: 40px; max-width: 900px;
+}
+h1 { font-size: 1.5em; color: #fff; margin-bottom: 4px; }
+h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.meta { color: var(--muted); font-size: 0.85em; margin-bottom: 20px; }
+.meta a { color: var(--accent); }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 20px; margin: 16px 0;
+}
+.tag {
+  display: inline-block; font-size: 0.75em; padding: 2px 8px;
+  border-radius: 10px; background: #1a2a3a; color: var(--accent); margin: 2px;
+}
+table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.85em; }
+td { font-size: 0.9em; }
+.one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
+.warn { background: #2a1a1a; border-left: 3px solid var(--red); padding: 10px 14px; font-size: 0.85em; border-radius: 0 6px 6px 0; margin: 10px 0; }
+.app-box { background: #1a2a1a; border-left: 3px solid var(--green); padding: 10px 14px; font-size: 0.85em; border-radius: 0 6px 6px 0; margin: 8px 0; }
+@media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>Agentic Systems as Boosting Weak Reasoning Models</h1>
+<div class="meta">
+  arXiv: <a href="https://arxiv.org/abs/2605.14163" target="_blank">2605.14163</a> · 2026-05-13 · MIT / Tel Aviv University<br>
+  Varun Sunkaraneni, Pierfrancesco Beneventano, Riccardo Neumarker, Tomaso Poggio, Tomer Galanti
+</div>
+
+<div class="one-liner">「弱模型的正確答案本來就在 pool 裡，問題是怎麼挑出來。」</div>
+
+<div class="card">
+<h2>📊 關鍵數據</h2>
+<table>
+  <tr><th>方案</th><th>SWE-bench Verified</th></tr>
+  <tr><td>GPT-5.4 nano 單獨</td><td style="color:var(--orange)">67.0%</td></tr>
+  <tr><td>同模型 ×8 + critic-comparator</td><td style="color:var(--green);font-weight:700">76.4%</td></tr>
+  <tr><td>Gemini 3 Pro / Claude Opus 4.5 單獨</td><td>~76%</td></tr>
+  <tr><td>Oracle best-of-8 上限</td><td style="color:var(--muted)">79.0%</td></tr>
+</table>
+<p style="font-size:0.85em;margin-top:8px;">弱模型 ×8 + 驗證器 ≈ 強模型單獨。差距 2.6% 來自 coverage 盲區（所有弱模型都不會解的題）。</p>
+</div>
+
+<div class="card">
+<h2>🧠 機制拆解</h2>
+<table>
+  <tr><th>元件</th><th>作用</th><th>限制</th></tr>
+  <tr><td>Proposal（生成）</td><td>重複採樣放大 coverage</td><td>無法自己產生 critic</td></tr>
+  <tr><td>Critic（批評）</td><td>外部驗證信號篩選</td><td>需 execution/test/proof 等 soundness signal</td></tr>
+  <tr><td>Comparator（比較）</td><td>排名挑選最佳 proposal</td><td>local error 會複合成 trajectory 誤差</td></tr>
+</table>
+<p style="font-size:0.85em;margin-top:8px;">核心 bottleneck：<b>coverage（提案多樣性）</b> 而非 selector 精度。殘餘失敗全是 coverage 盲區，換更強的 selector 也無法解決。</p>
+</div>
+
+<div class="card">
+<h2>🏗️ 落地應用建議</h2>
+
+<div class="app-box">
+<strong>① 多模型程式碼審查（已實作）</strong><br>
+4 模型同步審查、≥2 共識標記的方案，架構完全對齊論文結論。下一步：擴充模型池多樣性（不同架構/訓練資料），而非調 consensus 參數。
+</div>
+
+<div class="app-box">
+<strong>② 子代理任務分配策略</strong><br>
+關鍵任務用 ≥3 個不同弱模型並行處理，取 consensus。不需每次都調用最強模型，可降 60-80% API 成本。
+</div>
+
+<div class="app-box">
+<strong>③ 自動化內容驗證 pipeline</strong><br>
+生成內容 → 多模型交叉評分 → 自動化測試（連結有效性、事實對齊官方來源）→ 僅通過的內容上線。適合本網站的診所價格更新、衛教內容 QA。
+</div>
+
+<div class="app-box">
+<strong>④ 弱模型池覆蓋率監控</strong><br>
+定期分析各模型失敗案例的重疊度。若多模型同時失敗率 > 20%，代表 coverage 盲區過大，需引入異質模型（不同訓練資料、不同架構）。
+</div>
+</div>
+
+<div class="warn">
+⚠️ 關鍵限制：外部驗證信號（execution、type check、test）是必須品。純文字任務（如寫作、翻譯）難以自動化驗證，coverage 增益有限。
+</div>
+
+<p style="color:var(--muted);font-size:0.8em;margin-top:30px;">
+← <a href="/research/" style="color:var(--accent);">回論文筆記首頁</a> · <a href="/" style="color:var(--accent);">DKY 學習中心</a>
+</p>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>

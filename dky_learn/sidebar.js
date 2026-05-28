@@ -24,6 +24,9 @@
       <div class="section-title" style="margin-top:1.2rem">機器學習 <span class="coming">即將推出</span></div>
 
       <div class="section-title" style="margin-top:0.8rem">Python <span class="coming">即將推出</span></div>
+
+      <div class="section-title" style="margin-top:0.8rem">論文研究</div>
+      <a href="/research/" class="nav-item-link">Agentic Boosting Weak Models</a>
     </div>
     <div class="sidebar-footer">
       <a href="https://tools.dky.tw">工具箱</a>
@@ -65,6 +68,11 @@
   .nav-item.done::before { content: "✓ "; color: #3fb950; font-size: 0.7rem; }
   .nav-item.pending::before { content: "○ "; color: #d2991d; font-size: 0.7rem; }
   .nav-item.future::before { content: "· "; color: #484f58; }
+  .nav-item-link {
+    display: block; padding: 0.35rem 1rem 0.35rem 1.5rem; font-size: 0.84rem;
+    color: #58a6ff; border-left: 2px solid transparent; text-decoration: none;
+  }
+  .nav-item-link:hover { border-left-color: #58a6ff; background: rgba(88,166,255,0.05); }
   .coming { font-size: 0.65rem; color: #484f58; font-weight: 400; text-transform: none; }
   .sidebar-footer {
     padding: 0.8rem 1rem; border-top: 1px solid #30363d;

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>論文筆記 — DKY 學習中心</title>
+<style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --orange: #d2991d; --red: #f85149;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin-left: 260px; padding: 40px; max-width: 900px;
+}
+h1 { font-size: 1.5em; color: #fff; margin-bottom: 4px; }
+h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.meta { color: var(--muted); font-size: 0.85em; margin-bottom: 24px; }
+.paper-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 20px; margin: 12px 0; transition: border-color 0.2s;
+}
+.paper-card:hover { border-color: var(--accent); }
+.paper-card h3 { font-size: 1em; color: var(--accent); margin-bottom: 6px; }
+.paper-card h3 a { color: var(--accent); text-decoration: none; }
+.paper-card .authors { font-size: 0.8em; color: var(--muted); }
+.paper-card .oneliner { font-size: 0.9em; color: var(--green); margin-top: 6px; padding-left: 12px; border-left: 2px solid var(--green); }
+.tag {
+  display: inline-block; font-size: 0.7em; padding: 2px 8px;
+  border-radius: 10px; background: #1a2a3a; color: var(--accent); margin-right: 4px;
+}
+@media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>📄 論文筆記</h1>
+<div class="meta">研究論文摘要、關鍵數據、落地應用建議</div>
+
+<h2>🔬 多智能體 / 推理增強</h2>
+
+<div class="paper-card">
+  <h3><a href="2605.14163-agentic-boosting-weak-reasoning.html">Agentic Systems as Boosting Weak Reasoning Models</a></h3>
+  <div class="authors">Sunkaraneni, Beneventano, Neumarker, Poggio, Galanti · MIT/Tel Aviv · 2026-05-13</div>
+  <div class="oneliner">弱模型委員會 ×8 + 驗證器 ≈ 強模型單獨。瓶頸是 coverage 而非 selector。</div>
+  <div style="margin-top:6px;">
+    <span class="tag">multi-agent</span><span class="tag">reasoning</span><span class="tag">SWE-bench</span><span class="tag">boosting</span>
+  </div>
+</div>
+
+<p style="color:var(--muted);font-size:0.8em;margin-top:30px;">
+← <a href="/" style="color:var(--accent);">回 DKY 學習中心</a>
+</p>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>
