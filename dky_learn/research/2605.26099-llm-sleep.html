@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>語言模型需要睡覺嗎？離線循環增強線上推理 — DKY 論文筆記</title>
+<style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --orange: #d2991d; --red: #f85149;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin-left: 260px; padding: 40px; max-width: 900px;
+}
+h1 { font-size: 1.5em; color: #fff; margin-bottom: 4px; }
+h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+h3 { font-size: 1em; color: #ccc; margin: 16px 0 8px; }
+.meta { color: var(--muted); font-size: 0.85em; margin-bottom: 20px; }
+.meta a { color: var(--accent); }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 20px; margin: 16px 0;
+}
+.tag {
+  display: inline-block; font-size: 0.75em; padding: 2px 8px;
+  border-radius: 10px; background: #1a2a3a; color: var(--accent); margin: 2px;
+}
+table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.85em; }
+td { font-size: 0.9em; }
+.one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
+.app-box { background: #142a1a; border-left: 3px solid var(--green); padding: 10px 14px; font-size: 0.85em; border-radius: 0 6px 6px 0; margin: 8px 0; }
+@media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>語言模型需要睡覺嗎？離線循環增強線上推理</h1>
+<div class="meta">
+  arXiv: <a href="https://arxiv.org/abs/2605.26099" target="_blank">2605.26099</a> · 2026-05-25 · CMU / University of Maryland<br>
+  Sangyun Lee, Sean McLeish, Tom Goldstein, Giulia Fanti
+</div>
+
+<div class="one-liner">「記憶不是問題，算力才是。讓模型在清空 KV cache 前多跑幾圈，把上下文真正『消化』成有用的內部表徵。」</div>
+
+<div class="card">
+<h2>📊 關鍵數據</h2>
+<table>
+  <tr><th>實驗</th><th>架構</th><th>N=1 (無睡眠)</th><th>N=4~8 (有睡眠)</th><th>改善</th></tr>
+  <tr><td>Cellular Automaton (t=32)</td><td>4L GDN-Attention hybrid</td><td style="color:var(--red)">接近隨機</td><td style="color:var(--green);font-weight:700">顯著提升</td><td>N 越大越好</td></tr>
+  <tr><td>Depo 多跳圖檢索</td><td>4L GDN-Attention hybrid</td><td style="color:var(--orange)">基準線</td><td style="color:var(--green);font-weight:700">加速收斂</td><td>更難查詢改善更大</td></tr>
+  <tr><td>GSM-Infinite 數學推理</td><td>Jet-Nemotron 2B / Ouro 1.4B</td><td style="color:var(--orange)">基準線</td><td style="color:var(--green);font-weight:700">高難度題目顯著提升</td><td>算術步驟越多，N 效益越大</td></tr>
+</table>
+<p style="color:var(--muted);font-size:0.8em;margin-top:8px">N = 睡眠期間的離線循環次數。所有比較在相同 token 預算下進行。</p>
+</div>
+
+<div class="card">
+<h2>🔧 機制拆解</h2>
+
+<h3>1. 問題本質</h3>
+<p>SSM-Attention 混合模型（如 MambaFormer、Jet）的瓶頸<strong>不是記憶容量</strong>，而是<strong>壓縮上下文時的算力不足</strong>。當 KV cache 被清空後，模型無法對已移出注意力視窗的內容進行深度推理。</p>
+
+<h3>2. 睡眠機制（核心創新）</h3>
+<p>在上下文視窗滿時，模型進入「睡眠」：</p>
+<p>① 對累積的上下文執行 <strong>N 次離線循環前向傳播</strong><br>
+② 每次循環透過<strong>學習到的局部規則</strong>更新 SSM 區塊中的 fast weights<br>
+③ 睡眠結束後<strong>清空 KV cache</strong>，用更新後的 fast weights 繼續單次推理<br>
+④ 訓練時<strong>端到端反向傳播</strong>，梯度穿過整個睡眠過程</p>
+
+<h3>3. 與生物睡眠的類比</h3>
+<p>動物睡眠期間，海馬迴短期記憶被重新激活並<strong>鞏固至皮層突觸權重</strong>。同樣地，模型的「睡眠」將注意力緩存中的短期上下文轉化為持久的 fast weights。</p>
+
+<h3>4. 與循環網路的差異</h3>
+<p>傳統循環模型（如 Universal Transformer）在<strong>預測時</strong>循環。本方法將循環移到<strong>記憶鞏固階段</strong>，預測時仍是單次前向傳播——不增加推論延遲。</p>
+
+<h3>5. 訓練成本</h3>
+<p>跨上下文視窗的循環幾乎不增加訓練開銷；循環深度 N 與成本呈<strong>線性關係</strong>。在 1×H200 GPU 上，N=8 的吞吐量僅比 N=1 低約 30%。</p>
+</div>
+
+<div class="card">
+<h2>💡 落地應用建議</h2>
+
+<div class="app-box">
+<strong>Hermes Agent 睡眠固化</strong>：現有的每週自我優化（hermes-self-improvement skill）可借鑑此機制——將多輪對話的上下文「壓縮」進結構化記憶，而非僅做表面摘要。關鍵差異：Hermes 目前是事後摘要，論文建議的是<b>訓練階段的循環鞏固</b>。
+</div>
+
+<div class="app-box">
+<strong>長上下文 Agent 設計</strong>：對於需要長時間運行的自主 agent，可在 context 滿時觸發「微型睡眠」——用多輪反思循環將關鍵資訊壓縮進持久記憶，清空工作記憶後繼續執行。這比簡單的滑動視窗或摘要更有效。
+</div>
+
+<div class="app-box">
+<strong>RAG 系統改進</strong>：傳統 RAG 只做一次 embedding 就丟棄原文。若在索引階段加入多次循環處理（類似睡眠），可產出更高品質的壓縮表徵，提升後續檢索精度。
+</div>
+
+<div class="app-box">
+<strong>微調策略參考</strong>：論文使用 Jet-Nemotron 2B 和 Ouro 1.4B 進行微調實驗，證明睡眠機制可應用於預訓練模型的後訓練階段。對於需要部署小型模型但要求長上下文推理的場景（如邊緣裝置），這是可行的增強路徑。
+</div>
+</div>
+
+<div class="card">
+<h2>🏷️ 標籤</h2>
+<span class="tag">LLM 記憶</span>
+<span class="tag">SSM-Attention Hybrid</span>
+<span class="tag">睡眠固化</span>
+<span class="tag">Fast Weights</span>
+<span class="tag">離線循環</span>
+<span class="tag">長上下文推理</span>
+<span class="tag">CMU</span>
+</div>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>
