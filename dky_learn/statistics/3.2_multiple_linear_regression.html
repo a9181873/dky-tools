@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.2 多元線性迴歸 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>3.2 多元線性迴歸</h1>
+  <div class="meta">
+    <span>📖 ISLP §3.2</span>
+    <span>📄 pp. 81–90</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 45 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">多元迴歸</span>
+    <span class="tag">最小平方法</span>
+    <span class="tag">F 檢定</span>
+    <span class="tag">變數選擇</span>
+    <span class="tag">R²</span>
+    <span class="tag">預測區間</span>
+    <span class="tag">Advertising 資料集</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="3.1_simple_linear_regression.html">← 3.1 簡單線性迴歸</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="3.3_other_considerations.html">3.3 迴歸模型的其他考量 →</a>
+</div>
+
+<!-- ====== 內容開始 ====== -->
+
+<h2>從簡單迴歸到多元迴歸：為什麼需要多個預測變數？</h2>
+
+<p>
+在 §3.1 中，我們用「電視廣告預算」一個變數來預測銷售額，得到了不錯的結果。但現實世界遠比這複雜——銷售額可能同時受到電視、收音機、報紙等多個廣告管道的影響。如果我們分別對每個預測變數擬合一個簡單線性迴歸，會產生兩個嚴重問題：
+</p>
+
+<div class="callout">
+<strong>⚠️ 分別擬合的陷阱：</strong><br>
+1. <strong>無法做單一預測</strong>——三個模型給出三個不同的預測值，該信哪一個？<br>
+2. <strong>忽略變數間的相關性</strong>——如果各廣告預算之間彼此相關（例如：在收音機廣告花費高的市場，報紙廣告花費也偏高），則簡單迴歸係數將產生嚴重誤導。
+</div>
+
+<p>
+解決方案是<strong>多元線性迴歸模型（Multiple Linear Regression）</strong>——將所有預測變數放入同一個模型，每個變數擁有自己的斜率係數。
+</p>
+
+<div class="formula">
+\[
+Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_p X_p + \epsilon \tag{3.19}
+\]
+<div class="formula-label">多元線性迴歸模型（\(p\) 個預測變數）</div>
+</div>
+
+<p>
+其中 \(\beta_j\) 代表<strong>在其他預測變數保持不變的情況下</strong>，\(X_j\) 每增加一單位對 \(Y\) 的平均影響。以廣告資料為例：
+</p>
+
+<div class="formula">
+\[
+\text{sales} = \beta_0 + \beta_1 \times \text{TV} + \beta_2 \times \text{radio} + \beta_3 \times \text{newspaper} + \epsilon \tag{3.20}
+\]
+</div>
+
+<div class="ref-box">
+James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §3.2, pp. 81–90. 核心概念：多元線性迴歸將簡單線性迴歸推廣到多個預測變數的情境，每個係數 \(\beta_j\) 解釋為「其他變數固定時，\(X_j\) 對 \(Y\) 的平均邊際效果」。
+</div>
+
+<h2>3.2.1 估計迴歸係數：最小平方法的推廣</h2>
+
+<p>
+與簡單線性迴歸類似，我們使用<strong>最小平方法（Least Squares）</strong>來估計 \(\beta_0, \beta_1, \ldots, \beta_p\)——選擇能使殘差平方和（RSS）最小化的參數值：
+</p>
+
+<div class="formula">
+\[
+\text{RSS} = \sum_{i=1}^{n} (y_i - \hat{y}_i)^2 = \sum_{i=1}^{n} (y_i - \hat{\beta}_0 - \hat{\beta}_1 x_{i1} - \hat{\beta}_2 x_{i2} - \cdots - \hat{\beta}_p x_{ip})^2 \tag{3.22}
+\]
+</div>
+
+<p>
+不同於簡單線性迴歸有封閉解（closed-form），多元迴歸的係數估計需要用<strong>矩陣代數</strong>來表示，形式較為複雜，但任何統計軟體都能輕鬆計算。在幾何上，當 \(p=2\) 時，最小平方解對應到三維空間中的一個<strong>平面</strong>（而非簡單迴歸的直線），該平面最小化了所有觀測點到平面的垂直距離平方和。
+</p>
+
+<h3>廣告資料的實證結果</h3>
+
+<p>
+使用 TV、radio、newspaper 三個變數預測 sales，得到以下係數估計（表 3.4）：
+</p>
+
+<table class="comparison-table">
+  <tr><th>變數</th><th>係數</th><th>標準誤</th><th>t 統計量</th><th>p 值</th></tr>
+  <tr><td>Intercept</td><td>2.939</td><td>0.3119</td><td>9.42</td><td>&lt; 0.0001</td></tr>
+  <tr><td>TV</td><td>0.046</td><td>0.0014</td><td>32.81</td><td>&lt; 0.0001</td></tr>
+  <tr><td>radio</td><td>0.189</td><td>0.0086</td><td>21.89</td><td>&lt; 0.0001</td></tr>
+  <tr><td>newspaper</td><td>−0.001</td><td>0.0059</td><td>−0.18</td><td>0.8599</td></tr>
+</table>
+
+<div class="callout">
+<strong>🔍 關鍵發現：報紙廣告的悖論</strong><br>
+在簡單線性迴歸中，newspaper 的 p 值極小（顯著），但在多元迴歸中 p = 0.86（不顯著）。<strong>為什麼？</strong> 觀察相關矩陣（表 3.5）：radio 和 newspaper 的相關係數為 0.35——在收音機廣告投入高的市場，報紙廣告投入也傾向較高。由於 radio 確實影響銷售而 newspaper 不影響，在簡單迴歸中 newspaper「借用」了 radio 的解釋力，成為 <strong>替代變數（surrogate）</strong>。
+</div>
+
+<table class="comparison-table">
+  <tr><th></th><th>TV</th><th>radio</th><th>newspaper</th><th>sales</th></tr>
+  <tr><td>TV</td><td>1.0000</td><td>0.0548</td><td>0.0567</td><td>0.7822</td></tr>
+  <tr><td>radio</td><td></td><td>1.0000</td><td><strong>0.3541</strong></td><td>0.5762</td></tr>
+  <tr><td>newspaper</td><td></td><td></td><td>1.0000</td><td>0.2283</td></tr>
+  <tr><td>sales</td><td></td><td></td><td></td><td>1.0000</td></tr>
+</table>
+<div class="figure-caption">表 3.5：Advertising 資料集的相關係數矩陣。radio 與 newspaper 的相關性（0.35）是造成「報紙悖論」的根本原因。</div>
+
+<div class="scenario-box">
+<h4>🦈 鯊魚攻擊 vs. 冰淇淋銷量：經典的混淆變數案例</h4>
+<p>
+ISLP 課本用一個幽默的例子說明這個現象：如果你對某海灘社區進行迴歸分析，會發現<strong>冰淇淋銷量</strong>與<strong>鯊魚攻擊次數</strong>呈正相關。難道要禁止冰淇淋來防止鯊魚攻擊？當然不是！真正的原因是高溫同時導致更多人前往海灘（→ 更多冰淇淋銷量）以及更多人下水（→ 更多鯊魚攻擊）。當你把「溫度」加入多元迴歸後，冰淇淋銷量就不再是顯著預測變數了。這就是<strong>混淆變數（confounding variable）</strong>的經典示範。
+</p>
+</div>
+
+<h2>3.2.2 多元迴歸的四大核心問題</h2>
+
+<p>進行多元線性迴歸時，我們通常關心以下四個問題：</p>
+
+<ol style="padding-left:1.5rem;margin:1rem 0;">
+  <li style="margin:.4rem 0">至少有一個預測變數對反應變數有預測力嗎？</li>
+  <li style="margin:.4rem 0">所有預測變數都有幫助，還是只需要部分子集？</li>
+  <li style="margin:.4rem 0">模型對資料的擬合程度如何？</li>
+  <li style="margin:.4rem 0">給定一組預測變數值，該如何預測反應變數？預測有多準確？</li>
+</ol>
+
+<h3>問題一：反應變數與預測變數之間是否存在關係？</h3>
+
+<p>
+在簡單迴歸中，檢查 \(\beta_1 = 0\) 即可。在多元迴歸中，我們需要同時檢驗<strong>所有係數是否皆為零</strong>：
+</p>
+
+<div class="formula">
+\[
+H_0: \beta_1 = \beta_2 = \cdots = \beta_p = 0 \quad \text{vs.} \quad H_a: \text{至少有一個 } \beta_j \neq 0
+\]
+</div>
+
+<p>為此我們使用 <strong>F 統計量（F-statistic）</strong>：</p>
+
+<div class="formula">
+\[
+F = \frac{(\text{TSS} - \text{RSS}) / p}{\text{RSS} / (n - p - 1)} \tag{3.23}
+\]
+</div>
+
+<p>其中 TSS（Total Sum of Squares）= \(\sum (y_i - \bar{y})^2\)。如果線性模型假設成立且 \(H_0\) 為真，則 F 統計量的期望值接近 1；若 \(H_a\) 為真，F 會顯著大於 1。</p>
+
+<table class="comparison-table">
+  <tr><th>統計量</th><th>數值</th><th>說明</th></tr>
+  <tr><td>Residual standard error</td><td>1.69</td><td>殘差標準誤</td></tr>
+  <tr><td>R²</td><td>0.897</td><td>89.7% 的變異被模型解釋</td></tr>
+  <tr><td>F-statistic</td><td>570</td><td>遠大於 1，強烈拒絕 H₀</td></tr>
+</table>
+<div class="figure-caption">表 3.6：Advertising 多元迴歸模型的整體擬合統計量。F = 570，p 值趨近於 0。</div>
+
+<div class="callout">
+<strong>⚠️ 多重檢定的陷阱：為什麼需要 F 檢定而不只看個別 p 值？</strong><br>
+假設有 p = 100 個預測變數，且 \(H_0\) 為真（沒有任何變數與 Y 有關）。在顯著水準 α = 0.05 下，<strong>平均會有約 5 個變數的 p 值 &lt; 0.05，純屬隨機</strong>。如果只根據個別 p 值做判斷，極可能誤判存在關係。F 統計量<strong>自動校正了預測變數的數量</strong>，在 \(H_0\) 為真時，無論 p 多大，只有 5% 的機率給出 p &lt; 0.05。
+</div>
+
+<p>
+此外，F 檢定也可以檢驗<strong>特定子集的係數是否為零</strong>。假設我們想檢驗最後 q 個變數是否需要（即 \(H_0: \beta_{p-q+1} = \cdots = \beta_p = 0\)），可以擬合不包含這 q 個變數的簡化模型（其殘差平方和為 \(\text{RSS}_0\)），然後計算：
+</p>
+
+<div class="formula">
+\[
+F = \frac{(\text{RSS}_0 - \text{RSS}) / q}{\text{RSS} / (n - p - 1)} \tag{3.24}
+\]
+</div>
+
+<h3>問題二：哪些變數真正重要？——變數選擇</h3>
+
+<p>
+當 F 檢定顯示「至少有一個預測變數有用」後，下一步是找出<strong>哪些</strong>變數才是真正重要的。這就是<strong>變數選擇（Variable Selection）</strong>問題（將在第六章深入探討）。
+</p>
+
+<div class="callout">
+<strong>窮舉法的困境：</strong>對於 p 個預測變數，可能的模型組合有 \(2^p\) 種。如果 p = 30，需要考慮超過 <strong>10 億</strong> 個模型——完全不可行。
+</div>
+
+<p>三種經典的自動化變數選擇策略：</p>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>📈 向前選擇（Forward Selection）</h4>
+<ul>
+  <li>從<strong>虛無模型</strong>（僅有截距）開始</li>
+  <li>每次加入一個能<strong>最大程度降低 RSS</strong> 的變數</li>
+  <li>持續直到滿足停止條件</li>
+  <li>計算量較小，適合 p 較大時使用</li>
+</ul>
+</div>
+<div class="cons">
+<h4>📉 向後選擇（Backward Selection）</h4>
+<ul>
+  <li>從<strong>完整模型</strong>（所有變數）開始</li>
+  <li>每次移除 p 值<strong>最大</strong>（最不顯著）的變數</li>
+  <li>持續直到剩餘變數的 p 值都低於閾值</li>
+  <li>⚠️ 需要 n &gt; p 才能擬合完整模型</li>
+</ul>
+</div>
+</div>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>🔄 混合選擇（Mixed Selection）</h4>
+<ul>
+  <li>結合向前和向後選擇的優點</li>
+  <li>從空模型開始逐步加入變數</li>
+  <li>每次加入新變數後，檢查是否可以移除不再顯著的舊變數</li>
+  <li>實務中最常用的策略</li>
+</ul>
+</div>
+</div>
+
+<p>模型品質的評估指標包括：<strong>Mallow's \(C_p\)</strong>、<strong>AIC</strong>（Akaike Information Criterion）、<strong>BIC</strong>（Bayesian Information Criterion）、以及<strong>調整後 \(R^2\)</strong>（Adjusted \(R^2\)）。這些指標在擬合度和模型複雜度之間取得平衡。</p>
+
+<h3>問題三：模型擬合度——RSE 與 R²</h3>
+
+<p>在多元迴歸中，我們同樣使用 RSE 和 \(R^2\) 來評估模型擬合度，但計算方式需要調整：</p>
+
+<div class="formula">
+\[
+\text{RSE} = \sqrt{\frac{\text{RSS}}{n - p - 1}} \quad ; \quad R^2 = 1 - \frac{\text{RSS}}{\text{TSS}}
+\]
+<div class="formula-label">RSE 使用 \(n-p-1\) 作為自由度，以懲罰模型的複雜度</div>
+</div>
+
+<p>
+由於 \(R^2\) 在加入更多變數時<strong>永遠不會下降</strong>（即使加入的是雜訊變數），單純用 \(R^2\) 來比較不同大小的模型會傾向選擇最複雜的模型。這就是為什麼在變數選擇中，我們偏好使用調整後 \(R^2\)、AIC、BIC 等<strong>懲罰模型複雜度</strong>的指標。
+</p>
+
+<div class="scenario-box">
+<h4>📊 圖形診斷：當數字不夠用時</h4>
+<p>
+圖 3.5（課本 p.89）展示了 TV 和 radio 對 sales 的三維擬合圖。雖然 \(R^2 = 0.897\) 看似不錯，但殘差呈現明顯的<strong>非線性模式</strong>：當廣告預算均勻分配在 TV 和 radio 之間時，模型傾向<strong>低估</strong>銷售額；當預算集中在單一媒體時，模型傾向<strong>高估</strong>。這暗示著 TV 和 radio 之間存在<strong>交互作用（interaction）</strong>——同時使用兩個媒體的效果大於單獨使用之和。這個問題將在 §3.3.2 中透過加入交互項來解決。
+</p>
+</div>
+
+<h3>問題四：預測與不確定性</h3>
+
+<p>一旦擬合了多元迴歸模型，就可以用 (3.21) 來做預測：</p>
+
+<div class="formula">
+\[
+\hat{y} = \hat{\beta}_0 + \hat{\beta}_1 x_1 + \hat{\beta}_2 x_2 + \cdots + \hat{\beta}_p x_p \tag{3.21}
+\]
+</div>
+
+<p>但預測伴隨著<strong>三種不確定性來源</strong>：</p>
+
+<table class="comparison-table">
+  <tr><th>不確定性來源</th><th>類型</th><th>說明</th></tr>
+  <tr>
+    <td>1. 係數估計誤差</td>
+    <td>可縮減誤差</td>
+    <td>\(\hat{\beta}_j\) 只是 \(\beta_j\) 的估計值，最小平方平面 \(\hat{Y}\) 不等於真實母體迴歸平面 \(f(X)\)</td>
+  </tr>
+  <tr>
+    <td>2. 模型偏差</td>
+    <td>可縮減誤差</td>
+    <td>線性模型只是真實關係的近似，可能存在模型設定錯誤（model misspecification）</td>
+  </tr>
+  <tr>
+    <td>3. 隨機誤差 \(\epsilon\)</td>
+    <td>不可縮減誤差</td>
+    <td>即使完全知道真實的 \(f(X)\)，隨機擾動 \(\epsilon\) 仍使預測無法完美</td>
+  </tr>
+</table>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>📏 信賴區間（Confidence Interval）</h4>
+<ul>
+  <li>量化 <strong>\(f(X)\)</strong> 的估計不確定性</li>
+  <li>回答：「平均銷售額的真實值落在哪裡？」</li>
+  <li>例：TV=$100K, radio=$20K → 95% CI = [10,985, 11,528]</li>
+  <li>只反映可縮減誤差</li>
+</ul>
+</div>
+<div class="cons">
+<h4>🔮 預測區間（Prediction Interval）</h4>
+<ul>
+  <li>量化 <strong>\(Y\)</strong> 的個別預測不確定性</li>
+  <li>回答：「某個特定城市的銷售額會是多少？」</li>
+  <li>例：TV=$100K, radio=$20K → 95% PI = [7,930, 14,580]</li>
+  <li>同時反映可縮減 + 不可縮減誤差 → <strong>永遠比 CI 寬</strong></li>
+</ul>
+</div>
+</div>
+
+<h2>Python 實作：多元線性迴歸完整示範</h2>
+
+<pre><code class="language-python"># 3.2 多元線性迴歸 — 完整可執行示範
+# 資料擷取與模型擬合
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_squared_error
+from scipy import stats
+
+# ===== 1. 載入 Advertising 資料 =====
+import urllib.request, os
+
+csv_path = os.path.join(DATA_PATH, 'Advertising.csv')
+if not os.path.exists(csv_path):
+    os.makedirs(DATA_PATH, exist_ok=True)
+    url = 'https://www.statlearning.com/s/Advertising.csv'
+    urllib.request.urlretrieve(url, csv_path)
+
+ad = pd.read_csv(csv_path)
+print("資料維度:", ad.shape)
+print(ad.head())
+
+# ===== 2. 擬合多元線性迴歸 (TV + radio + newspaper) =====
+X = ad[['TV', 'radio', 'newspaper']].values
+y = ad['sales'].values
+
+model = LinearRegression()
+model.fit(X, y)
+
+print("\n===== 多元迴歸係數 =====")
+print(f"Intercept:  {model.intercept_:.4f}")
+print(f"TV:         {model.coef_[0]:.4f}")
+print(f"radio:      {model.coef_[1]:.4f}")
+print(f"newspaper:  {model.coef_[2]:.4f}")
+
+# ===== 3. 模型評估 =====
+y_pred = model.predict(X)
+n, p = X.shape
+
+rss = np.sum((y - y_pred) ** 2)
+tss = np.sum((y - y.mean()) ** 2)
+rse = np.sqrt(rss / (n - p - 1))
+r2 = 1 - rss / tss
+adj_r2 = 1 - (1 - r2) * (n - 1) / (n - p - 1)
+
+# F-statistic
+f_stat = ((tss - rss) / p) / (rss / (n - p - 1))
+f_pvalue = 1 - stats.f.cdf(f_stat, p, n - p - 1)
+
+print(f"\n===== 模型擬合統計 =====")
+print(f"RSS:          {rss:.4f}")
+print(f"RSE:          {rse:.4f}")
+print(f"R²:           {r2:.4f}")
+print(f"Adjusted R²:  {adj_r2:.4f}")
+print(f"F-statistic:  {f_stat:.2f}")
+print(f"F p-value:    {f_pvalue:.2e}")
+
+# ===== 4. 比較：只用 TV 的簡單迴歸 vs. 多元迴歸 =====
+model_tv = LinearRegression()
+model_tv.fit(ad[['TV']].values, y)
+y_pred_tv = model_tv.predict(ad[['TV']].values)
+rss_tv = np.sum((y - y_pred_tv) ** 2)
+r2_tv = r2_score(y, y_pred_tv)
+
+model_tv_radio = LinearRegression()
+model_tv_radio.fit(ad[['TV', 'radio']].values, y)
+y_pred_tr = model_tv_radio.predict(ad[['TV', 'radio']].values)
+rss_tr = np.sum((y - y_pred_tr) ** 2)
+r2_tr = r2_score(y, y_pred_tr)
+
+print(f"\n===== 模型比較 =====")
+print(f"{'模型':<25} {'RSS':>10} {'R²':>8}")
+print(f"{'TV only':<25} {rss_tv:>10.2f} {r2_tv:>8.4f}")
+print(f"{'TV + radio':<25} {rss_tr:>10.2f} {r2_tr:>8.4f}")
+print(f"{'TV + radio + newspaper':<25} {rss:>10.2f} {r2:>8.4f}")
+
+# ===== 5. 預測：信賴區間 vs. 預測區間 =====
+# 使用 statsmodels 來計算區間（sklearn 不直接支援）
+import statsmodels.api as sm
+X_sm = sm.add_constant(X)
+model_sm = sm.OLS(y, X_sm).fit()
+
+# 新資料點：TV=100, radio=20, newspaper=30
+X_new = np.array([[1, 100, 20, 30]])
+pred = model_sm.get_prediction(X_new)
+pred_summary = pred.summary_frame(alpha=0.05)
+
+print(f"\n===== 預測 (TV=100, radio=20, newspaper=30) =====")
+print(f"點估計:           {pred_summary['mean'][0]:.2f}")
+print(f"95% 信賴區間:     [{pred_summary['obs_ci_lower'][0]:.2f}, {pred_summary['obs_ci_upper'][0]:.2f}]")
+print(f"95% 預測區間:     [{pred_summary['mean_ci_lower'][0]:.2f}, {pred_summary['mean_ci_upper'][0]:.2f}]")
+# Note: statsmodels uses 'obs_ci' for prediction intervals and 'mean_ci' for confidence intervals
+
+# ===== 6. 視覺化：實際 vs. 預測 =====
+fig, axes = plt.subplots(1, 3, figsize=(15, 4.5))
+
+# 6a. 實際 vs 預測散點圖
+axes[0].scatter(y, y_pred, alpha=0.6, edgecolors='k', linewidth=0.5)
+axes[0].plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2, label='完美預測')
+axes[0].set_xlabel('實際銷售額')
+axes[0].set_ylabel('預測銷售額')
+axes[0].set_title(f'實際 vs. 預測 (R²={r2:.3f})')
+axes[0].legend()
+axes[0].grid(True, alpha=0.3)
+
+# 6b. 殘差圖
+residuals = y - y_pred
+axes[1].scatter(y_pred, residuals, alpha=0.6, edgecolors='k', linewidth=0.5)
+axes[1].axhline(y=0, color='r', linestyle='--', lw=2)
+axes[1].set_xlabel('預測銷售額')
+axes[1].set_ylabel('殘差')
+axes[1].set_title('殘差圖')
+axes[1].grid(True, alpha=0.3)
+
+# 6c. 係數比較圖
+coef_names = ['TV', 'radio', 'newspaper']
+coef_vals = model.coef_
+colors_bar = ['#58a6ff' if v > 0 else '#f85149' for v in coef_vals]
+axes[2].barh(coef_names, coef_vals, color=colors_bar, edgecolor='white')
+axes[2].axvline(x=0, color='white', lw=1)
+axes[2].set_xlabel('係數值')
+axes[2].set_title('迴歸係數比較')
+for i, v in enumerate(coef_vals):
+    axes[2].text(v + 0.002, i, f'{v:.4f}', va='center', fontsize=9)
+
+plt.tight_layout()
+plt.savefig(os.path.join(DATA_PATH, '3_2_multiple_regression.png'), dpi=120, bbox_inches='tight')
+plt.show()
+print(f"\n✅ 圖片已儲存至: {os.path.join(DATA_PATH, '3_2_multiple_regression.png')}")
+</code></pre>
+
+<div class="scenario-box">
+<h4>🏭 應用場景：工廠產能預測</h4>
+<p>
+一家製造業公司希望預測每日產量（units）。預測變數包括：生產線數量（lines）和工人數（workers）。使用多元線性迴歸可以得到：
+</p>
+<p style="text-align:center;font-family:monospace;font-size:1.1rem;margin:1rem 0">
+units ≈ 1.2 + 3.4 × lines + 0.22 × workers
+</p>
+<p>
+這表示：<strong>每增加一條生產線，在其他條件不變下，每日產量平均增加 3.4 單位</strong>。但這個模型假設 lines 和 workers 的效果是<strong>可加的（additive）</strong>——實際上，如果沒有工人，增加生產線也不會提高產量。這正是 §3.3.2 中將討論的交互作用問題。
+</p>
+</div>
+
+<div class="scenario-box">
+<h4>💳 金融場景：信用卡餘額預測</h4>
+<p>
+銀行想預測客戶的信用卡餘額（balance）。使用收入（income）、信用額度（limit）、信用卡數量（cards）作為預測變數進行多元迴歸。透過 F 檢定確認至少有一個變數與 balance 相關後，再使用變數選擇技術找出最重要的預測因子。特別是當預測變數之間存在相關性時（如 income 和 limit 通常正相關），多元迴歸能夠<strong>分離出每個變數的獨立貢獻</strong>，這在信用風險評估中至關重要。
+</p>
+</div>
+
+<div class="scenario-box">
+<h4>🏥 醫療場景：病患住院天數預測</h4>
+<p>
+醫院使用多元線性迴歸預測病患住院天數，預測變數包括年齡、共病症數量、入院時的生命徵象指標等。F 檢定用來確認整體模型是否有預測力，而變數選擇（如向後選擇）可以篩選出真正影響住院天數的關鍵因子，幫助醫院進行床位管理和資源配置。預測區間（而非信賴區間）更適合用於個別病患的預估，因為它包含了<strong>個體差異的不可縮減誤差</strong>。
+</p>
+</div>
+
+<h2>方法比較：簡單迴歸 vs. 多元迴歸</h2>
+
+<table class="comparison-table">
+  <tr><th>特性</th><th>簡單線性迴歸 (§3.1)</th><th>多元線性迴歸 (§3.2)</th></tr>
+  <tr><td>預測變數數量</td><td>1 個</td><td>p 個（p ≥ 2）</td></tr>
+  <tr><td>幾何解釋</td><td>二維平面上的直線</td><td>p+1 維空間中的超平面</td></tr>
+  <tr><td>係數解釋</td><td>X 對 Y 的邊際效果（無條件）</td><td>其他變數固定時，Xⱼ 對 Y 的邊際效果</td></tr>
+  <tr><td>整體顯著性檢定</td><td>t 檢定（β₁ = 0）</td><td>F 檢定（所有 βⱼ = 0）</td></tr>
+  <tr><td>混淆變數處理</td><td>無法處理</td><td>透過控制其他變數來降低混淆</td></tr>
+  <tr><td>模型選擇</td><td>不需選擇</td><td>需要變數選擇（2ᵖ 種可能）</td></tr>
+  <tr><td>自由度</td><td>n − 2</td><td>n − p − 1</td></tr>
+  <tr><td>R² 陷阱</td><td>不適用</td><td>加入更多變數 R² 永不下降</td></tr>
+</table>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ 多元線性迴歸的優點</h4>
+<ul>
+  <li><strong>控制混淆：</strong>能分離各預測變數的獨立效果</li>
+  <li><strong>更準確的預測：</strong>利用多個資訊來源</li>
+  <li><strong>解釋力強：</strong>係數有清晰的「其他條件不變」解讀</li>
+  <li><strong>計算高效：</strong>即使 p 很大，最小平方也有解析解</li>
+  <li><strong>推論架構完整：</strong>F 檢定、t 檢定、信賴區間、預測區間</li>
+</ul>
+</div>
+<div class="cons">
+<h4>⚠️ 多元線性迴歸的限制</h4>
+<ul>
+  <li><strong>線性假設：</strong>假設 Y 與 X 之間為線性關係</li>
+  <li><strong>可加性假設：</strong>假設各變數效果獨立（無交互作用）</li>
+  <li><strong>多重共線性：</strong>預測變數高度相關時係數估計不穩定</li>
+  <li><strong>高維度限制：</strong>當 p &gt; n 時無法使用最小平方法</li>
+  <li><strong>離群值敏感：</strong>最小平方法對極端值非常敏感</li>
+</ul>
+</div>
+</div>
+
+<div class="key-quote">
+  在簡單迴歸中，你看到的是影子；在多元迴歸中，你看到的是形體本身。
+  <span class="author">— 改寫自 ISLP §3.2 的核心精神：控制其他變數，才能看清每個預測變數的真實效果</span>
+</div>
+
+<div class="section-nav">
+  <a href="3.1_simple_linear_regression.html">← 3.1 簡單線性迴歸</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="3.3_other_considerations.html">3.3 迴歸模型的其他考量 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 3 章：Linear Regression · §3.2 多元線性迴歸</p>
+  <p>Generated: 2026-05-29 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
