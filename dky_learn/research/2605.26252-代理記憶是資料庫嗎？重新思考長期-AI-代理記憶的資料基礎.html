@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>代理記憶是資料庫嗎？重新思考長期 AI 代理記憶的資料基礎 — DKY 論文筆記</title>
+<style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --orange: #d2991d; --red: #f85149;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin-left: 260px; padding: 40px; max-width: 900px;
+}
+h1 { font-size: 1.5em; color: #fff; margin-bottom: 4px; }
+h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.meta { color: var(--muted); font-size: 0.85em; margin-bottom: 20px; }
+.meta a { color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; }
+.tag { display: inline-block; font-size: 0.75em; padding: 2px 8px; border-radius: 10px; background: #1a2a3a; color: var(--accent); margin: 2px; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.85em; }
+td { font-size: 0.9em; }
+.one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
+@media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>代理記憶是資料庫嗎？重新思考長期 AI 代理記憶的資料基礎</h1>
+<div class="meta">
+  arXiv: <a href="https://arxiv.org/abs/2605.26252" target="_blank">2605.26252</a> · 2026-05-30<br>
+  Abdelghny Orogat, Essam Mansour · Concordia University
+</div>
+
+<div class="one-liner">記憶不該只是靜態存儲，應被視為資料管理工作負載：需要學習、上下文減少與決策稽核。</div>
+
+<div class="card">
+
+<h2>一句話</h2><p>現有 AI 代理記憶系統僅將記憶視為靜態存儲；應將其重新定義為<b>資料管理工作負載</b>，整合學習、上下文縮減與決策稽核三大功能。</p>
+<h2>關鍵數據</h2><table><tr><th>項目</th><th>數據</th></tr><tr><td>來源</td><td>Concordia University（加拿大）</td></tr><tr><td>核心論點</td><td>記憶 ≠ 存儲，記憶 = 資料管理</td></tr><tr><td>三大支柱</td><td>學習、上下文減少、決策稽核</td></tr></table>
+<h2>機制拆解</h2><ul><li><b>學習層</b>：從代理互動中持續提取結構化知識，非一次性 embedding 寫入</li><li><b>上下文減少層</b>：動態選擇相關記憶注入 prompt，避免 token 浪費</li><li><b>稽核層</b>：記錄每條記憶的來源、使用次數、決策影響，支援回溯與信任評分</li></ul>
+<h2>落地應用</h2><ul><li>Hermes 現有 fact_store 已實現 trust score，但缺乏決策稽核回顧鏈</li><li>可為每條記憶加入 last_used 和 decision_impact 欄位</li><li>MEMORY 壓縮（9,800→5,600 字元）即上下文減少的實例</li></ul>
+</div>
+
+<div class="card">
+<h2>🏷️ 標籤</h2>
+    <span class="tag">記憶管理</span>
+    <span class="tag">資料庫</span>
+    <span class="tag">RAG</span>
+    <span class="tag">agent-memory</span>
+    <span class="tag">trust-score</span>
+</div>
+
+<p style="color:var(--muted);font-size:0.8em;margin-top:30px;">
+← <a href="index.html" style="color:var(--accent);">回論文筆記列表</a>
+</p>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>

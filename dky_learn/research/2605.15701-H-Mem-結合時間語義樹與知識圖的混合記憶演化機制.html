@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H-Mem：結合時間語義樹與知識圖的混合記憶演化機制 — DKY 論文筆記</title>
+<style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --orange: #d2991d; --red: #f85149;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin-left: 260px; padding: 40px; max-width: 900px;
+}
+h1 { font-size: 1.5em; color: #fff; margin-bottom: 4px; }
+h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.meta { color: var(--muted); font-size: 0.85em; margin-bottom: 20px; }
+.meta a { color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; }
+.tag { display: inline-block; font-size: 0.75em; padding: 2px 8px; border-radius: 10px; background: #1a2a3a; color: var(--accent); margin: 2px; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.85em; }
+td { font-size: 0.9em; }
+.one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
+@media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>H-Mem：結合時間語義樹與知識圖的混合記憶演化機制</h1>
+<div class="meta">
+  arXiv: <a href="https://arxiv.org/abs/2605.15701" target="_blank">2605.15701</a> · 2026-05-30<br>
+  Jiawei Yu, Yixiang Fang · 港中深 + Xilin Liu, Yuchi Ma · 華為雲
+</div>
+
+<div class="one-liner">短期記憶逐步演化為長期摘要，保留實體關係圖，在多個代理記憶 QA 基準達 SOTA。</div>
+
+<div class="card">
+
+<h2>一句話</h2><p>港中深與華為雲聯合提出 <b>H-Mem</b>，將時間語義樹與知識圖結合，使短期記憶<b>逐步演化</b>為結構化長期摘要，保留實體關係，達 SOTA。</p>
+<h2>關鍵數據</h2><table><tr><th>項目</th><th>數據</th></tr><tr><td>作者</td><td>港中深 + 華為雲</td></tr><tr><td>核心結構</td><td>時間語義樹 + 知識圖</td></tr><tr><td>記憶演化</td><td>短期→中期摘要→長期結構化知識</td></tr><tr><td>實驗結果</td><td>多個 agent memory QA 基準達 SOTA</td></tr></table>
+<h2>機制拆解</h2><ul><li><b>時間語義樹</b>：依時間軸組織對話，相似主題聚合為節點</li><li><b>知識圖層</b>：抽取實體及關係，建構圖結構</li><li><b>演化觸發</b>：節點超閾值或時間窗口關閉時壓縮為摘要</li></ul>
+<h2>落地應用</h2><ul><li>Hermes MEMORY + fact_store 雙軌接近 H-Mem 的兩層設計</li><li>可加入時間衰減機制讓舊記憶自動降權</li><li>MEMORY 壓縮流程可參考時間語義樹的聚合邏輯</li></ul>
+</div>
+
+<div class="card">
+<h2>🏷️ 標籤</h2>
+    <span class="tag">記憶演化</span>
+    <span class="tag">知識圖</span>
+    <span class="tag">時間樹</span>
+    <span class="tag">華為</span>
+    <span class="tag">H-Mem</span>
+</div>
+
+<p style="color:var(--muted);font-size:0.8em;margin-top:30px;">
+← <a href="index.html" style="color:var(--accent);">回論文筆記列表</a>
+</p>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>
