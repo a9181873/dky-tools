@@ -340,6 +340,28 @@ h2 {
 }
 .imgzip-drop-text { color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
 
+/* Video Compressor Presets */
+.preset-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.preset-btn:hover {
+  border-color: var(--accent);
+  background: rgba(0,242,255,0.08);
+}
+.preset-btn.preset-active {
+  border-color: var(--accent);
+  background: rgba(0,242,255,0.12);
+  color: var(--accent);
+  font-weight: 600;
+}
+
 /* Search / Command Palette */
 .search-backdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,0.6);

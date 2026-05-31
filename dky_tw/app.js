@@ -20,6 +20,7 @@ const ROUTES = {
   '/id': 'id',
   '/unit': 'unit',
   '/imgzip': 'imgzip',
+  '/videozip': 'videozip',
   '/pdf': 'pdf'
 };
 
@@ -41,6 +42,7 @@ const metaList = {
   id: { icon: '🪪', title: 'TW 身份證產生', desc: '開發測試專用：自動計算校驗碼產生符合內政部數學邏輯的身分證字號，或驗證現有字號是否合法。' },
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
+  videozip: { icon: '🎬', title: '影片壓縮', desc: '純瀏覽器端壓縮，GPU 硬體加速。提供 Discord/WhatsApp/郵件等常用輸出大小，自訂目標。100% 本機處理，無隱私風險！' },
   pdf: { icon: '📄', title: 'PDF 工具箱', desc: '檢視 + 文字選取 / 拆頁合併重排旋轉 / 轉成圖片 zip。完全在瀏覽器內處理，零上傳。' }
 };
 
@@ -523,6 +525,52 @@ const renderFields = {
     <div id="imgzip-list" style="display:flex;flex-direction:column;gap:16px;"></div>
     <div id="imgzip-actions" style="display:none;margin-top:16px;text-align:center;">
       <button class="btn" onclick="UI.handleImgZipDownloadAll()">⬇️ 批次下載全部</button>
+    </div>
+  `,
+  videozip: () => `
+    <div class="input-group" style="margin-bottom:10px;">
+      <div class="imgzip-dropzone" id="videozip-dropzone" style="padding:24px;">
+        <input id="videozip-file" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska,video/x-msvideo,video/*" onchange="UI.handleVideoZipFile()" />
+        <span id="videozip-drop-text" class="imgzip-drop-text">🎬 點擊選取或拖曳影片到這裡（MP4/WebM/MOV/MKV/AVI · 最大 2GB）</span>
+      </div>
+    </div>
+
+    <div id="videozip-info" style="display:none;padding:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border-light);border-radius:8px;margin-bottom:12px;">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.85rem;color:var(--muted);">
+        <span id="videozip-info-name"></span>
+        <span id="videozip-info-size"></span>
+        <span id="videozip-info-dims"></span>
+        <span id="videozip-info-dur"></span>
+      </div>
+    </div>
+
+    <div id="videozip-controls" style="display:none;">
+      <div class="input-group" style="margin-bottom:12px;">
+        <label>輸出大小</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="videozip-presets"></div>
+      </div>
+      <div class="input-group" id="videozip-custom-group" style="display:none;margin-bottom:12px;">
+        <label>自訂目標大小 (MB)</label>
+        <input id="videozip-custom-mb" type="number" min="1" max="2000" value="50" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:10px;font-size:0.9rem;outline:none;" />
+      </div>
+      <button class="btn" id="videozip-start-btn" onclick="UI.handleVideoZipCompress()" style="width:100%;font-size:1.1rem;">🚀 開始壓縮</button>
+    </div>
+
+    <div id="videozip-progress" style="display:none;margin-top:12px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:0.85rem;" id="videozip-status-text">處理中...</span>
+        <span style="font-size:0.85rem;color:var(--accent);" id="videozip-progress-pct">0%</span>
+      </div>
+      <div style="width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+        <div id="videozip-progress-bar" style="width:0%;height:100%;background:var(--accent);transition:width 0.3s;border-radius:3px;"></div>
+      </div>
+    </div>
+
+    <div id="videozip-result" style="display:none;margin-top:16px;padding:16px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:8px;text-align:center;">
+      <div style="font-size:1.1rem;margin-bottom:8px;">✅ 壓縮完成</div>
+      <div style="color:var(--muted);font-size:0.85rem;margin-bottom:4px;" id="videozip-result-stats"></div>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:12px;" id="videozip-result-mode"></div>
+      <a class="btn" id="videozip-dl-link" download style="display:inline-flex;">⬇️ 下載壓縮影片</a>
     </div>
   `,
   pdf: () => `
@@ -1336,6 +1384,122 @@ const UI = {
         }, i * 200);
       }
     });
+  },
+  // ─── 影片壓縮相關 ───
+  videoZipFile: null,
+  videoZipTargetMB: 10,
+  handleVideoZipFile() {
+    const input = document.getElementById('videozip-file');
+    const file = input.files?.[0];
+    if (!file) return;
+
+    // 大小限制 2GB
+    if (file.size > 2 * 1024 * 1024 * 1024) {
+      alert('檔案超過 2GB，請選擇較小的影片');
+      return;
+    }
+
+    this.videoZipFile = file;
+    this.videoZipTargetMB = 10;
+
+    // 顯示檔案資訊
+    const dropText = document.getElementById('videozip-drop-text');
+    if (dropText) dropText.textContent = `🎬 ${file.name}`;
+
+    document.getElementById('videozip-info-name').textContent = file.name;
+    document.getElementById('videozip-info-size').textContent = tools.videozip.formatSize(file.size);
+    document.getElementById('videozip-info').style.display = 'block';
+    document.getElementById('videozip-controls').style.display = 'block';
+    document.getElementById('videozip-result').style.display = 'none';
+    document.getElementById('videozip-progress').style.display = 'none';
+
+    // 取得影片尺寸與時長
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      document.getElementById('videozip-info-dims').textContent = `${video.videoWidth}×${video.videoHeight}`;
+      const mins = Math.floor(video.duration / 60);
+      const secs = Math.floor(video.duration % 60);
+      document.getElementById('videozip-info-dur').textContent = `${mins}:${String(secs).padStart(2,'0')}`;
+      URL.revokeObjectURL(video.src);
+    };
+    video.src = URL.createObjectURL(file);
+
+    // 繪製預設按鈕
+    const presetsEl = document.getElementById('videozip-presets');
+    presetsEl.innerHTML = tools.videozip.PRESETS.map((p, i) => {
+      const active = i === 1 ? 'preset-active' : ''; // 預設選 Discord 10MB
+      return `<button class="preset-btn ${active}" data-index="${i}" data-size="${p.size}" onclick="UI.selectVideoPreset(this)">
+        ${p.label}
+      </button>`;
+    }).join('');
+  },
+  selectVideoPreset(btn) {
+    // 更新選中狀態
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('preset-active'));
+    btn.classList.add('preset-active');
+
+    const targetSize = parseInt(btn.dataset.size);
+    const customGroup = document.getElementById('videozip-custom-group');
+
+    if (targetSize === -1) {
+      customGroup.style.display = 'block';
+      this.videoZipTargetMB = parseInt(document.getElementById('videozip-custom-mb').value) || 50;
+    } else {
+      customGroup.style.display = 'none';
+      this.videoZipTargetMB = targetSize;
+    }
+  },
+  async handleVideoZipCompress() {
+    if (!this.videoZipFile) return;
+
+    // 如果是自訂大小，讀取輸入值
+    if (document.getElementById('videozip-custom-group').style.display !== 'none') {
+      this.videoZipTargetMB = parseInt(document.getElementById('videozip-custom-mb').value) || 50;
+    }
+
+    // 隱藏控制項，顯示進度
+    document.getElementById('videozip-controls').style.display = 'none';
+    document.getElementById('videozip-progress').style.display = 'block';
+    document.getElementById('videozip-result').style.display = 'none';
+
+    const progressBar = document.getElementById('videozip-progress-bar');
+    const progressPct = document.getElementById('videozip-progress-pct');
+    const statusText = document.getElementById('videozip-status-text');
+
+    try {
+      statusText.textContent = '正在分析影片...';
+      const result = await tools.videozip.compress(
+        this.videoZipFile,
+        this.videoZipTargetMB,
+        (pct) => {
+          progressBar.style.width = pct + '%';
+          progressPct.textContent = pct + '%';
+          if (pct < 50) statusText.textContent = '正在壓縮...';
+          else if (pct < 90) statusText.textContent = '封裝中...';
+          else statusText.textContent = '完成！';
+        }
+      );
+
+      const saved = tools.videozip.savingsPercent(this.videoZipFile.size, result.blob.size);
+      document.getElementById('videozip-result-stats').textContent =
+        `${tools.videozip.formatSize(this.videoZipFile.size)} → ${tools.videozip.formatSize(result.blob.size)} · 節省 ${saved}%`;
+      document.getElementById('videozip-result-mode').textContent =
+        `模式：${result.mode || '自動'} · 格式：${result.ext}`;
+
+      const url = URL.createObjectURL(result.blob);
+      const dlLink = document.getElementById('videozip-dl-link');
+      dlLink.href = url;
+      const baseName = this.videoZipFile.name.replace(/\.[^.]+$/, '');
+      dlLink.download = `${baseName}_compressed${result.ext}`;
+
+      document.getElementById('videozip-progress').style.display = 'none';
+      document.getElementById('videozip-result').style.display = 'block';
+      document.getElementById('videozip-controls').style.display = 'block';
+    } catch (e) {
+      statusText.textContent = '壓縮失敗：' + (e.message || '未知錯誤');
+      progressBar.style.background = '#e57373';
+    }
   },
   toggleSearch() {
     let overlay = document.getElementById('search-overlay');
