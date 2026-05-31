@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3.3 迴歸模型的其他考量 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>3.3 迴歸模型的其他考量</h1>
+  <div class="meta">
+    <span>📖 ISLP §3.3</span>
+    <span>📄 pp. 91–108</span>
+    <span class="difficulty">★★★☆☆ 中級</span>
+    <span>⏱️ 約 50 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">虛擬變數</span>
+    <span class="tag">交互作用</span>
+    <span class="tag">多項式迴歸</span>
+    <span class="tag">殘差分析</span>
+    <span class="tag">共線性</span>
+    <span class="tag">VIF</span>
+    <span class="tag">異質變異</span>
+    <span class="tag">槓桿值</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="3_2_multiple_linear_regression.html">← §3.2 多元線性迴歸</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="3_4_marketing_plan.html">§3.4 行銷計畫 →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- 3.3.1 Qualitative Predictors -->
+<!-- ============================================================ -->
+<h2>3.3.1 質性預測變數 (Qualitative Predictors)</h2>
+
+<p>到目前為止，我們假設迴歸模型中的所有變數都是<strong>量化</strong>（quantitative）的。然而實務上，許多預測變數是<strong>質性</strong>（qualitative）的──例如性別、地區、房屋擁有與否等。</p>
+
+<div class="ref-box">
+ISLP §3.3.1, pp. 91–94 · James, Witten, Hastie, Tibshirani (2023). "An Introduction to Statistical Learning with Applications in Python."
+</div>
+
+<h3>只有兩個水準的質性變數（Two-Level Factor）</h3>
+
+<p>如果質性變數只有兩個水準（例如「是否擁有房屋」），我們可以建立一個<strong>虛擬變數</strong>（dummy variable），也稱為<strong>指標變數</strong>。在機器學習領域，這個過程被稱為 <strong>one-hot encoding</strong>。</p>
+
+<div class="formula">
+\[
+x_i = \begin{cases}
+1 & \text{若第 } i \text{ 人擁有房屋} \\
+0 & \text{若第 } i \text{ 人沒有房屋}
+\end{cases}
+\]
+<div class="formula-label">公式 3.26：虛擬變數編碼</div>
+</div>
+
+<p>將此變數納入迴歸模型：</p>
+
+<div class="formula">
+\[
+y_i = \beta_0 + \beta_1 x_i + \epsilon_i = \begin{cases}
+\beta_0 + \beta_1 + \epsilon_i & \text{擁有房屋} \\
+\beta_0 + \epsilon_i & \text{沒有房屋}
+\end{cases}
+\]
+<div class="formula-label">公式 3.27：含虛擬變數的線性模型</div>
+</div>
+
+<p>在這個模型中：</p>
+<ul>
+<li>\(\beta_0\)：非房屋擁有者的平均信用卡餘額</li>
+<li>\(\beta_1\)：房屋擁有者與非擁有者之間的平均差異</li>
+<li>\(\beta_0 + \beta_1\)：房屋擁有者的平均信用卡餘額</li>
+</ul>
+
+<div class="callout">
+<strong>💡 核心洞見：</strong>以 Credit 資料集為例，非擁有者的平均信用卡債務為 $509.80，擁有者為 $529.53。但虛擬變數的 p-value 為 0.669，表示沒有統計證據支持房屋擁有與否會影響信用卡餘額。
+</div>
+
+<pre><code class="language-python"># 示範：用虛擬變數進行簡單線性迴歸
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+# 模擬 Credit 資料集的部分資料
+np.random.seed(42)
+n = 100
+own = np.random.choice([0, 1], size=n, p=[0.6, 0.4])
+balance = 509.80 + 19.73 * own + np.random.normal(0, 150, n)
+
+# 擬合模型
+X = own.reshape(-1, 1)
+model = LinearRegression().fit(X, balance)
+
+print(f"截距 (β₀): {model.intercept_:.2f}")
+print(f"係數 (β₁): {model.coef_[0]:.2f}")
+print(f"非擁有者平均: {model.intercept_:.2f}")
+print(f"擁有者平均: {model.intercept_ + model.coef_[0]:.2f}")
+
+# 視覺化
+fig, ax = plt.subplots(figsize=(8, 4))
+colors = ['#58a6ff' if o == 0 else '#3fb950' for o in own]
+ax.scatter(own + np.random.normal(0, 0.03, n), balance,
+           c=colors, alpha=0.6, edgecolors='white', linewidth=0.5)
+ax.plot([-0.3, 1.3], [model.predict([[-0.3]])[0], model.predict([[1.3]])[0]],
+        'r-', linewidth=2, label='迴歸直線')
+ax.set_xticks([0, 1])
+ax.set_xticklabels(['無房屋', '有房屋'])
+ax.set_xlabel('房屋擁有狀態')
+ax.set_ylabel('信用卡餘額 ($)')
+ax.set_title('虛擬變數迴歸：房屋擁有 vs. 信用卡餘額')
+ax.legend()
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<h3>多於兩個水準的質性變數</h3>
+
+<p>當質性變數超過兩個水準時（例如地區：東部、南部、西部），一個虛擬變數不足以編碼所有類別。我們需要建立 <strong>\(k-1\) 個虛擬變數</strong>（\(k\) 為水準數）：</p>
+
+<div class="formula">
+\[
+x_{i1} = \begin{cases}1 & \text{南方} \\ 0 & \text{非南方}\end{cases},
+\quad
+x_{i2} = \begin{cases}1 & \text{西方} \\ 0 & \text{非西方}\end{cases}
+\]
+<div class="formula-label">公式 3.28–3.29：多水準虛擬變數</div>
+</div>
+
+<div class="formula">
+\[
+y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \epsilon_i
+= \begin{cases}
+\beta_0 + \beta_1 + \epsilon_i & \text{南方} \\
+\beta_0 + \beta_2 + \epsilon_i & \text{西方} \\
+\beta_0 + \epsilon_i & \text{東部（基準）}
+\end{cases}
+\]
+<div class="formula-label">公式 3.30：含兩個虛擬變數的模型</div>
+</div>
+
+<p>沒有虛擬變數的那個水準稱為<strong>基準類別</strong>（baseline）。在 Credit 資料集中，以東部為基準：</p>
+
+<pre><code class="language-python"># 示範：多水準質性變數
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+np.random.seed(42)
+n = 120
+region = np.random.choice(['East', 'South', 'West'], size=n, p=[0.4, 0.35, 0.25])
+# 建立虛擬變數
+df = pd.DataFrame({'region': region})
+dummies = pd.get_dummies(df['region'], drop_first=True)  # East 為基準
+dummies.columns = ['South', 'West']
+
+# 模擬 balance
+balance = 531.0 - 12.5 * dummies['South'] - 18.69 * dummies['West'] \
+          + np.random.normal(0, 100, n)
+
+X = dummies.values
+model = LinearRegression().fit(X, balance)
+
+print("=== 以 East 為基準 ===")
+print(f"截距 (β₀): {model.intercept_:.2f}  (東部平均)")
+print(f"係數 (β₁ - South): {model.coef_[0]:.2f}  (南方 vs 東部差異)")
+print(f"係數 (β₂ - West):  {model.coef_[1]:.2f}  (西方 vs 東部差異)")
+
+# F-test 概念 (使用 statsmodels 的 ANOVA)
+print("\n※ 課本使用 F-test 測試 H₀: β₁ = β₂ = 0")
+print("※ 結果 p-value = 0.96 → 無法拒絕 H₀，地區與 balance 無顯著關聯")
+
+# 視覺化
+fig, ax = plt.subplots(figsize=(8, 5))
+colors = {'East': '#58a6ff', 'South': '#3fb950', 'West': '#d2991d'}
+for r in ['East', 'South', 'West']:
+    mask = region == r
+    jitter = np.random.normal(0, 0.05, mask.sum())
+    ax.scatter(np.where(r == 'East', 0, np.where(r == 'South', 1, 2))[np.arange(n)[mask]] + jitter,
+               balance[mask], c=colors[r], alpha=0.6, label=r, edgecolors='white', linewidth=0.5)
+ax.set_xticks([0, 1, 2])
+ax.set_xticklabels(['East (基準)', 'South', 'West'])
+ax.set_ylabel('信用卡餘額 ($)')
+ax.set_title('多水準質性變數：地區 vs. 信用卡餘額')
+ax.legend()
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<div class="callout">
+<strong>🔍 編碼方式的影響：</strong>編碼方式的選擇（0/1、-1/1 等）不會改變最終預測值，只會改變係數的<strong>解釋方式</strong>。但 p-value <em>會</em>因編碼方式而異！在這種情況下，應使用 <strong>F-test</strong>（\(H_0: \beta_1 = \beta_2 = 0\)）──它不受編碼方式影響。
+</div>
+
+<h3>混合質性與量化變數</h3>
+
+<div class="scenario-box">
+<h4>🏦 應用場景：信用卡風險建模</h4>
+<p>銀行在建立信用風險模型時，同時需要量化變數（收入、信用額度）和質性變數（學生身分、地區）。虛擬變數方法可以無縫地將兩類變數納入同一線性模型：</p>
+<p><code>balance ~ income + student_dummy + region_dummies</code></p>
+<p>這使得模型能同時捕捉收入的連續效果和身分的離散效果。</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 3.3.2 Extensions of the Linear Model -->
+<!-- ============================================================ -->
+<h2>3.3.2 線性模型的延伸</h2>
+
+<div class="ref-box">
+ISLP §3.3.2, pp. 94–99 · James, Witten, Hastie, Tibshirani (2023).
+</div>
+
+<p>標準線性模型有兩個高度限制性的假設：</p>
+<ol>
+<li><strong>可加性假設</strong>（additivity）：預測變數 \(X_j\) 對 \(Y\) 的影響不依賴其他預測變數的值</li>
+<li><strong>線性假設</strong>（linearity）：\(X_j\) 每變化一單位，\(Y\) 的變化是常數</li>
+</ol>
+
+<h3>移除可加性假設：交互作用 (Interaction)</h3>
+
+<p>在廣告資料中，電視和廣播廣告可能存在<strong>協同效應</strong>（synergy effect）──投放在廣播上的錢可能增加電視廣告的效果。統計上稱為<strong>交互作用效應</strong>。</p>
+
+<div class="formula">
+\[
+Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_1 X_2 + \epsilon
+\]
+<div class="formula-label">公式 3.31：含交互作用項的模型</div>
+</div>
+
+<p>重寫後可以看出交互作用如何放鬆可加性假設：</p>
+
+<div class="formula">
+\[
+Y = \beta_0 + (\beta_1 + \beta_3 X_2) X_1 + \beta_2 X_2 + \epsilon
+\]
+<div class="formula-label">公式 3.32：交互作用的另一種表示</div>
+</div>
+
+<p>現在 \(X_1\) 對 \(Y\) 的影響（\(\tilde{\beta}_1 = \beta_1 + \beta_3 X_2\)）不再是常數，而是 \(X_2\) 的函數！</p>
+
+<div class="callout">
+<strong>📊 廣告資料實證：</strong>加入 TV × radio 交互作用後，\(R^2\) 從 89.7% 躍升至 <strong>96.8%</strong>。交互作用項解釋了殘差中 (96.8−89.7)/(100−89.7) = <strong>69%</strong> 的變異！這清楚顯示真正的關係並非加法性。
+</div>
+
+<pre><code class="language-python"># 示範：交互作用模型
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+
+# 下載 Advertising 資料
+try:
+    adv = pd.read_csv(DATA_PATH + 'Advertising.csv', index_col=0)
+except:
+    adv_url = "https://www.statlearning.com/s/Advertising.csv"
+    adv = pd.read_csv(adv_url, index_col=0)
+
+# 建立交互作用項
+adv['TV_radio'] = adv['TV'] * adv['radio']
+
+# 模型 1：無交互作用
+X1 = adv[['TV', 'radio']].values
+m1 = LinearRegression().fit(X1, adv['sales'])
+r2_no_int = m1.score(X1, adv['sales'])
+
+# 模型 2：有交互作用
+X2 = adv[['TV', 'radio', 'TV_radio']].values
+m2 = LinearRegression().fit(X2, adv['sales'])
+r2_with_int = m2.score(X2, adv['sales'])
+
+print(f"無交互作用 R²: {r2_no_int:.4f}")
+print(f"有交互作用 R²: {r2_with_int:.4f}")
+print(f"R² 提升: {r2_with_int - r2_no_int:.4f}")
+print(f"殘差解釋比例: {(r2_with_int - r2_no_int) / (1 - r2_no_int) * 100:.1f}%")
+print(f"\n模型係數:")
+print(f"  TV:         {m2.coef_[0]:.4f}")
+print(f"  radio:      {m2.coef_[1]:.4f}")
+print(f"  TV×radio:   {m2.coef_[2]:.4f}")
+
+# 視覺化：交互作用效果
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# 左：無交互作用（平行線）
+ax = axes[0]
+radio_levels = [10, 30, 50]
+colors = ['#58a6ff', '#3fb950', '#d2991d']
+tv_range = np.linspace(0, 300, 100)
+for r, c in zip(radio_levels, colors):
+    sales_pred = m1.intercept_ + m1.coef_[0] * tv_range + m1.coef_[1] * r
+    ax.plot(tv_range, sales_pred, color=c, label=f'radio={r}')
+ax.set_xlabel('TV 廣告支出')
+ax.set_ylabel('預測銷售量')
+ax.set_title('無交互作用（平行線）')
+ax.legend()
+
+# 右：有交互作用（非平行線）
+ax = axes[1]
+for r, c in zip(radio_levels, colors):
+    sales_pred = m2.intercept_ + m2.coef_[0] * tv_range \
+                 + m2.coef_[1] * r + m2.coef_[2] * tv_range * r
+    ax.plot(tv_range, sales_pred, color=c, label=f'radio={r}')
+ax.set_xlabel('TV 廣告支出')
+ax.set_ylabel('預測銷售量')
+ax.set_title('有交互作用（非平行線）')
+ax.legend()
+
+plt.suptitle('交互作用如何放鬆可加性假設', fontsize=14)
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<h3>層級原則 (Hierarchical Principle)</h3>
+
+<div class="callout">
+<strong>📐 層級原則：</strong>如果模型中包含交互作用項 \(X_1 \times X_2\)，則<strong>必須同時包含</strong>主效應 \(X_1\) 和 \(X_2\)，即使它們的 p-value 不顯著。理由：\(X_1 \times X_2\) 通常與 \(X_1\)、\(X_2\) 高度相關，省略主效應會改變交互作用的意義。
+</div>
+
+<h3>質性 × 量化交互作用</h3>
+
+<p>交互作用同樣適用於質性變數，且解釋特別優雅。以 Credit 資料集為例，預測 balance 使用 income（量化）和 student（質性）：</p>
+
+<div class="formula">
+\[
+\text{balance}_i \approx 
+\begin{cases}
+(\beta_0 + \beta_2) + (\beta_1 + \beta_3) \times \text{income}_i & \text{學生} \\
+\beta_0 + \beta_1 \times \text{income}_i & \text{非學生}
+\end{cases}
+\]
+<div class="formula-label">公式 3.35：含質性×量化交互作用</div>
+</div>
+
+<p>沒有交互作用時，兩條線的<strong>斜率相同</strong>（平行線）──這假設收入對信用卡餘額的影響在學生和非學生之間是一致的，可能不切實際。加入交互作用後，兩條線可以有<strong>不同的截距和不同的斜率</strong>。</p>
+
+<pre><code class="language-python"># 示範：質性 × 量化交互作用
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+# 模擬 Credit 資料
+np.random.seed(42)
+n = 200
+income = np.random.uniform(10, 150, n)
+student = np.random.choice([0, 1], size=n, p=[0.7, 0.3])
+
+# 學生斜率較低，非學生斜率較高（反映課本發現）
+balance = (200 + 5 * income + 100 * student
+           - 3 * income * student  # 負交互作用：學生斜率較低
+           + np.random.normal(0, 80, n))
+
+# 無交互作用
+X_no_int = np.column_stack([income, student])
+m_no_int = LinearRegression().fit(X_no_int, balance)
+
+# 有交互作用
+interaction = income * student
+X_int = np.column_stack([income, student, interaction])
+m_int = LinearRegression().fit(X_int, balance)
+
+print("=== 無交互作用 (平行線) ===")
+print(f"截距: {m_no_int.intercept_:.1f}, income: {m_no_int.coef_[0]:.2f}, student: {m_no_int.coef_[1]:.1f}")
+
+print("\n=== 有交互作用 (不同斜率) ===")
+print(f"截距: {m_int.intercept_:.1f}, income: {m_int.coef_[0]:.2f}")
+print(f"student: {m_int.coef_[1]:.1f}, income×student: {m_int.coef_[2]:.2f}")
+print(f"非學生斜率: {m_int.coef_[0]:.2f}")
+print(f"學生斜率: {m_int.coef_[0] + m_int.coef_[2]:.2f}")
+
+# 視覺化
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+income_line = np.linspace(10, 150, 100)
+
+for ax, title, model in zip(axes,
+    ['無交互作用（平行線）', '有交互作用（不同斜率）'],
+    [m_no_int, m_int]):
+    
+    # 非學生
+    ax.scatter(income[student==0], balance[student==0],
+               c='#58a6ff', alpha=0.4, label='非學生', s=20)
+    # 學生
+    ax.scatter(income[student==1], balance[student==1],
+               c='#3fb950', alpha=0.4, label='學生', s=20)
+    
+    if model is m_no_int:
+        pred_ns = model.intercept_ + model.coef_[0] * income_line
+        pred_s = model.intercept_ + model.coef_[0] * income_line + model.coef_[1]
+    else:
+        pred_ns = model.intercept_ + model.coef_[0] * income_line
+        pred_s = (model.intercept_ + model.coef_[1]
+                  + (model.coef_[0] + model.coef_[2]) * income_line)
+    
+    ax.plot(income_line, pred_ns, '#58a6ff', linewidth=2, label='非學生迴歸線')
+    ax.plot(income_line, pred_s, '#3fb950', linewidth=2, label='學生迴歸線')
+    ax.set_xlabel('收入 ($K)')
+    ax.set_ylabel('信用卡餘額 ($)')
+    ax.set_title(title)
+    ax.legend(fontsize=8)
+
+plt.suptitle('質性×量化交互作用', fontsize=14)
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<div class="scenario-box">
+<h4>📱 應用場景：App 使用者行為分析</h4>
+<p>分析付費轉換率時，年齡（量化）和平台（iOS/Android，質性）可能存在交互作用。年輕 iOS 用戶可能比年輕 Android 用戶更容易轉換，而這個差距在高齡用戶間可能縮小。僅用可加性模型（平行線）會<strong>嚴重低估</strong>這種異質效應。</p>
+</div>
+
+<h3>非線性關係：多項式迴歸 (Polynomial Regression)</h3>
+
+<p>有時真實關係並非直線。以 Auto 資料集中 mpg（油耗）和 horsepower（馬力）的關係為例：</p>
+
+<div class="formula">
+\[
+\text{mpg} = \beta_0 + \beta_1 \times \text{horsepower} + \beta_2 \times \text{horsepower}^2 + \epsilon
+\]
+<div class="formula-label">公式 3.36：二次多項式迴歸</div>
+</div>
+
+<p><strong>關鍵洞見：</strong>這仍然是一個<strong>線性模型</strong>！我們只是將 \(X_1 = \text{horsepower}\) 和 \(X_2 = \text{horsepower}^2\) 視為兩個獨立的預測變數。使用標準線性迴歸軟體即可擬合非線性關係。</p>
+
+<div class="callout">
+<strong>📈 Auto 資料結果：</strong>線性模型 \(R^2 = 0.606\)，二次多項式模型 \(R^2 = 0.688\)。二次項的 p-value &lt; 0.0001，高度顯著。但五階多項式反而過度擬合（過度彎曲），顯示<strong>更高的多項式階數不一定是更好的選擇</strong>。
+</div>
+
+<pre><code class="language-python"># 示範：多項式迴歸
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+
+# 取得 Auto 資料
+try:
+    from ISLP import load_data
+    Auto = load_data('Auto')
+except:
+    Auto = pd.read_csv('https://raw.githubusercontent.com/emredjan/ISL-python/master/datasets/Auto.csv')
+    Auto = Auto.dropna()
+
+mpg = Auto['mpg'].values
+hp = Auto['horsepower'].values.reshape(-1, 1)
+
+# 擬合不同階數的多項式
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+degrees = [1, 2, 5]
+colors_plot = ['#d2991d', '#58a6ff', '#3fb950']
+titles = ['線性 (degree=1)', '二次多項式 (degree=2)', '五次多項式 (degree=5)']
+
+hp_range = np.linspace(hp.min(), hp.max(), 200).reshape(-1, 1)
+
+for ax, d, c, title in zip(axes, degrees, colors_plot, titles):
+    # 擬合
+    model = make_pipeline(PolynomialFeatures(d), LinearRegression())
+    model.fit(hp, mpg)
+    pred = model.predict(hp_range)
+    r2 = model.score(hp, mpg)
+
+    ax.scatter(hp, mpg, alpha=0.4, s=15, c='#8b949e')
+    ax.plot(hp_range, pred, color=c, linewidth=2.5, label=f'R²={r2:.3f}')
+    ax.set_xlabel('馬力 (horsepower)')
+    ax.set_ylabel('每加侖英里數 (mpg)')
+    ax.set_title(title)
+    ax.legend()
+
+plt.suptitle('多項式迴歸：馬力 vs. 油耗', fontsize=14)
+plt.tight_layout()
+plt.show()
+
+# 輸出係數
+poly2 = PolynomialFeatures(2)
+X_poly = poly2.fit_transform(hp)
+m2 = LinearRegression().fit(X_poly, mpg)
+print(f"二次多項式模型:")
+print(f"  截距: {m2.intercept_:.4f}")
+print(f"  horsepower:  {m2.coef_[1]:.4f}")
+print(f"  horsepower²: {m2.coef_[2]:.6f}")
+print(f"  R²: {m2.score(X_poly, mpg):.4f}")
+</code></pre>
+
+<!-- ============================================================ -->
+<!-- 3.3.3 Potential Problems -->
+<!-- ============================================================ -->
+<h2>3.3.3 潛在問題 (Potential Problems)</h2>
+
+<div class="ref-box">
+ISLP §3.3.3, pp. 100–108 · James, Witten, Hastie, Tibshirani (2023).
+</div>
+
+<p>當我們對資料擬合線性迴歸模型時，可能出現以下六個常見問題。識別並解決這些問題，既是科學也是藝術。</p>
+
+<div class="callout">
+<strong>⚠️ 六大潛在問題：</strong>
+<ol>
+<li>反應變數與預測變數的關係為非線性 (Non-linearity)</li>
+<li>誤差項之間存在相關性 (Correlation of Error Terms)</li>
+<li>誤差項的變異數非常數 (Non-constant Variance / Heteroscedasticity)</li>
+<li>離群值 (Outliers)</li>
+<li>高槓桿點 (High Leverage Points)</li>
+<li>共線性 (Collinearity)</li>
+</ol>
+</div>
+
+<!-- Problem 1 -->
+<h3>問題一：資料的非線性</h3>
+
+<p><strong>殘差圖</strong>（residual plot）是診斷非線性的有力工具。將殘差 \(e_i = y_i - \hat{y}_i\) 對擬合值 \(\hat{y}_i\) 繪圖：</p>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ 好的殘差圖</h4>
+<ul>
+<li>殘差隨機散布，無明顯模式</li>
+<li>紅線（平滑擬合）接近水平</li>
+<li>表示線性假設合理</li>
+</ul>
+</div>
+<div class="cons">
+<h4>❌ 壞的殘差圖</h4>
+<ul>
+<li>殘差呈現 U 型或曲線模式</li>
+<li>紅線有明顯趨勢</li>
+<li>強烈指示非線性關係</li>
+</ul>
+</div>
+</div>
+
+<p><strong>解決方案：</strong>使用非線性轉換（\(\log X, \sqrt{X}, X^2\)）或多項式迴歸。</p>
+
+<pre><code class="language-python"># 示範：殘差圖診斷非線性
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+
+# 生成非線性資料
+np.random.seed(42)
+X = np.random.uniform(0, 10, 100)
+y = 2 + 0.5 * X - 0.8 * X**2 + 3 * np.sin(X) + np.random.normal(0, 1.5, 100)
+
+# 線性模型
+X_reshaped = X.reshape(-1, 1)
+m_lin = LinearRegression().fit(X_reshaped, y)
+y_pred_lin = m_lin.predict(X_reshaped)
+residuals_lin = y - y_pred_lin
+
+# 多項式模型 (degree=5)
+poly = PolynomialFeatures(5)
+X_poly = poly.fit_transform(X_reshaped)
+m_poly = LinearRegression().fit(X_poly, y)
+y_pred_poly = m_poly.predict(X_poly)
+residuals_poly = y - y_pred_poly
+
+# 繪圖
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+# 左上：資料 + 線性擬合
+ax = axes[0, 0]
+ax.scatter(X, y, alpha=0.5, s=20, c='#8b949e')
+ax.plot(np.sort(X), m_lin.predict(np.sort(X).reshape(-1, 1)),
+        'r-', linewidth=2, label=f'線性 R²={m_lin.score(X_reshaped, y):.3f}')
+ax.set_xlabel('X'); ax.set_ylabel('Y')
+ax.set_title('線性模型擬合（欠擬合）')
+ax.legend()
+
+# 右上：殘差圖（線性）
+ax = axes[0, 1]
+ax.scatter(y_pred_lin, residuals_lin, alpha=0.5, s=20, c='#d2991d')
+ax.axhline(y=0, color='r', linestyle='--', alpha=0.5)
+# 平滑線
+order = np.argsort(y_pred_lin)
+from numpy.polynomial.polynomial import Polynomial
+smooth = Polynomial.fit(y_pred_lin[order], residuals_lin[order], deg=3)
+ax.plot(y_pred_lin[order], smooth(y_pred_lin[order]), 'r-', linewidth=2)
+ax.set_xlabel('擬合值'); ax.set_ylabel('殘差')
+ax.set_title('殘差圖：明顯 U 型 → 非線性！')
+
+# 左下：資料 + 多項式擬合
+ax = axes[1, 0]
+ax.scatter(X, y, alpha=0.5, s=20, c='#8b949e')
+ax.plot(np.sort(X), m_poly.predict(poly.transform(np.sort(X).reshape(-1, 1))),
+        '#3fb950', linewidth=2, label=f'多項式 R²={m_poly.score(X_poly, y):.3f}')
+ax.set_xlabel('X'); ax.set_ylabel('Y')
+ax.set_title('多項式模型擬合（改善）')
+ax.legend()
+
+# 右下：殘差圖（多項式）
+ax = axes[1, 1]
+ax.scatter(y_pred_poly, residuals_poly, alpha=0.5, s=20, c='#3fb950')
+ax.axhline(y=0, color='r', linestyle='--', alpha=0.5)
+ax.set_xlabel('擬合值'); ax.set_ylabel('殘差')
+ax.set_title('殘差圖：無明顯模式 ✓')
+
+plt.suptitle('殘差圖：非線性診斷工具', fontsize=14)
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<!-- Problem 2 -->
+<h3>問題二：誤差項的相關性</h3>
+
+<p>線性迴歸假設誤差項 \(\epsilon_1, \epsilon_2, \ldots, \epsilon_n\) <strong>不相關</strong>。若存在相關性：</p>
+<ul>
+<li>估計的標準誤會<strong>低估</strong>真實標準誤</li>
+<li>信賴區間比應有的更窄</li>
+<li>p-value 比應有的更低（偽陽性風險增加）</li>
+</ul>
+
+<div class="callout">
+<strong>⏱️ 時間序列資料特別容易出現誤差相關性！</strong>相鄰時間點的誤差往往正相關，導致殘差圖出現「追蹤」現象（tracking）──相鄰殘差值相近。圖 3.10 展示了 \(\rho = 0.0, 0.5, 0.9\) 三種不同相關程度的殘差行為。
+</div>
+
+<div class="scenario-box">
+<h4>🏥 應用場景：臨床試驗中的群聚效應</h4>
+<p>在預測身高與體重關係的研究中，如果同一家庭的成員都被納入樣本，他們的誤差項可能相關（共享基因、飲食、環境）。這違反了獨立性假設。良好的<strong>實驗設計</strong>（如分層抽樣）是緩解此問題的關鍵。</p>
+</div>
+
+<!-- Problem 3 -->
+<h3>問題三：誤差項的非常數變異 (Heteroscedasticity)</h3>
+
+<p><strong>異質變異</strong>（heteroscedasticity）指誤差項的變異數 \(\text{Var}(\epsilon_i) = \sigma^2\) 並非定值。殘差圖中的<strong>漏斗形狀</strong>是典型指標──殘差幅度隨擬合值增大而增大。</p>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ 解決方案</h4>
+<ul>
+<li><strong>對數轉換：</strong>\(\log Y\) 壓縮較大的值</li>
+<li><strong>平方根轉換：</strong>\(\sqrt{Y}\) 溫和壓縮</li>
+<li><strong>加權最小平方法：</strong>若已知每個觀測值的變異數 \(w_i = 1/\sigma_i^2\)</li>
+</ul>
+</div>
+<div class="cons">
+<h4>❌ 忽略的後果</h4>
+<ul>
+<li>標準誤估計不準確</li>
+<li>信賴區間失準</li>
+<li>假設檢定不可靠</li>
+<li>預測區間偏誤</li>
+</ul>
+</div>
+</div>
+
+<pre><code class="language-python"># 示範：異質變異的診斷與對數轉換修復
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+# 生成異質變異資料
+np.random.seed(42)
+X = np.random.uniform(2, 10, 100)
+# 變異數隨 X 增加
+y = 5 + 3 * X + np.random.normal(0, 0.5 * X, 100)  # σ ∝ X
+
+# 原始尺度
+X_r = X.reshape(-1, 1)
+m = LinearRegression().fit(X_r, y)
+y_pred = m.predict(X_r)
+residuals = y - y_pred
+
+# 對數轉換
+log_y = np.log(y)
+m_log = LinearRegression().fit(X_r, log_y)
+log_y_pred = m_log.predict(X_r)
+log_residuals = log_y - log_y_pred
+
+# 視覺化
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+# 左上
+ax = axes[0, 0]
+ax.scatter(X, y, alpha=0.5, s=20, c='#8b949e')
+ax.plot(np.sort(X), m.predict(np.sort(X).reshape(-1, 1)), 'r-', linewidth=2)
+ax.set_xlabel('X'); ax.set_ylabel('Y')
+ax.set_title('原始資料（變異數隨 X 增大）')
+
+# 右上
+ax = axes[0, 1]
+ax.scatter(y_pred, residuals, alpha=0.5, s=20, c='#d2991d')
+ax.axhline(y=0, color='r', linestyle='--')
+ax.set_xlabel('擬合值'); ax.set_ylabel('殘差')
+ax.set_title('⚠️ 漏斗形殘差 → 異質變異！')
+
+# 左下
+ax = axes[1, 0]
+ax.scatter(X, log_y, alpha=0.5, s=20, c='#8b949e')
+ax.plot(np.sort(X), m_log.predict(np.sort(X).reshape(-1, 1)), '#3fb950', linewidth=2)
+ax.set_xlabel('X'); ax.set_ylabel('log(Y)')
+ax.set_title('對數轉換後（變異數穩定）')
+
+# 右下
+ax = axes[1, 1]
+ax.scatter(log_y_pred, log_residuals, alpha=0.5, s=20, c='#3fb950')
+ax.axhline(y=0, color='r', linestyle='--')
+ax.set_xlabel('擬合值'); ax.set_ylabel('殘差')
+ax.set_title('✓ 殘差均勻分布')
+
+plt.suptitle('異質變異診斷與對數轉換修復', fontsize=14)
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<!-- Problem 4 -->
+<h3>問題四：離群值 (Outliers)</h3>
+
+<p><strong>離群值</strong>是指 \(y_i\) 遠離模型預測值的點。它可以來自記錄錯誤，也可能指示模型的缺失。</p>
+
+<p>與其直接使用殘差，應使用<strong>學生化殘差</strong>（studentized residual）：將每個殘差除以其估計標準誤。若學生化殘差的絕對值 &gt; 3，則該觀測值可能是離群值。</p>
+
+<div class="callout">
+<strong>📉 離群值的影響：</strong>即使離群值對迴歸線本身影響不大，它仍會顯著增加 RSE（殘差標準誤），從而影響所有信賴區間和 p-value。例如課本範例中，一個離群值使 RSE 從 0.77 升至 1.09，\(R^2\) 從 0.892 降至 0.805。
+</div>
+
+<!-- Problem 5 -->
+<h3>問題五：高槓桿點 (High Leverage Points)</h3>
+
+<p>離群值關注的是不尋常的 <strong>\(y_i\)</strong>，而高槓桿點關注的是不尋常的 <strong>\(x_i\)</strong>。高槓桿點對迴歸線有<strong>巨大影響</strong>──移除一個高槓桿點可能大幅改變迴歸係數。</p>
+
+<div class="formula">
+\[
+h_i = \frac{1}{n} + \frac{(x_i - \bar{x})^2}{\sum_{i'=1}^n (x_{i'} - \bar{x})^2}
+\]
+<div class="formula-label">公式 3.37：簡單線性迴歸的槓桿統計量</div>
+</div>
+
+<div class="callout">
+<strong>🎯 槓桿值判斷準則：</strong>
+<ul>
+<li>槓桿值 \(h_i\) 總在 \(1/n\) 和 1 之間</li>
+<li>平均槓桿值 = \((p+1)/n\)</li>
+<li>若 \(h_i\) 遠大於 \((p+1)/n\)，則該點可能為高槓桿點</li>
+<li><strong>高槓桿 + 離群值 = 最危險組合！</strong></li>
+</ul>
+</div>
+
+<pre><code class="language-python"># 示範：離群值 vs. 高槓桿點的區別
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+np.random.seed(42)
+# 正常資料
+X = np.random.uniform(-1, 2, 18)
+y = 1 + 2 * X + np.random.normal(0, 0.5, 18)
+
+# 加上離群值（正常 X，異常 Y）和高槓桿點（異常 X）
+X = np.append(X, [1.0, 5.0])   # 離群值 index=18, 高槓桿 index=19
+y = np.append(y, [5.0, 10.0])  # 離群值 y 偏離，高槓桿 y 正常
+
+# 全資料擬合
+X_r = X.reshape(-1, 1)
+m_all = LinearRegression().fit(X_r, y)
+m_no_outlier = LinearRegression().fit(X_r[:19], y[:19])   # 移除離群值
+m_no_leverage = LinearRegression().fit(X_r[:19], y[:19])  # 同 (不含最後一點)
+
+# 計算槓桿值
+n = len(X)
+h = 1/n + (X - X.mean())**2 / np.sum((X - X.mean())**2)
+
+# 計算學生化殘差
+y_pred = m_all.predict(X_r)
+res = y - y_pred
+sigma2 = np.sum(res**2) / (n - 2)
+H_diag = np.array([1/n + (X[i]-X.mean())**2/np.sum((X-X.mean())**2) for i in range(n)])
+stud_res = res / np.sqrt(sigma2 * (1 - H_diag))
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+
+# 左：資料與迴歸線
+ax = axes[0]
+ax.scatter(X[:18], y[:18], c='#8b949e', alpha=0.6, s=25, label='正常點')
+ax.scatter(X[18], y[18], c='#d2991d', s=80, edgecolors='white', linewidth=1.5,
+           zorder=5, label='離群值 (idx=19)')
+ax.scatter(X[19], y[19], c='#f85149', s=80, edgecolors='white', linewidth=1.5,
+           zorder=5, marker='s', label='高槓桿 (idx=20)')
+x_line = np.linspace(-2, 6, 100).reshape(-1, 1)
+ax.plot(x_line, m_all.predict(x_line), 'r-', linewidth=1.5, alpha=0.5, label='全資料')
+ax.plot(x_line, m_no_leverage.predict(x_line), '#3fb950', linewidth=1.5, linestyle='--',
+        label='移除高槓桿後')
+ax.set_xlabel('X'); ax.set_ylabel('Y')
+ax.set_title('離群值 vs. 高槓桿點')
+ax.legend(fontsize=7)
+
+# 中：殘差圖
+ax = axes[1]
+ax.scatter(range(n), res, c=['#8b949e']*18 + ['#d2991d', '#f85149'], s=25)
+ax.axhline(y=0, color='r', linestyle='--', alpha=0.5)
+ax.axhline(y=3, color='orange', linestyle=':', alpha=0.5)
+ax.axhline(y=-3, color='orange', linestyle=':', alpha=0.5)
+ax.set_xlabel('觀測編號'); ax.set_ylabel('殘差')
+ax.set_title('殘差圖')
+
+# 右：學生化殘差 vs 槓桿值
+ax = axes[2]
+colors_plot = ['#8b949e']*18 + ['#d2991d', '#f85149']
+ax.scatter(h, stud_res, c=colors_plot, s=30, edgecolors='white', linewidth=0.5)
+ax.axhline(y=3, color='orange', linestyle=':', alpha=0.5, label='±3 閾值')
+ax.axhline(y=-3, color='orange', linestyle=':', alpha=0.5)
+avg_h = 2/n
+ax.axvline(x=3*avg_h, color='#f85149', linestyle='--', alpha=0.5, label='3×avg 槓桿')
+ax.set_xlabel('槓桿值 (hᵢ)'); ax.set_ylabel('學生化殘差')
+ax.set_title('學生化殘差 vs. 槓桿值')
+ax.legend(fontsize=7)
+
+plt.suptitle('診斷圖：離群值與高槓桿點', fontsize=14)
+plt.tight_layout()
+plt.show()
+
+print(f"平均槓桿值: {2/n:.4f}")
+print(f"離群值槓桿: {h[18]:.4f}, 學生化殘差: {stud_res[18]:.2f}")
+print(f"高槓桿點槓桿: {h[19]:.4f}, 學生化殘差: {stud_res[19]:.2f}")
+</code></pre>
+
+<!-- Problem 6 -->
+<h3>問題六：共線性 (Collinearity)</h3>
+
+<p><strong>共線性</strong>指兩個或多個預測變數彼此高度相關。當共線性存在時：</p>
+<ul>
+<li>難以分離各變數對反應變數的個別影響</li>
+<li>係數的標準誤大幅增加</li>
+<li>t-statistic 下降，檢定力（power）降低</li>
+<li>可能無法拒絕 \(H_0: \beta_j = 0\)（即使該變數確實重要）</li>
+</ul>
+
+<div class="callout">
+<strong>📊 Credit 資料實證：</strong>當 limit 和 rating 一起放入模型時（兩者高度共線），limit 係數的標準誤<strong>增加了 12 倍</strong>，p-value 從 &lt;0.0001 飆升至 0.701！limit 的重要性被共線性完全掩蓋。
+</div>
+
+<h3>變異數膨脹因子 (Variance Inflation Factor, VIF)</h3>
+
+<p>VIF 是檢測共線性的最佳工具。相關係數矩陣只能偵測<strong>成對</strong>共線性，但無法偵測三個以上變數之間的<strong>多重共線性</strong>（multicollinearity）。</p>
+
+<div class="formula">
+\[
+\text{VIF}(\hat{\beta}_j) = \frac{1}{1 - R^2_{X_j \mid X_{-j}}}
+\]
+<div class="formula-label">VIF 計算公式</div>
+</div>
+
+<p>其中 \(R^2_{X_j \mid X_{-j}}\) 是以 \(X_j\) 為反應變數、其餘所有預測變數為解釋變數的 \(R^2\)。VIF 的最小值為 1（完全無共線性），一般<strong>VIF &gt; 5 或 10 表示有問題的共線性</strong>。</p>
+
+<pre><code class="language-python"># 示範：VIF 計算與共線性診斷
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+# 模擬 Credit 資料的共線性情境
+np.random.seed(42)
+n = 100
+limit = np.random.uniform(2000, 12000, n)
+# rating 與 limit 高度相關（相關係數 ~0.95）
+rating = 0.8 * limit + np.random.normal(0, 400, n)
+# age 與 limit 不相關
+age = np.random.uniform(20, 80, n)
+
+# 計算相關矩陣
+data = pd.DataFrame({'limit': limit, 'rating': rating, 'age': age})
+corr = data.corr()
+
+print("=== 相關係數矩陣 ===")
+print(corr.round(3))
+print(f"\nlimit-rating 相關係數: {np.corrcoef(limit, rating)[0, 1]:.4f}")
+print(f"limit-age 相關係數: {np.corrcoef(limit, age)[0, 1]:.4f}")
+
+# 計算 VIF
+def calculate_vif(X_df):
+    """手算 VIF for each predictor"""
+    vif = {}
+    for i, col in enumerate(X_df.columns):
+        # 以 col 為反應變數，其他為預測變數
+        y = X_df[col].values
+        X_other = X_df.drop(columns=[col]).values
+        model = LinearRegression().fit(X_other, y)
+        r2 = model.score(X_other, y)
+        vif[col] = 1.0 / (1.0 - r2) if r2 < 0.999 else np.inf
+    return vif
+
+vif_values = calculate_vif(data)
+print("\n=== VIF 值 ===")
+for k, v in vif_values.items():
+    flag = " ⚠️ 高共線性！" if v > 5 else ""
+    print(f"  {k}: {v:.2f}{flag}")
+
+# 示範共線性對模型的影響
+# Model 1: balance ~ age + limit (無共線性)
+balance = -200 - 2.5 * age + 0.17 * limit + np.random.normal(0, 100, n)
+
+X1 = np.column_stack([age, limit])
+m1 = LinearRegression().fit(X1, balance)
+se1 = np.sqrt(np.diag(np.linalg.inv(X1.T @ X1) * np.sum((balance - m1.predict(X1))**2) / (n-3)))
+t1 = m1.coef_ / se1
+
+# Model 2: balance ~ rating + limit (有共線性)
+X2 = np.column_stack([rating, limit])
+m2 = LinearRegression().fit(X2, balance)
+se2 = np.sqrt(np.diag(np.linalg.inv(X2.T @ X2) * np.sum((balance - m2.predict(X2))**2) / (n-3)))
+t2 = m2.coef_ / se2
+
+print("\n=== 模型 1: balance ~ age + limit ===")
+print(f"  age 係數:    {m1.coef_[0]:.4f}, SE: {se1[0]:.4f}, t: {t1[0]:.2f}")
+print(f"  limit 係數:  {m1.coef_[1]:.4f}, SE: {se1[1]:.4f}, t: {t1[1]:.2f}")
+
+print("\n=== 模型 2: balance ~ rating + limit (共線性) ===")
+print(f"  rating 係數: {m2.coef_[0]:.4f}, SE: {se2[0]:.4f}, t: {t2[0]:.2f}")
+print(f"  limit 係數:  {m2.coef_[1]:.4f}, SE: {se2[1]:.4f}, t: {t2[1]:.2f}")
+print(f"  ⚠️ limit SE 增加倍數: {se2[1]/se1[1]:.1f}x")
+
+# 視覺化：共線性的 RSS 輪廓圖
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# 左：age vs limit (無共線性，橢圓圓形)
+ax = axes[0]
+beta_age_range = np.linspace(m1.coef_[0]-0.5, m1.coef_[0]+0.5, 50)
+beta_limit_range = np.linspace(m1.coef_[1]-0.05, m1.coef_[1]+0.05, 50)
+BB_age, BB_limit = np.meshgrid(beta_age_range, beta_limit_range)
+RSS1 = np.zeros_like(BB_age)
+for i in range(len(beta_age_range)):
+    for j in range(len(beta_limit_range)):
+        pred = BB_age[j,i] * age + BB_limit[j,i] * limit
+        RSS1[j,i] = np.sum((balance - pred)**2)
+levels = [np.min(RSS1)*1.001, np.min(RSS1)*1.005, np.min(RSS1)*1.02,
+          np.min(RSS1)*1.05, np.min(RSS1)*1.1]
+CS = ax.contour(BB_age, BB_limit, RSS1, levels=levels, colors='#58a6ff')
+ax.clabel(CS, inline=True, fontsize=8)
+ax.scatter([m1.coef_[0]], [m1.coef_[1]], c='black', s=50, zorder=5)
+ax.set_xlabel('β_age'); ax.set_ylabel('β_limit')
+ax.set_title('無共線性：RSS 輪廓 (age+limit)\n圓形 → 最小值明確')
+
+# 右：rating vs limit (有共線性，狹長橢圓)
+ax = axes[1]
+beta_rating_range = np.linspace(m2.coef_[0]-0.5, m2.coef_[0]+0.5, 50)
+beta_limit2_range = np.linspace(m2.coef_[1]-0.05, m2.coef_[1]+0.05, 50)
+BB_rat, BB_lim2 = np.meshgrid(beta_rating_range, beta_limit2_range)
+RSS2 = np.zeros_like(BB_rat)
+for i in range(len(beta_rating_range)):
+    for j in range(len(beta_limit2_range)):
+        pred = BB_rat[j,i] * rating + BB_lim2[j,i] * limit
+        RSS2[j,i] = np.sum((balance - pred)**2)
+levels2 = [np.min(RSS2)*1.001, np.min(RSS2)*1.005, np.min(RSS2)*1.02,
+           np.min(RSS2)*1.05, np.min(RSS2)*1.1]
+CS2 = ax.contour(BB_rat, BB_lim2, RSS2, levels=levels2, colors='#f85149')
+ax.clabel(CS2, inline=True, fontsize=8)
+ax.scatter([m2.coef_[0]], [m2.coef_[1]], c='black', s=50, zorder=5)
+ax.set_xlabel('β_rating'); ax.set_ylabel('β_limit')
+ax.set_title('有共線性：RSS 輪廓 (rating+limit)\n狹長山谷 → 係數不確定性大增')
+
+plt.suptitle('共線性對參數估計的影響', fontsize=14)
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<div class="scenario-box">
+<h4>🏢 應用場景：房價預測中的共線性陷阱</h4>
+<p>在房價迴歸中，若同時使用「房屋總面積」和「臥室數量」作為預測變數（兩者高度相關），VIF 可能超過 10。解決方法包括：</p>
+<ul>
+<li><strong>移除其中一個變數</strong>（保留解釋力較強的）</li>
+<li><strong>合併變數</strong>（例如面積/臥室比率）</li>
+<li><strong>正則化方法</strong>（ridge regression, lasso — 詳見第六章）</li>
+</ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- Summary: Comparison Table -->
+<!-- ============================================================ -->
+<h2>六大潛在問題總覽</h2>
+
+<table class="comparison-table">
+<thead>
+<tr><th>問題</th><th>診斷工具</th><th>典型症狀</th><th>解決方案</th><th>忽略的後果</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>1. 非線性</td>
+<td>殘差圖 (residual plot)</td>
+<td>U 型或曲線模式</td>
+<td>多項式、轉換 (\(\log, \sqrt{}\))</td>
+<td>所有結論可疑，預測準確度下降</td>
+</tr>
+<tr>
+<td>2. 誤差相關</td>
+<td>時間序列殘差圖</td>
+<td>追蹤模式 (tracking)</td>
+<td>良好實驗設計、時間序列方法</td>
+<td>標準誤低估，偽陽性增加</td>
+</tr>
+<tr>
+<td>3. 異質變異</td>
+<td>殘差圖</td>
+<td>漏斗形 (funnel shape)</td>
+<td>\(\log Y\), \(\sqrt{Y}\), 加權最小平方</td>
+<td>信賴區間失準</td>
+</tr>
+<tr>
+<td>4. 離群值</td>
+<td>學生化殘差圖</td>
+<td>｜學生化殘差｜&gt; 3</td>
+<td>移除（謹慎）、檢查記錄錯誤</td>
+<td>RSE 膨脹，\(R^2\) 下降</td>
+</tr>
+<tr>
+<td>5. 高槓桿</td>
+<td>槓桿統計量 \(h_i\)</td>
+<td>\(h_i \gg (p+1)/n\)</td>
+<td>檢查資料收集、穩健迴歸</td>
+<td>迴歸線大幅偏移</td>
+</tr>
+<tr>
+<td>6. 共線性</td>
+<td>VIF、相關係數矩陣</td>
+<td>VIF &gt; 5 或 10</td>
+<td>移除變數、合併、正則化</td>
+<td>標準誤暴增，t-statistic 下降</td>
+</tr>
+</tbody>
+</table>
+
+<h2>類似技術/理論比較</h2>
+
+<table class="comparison-table">
+<thead>
+<tr><th>方法</th><th>適用情境</th><th>複雜度</th><th>可解釋性</th><th>ISLP 章節</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>虛擬變數迴歸</td>
+<td>質性預測變數（類別）</td>
+<td>低</td>
+<td>★★★★★</td>
+<td>§3.3.1</td>
+</tr>
+<tr>
+<td>交互作用項</td>
+<td>變數間存在協同/對抗效應</td>
+<td>低–中</td>
+<td>★★★★☆</td>
+<td>§3.3.2</td>
+</tr>
+<tr>
+<td>多項式迴歸</td>
+<td>非線性關係，但仍為線性模型</td>
+<td>低–中</td>
+<td>★★★★☆</td>
+<td>§3.3.2, Ch7</td>
+</tr>
+<tr>
+<td>對數轉換</td>
+<td>異質變異、偏態分布</td>
+<td>低</td>
+<td>★★★☆☆</td>
+<td>§3.3.3</td>
+</tr>
+<tr>
+<td>加權最小平方</td>
+<td>已知觀測變異數不同</td>
+<td>中</td>
+<td>★★★☆☆</td>
+<td>§3.3.3</td>
+</tr>
+<tr>
+<td>Ridge / Lasso</td>
+<td>共線性嚴重、高維度</td>
+<td>中–高</td>
+<td>★★★☆☆</td>
+<td>Ch6</td>
+</tr>
+</tbody>
+</table>
+
+<h2>優缺點對照：線性迴歸延伸方法</h2>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ 優點</h4>
+<ul>
+<li>虛擬變數使質性資訊可被量化建模</li>
+<li>交互作用能捕捉真實世界中的協同效應</li>
+<li>多項式迴歸保持線性架構，計算簡單</li>
+<li>殘差圖提供直觀的模型診斷工具</li>
+<li>VIF 能量化共線性的嚴重程度</li>
+<li>所有方法都可使用標準最小平方法軟體</li>
+</ul>
+</div>
+<div class="cons">
+<h4>❌ 缺點</h4>
+<ul>
+<li>質性變數水準過多時虛擬變數數量暴增</li>
+<li>交互作用需要領域知識來選擇，否則組合爆炸</li>
+<li>高階多項式容易過度擬合</li>
+<li>殘差圖診斷依賴主觀判斷</li>
+<li>共線性沒有完美解法──移除變數可能損失資訊</li>
+<li>所有診斷都假設模型形式正確</li>
+</ul>
+</div>
+</div>
+
+<div class="key-quote">
+模型診斷既是科學也是藝術──殘差圖是你的顯微鏡，VIF 是你的量尺，而領域知識是你的指南針。沒有任何單一指標能取代對資料和問題的深入理解。<span class="author">— ISLP §3.3.3 精神總結</span>
+</div>
+
+<div class="section-nav">
+  <a href="3_2_multiple_linear_regression.html">← §3.2 多元線性迴歸</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="3_4_marketing_plan.html">§3.4 行銷計畫 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 3 章：線性迴歸 · §3.3 迴歸模型的其他考量</p>
+  <p>Generated: 2026-05-31 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
