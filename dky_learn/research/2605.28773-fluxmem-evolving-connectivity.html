@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FluxMem：記憶是持續演化的異質圖拓撲 — DKY 論文筆記</title>
+<style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --orange: #d2991d; --red: #f85149;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin-left: 260px; padding: 40px; max-width: 900px;
+}
+h1 { font-size: 1.5em; color: #fff; margin-bottom: 4px; }
+h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.meta { color: var(--muted); font-size: 0.85em; margin-bottom: 20px; }
+.meta a { color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; }
+.tag { display: inline-block; font-size: 0.75em; padding: 2px 8px; border-radius: 10px; background: #1a2a3a; color: var(--accent); margin: 2px; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.85em; }
+td { font-size: 0.9em; }
+.one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
+@media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>FluxMem：記憶是持續演化的異質圖拓撲</h1>
+<div class="meta">
+  arXiv: <a href="https://arxiv.org/abs/2605.28773" target="_blank">2605.28773</a> · 2026-05-31<br>
+  Jizhan Fang, Buqiang Xu, Zhixian Wang et al. · 浙江大學 + 阿里巴巴 + MemTensor + 同濟大學
+</div>
+
+<div class="one-liner">記憶不該是靜態倉庫——FluxMem 用三階段異質圖演化將 LLM 代理記憶推上三個基準 SOTA。</div>
+
+<div class="card">
+
+<h2>一句話</h2><p>浙江大學與阿里巴巴聯合提出 <b>FluxMem</b>，把 LLM 代理記憶建模為<b>異質圖拓撲</b>，透過初始連線建立 → 回饋驅動精煉 → 長期固化三階段持續演化，在 LoCoMo（95.06 vs 81.23）、Mind2Web（8.1%）、GAIA（+12.73%）三基準達到 SOTA。</p>
+
+<h2>關鍵數據</h2>
+<table>
+<tr><th>項目</th><th>數據</th></tr>
+<tr><td>作者/機構</td><td>浙江大學 + 阿里巴巴 + MemTensor + 同濟大學</td></tr>
+<tr><td>核心架構</td><td>異質圖拓撲 + 三階段演化管線</td></tr>
+<tr><td>LoCoMo 長期對話</td><td>95.06 準確率（Full Context 僅 81.23）</td></tr>
+<tr><td>Mind2Web 網頁代理</td><td>Cross-Task 成功率 8.1%（無人工元素過濾）</td></tr>
+<tr><td>GAIA 通用助手</td><td>絕對提升 +12.73%</td></tr>
+<tr><td>演化成熟度指標</td><td>單一指標同時衡量泛化性與演化成熟度</td></tr>
+</table>
+
+<h2>機制拆解</h2>
+<ul>
+<li><b>異質圖記憶建模</b>：將記憶存為異質節點（實體、事件、技能、摘要）與多類型邊（時序、因果、語義相似、共現），打破固定 schema 限制。</li>
+<li><b>第一階段：初始連線形成</b>：新記憶進入時自動與現有節點建立初步連結（語義相似度 + 時間鄰近性）。</li>
+<li><b>第二階段：回饋驅動精煉</b>：任務成敗訊號驅動圖拓撲調整——修復缺失連結、修剪干擾邊、校準抽象粒度。</li>
+<li><b>第三階段：長期固化</b>：將反覆成功的軌跡蒸餾為<b>可重用的程序性電路（procedural circuits）</b>，形成技能級記憶單元。</li>
+</ul>
+
+<h2>落地應用</h2>
+<ul>
+<li><b>Hermes 睡眠固化對標</b>：FluxMem 的第三階段「蒸餾成功軌跡→程序性電路」與 Hermes 睡眠固化（N=3 循環分析→新建 skill）高度對齊，可引入圖拓撲視角來評估記憶間連結品質。</li>
+<li><b>fact_store 升級路徑</b>：目前 fact_store 是扁平 key-value，可對標 FluxMem 的異質圖，對事實間建立語義/時序/因果邊，讓 trust score 不再孤立計算。</li>
+<li><b>MEMORY 精煉策略</b>：FluxMem 的回饋驅動精煉可以用來改進現有的 trust score 清理邏輯——不只刪除低信任事實，而是修復斷裂的連結或合併冗餘節點。</li>
+<li><b>成熟度指標</b>：引入演化成熟度指標來監控 Hermes 記憶健康度，取代目前純粹依賴 MEMORY 使用率的評估方式。</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>🏷️ 標籤</h2>
+    <span class="tag">記憶演化</span>
+    <span class="tag">圖神經網路</span>
+    <span class="tag">異質圖</span>
+    <span class="tag">FluxMem</span>
+    <span class="tag">阿里巴巴</span>
+    <span class="tag">浙江大學</span>
+    <span class="tag">程序性記憶</span>
+</div>
+
+<p style="color:var(--muted);font-size:0.8em;margin-top:30px;">
+← <a href="index.html" style="color:var(--accent);">回論文筆記列表</a>
+</p>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>
