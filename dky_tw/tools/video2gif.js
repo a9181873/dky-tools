@@ -20,7 +20,6 @@ const formatTime = (sec) => {
   return `${m}:${String(s).padStart(2, '0')}`;
 };
 
-// GIF 預設
 export const PRESETS = [
   { label: '小 (320px, 10fps)', width: 320, fps: 10 },
   { label: '中 (480px, 15fps)', width: 480, fps: 15 },
@@ -28,44 +27,39 @@ export const PRESETS = [
   { label: '自訂', width: -1, fps: -1 },
 ];
 
-// 取得影片資訊
-const getVideoInfo = (file) => {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    video.preload = 'metadata';
-    video.onloadedmetadata = () => {
-      resolve({
-        duration: video.duration,
-        width: video.videoWidth,
-        height: video.videoHeight,
-      });
-      URL.revokeObjectURL(video.src);
-    };
-    video.onerror = () => {
-      URL.revokeObjectURL(video.src);
-      reject(new Error('無法讀取影片'));
-    };
-    video.src = URL.createObjectURL(file);
-  });
-};
+const GIF_CDN = 'https://unpkg.com/gif.js.optimized@1.0.1/dist/gif.js';
+const WORKER_CDN = 'https://unpkg.com/gif.js.optimized@1.0.1/dist/gif.worker.js';
 
-// GIF 編碼器動態載入
 const loadGifEncoder = () => {
   return new Promise((resolve, reject) => {
-    if (window.GIF) return resolve(window.GIF);
+    if (window.GIF) return resolve();
     const script = document.createElement('script');
-    script.src = 'https://unpkg.com/gif.js.optimized@1.0.1/dist/gif.js';
-    script.onload = () => resolve(window.GIF);
+    script.src = GIF_CDN;
+    script.onload = () => resolve();
     script.onerror = () => reject(new Error('GIF 編碼器載入失敗'));
     document.head.appendChild(script);
   });
 };
 
-// 主轉換函式
+// 等待 seek 完成
+const waitForSeek = (video, targetTime) => {
+  return new Promise((resolve) => {
+    const handler = () => {
+      video.removeEventListener('seeked', handler);
+      resolve();
+    };
+    video.addEventListener('seeked', handler);
+    video.currentTime = targetTime;
+  });
+};
+
 export const convert = async (file, options, onProgress) => {
   const { startTime, endTime, maxWidth, fps } = options;
-  const duration = endTime - startTime;
-  const totalFrames = Math.round(duration * fps);
+  const captureDuration = endTime - startTime;
+  const frameCount = Math.ceil(captureDuration * fps);
+  const frameDelay = 1000 / fps;
+
+  if (frameCount < 1) throw new Error('擷取範圍過短，請增加秒數或幀率');
 
   await loadGifEncoder();
 
@@ -75,7 +69,7 @@ export const convert = async (file, options, onProgress) => {
 
   return new Promise((resolve, reject) => {
     video.onloadedmetadata = async () => {
-      // 計算縮放比例
+      // 計算縮放
       const scale = maxWidth > 0 ? Math.min(1, maxWidth / video.videoWidth) : 1;
       canvas.width = Math.round(video.videoWidth * scale);
       canvas.height = Math.round(video.videoHeight * scale);
@@ -85,58 +79,34 @@ export const convert = async (file, options, onProgress) => {
         quality: 10,
         width: canvas.width,
         height: canvas.height,
-        workerScript: 'https://unpkg.com/gif.js.optimized@1.0.1/dist/gif.worker.js',
+        workerScript: WORKER_CDN,
       });
 
-      const frames = [];
-      let frameIdx = 0;
+      gif.on('finished', (blob) => {
+        onProgress && onProgress(100);
+        URL.revokeObjectURL(video.src);
+        resolve({ blob, ext: '.gif', frames: frameCount });
+      });
+      gif.on('error', (e) => {
+        URL.revokeObjectURL(video.src);
+        reject(e || new Error('GIF 編碼失敗'));
+      });
 
-      // Seek to start
-      video.currentTime = startTime;
-      await new Promise(r => { video.onseeked = r; });
-
-      // Capture frames
-      const captureNext = () => {
-        if (video.currentTime >= endTime || video.ended) {
-          // All frames captured, render GIF
-          onProgress && onProgress(95);
-          gif.on('finished', (blob) => {
-            onProgress && onProgress(100);
-            URL.revokeObjectURL(video.src);
-            resolve({ blob, ext: '.gif', frames: frameIdx });
-          });
-          gif.on('error', (e) => {
-            URL.revokeObjectURL(video.src);
-            reject(e);
-          });
-          gif.render();
-          return;
-        }
+      // 逐幀擷取
+      for (let i = 0; i < frameCount; i++) {
+        const t = startTime + i / fps;
+        await waitForSeek(video, t);
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        gif.addFrame(ctx, { copy: true, delay: 1000 / fps });
+        gif.addFrame(canvas, { copy: true, delay: frameDelay });
 
-        frameIdx++;
-        if (onProgress && frameIdx % 5 === 0) {
-          onProgress(Math.min(Math.round((frameIdx / totalFrames) * 90), 90));
+        if (onProgress && i % 3 === 0) {
+          onProgress(Math.min(Math.round((i / frameCount) * 90), 90));
         }
+      }
 
-        video.currentTime = startTime + frameIdx / fps;
-      };
-
-      video.onseeked = captureNext;
-      video.onended = () => {
-        if (frameIdx === 0) {
-          URL.revokeObjectURL(video.src);
-          reject(new Error('無法擷取畫面'));
-        }
-      };
-      video.onerror = () => {
-        URL.revokeObjectURL(video.src);
-        reject(new Error('影片播放失敗'));
-      };
-
-      captureNext();
+      onProgress && onProgress(95);
+      gif.render();
     };
 
     video.onerror = () => {
@@ -147,6 +117,7 @@ export const convert = async (file, options, onProgress) => {
     video.src = URL.createObjectURL(file);
     video.playsInline = true;
     video.muted = true;
+    video.preload = 'auto';
   });
 };
 
