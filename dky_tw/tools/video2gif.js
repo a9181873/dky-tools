@@ -53,13 +53,24 @@ const waitForSeek = (video, targetTime) => {
   });
 };
 
+const MAX_FRAMES = 200;       // 硬上限：≥200 幀編碼會卡死
+const RENDER_TIMEOUT = 120000; // gif.render() 最長等 2 分鐘
+
 export const convert = async (file, options, onProgress) => {
   const { startTime, endTime, maxWidth, fps } = options;
   const captureDuration = endTime - startTime;
-  const frameCount = Math.ceil(captureDuration * fps);
-  const frameDelay = 1000 / fps;
 
+  // 先算幀數，超過上限直接擋
+  let frameCount = Math.ceil(captureDuration * fps);
+  if (frameCount > MAX_FRAMES) {
+    const maxSec = (MAX_FRAMES / fps).toFixed(1);
+    throw new Error(
+      `幀數過多（${frameCount} 幀），上限 ${MAX_FRAMES} 幀。\n請縮短範圍至 ${maxSec} 秒內，或降低幀率。`
+    );
+  }
   if (frameCount < 1) throw new Error('擷取範圍過短，請增加秒數或幀率');
+
+  const frameDelay = 1000 / fps;
 
   await loadGifEncoder();
 
@@ -68,8 +79,8 @@ export const convert = async (file, options, onProgress) => {
   const ctx = canvas.getContext('2d');
 
   return new Promise((resolve, reject) => {
+    let renderTimer;
     video.onloadedmetadata = async () => {
-      // 計算縮放
       const scale = maxWidth > 0 ? Math.min(1, maxWidth / video.videoWidth) : 1;
       canvas.width = Math.round(video.videoWidth * scale);
       canvas.height = Math.round(video.videoHeight * scale);
@@ -83,11 +94,13 @@ export const convert = async (file, options, onProgress) => {
       });
 
       gif.on('finished', (blob) => {
+        clearTimeout(renderTimer);
         onProgress && onProgress(100);
         URL.revokeObjectURL(video.src);
         resolve({ blob, ext: '.gif', frames: frameCount });
       });
       gif.on('error', (e) => {
+        clearTimeout(renderTimer);
         URL.revokeObjectURL(video.src);
         reject(e || new Error('GIF 編碼失敗'));
       });
@@ -96,17 +109,22 @@ export const convert = async (file, options, onProgress) => {
       for (let i = 0; i < frameCount; i++) {
         const t = startTime + i / fps;
         await waitForSeek(video, t);
-
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         gif.addFrame(canvas, { copy: true, delay: frameDelay });
-
-        if (onProgress && i % 3 === 0) {
-          onProgress(Math.min(Math.round((i / frameCount) * 90), 90));
+        if (onProgress && i % 2 === 0) {
+          onProgress(Math.min(Math.round((i / frameCount) * 85), 85));
         }
       }
 
-      onProgress && onProgress(95);
+      onProgress && onProgress(90);
       gif.render();
+
+      // 渲染逾時保護
+      renderTimer = setTimeout(() => {
+        try { gif.abort && gif.abort(); } catch (_) {}
+        URL.revokeObjectURL(video.src);
+        reject(new Error(`GIF 編碼逾時（${RENDER_TIMEOUT / 1000} 秒），請降低幀數或解析度再試`));
+      }, RENDER_TIMEOUT);
     };
 
     video.onerror = () => {
