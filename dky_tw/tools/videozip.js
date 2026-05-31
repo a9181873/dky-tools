@@ -97,7 +97,7 @@ const compressFast = async (file, targetMB, onProgress) => {
         const blob = new Blob(chunks, { type: recorder.mimeType });
         const ext = recorder.mimeType.includes('webm') ? '.webm' : '.mp4';
         URL.revokeObjectURL(video.src);
-        resolve({ blob, ext, originalSize: file.size });
+        resolve({ blob, ext, originalSize: file.size, mode: 'Canvas (CPU)' });
       };
 
       recorder.onerror = (e) => {
@@ -338,7 +338,7 @@ const doGPUCompress = async (file, targetMB, onProgress, resolve, reject) => {
 
     if (onProgress) onProgress(100);
     const muxBlob = new Blob(muxChunks, { type: 'video/mp4' });
-    resolve({ blob: muxBlob, ext: '.mp4', originalSize: file.size });
+    resolve({ blob: muxBlob, ext: '.mp4', originalSize: file.size, mode: 'WebCodecs (GPU)' });
 
   } catch (e) {
     console.warn('GPU compress failed, falling back:', e);
