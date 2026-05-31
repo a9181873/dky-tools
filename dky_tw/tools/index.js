@@ -9,5 +9,6 @@ import * as timezones from './timezones.js';
 import * as ideabox from './ideabox.js';
 import * as pdftext from './pdftext.js';
 import * as videozip from './videozip.js';
+import * as video2gif from './video2gif.js';
 
-export { color, qr, diff, hash, id, unit, imgzip, timezones, ideabox, pdftext, videozip };
+export { color, qr, diff, hash, id, unit, imgzip, timezones, ideabox, pdftext, videozip, video2gif };

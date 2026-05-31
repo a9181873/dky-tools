@@ -21,6 +21,7 @@ const ROUTES = {
   '/unit': 'unit',
   '/imgzip': 'imgzip',
   '/videozip': 'videozip',
+  '/video2gif': 'video2gif',
   '/pdf': 'pdf'
 };
 
@@ -43,6 +44,7 @@ const metaList = {
   unit: { icon: '📐', title: '單位換算器', desc: '長度、重量、溫度、面積、速度等 5 大類即時換算！從公里換英里、攝氏換華氏，完全不需要 Google。' },
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
   videozip: { icon: '🎬', title: '影片壓縮', desc: '純瀏覽器端壓縮，GPU 硬體加速。提供 Discord/WhatsApp/郵件等常用輸出大小，自訂目標。100% 本機處理，無隱私風險！' },
+  video2gif: { icon: '🎞️', title: '影片轉 GIF', desc: '擷取影片片段轉成 GIF 動圖。自訂幀率、畫質、起迄秒數，適合 Discord/Telegram 貼圖。純本機處理，零上傳。' },
   pdf: { icon: '📄', title: 'PDF 工具箱', desc: '檢視 + 文字選取 / 拆頁合併重排旋轉 / 轉成圖片 zip。完全在瀏覽器內處理，零上傳。' }
 };
 
@@ -571,6 +573,71 @@ const renderFields = {
       <div style="color:var(--muted);font-size:0.85rem;margin-bottom:4px;" id="videozip-result-stats"></div>
       <div style="font-size:0.8rem;color:var(--muted);margin-bottom:12px;" id="videozip-result-mode"></div>
       <a class="btn" id="videozip-dl-link" download style="display:inline-flex;">⬇️ 下載壓縮影片</a>
+    </div>
+  `,
+  video2gif: () => `
+    <div class="input-group" style="margin-bottom:10px;">
+      <div class="imgzip-dropzone" id="v2g-dropzone" style="padding:24px;">
+        <input id="v2g-file" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-matroska,video/*" onchange="UI.handleV2GFile()" />
+        <span id="v2g-drop-text" class="imgzip-drop-text">🎬 點擊選取或拖曳影片（MP4/WebM/MOV · 建議 ≦100MB）</span>
+      </div>
+    </div>
+
+    <div id="v2g-info" style="display:none;padding:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border-light);border-radius:8px;margin-bottom:12px;">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:0.85rem;color:var(--muted);">
+        <span id="v2g-info-name"></span>
+        <span id="v2g-info-size"></span>
+        <span id="v2g-info-dur"></span>
+      </div>
+    </div>
+
+    <div id="v2g-controls" style="display:none;">
+      <div class="input-group" style="margin-bottom:12px;">
+        <label>擷取範圍</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="v2g-start" type="number" min="0" step="0.5" value="0" style="width:80px;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:8px;font-size:0.85rem;outline:none;" />
+          <span style="color:var(--muted);font-size:0.85rem;">秒 ～</span>
+          <input id="v2g-end" type="number" min="0.5" step="0.5" value="3" style="width:80px;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:8px;font-size:0.85rem;outline:none;" />
+          <span style="color:var(--muted);font-size:0.85rem;">秒</span>
+        </div>
+      </div>
+
+      <div class="input-group" style="margin-bottom:12px;">
+        <label>輸出設定</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="v2g-presets"></div>
+      </div>
+      <div class="input-group" id="v2g-custom-group" style="display:none;margin-bottom:12px;">
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;">
+            <label>最大寬度 (px)</label>
+            <input id="v2g-custom-w" type="number" min="100" max="1920" value="480" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:8px;font-size:0.85rem;outline:none;" />
+          </div>
+          <div style="flex:1;">
+            <label>幀率 (fps)</label>
+            <input id="v2g-custom-fps" type="number" min="5" max="30" value="15" style="width:100%;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:8px;font-size:0.85rem;outline:none;" />
+          </div>
+        </div>
+      </div>
+      <button class="btn" id="v2g-start-btn" onclick="UI.handleV2GConvert()" style="width:100%;font-size:1.1rem;">🎞️ 開始轉換</button>
+    </div>
+
+    <div id="v2g-progress" style="display:none;margin-top:12px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:0.85rem;" id="v2g-status-text">擷取畫面中...</span>
+        <span style="font-size:0.85rem;color:var(--accent);" id="v2g-progress-pct">0%</span>
+      </div>
+      <div style="width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;">
+        <div id="v2g-progress-bar" style="width:0%;height:100%;background:var(--accent);transition:width 0.3s;border-radius:3px;"></div>
+      </div>
+    </div>
+
+    <div id="v2g-result" style="display:none;margin-top:16px;padding:16px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:8px;text-align:center;">
+      <div style="font-size:1.1rem;margin-bottom:8px;">✅ 轉換完成</div>
+      <div style="margin-bottom:12px;">
+        <img id="v2g-preview" style="max-width:100%;border-radius:8px;" />
+      </div>
+      <div style="color:var(--muted);font-size:0.85rem;margin-bottom:4px;" id="v2g-result-stats"></div>
+      <a class="btn" id="v2g-dl-link" download style="display:inline-flex;margin-top:8px;">⬇️ 下載 GIF</a>
     </div>
   `,
   pdf: () => `
@@ -1499,6 +1566,112 @@ const UI = {
     } catch (e) {
       statusText.textContent = '壓縮失敗：' + (e.message || '未知錯誤');
       progressBar.style.background = '#e57373';
+    }
+  },
+  // ─── 影片轉 GIF ───
+  v2gFile: null,
+  v2gPreset: { width: 480, fps: 15 },
+  handleV2GFile() {
+    const input = document.getElementById('v2g-file');
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.v2gFile = file;
+
+    document.getElementById('v2g-drop-text').textContent = `🎬 ${file.name}`;
+    document.getElementById('v2g-info-name').textContent = file.name;
+    document.getElementById('v2g-info-size').textContent = tools.video2gif.formatSize(file.size);
+    document.getElementById('v2g-info').style.display = 'block';
+    document.getElementById('v2g-controls').style.display = 'block';
+    document.getElementById('v2g-result').style.display = 'none';
+    document.getElementById('v2g-progress').style.display = 'none';
+
+    // 取得時長
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      const dur = video.duration;
+      document.getElementById('v2g-info-dur').textContent = tools.video2gif.formatTime(dur);
+      document.getElementById('v2g-end').max = Math.ceil(dur);
+      document.getElementById('v2g-end').value = Math.min(3, dur);
+      URL.revokeObjectURL(video.src);
+    };
+    video.src = URL.createObjectURL(file);
+
+    // 預設按鈕
+    const presetsEl = document.getElementById('v2g-presets');
+    presetsEl.innerHTML = tools.video2gif.PRESETS.map((p, i) => {
+      const active = i === 1 ? 'preset-active' : '';
+      return `<button class="preset-btn ${active}" data-index="${i}" data-w="${p.width}" data-fps="${p.fps}" onclick="UI.selectV2GPreset(this)">
+        ${p.label}
+      </button>`;
+    }).join('');
+    this.v2gPreset = { width: tools.video2gif.PRESETS[1].width, fps: tools.video2gif.PRESETS[1].fps };
+  },
+  selectV2GPreset(btn) {
+    document.querySelectorAll('#v2g-presets .preset-btn').forEach(b => b.classList.remove('preset-active'));
+    btn.classList.add('preset-active');
+    const w = parseInt(btn.dataset.w);
+    const fps = parseInt(btn.dataset.fps);
+    if (w === -1) {
+      document.getElementById('v2g-custom-group').style.display = 'block';
+      this.v2gPreset = {
+        width: parseInt(document.getElementById('v2g-custom-w')?.value || 480),
+        fps: parseInt(document.getElementById('v2g-custom-fps')?.value || 15),
+      };
+    } else {
+      document.getElementById('v2g-custom-group').style.display = 'none';
+      this.v2gPreset = { width: w, fps };
+    }
+  },
+  async handleV2GConvert() {
+    if (!this.v2gFile) return;
+
+    if (document.getElementById('v2g-custom-group').style.display !== 'none') {
+      this.v2gPreset = {
+        width: parseInt(document.getElementById('v2g-custom-w').value) || 480,
+        fps: parseInt(document.getElementById('v2g-custom-fps').value) || 15,
+      };
+    }
+
+    const startTime = parseFloat(document.getElementById('v2g-start').value) || 0;
+    const endTime = parseFloat(document.getElementById('v2g-end').value) || 3;
+
+    document.getElementById('v2g-controls').style.display = 'none';
+    document.getElementById('v2g-progress').style.display = 'block';
+    document.getElementById('v2g-result').style.display = 'none';
+
+    const bar = document.getElementById('v2g-progress-bar');
+    const pct = document.getElementById('v2g-progress-pct');
+    const status = document.getElementById('v2g-status-text');
+
+    try {
+      const result = await tools.video2gif.convert(this.v2gFile, {
+        startTime, endTime,
+        maxWidth: this.v2gPreset.width,
+        fps: this.v2gPreset.fps,
+      }, (p) => {
+        bar.style.width = p + '%';
+        pct.textContent = p + '%';
+        if (p < 90) status.textContent = '擷取畫面中...';
+        else status.textContent = '編碼 GIF 中...';
+      });
+
+      document.getElementById('v2g-result-stats').textContent =
+        `${result.frames} 幀 · ${tools.video2gif.formatSize(result.blob.size)}`;
+
+      const url = URL.createObjectURL(result.blob);
+      document.getElementById('v2g-preview').src = url;
+      document.getElementById('v2g-dl-link').href = url;
+      document.getElementById('v2g-dl-link').download =
+        this.v2gFile.name.replace(/\.[^.]+$/, '') + '.gif';
+
+      document.getElementById('v2g-progress').style.display = 'none';
+      document.getElementById('v2g-result').style.display = 'block';
+      document.getElementById('v2g-controls').style.display = 'block';
+    } catch (e) {
+      status.textContent = '轉換失敗：' + (e.message || '未知錯誤');
+      bar.style.background = '#e57373';
     }
   },
   toggleSearch() {
