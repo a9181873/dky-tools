@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAGE：用新穎性閘門省下 18% LLM 呼叫的記憶寫入控制 — DKY 論文筆記</title>
+<style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --orange: #d2991d; --red: #f85149;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin-left: 260px; padding: 40px; max-width: 900px;
+}
+h1 { font-size: 1.5em; color: #fff; margin-bottom: 4px; }
+h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.meta { color: var(--muted); font-size: 0.85em; margin-bottom: 20px; }
+.meta a { color: var(--accent); }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; }
+.tag { display: inline-block; font-size: 0.75em; padding: 2px 8px; border-radius: 10px; background: #1a2a3a; color: var(--accent); margin: 2px; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.85em; }
+td { font-size: 0.9em; }
+.one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
+@media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>SAGE：用新穎性閘門省下 18% LLM 呼叫的記憶寫入控制</h1>
+<div class="meta">
+  arXiv: <a href="https://arxiv.org/abs/2605.30711" target="_blank">2605.30711</a> · 2026-05-29<br>
+  Sijia Wang, Dhanajit Brahma, Ricardo Henao · Duke University
+</div>
+
+<div class="one-liner">把記憶寫入當新穎性偵測問題——von Mises-Fisher 密度估計器 + 自適應閘門，省 16-18% LLM 呼叫品質不降。</div>
+
+<div class="card">
+
+<h2>一句話</h2><p>杜克大學提出 <b>SAGE（Spherical Adaptive Gate for memory Evolution）</b>，將 LLM 代理的記憶演化重新定義為<b>新穎性偵測問題</b>，用 von Mises-Fisher 分佈在嵌入球面上估計候選事實的新穎度分數，搭配追蹤記憶庫幾何變化的自適應閘門閾值，作為 A-Mem 的即插即用二元閘門，<b>跳過 16-18% 的 LLM 呼叫</b>且在五個開源模型上品質幾乎無損。</p>
+
+<h2>關鍵數據</h2>
+<table>
+<tr><th>項目</th><th>數據</th></tr>
+<tr><td>作者/機構</td><td>Sijia Wang, Dhanajit Brahma, Ricardo Henao · Duke University</td></tr>
+<tr><td>核心技術</td><td>von Mises-Fisher 密度估計 + 自適應閘門閾值</td></tr>
+<tr><td>LLM 呼叫節省</td><td>16-18%（跨五個開源骨幹模型）</td></tr>
+<tr><td>品質影響</td><td>開源骨幹上品質幾乎無損（minimal quality change）</td></tr>
+<tr><td>基底系統</td><td>A-Mem（Agentic Memory）即插即用</td></tr>
+<tr><td>問題定義</td><td>記憶寫入控制（write-side control）——先前研究多聚焦於讀取/儲存端</td></tr>
+</table>
+
+<h2>機制拆解</h2>
+<ul>
+<li><b>新穎性偵測框架</b>：將「此事實該不該寫入記憶」從 LLM 判斷問題轉化為統計新穎性偵測問題。候選事實經嵌入後，在單位超球面上用 von Mises-Fisher（vMF）分佈估計其相對於現有記憶庫的密度——密度越高代表越不新穎，越可能被跳過。</li>
+<li><b>vMF 密度估計器</b>：vMF 是球面上的常態分佈等價物，天然適合歸一化嵌入向量。SAGE 用它來捕捉記憶嵌入在球面上的聚集結構，而非簡單的餘弦相似度閾值，能處理記憶分佈不均勻的現實場景。</li>
+<li><b>自適應閘門閾值</b>：閾值不是固定的，而是根據記憶庫的幾何特性（如嵌入空間的集中度、記憶數量）動態調整。記憶庫越密集，閾值越高（更嚴格的寫入門檻）；記憶庫稀疏時降低閾值（允許更多寫入），實現「記憶飽和時自動減速」。</li>
+<li><b>即插即用設計</b>：SAGE 是純粹的寫入端控制層，不修改底層記憶架構。作為二元閘門（binary gate）插入 A-Mem 的寫入管線，候選事實通過閘門才觸發 LLM 進行記憶更新/合併/新增，未通過則直接丟棄，從源頭節省 LLM 呼叫。</li>
+</ul>
+
+<h2>落地應用</h2>
+<ul>
+<li><b>Hermes fact_store 寫入閘門</b>：目前 Hermes 的 sleep consolidation 分析每個候選記憶時都需要 LLM 推理。引入 SAGE 風格的 vMF 新穎性閘門，在分析前先用嵌入距離過濾明顯重複/已知的事實，可大幅減少固化循環中的 LLM 呼叫次數。</li>
+<li><b>MEMORY 使用率優化</b>：SAGE 的核心洞察是「不是所有新資訊都值得記住」。Hermes 的 MEMORY 使用率問題根源之一就是寫入端缺乏過濾，引入新穎性閘門可從源頭控制記憶膨脹。</li>
+<li><b>自適應閾值對齊 trust score</b>：SAGE 的自適應閘門概念可與 Hermes 現有的 trust score 機制結合——不只用 trust score 決定刪除，也用嵌入空間的幾何密度決定是否接受新事實進入。</li>
+<li><b>成本敏感場景的寫入策略</b>：對於使用昂貴 API（如 GPT-4o、Claude）的代理，SAGE 的 16-18% 呼叫節省直接轉化為成本節省，且不犧牲記憶品質，是 production 級的工程優化。</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>🏷️ 標籤</h2>
+    <span class="tag">記憶寫入控制</span>
+    <span class="tag">新穎性偵測</span>
+    <span class="tag">von Mises-Fisher</span>
+    <span class="tag">SAGE</span>
+    <span class="tag">A-Mem</span>
+    <span class="tag">Duke University</span>
+    <span class="tag">效率優化</span>
+</div>
+
+<p style="color:var(--muted);font-size:0.8em;margin-top:30px;">
+← <a href="index.html" style="color:var(--accent);">回論文筆記列表</a>
+</p>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>
