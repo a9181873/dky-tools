@@ -21,7 +21,8 @@
       <span class="nav-item done">3.1 簡單線性迴歸</span>
       <span class="nav-item done">3.2 多元線性迴歸</span>
       <span class="nav-item done">3.3 迴歸模型的其他考量</span>
-      <span class="nav-item pending">3.4 行銷計畫</span>
+      <span class="nav-item done">3.4 行銷計畫</span>
+      <span class="nav-item pending">3.5 線性迴歸 vs KNN</span>
 
       <div class="section-title" style="margin-top:1.2rem">機器學習 <span class="coming">即將推出</span></div>
 
