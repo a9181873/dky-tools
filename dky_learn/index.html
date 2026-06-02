@@ -69,23 +69,9 @@ a:hover { text-decoration: underline; }
 .status-progress { background: #2a1f0a; color: var(--warn); }
 .status-pending { background: #1f2937; color: var(--fg-muted); }
 
-/* ── Mobile ── */
-.menu-toggle {
-  display: none; position: fixed; top: 1rem; left: 1rem; z-index: 200;
-  background: var(--surface); border: 1px solid var(--border); color: var(--fg);
-  font-size: 1.4rem; padding: 0.3rem 0.7rem; border-radius: 6px; cursor: pointer;
-}
-@media (max-width: 768px) {
-  body { margin-left: 0; padding: 1.2rem; }
-  .menu-toggle { display: block; }
-  h1 { font-size: 1.4rem; margin-top: 2rem; }
-  .book-banner { flex-direction: column; text-align: center; }
-}
 </style>
 </head>
 <body>
-
-<button class="menu-toggle" onclick="document.querySelector('.dky-sidebar').classList.toggle('open')">☰</button>
 
 <h1>統計學習入門</h1>
 <div class="subtitle">
@@ -172,6 +158,40 @@ a:hover { text-decoration: underline; }
   </div>
 </div>
 
+<h2>論文研究</h2>
+<p style="color:var(--fg-muted);font-size:0.85rem;margin-bottom:1rem;">AI Agent 記憶管理、自主演進、工具使用的最新研究筆記</p>
+<div class="lesson-grid">
+  <div class="lesson-card">
+    <span class="num">📄</span>
+    <div class="title">
+      <a href="research/2605.22502-Compiling-Agentic-Workflows-into-LLM-Wei.html">Compiling Agentic Workflows into LLM Weights</a>
+      <div class="desc">將 agent 工作流程編譯進小模型權重，成本降 100 倍</div>
+    </div>
+  </div>
+  <div class="lesson-card">
+    <span class="num">📄</span>
+    <div class="title">
+      <a href="research/2605.30711-sage-novelty-gate-memory-write-control.html">SAGE：新穎性閘門的記憶寫入控制</a>
+      <div class="desc">vMF 密度估計省 18% LLM 呼叫，品質不降</div>
+    </div>
+  </div>
+  <div class="lesson-card">
+    <span class="num">📄</span>
+    <div class="title">
+      <a href="research/2605.26252-代理記憶是資料庫嗎？重新思考長期-AI-代理記憶的資料基礎.html">代理記憶是資料庫嗎？</a>
+      <div class="desc">重新思考長期 AI 代理記憶的資料基礎</div>
+    </div>
+  </div>
+  <div class="lesson-card">
+    <span class="num">📄</span>
+    <div class="title">
+      <a href="research/2605.26099-llm-sleep.html">LLM Sleep：模型睡眠機制</a>
+      <div class="desc">LLM 的離線記憶固化與鞏固機制</div>
+    </div>
+  </div>
+</div>
+<p style="margin-top:0.5rem;"><a href="research/">→ 查看全部論文筆記</a></p>
+
 <h2>關於本課程</h2>
 <p>
 每節課包含：理論推導（附文獻佐證）→ 完整 Python 程式碼（Google Colab 相容）→ 真實應用場景 → 優缺點對照 → 類似技術比較表。全部繁體中文，永久免費。
@@ -181,14 +201,9 @@ a:hover { text-decoration: underline; }
 </p>
 
 <script src="sidebar.js"></script>
-<script>
-// Mobile sidebar toggle
-document.querySelector('.menu-toggle').addEventListener('click', function() {
-  document.querySelector('.dky-sidebar').classList.toggle('open');
-});
-</script>
 <style>
 @media (max-width: 768px) {
+  body { margin-left: 0; padding: 1.2rem; }
   .dky-sidebar.open { display: flex !important; position: fixed; z-index: 150; width: 240px; }
 }
 </style>
