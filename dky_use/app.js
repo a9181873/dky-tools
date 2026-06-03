@@ -22,12 +22,13 @@ function showSite(show) {
 }
 
 // ── 路由 ──
-const ROUTES = { '/': 'home', '/ideabox': 'ideabox', '/usstocks': 'usstocks' };
+const ROUTES = { '/': 'home', '/ideabox': 'ideabox', '/usstocks': 'usstocks', '/python-lab': 'pythonlab' };
 
 const metaList = {
   home: { title: '', desc: '' },
   ideabox: { icon: '💡', title: 'IDEA Box 提案產生器', desc: '輸入構想與單位，一鍵整理成清楚可讀的提案書，輸出內容不含 Markdown 符號。' },
   usstocks: { icon: '📈', title: '美股投資組合追蹤', desc: '個人買入、賣出、配息紀錄，自動計算未實現與已實現報酬。' },
+  pythonlab: { icon: '🐍', title: 'Lab: Python 入門', desc: 'NumPy、pandas、matplotlib 基礎操作，ISLP 課本 2.3 節實作筆記。' },
 };
 
 // ── 工具函數 ──
@@ -44,6 +45,7 @@ const renderFields = {
     const dashMeta = [
       { key: 'ideabox', icon: '💡', title: 'IDEA Box 提案產生器', desc: '一鍵生成保險創新提案書，含決策分析表格，支援複製純文字與下載 Word。' },
       { key: 'usstocks', icon: '📈', title: '美股投資組合追蹤', desc: '用買入、賣出、配息三個動作記個人帳本，支援多帳戶、股價更新與 CSV 備份。' },
+      { key: 'python-lab', icon: '🐍', title: 'Lab: Python 入門', desc: 'NumPy、pandas、matplotlib 基礎操作，ISLP 課本 2.3 節實作筆記。' },
     ];
     return `<div class="tool-grid">
       ${dashMeta.map(m => `<div class="tool-card" onclick="UI.navigate('/${m.key}')">
@@ -78,6 +80,7 @@ const renderFields = {
   `,
 
   usstocks: () => tools.usstocks.render(),
+  pythonlab: () => tools.pythonlab.render(),
 };
 
 // ── Navigation ──
@@ -186,7 +189,7 @@ function renderRoute() {
   const path = location.pathname;
   let route = ROUTES[path] || 'home';
   const app = document.getElementById('app');
-  app.classList.toggle('wide-page', route === 'ideabox' || route === 'usstocks');
+  app.classList.toggle('wide-page', route === 'ideabox' || route === 'usstocks' || route === 'pythonlab');
 
   const meta = metaList[route] || { title: '', desc: '' };
   const title = meta.title ? `<h2>${meta.title}</h2><p style="color:var(--text-muted);margin-top:4px;margin-bottom:16px">${meta.desc}</p>` : '';

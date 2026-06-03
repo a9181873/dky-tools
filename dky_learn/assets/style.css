@@ -1,0 +1,35 @@
+/* DKY Learn — Research pages style */
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --fg: #c9d1d9; --fg-muted: #8b949e; --heading: #f0f6fc;
+  --accent: #58a6ff; --good: #3fb950; --warn: #d2991d;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'PingFang TC', sans-serif;
+  background: var(--bg) !important; color: var(--fg); line-height: 1.8;
+  margin-left: 240px; padding: 2rem 2.5rem 3rem; max-width: 860px;
+}
+h1 { font-size: 1.6rem; color: var(--heading); margin-bottom: 0.3rem; }
+h2 { font-size: 1.1rem; color: var(--accent); margin: 1.5rem 0 0.5rem; border-left: 3px solid var(--accent); padding-left: 0.6rem; }
+h3 { font-size: 0.95rem; color: var(--heading); margin: 1rem 0 0.4rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.meta { color: var(--fg-muted); font-size: 0.82rem; margin-bottom: 1.2rem; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.2rem 1.4rem; margin-bottom: 1rem;
+}
+.card p, .card li { font-size: 0.92rem; margin-bottom: 0.4rem; }
+.card ul, .card ol { padding-left: 1.5rem; }
+.tag {
+  display: inline-block; background: #1f2937; color: var(--accent);
+  font-size: 0.75rem; padding: 0.15rem 0.6rem; border-radius: 1rem; margin: 0.15rem;
+}
+footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--fg-muted); }
+footer a { color: var(--fg-muted); }
+.ad-unit { display: none; }  /* AdSense not on learn.dky.tw */
+
+@media (max-width: 768px) {
+  body { margin-left: 0; padding: 1rem; }
+}
