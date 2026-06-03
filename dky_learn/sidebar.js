@@ -17,7 +17,7 @@
       </div>
       <a href="/statistics/02_What_Is_Statistical_Learning.html" class="nav-item done">2.1 什麼是統計學習？</a>
       <a href="/statistics/02_Assessing_Model_Accuracy.html" class="nav-item done">2.2 評估模型準確度</a>
-      <span class="nav-item pending">2.3 Lab: Python 入門</span>
+      <a href="/statistics/02_Lab_Python_Introduction.html" class="nav-item done">2.3 Lab: Python 入門</a>
       <a href="/statistics/03_simple_linear_regression.html" class="nav-item done">3.1 簡單線性迴歸</a>
       <a href="/statistics/3.2_multiple_linear_regression.html" class="nav-item done">3.2 多元線性迴歸</a>
       <a href="/statistics/3_3_other_considerations.html" class="nav-item done">3.3 迴歸模型的其他考量</a>

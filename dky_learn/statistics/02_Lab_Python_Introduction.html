@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 2 章：統計學習 — 2.3 Lab: Python 入門</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #0d1117; --fg: #c9d1d9; --accent: #58a6ff; --border: #30363d;
+  --code-bg: #161b22; --heading: #f0f6fc; --tag-bg: #1f2937;
+  --warn: #d2991d; --good: #3fb950; --bad: #f85149; --info: #58a6ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  background: var(--bg); color: var(--fg); line-height: 1.8;
+  max-width: 880px; margin: 0 auto; padding: 2rem 1.5rem;
+}
+h1 { color: var(--heading); font-size: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
+h2 { color: var(--accent); font-size: 1.5rem; margin: 2rem 0 0.8rem; border-left: 4px solid var(--accent); padding-left: 0.8rem; }
+h3 { color: var(--heading); font-size: 1.2rem; margin: 1.5rem 0 0.6rem; }
+h4 { color: var(--fg); font-size: 1.05rem; margin: 1rem 0 0.5rem; }
+p { margin: 0.8rem 0; }
+a { color: var(--accent); }
+blockquote {
+  border-left: 3px solid var(--warn); background: #1a1a1a;
+  padding: 0.6rem 1rem; margin: 1rem 0; font-size: 0.9rem;
+}
+code { background: var(--code-bg); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9rem; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; overflow-x: auto; margin: 0.8rem 0; }
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th { background: var(--tag-bg); color: var(--heading); padding: 0.5rem 0.8rem; text-align: left; font-size: 0.9rem; }
+td { border-bottom: 1px solid var(--border); padding: 0.5rem 0.8rem; font-size: 0.88rem; }
+.tip { background: #1a2f1a; border-left: 3px solid var(--good); padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 4px 4px 0; }
+.warn { background: #2a1f0a; border-left: 3px solid var(--warn); padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<h1>2.3 Lab: Python 入門 — 基礎科學計算</h1>
+
+<p>本實驗室對應 <strong>ISLP §2.3 Lab: Introduction to Python</strong>，涵蓋統計學習必備的三個核心套件：NumPy（數值運算）、pandas（資料處理）、matplotlib（視覺化）。所有操作都在課本 <code>Advertising.csv</code> 資料集上示範。</p>
+
+<div class="tip">💡 本章<strong>不需預先安裝任何東西</strong> — 使用 Google Colab 即可在瀏覽器中執行所有程式碼。</div>
+
+<h2>📐 NumPy — 數值運算基石</h2>
+
+<p>NumPy 提供高效的多維陣列（<code>ndarray</code>）與向量化運算。在統計學習中，所有資料最終都會轉成 NumPy 陣列餵給模型。</p>
+
+<h3>建立陣列</h3>
+
+<pre><code class="language-python">import numpy as np
+
+# 從 list 建立
+a = np.array([1, 2, 3, 4, 5])       # 一維
+b = np.array([[1, 2], [3, 4]])       # 二維 (2×2)
+
+# 常用快速建立
+np.zeros((3, 4))      # 3×4 全 0 矩陣
+np.ones((2, 3))       # 2×3 全 1 矩陣
+np.arange(0, 10, 2)   # [0, 2, 4, 6, 8]
+np.linspace(0, 1, 5)  # [0.  , 0.25, 0.5 , 0.75, 1.  ]
+np.random.randn(3, 2) # 3×2 標準常態亂數</code></pre>
+
+<h3>基本屬性與索引</h3>
+
+<pre><code class="language-python">a = np.array([[1, 2, 3], [4, 5, 6]])
+a.shape    # (2, 3)
+a.ndim     # 2（維度數）
+a.dtype    # dtype('int64')
+
+a[0, 1]    # 2（第 0 列第 1 行）
+a[:, :2]   # 所有列、前 2 行
+a[a > 3]   # 布林索引 → [4, 5, 6]</code></pre>
+
+<h3>向量化運算</h3>
+
+<p>向量化 = 一次處理整個陣列，<strong>比 Python for 迴圈快 10–100 倍</strong>。這是 NumPy 的核心價值。</p>
+
+<pre><code class="language-python">x = np.array([1, 2, 3])
+y = np.array([4, 5, 6])
+
+x + y        # [5, 7, 9]
+x * y        # [4, 10, 18]（element-wise）
+np.dot(x, y) # 32（內積）
+np.sqrt(x)   # [1., 1.414, 1.732]
+np.sum(x)    # 6
+np.mean(x)   # 2.0
+np.std(x)    # 0.816（標準差）</code></pre>
+
+<h2>🐼 pandas — 資料處理中樞</h2>
+
+<p>pandas 提供 <strong>DataFrame</strong>（二維表格）和 <strong>Series</strong>（一維序列）。這是統計分析的主力工具 — 在 ISLP 課程中，pandas 用來載入、清理、探索每個資料集。</p>
+
+<h3>建立 DataFrame</h3>
+
+<pre><code class="language-python">import pandas as pd
+
+# 從 dict 建立
+df = pd.DataFrame({
+    'name': ['Alice', 'Bob', 'Carol'],
+    'age': [25, 30, 28],
+    'score': [88, 72, 95]
+})
+
+# 從 CSV 讀取 — ISLP 課本標準起手式
+df = pd.read_csv('Advertising.csv', index_col=0)
+df.head()</code></pre>
+
+<h3>核心操作速查</h3>
+
+<table>
+  <tr><th>操作</th><th>程式碼</th><th>說明</th></tr>
+  <tr><td>前幾筆</td><td><code>df.head()</code></td><td>預設 5 筆</td></tr>
+  <tr><td>基本統計</td><td><code>df.describe()</code></td><td>count, mean, std, min, quartiles, max</td></tr>
+  <tr><td>欄位資訊</td><td><code>df.info()</code></td><td>dtype、缺失值</td></tr>
+  <tr><td>形狀</td><td><code>df.shape</code></td><td>(200, 4) — 200 筆、4 欄</td></tr>
+  <tr><td>選取欄位</td><td><code>df['sales']</code></td><td>回傳 Series</td></tr>
+  <tr><td>選取多欄</td><td><code>df[['TV', 'radio']]</code></td><td>回傳 DataFrame</td></tr>
+  <tr><td>條件篩選</td><td><code>df[df['sales'] > 20]</code></td><td>Boolean indexing</td></tr>
+  <tr><td>新增欄位</td><td><code>df['total'] = df['TV'] + df['radio']</code></td><td>向量化賦值</td></tr>
+  <tr><td>排序</td><td><code>df.sort_values('sales', ascending=False)</code></td><td>降冪排列</td></tr>
+</table>
+
+<h3>處理缺失值</h3>
+
+<pre><code class="language-python">df.isnull().sum()           # 各欄缺失數
+df.dropna()                 # 刪除有缺失的列
+df.fillna(0)                # 缺失值補 0
+df['col'].fillna(df['col'].median(), inplace=True)  # 用中位數填補</code></pre>
+
+<div class="warn">⚠️ 課本 Advertising.csv 沒有缺失值，但真實資料一定有 — 社群平台的爬蟲資料、問卷調查、政府開放資料都充滿缺失值，務必養成先 <code>df.isnull().sum()</code> 的習慣。</div>
+
+<h2>📊 matplotlib — 資料視覺化</h2>
+
+<p>matplotlib 是 Python 最基礎的繪圖套件，幾乎所有視覺化工具（seaborn、plotly、ggplot）都建立在它之上。ISLP 整本書都使用 matplotlib。</p>
+
+<h3>基本繪圖模式</h3>
+
+<pre><code class="language-python">import matplotlib.pyplot as plt
+
+# 折線圖 + 散點
+plt.plot(df['TV'], df['sales'], 'o')  # 'o' = 散點標記
+plt.xlabel('TV budget')
+plt.ylabel('Sales')
+plt.title('TV vs Sales — Advertising Data')
+plt.show()</code></pre>
+
+<h3>多子圖並排 — ISLP 最常用的技巧</h3>
+
+<pre><code class="language-python">fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+axes[0].scatter(df['TV'], df['sales'])
+axes[0].set_title('TV')
+
+axes[1].scatter(df['radio'], df['sales'])
+axes[1].set_title('Radio')
+
+axes[2].scatter(df['newspaper'], df['sales'])
+axes[2].set_title('Newspaper')
+
+plt.tight_layout()
+plt.show()</code></pre>
+
+<p>三張圖並排，一眼看出：<strong>TV 和 radio 與 sales 呈正相關，newspaper 則無明顯關係</strong>。這是 §2.1 的核心洞察。</p>
+
+<h3>常用圖表對照</h3>
+
+<table>
+  <tr><th>圖表類型</th><th>函數</th><th>適用場景</th></tr>
+  <tr><td>散點圖</td><td><code>plt.scatter(x, y)</code></td><td>兩變數關係</td></tr>
+  <tr><td>折線圖</td><td><code>plt.plot(x, y)</code></td><td>趨勢、時間序列</td></tr>
+  <tr><td>直方圖</td><td><code>plt.hist(data, bins=20)</code></td><td>分佈形狀</td></tr>
+  <tr><td>盒鬚圖</td><td><code>plt.boxplot(data)</code></td><td>中位數、離群值</td></tr>
+  <tr><td>熱力圖</td><td><code>plt.imshow(corr)</code></td><td>相關矩陣</td></tr>
+</table>
+
+<h3>統計學習必備：相關矩陣熱力圖</h3>
+
+<pre><code class="language-python">import seaborn as sns  # 建立在 matplotlib 之上
+
+corr = df.corr()
+sns.heatmap(corr, annot=True, cmap='coolwarm')
+plt.title('Correlation Matrix — Advertising')
+plt.show()</code></pre>
+
+<h3>診斷迴歸模型：殘差圖</h3>
+
+<p>殘差圖是 §3.1 的重要診斷工具 — 檢查殘差是否有模式，若隨機散佈表示模型合適。</p>
+
+<pre><code class="language-python">import numpy as np
+
+# 假設 y_true 為真實值、y_pred 為模型預測值
+residuals = y_true - y_pred
+plt.scatter(y_pred, residuals, alpha=0.6)
+plt.axhline(y=0, color='r', linestyle='--')
+plt.xlabel('Fitted values')
+plt.ylabel('Residuals')
+plt.title('Residual Plot')
+plt.show()</code></pre>
+
+<h2>🔗 與後續章節的關聯</h2>
+
+<table>
+  <tr><th>章節</th><th>Python 技術</th></tr>
+  <tr><td>3.1–3.2 線性迴歸</td><td><code>sklearn.linear_model.LinearRegression</code> + matplotlib 殘差圖</td></tr>
+  <tr><td>3.3 其他考量</td><td>pandas <code>pd.get_dummies()</code> 處理類別變數</td></tr>
+  <tr><td>3.4 行銷計畫</td><td>NumPy 矩陣運算、模型選擇</td></tr>
+  <tr><td>4.x 分類</td><td><code>sklearn.linear_model.LogisticRegression</code> + 混淆矩陣</td></tr>
+  <tr><td>5.x 重抽樣</td><td><code>sklearn.model_selection.cross_val_score</code></td></tr>
+  <tr><td>6.x 線性模型選擇</td><td><code>sklearn.preprocessing.StandardScaler</code></td></tr>
+</table>
+
+<br><br>
+<small>— ISLP §2.3, adapted · 📖 <a href="https://www.statlearning.com/" target="_blank">下載免費課本 PDF</a></small>
+
+<p style="text-align: right; color: #666; margin-top: 2rem;">
+<a href="02_Assessing_Model_Accuracy.html">← 2.2 評估模型準確度</a>
+　｜　
+<a href="03_simple_linear_regression.html">3.1 簡單線性迴歸 →</a>
+</p>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>
