@@ -15,6 +15,14 @@ h2 { font-size: 1.1rem; color: var(--accent); margin: 1.5rem 0 0.5rem; border-le
 h3 { font-size: 0.95rem; color: var(--heading); margin: 1rem 0 0.4rem; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
+strong { color: var(--heading); }
+code { background: var(--surface); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.88rem; font-family: 'SFMono', 'Consolas', monospace; }
+pre { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.8rem 1rem; overflow-x: auto; margin: 0.5rem 0; }
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; }
+th { background: #1f2937; color: var(--heading); padding: 0.4rem 0.6rem; text-align: left; font-size: 0.85rem; }
+td { border-bottom: 1px solid var(--border); padding: 0.4rem 0.6rem; font-size: 0.85rem; }
+blockquote { border-left: 3px solid var(--warn); background: rgba(210,153,29,0.08); padding: 0.5rem 1rem; margin: 0.8rem 0; font-size: 0.88rem; }
 .meta { color: var(--fg-muted); font-size: 0.82rem; margin-bottom: 1.2rem; }
 .card {
   background: var(--surface); border: 1px solid var(--border);
@@ -31,5 +39,7 @@ footer a { color: var(--fg-muted); }
 .ad-unit { display: none; }  /* AdSense not on learn.dky.tw */
 
 @media (max-width: 768px) {
-  body { margin-left: 0; padding: 1rem; }
+  body { margin-left: 0 !important; padding: 1rem; max-width: 100%; }
+  h1 { font-size: 1.3rem; }
+  .card { padding: 1rem; }
 }
