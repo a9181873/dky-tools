@@ -113,7 +113,11 @@ function escapeAttr(value = '') {
 function formatTWD(usdValue) {
   if (!_twdRate.rate) return '';
   const twd = toNumber(usdValue) * _twdRate.rate;
-  return `NT$${Math.round(twd).toLocaleString('en-US')}`;
+  return formatTwdAmount(twd);
+}
+
+function formatTwdAmount(twdValue) {
+  return `NT$${Math.round(toNumber(twdValue)).toLocaleString('en-US')}`;
 }
 
 function formatMoney(value, digits = 2) {
@@ -399,12 +403,14 @@ function calcLotPosition(lot) {
   const shares = toNumber(lot.shares);
   const marketValue = currentPrice * shares;
   const costBasis = toNumber(lot.avgCost) * shares;
+  const twdCostBasis = toNumber(lot.twdRate) > 0 ? costBasis * toNumber(lot.twdRate) : 0;
   const pl = marketValue - costBasis;
   const plPercent = costBasis > 0 ? (pl / costBasis) * 100 : 0;
   return {
     currentPrice,
     marketValue,
     costBasis,
+    twdCostBasis,
     pl,
     plPercent,
     updatedAt: price?.updatedAt || 0,
@@ -433,6 +439,7 @@ function calcSymbolRows(account = getActiveAccount()) {
           name: lot.name || lot.symbol,
           shares: 0,
           costBasis: 0,
+          twdCostBasis: 0,
           marketValue: 0,
           currentPrice: stockState.prices[lot.symbol]?.price || 0,
           updatedAt: stockState.prices[lot.symbol]?.updatedAt || 0,
@@ -442,6 +449,7 @@ function calcSymbolRows(account = getActiveAccount()) {
       const pos = calcLotPosition(lot);
       row.shares += lot.shares;
       row.costBasis += pos.costBasis;
+      row.twdCostBasis += pos.twdCostBasis;
       row.marketValue += pos.marketValue;
       if ((!row.name || row.name === row.symbol) && lot.name) row.name = lot.name;
     });
@@ -460,6 +468,7 @@ function calcSymbolRows(account = getActiveAccount()) {
 function calcSummary(account = getActiveAccount()) {
   const lots = account.portfolio.filter(lot => lot.shares > 0);
   const totalCost = lots.reduce((sum, lot) => sum + calcLotPosition(lot).costBasis, 0);
+  const totalTwdCost = lots.reduce((sum, lot) => sum + calcLotPosition(lot).twdCostBasis, 0);
   const totalValue = lots.reduce((sum, lot) => sum + calcLotPosition(lot).marketValue, 0);
   const unrealizedPL = totalValue - totalCost;
   const realizedPL = account.sales.reduce((sum, sale) => sum + calcSalePL(sale), 0);
@@ -471,6 +480,7 @@ function calcSummary(account = getActiveAccount()) {
 
   return {
     totalCost,
+    totalTwdCost,
     totalValue,
     unrealizedPL,
     unrealizedPercent: totalCost > 0 ? (unrealizedPL / totalCost) * 100 : 0,
@@ -622,6 +632,7 @@ function renderAccountTabs() {
 function renderSummary() {
   const summary = calcSummary();
   const twdRef = (usd) => _twdRate.rate > 0 ? `<span class="stat-twd">${formatTWD(usd)}</span>` : '';
+  const twdCostRef = (twd) => toNumber(twd) > 0 ? `<span class="stat-twd">${formatTwdAmount(twd)}</span>` : '';
   const stat = (label, value, extraClass = '', sub = '') => `
     <div class="stat-card stock-stat">
       <div class="stat-label">${label}</div>
@@ -632,7 +643,7 @@ function renderSummary() {
 
   return `
     <div class="stock-summary-grid">
-      ${stat('目前成本', formatMoney(summary.totalCost), '', `${summary.lots} 筆買入 / ${summary.positions} 檔持股${twdRef(summary.totalCost)}`)}
+      ${stat('目前成本', formatMoney(summary.totalCost), '', `${summary.lots} 筆買入 / ${summary.positions} 檔持股${twdCostRef(summary.totalTwdCost)}`)}
       ${stat('目前市值', formatMoney(summary.totalValue), '', twdRef(summary.totalValue))}
       ${stat('未實現損益', formatSignedMoney(summary.unrealizedPL), valueClass(summary.unrealizedPL), `${formatPercent(summary.unrealizedPercent)}${twdRef(summary.unrealizedPL)}`)}
       ${stat('已實現損益', formatSignedMoney(summary.realizedPL), valueClass(summary.realizedPL), `${summary.sales} 筆賣出${twdRef(summary.realizedPL)}`)}
@@ -919,12 +930,13 @@ function renderHoldingsTable() {
             ${rows.length > 0 ? (() => {
               const totals = rows.reduce((acc, r) => {
                 acc.costBasis += r.costBasis;
+                acc.twdCostBasis += r.twdCostBasis;
                 acc.marketValue += r.marketValue;
                 acc.unrealizedPL += r.unrealizedPL;
                 return acc;
-              }, { costBasis: 0, marketValue: 0, unrealizedPL: 0 });
+              }, { costBasis: 0, twdCostBasis: 0, marketValue: 0, unrealizedPL: 0 });
               const totalPercent = totals.costBasis > 0 ? (totals.unrealizedPL / totals.costBasis) * 100 : 0;
-              const twdCost = _twdRate.rate > 0 ? `<span class="stock-twd-ref">${formatTWD(totals.costBasis)}</span>` : '';
+              const twdCost = totals.twdCostBasis > 0 ? `<span class="stock-twd-ref">${formatTwdAmount(totals.twdCostBasis)}</span>` : '';
               const twdValue = _twdRate.rate > 0 ? `<span class="stock-twd-ref">${formatTWD(totals.marketValue)}</span>` : '';
               const twdPL = _twdRate.rate > 0 ? `<span class="stock-twd-ref">${formatTWD(totals.unrealizedPL)}</span>` : '';
               return `
@@ -994,7 +1006,7 @@ function renderLotsTable() {
                   <td>${formatMoney(lot.avgCost)}</td>
                   <td>${formatMoney(costBasis)}</td>
                   <td>${lot.twdRate > 0 ? lot.twdRate.toFixed(2) : '<span class="stock-muted">-</span>'}</td>
-                  <td>${twdCost > 0 ? `NT$${Math.round(twdCost).toLocaleString('en-US')}` : '<span class="stock-muted">-</span>'}</td>
+                  <td>${twdCost > 0 ? formatTwdAmount(twdCost) : '<span class="stock-muted">-</span>'}</td>
                   <td>${lot.tag ? `<span class="stock-tag">${escapeHTML(lot.tag)}</span>` : '<span class="stock-muted">-</span>'}</td>
                   <td class="stock-actions">
                     <button class="btn-sm" onclick="USStocks.editBuy('${escapeAttr(lot.id)}')">編輯</button>
