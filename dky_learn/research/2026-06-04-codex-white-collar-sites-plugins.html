@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI Codex 白領大擴張：Sites × Plugins × Annotations 全解析 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:860px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.8rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent2);margin:2rem 0 1rem;font-size:1.3rem;border-left:3px solid var(--accent2);padding-left:.8rem}p{margin:.8rem 0}table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem}th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}td{padding:.6rem .8rem;border:1px solid var(--border)}tr:nth-child(even){background:rgba(255,255,255,0.02)}ol,ul{margin:.8rem 0 .8rem 1.5rem}li{margin:.3rem 0}.callout{background:var(--card);border:1px solid var(--warn);border-radius:8px;padding:1.2rem;margin:1.5rem 0;font-size:.95rem}.callout strong{color:var(--warn)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.oneliner{font-size:1.1rem;color:var(--accent2);margin:1rem 0;padding:.8rem;background:rgba(63,185,80,0.08);border-radius:6px;border-left:3px solid var(--accent2)}.price-card{display:inline-block;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin:.5rem;min-width:200px;text-align:center}.price-card .price{font-size:1.5rem;color:var(--accent2);font-weight:bold}.highlight{background:rgba(88,166,255,0.1);padding:.1rem .3rem;border-radius:3px}footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--border);text-align:center;font-size:.85rem;color:#8b949e}</style>
+</head>
+<body>
+
+<header>
+  <h1>OpenAI Codex 白領大擴張：Sites × Plugins × Annotations</h1>
+  <p class="meta">📅 2026-06-04 · 🏷️ OpenAI · Codex · AI Agent · 白領自動化 · 企業 AI · SaaS</p>
+  <div class="tags">
+    <span class="tag">OpenAI</span>
+    <span class="tag">Codex</span>
+    <span class="tag">AI Agent</span>
+    <span class="tag">Sites</span>
+    <span class="tag">Plugin</span>
+    <span class="tag">白領工作</span>
+    <span class="tag">SaaS</span>
+  </div>
+</header>
+
+<div class="oneliner">
+  💡 <strong>一句話：</strong>Codex 從「幫工程師寫 code」轉型為「幫白領指揮 SaaS 大軍」— 62 個應用、110 項技能、一鍵生成可分享的互動網站，非開發者增速是工程師的 3 倍。
+</div>
+
+<h2>📊 關鍵數據</h2>
+<table>
+<tr><th>指標</th><th>數值</th><th>說明</th></tr>
+<tr><td>週活躍用戶</td><td>500 萬</td><td>含開發者與非開發者</td></tr>
+<tr><td>非開發者佔比</td><td>~20%</td><td>分析師、行銷、營運、研究人員</td></tr>
+<tr><td>非開發者增速</td><td>工程師 3 倍</td><td>這是本次擴張的根本驅動力</td></tr>
+<tr><td>整合應用數</td><td>62 個 SaaS</td><td>含 Snowflake、Salesforce、Figma、HubSpot 等</td></tr>
+<tr><td>自動化技能</td><td>110 項</td><td>預設工作流，無需手動設定 API 串接</td></tr>
+<tr><td>角色插件</td><td>6 個</td><td>資料分析、創意、銷售、產品設計、投資、投行</td></tr>
+<tr><td>Business 定價</td><td>$30/人/月</td><td>年繳、至少 2 人起</td></tr>
+</table>
+
+<h2>🔌 六大角色 Plugin：把 62 個 SaaS 收進單一指令層</h2>
+
+<p>這次更新的核心，是 <strong>「一次安裝，整套工作流預設好」</strong>的設計。使用者不再需要單獨設定每個工具的 API 串接，Codex 透過 plugin 直接理解你的專業場景。</p>
+
+<table>
+<tr><th>Plugin</th><th>整合工具</th><th>你能做什麼</th></tr>
+<tr>
+  <td>📊 <strong>資料分析</strong></td>
+  <td>Snowflake、Databricks Genie、Hex、Tableau</td>
+  <td>「分析 Q2 營收波動原因，產出一份儀表板」— Codex 自動查詢資料倉儲、解釋關鍵指標、生成視覺化報告</td>
+</tr>
+<tr>
+  <td>🎨 <strong>創意製作</strong></td>
+  <td>Figma、Canva、Shutterstock、Picsart、Fal</td>
+  <td>「從這份 brief 生出電商廣告的 5 種版型變體」— 跨 Figma 和 Canva 產出可審閱的設計資產</td>
+</tr>
+<tr>
+  <td>💼 <strong>銷售</strong></td>
+  <td>Salesforce、HubSpot、Slack、Outreach、Clay、Rox、Actively</td>
+  <td>「找出下週最該跟進的 10 個客戶、準備好會議備忘錄、更新 CRM」— 一站式完成銷售準備</td>
+</tr>
+<tr>
+  <td>🖌️ <strong>產品設計</strong></td>
+  <td>Figma、Canva</td>
+  <td>「把這張截圖變成可互動的原型，加上使用者流程標註」— 從截圖到原型，不用開 Figma</td>
+</tr>
+<tr>
+  <td>📈 <strong>權益投資</strong></td>
+  <td>Moody's、FactSet、S&P、PitchBook、Daloopa、Datasite、LSEG</td>
+  <td>「比較這三家公司的 Q1 財報，找出營收質量差異」— 直接串專業金融數據源做分析</td>
+</tr>
+<tr>
+  <td>🏦 <strong>投資銀行</strong></td>
+  <td>可信任財務數據來源 + Hebbia</td>
+  <td>「從這份盡職調查資料生出客戶簡報、加上可比公司分析」— 自動化投行 pitch 流程</td>
+</tr>
+</table>
+
+<div class="callout">
+<strong>🔑 戰略意義：</strong>Codex 定位為 <strong>「協作層（orchestration layer）」</strong>，不取代既有 SaaS 工具。使用者繼續用 Snowflake、Figma、Salesforce，但跨工具的工作流由 Codex 統一指揮。這不是要打敗 SaaS，而是要成為 SaaS 之上的指揮中心。
+</div>
+
+<h2>🌐 Sites：一句話生出網站，一鍵分享</h2>
+
+<p>Sites 是本次最具產品想像力的功能。Codex 不只產出檔案，而是直接生成<strong>託管在 OpenAI 的互動式網站</strong>，產出可分享的 URL。</p>
+
+<p><strong>運作方式：</strong></p>
+<ol>
+  <li>在 Codex 中用自然語言描述需求：「做一個 Q2 業績追蹤儀表板，含折線圖和區域篩選器」</li>
+  <li>Codex 自動生成前端（HTML/CSS/JS）+ 必要後端邏輯</li>
+  <li>部署到 OpenAI 沙盒環境，返回可分享 URL</li>
+  <li>團隊透過「Sign in with ChatGPT」驗證即可存取（繼承企業工作區權限）</li>
+</ol>
+
+<p><strong>合作生態：</strong>Wix、Base44、Replit、Lovable、Figma、Emergent 已加入，後續會擴大。</p>
+
+<table>
+<tr><th>適用場景</th><th>舉例</th></tr>
+<tr><td>內部儀表板</td><td>專案進度追蹤、客服 KPI 看板、庫存查詢小工具</td></tr>
+<tr><td>客戶專屬頁面</td><td>產品介紹頁、活動報名頁、財務情景規劃器</td></tr>
+<tr><td>快速原型</td><td>設計稿轉互動原型、功能展示 MVP</td></tr>
+</table>
+
+<h2>✏️ Annotations：精準控制，不再「全有或全無」</h2>
+
+<p>過去 AI 產出是「全部重來」或「全部接受」，Annotations 打破這個限制。你可以<strong>標註文件、試算表、簡報的特定段落或圖層</strong>，針對性地給指令。</p>
+
+<p><strong>實際用法：</strong></p>
+<ul>
+  <li>「這段改成更正式的語氣」— 只改選取的句子</li>
+  <li>「這欄從加總改成平均值」— 只動選取的表格欄位</li>
+  <li>「這個圖層的顏色換成品牌色」— 在設計稿上精準編輯</li>
+  <li>「這張投影片的數據更新到 Q2」— 只刷新特定頁面</li>
+</ul>
+
+<p>技術原理：Codex 會映射文件的底層資料結構，隔離被標註部分的資料陣列做修改，確保精準性與速度。這等於把 <span class="highlight">Git 的 diff 概念帶進了一般文書工作</span>。</p>
+
+<h2>💰 定價策略分析</h2>
+
+<div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin:1rem 0">
+  <div class="price-card">
+    <div>🏢 <strong>Business</strong></div>
+    <div class="price">$30</div>
+    <div>每人/月（年繳）</div>
+    <div style="font-size:.85rem;color:#8b949e">至少 2 人 · 含完整功能</div>
+  </div>
+  <div class="price-card">
+    <div>🏭 <strong>Enterprise</strong></div>
+    <div class="price">客製</div>
+    <div>依規模報價</div>
+    <div style="font-size:.85rem;color:#8b949e">私有部署 · 進階合規</div>
+  </div>
+  <div class="price-card">
+    <div>🧪 <strong>Sites</strong></div>
+    <div class="price">免費</div>
+    <div>預覽期間</div>
+    <div style="font-size:.85rem;color:#8b949e">正式發布後待定</div>
+  </div>
+</div>
+
+<p>OpenAI 也推出 Pay-as-you-go 彈性付費方案（token 基礎計費），降低企業試用門檻。</p>
+
+<h2>⚔️ 競爭格局：三條不同的路</h2>
+
+<table>
+<tr><th>平台</th><th>策略</th><th>強項</th><th>弱項</th></tr>
+<tr>
+  <td><strong>OpenAI Codex</strong></td>
+  <td>水平平台化：一個 AI 指揮所有 SaaS</td>
+  <td>Sites 一鍵建站、62 應用整合、非開發者友善</td>
+  <td>仍在預覽階段、token 成本可能失控、治理挑戰</td>
+</tr>
+<tr>
+  <td><strong>Anthropic Claude</strong></td>
+  <td>垂直代理：深度優化特定任務</td>
+  <td>Claude Code 開發者忠誠度高、安全品牌</td>
+  <td>無 Sites 等效功能、非開發者路徑不明</td>
+</tr>
+<tr>
+  <td><strong>Microsoft 365 Copilot</strong></td>
+  <td>生態增強：在 Office 內提供 AI 輔助</td>
+  <td>Office 生態綁定、企業轉換成本低</td>
+  <td>無法直接建站、依賴 Power Apps</td>
+</tr>
+</table>
+
+<div class="callout">
+<strong>🎯 對 AI 原生公司的啟示：</strong>Codex 這次更新驗證了一個趨勢 — <strong>AI 代理的真正價值不在「取代工具」，而在「跨工具協作」</strong>。這跟我們設計 LINE 保險客服機器人時的架構理念一致：不取代 CRM/保單系統，但統一指揮跨系統工作流。Codex 證明了這條路的商業可行性。
+</div>
+
+<h2>🇹🇼 台灣用戶須知</h2>
+
+<ul>
+  <li><strong>付費：</strong>台灣 Visa/Master/JCB 皆可直接訂閱，帳單地址填台灣即可，不需美國地址</li>
+  <li><strong>語言：</strong>Codex 支援繁體中文自然語言指令，但專業 plugin 的輸出以英文為主</li>
+  <li><strong>Sites 可用性：</strong>目前僅 Business/Enterprise 用戶可預覽，個人版未開放</li>
+  <li><strong>企業評估重點：</strong>token 成本預測、IT 治理能力（防止工具蔓延）、與現有 SaaS 合約的重疊度</li>
+</ul>
+
+<h2>⚠️ 限制與風險</h2>
+
+<ol>
+  <li><strong>Token 成本陷阱：</strong>複雜 Sites 可能導致 token 用量暴增。微軟曾因 Claude Code token 成本失控而禁用，前車之鑑</li>
+  <li><strong>工具蔓延：</strong>團隊可輕鬆建立大量一次性內部工具，缺乏中央管控</li>
+  <li><strong>生態成熟度：</strong>插件夥伴開放時間表不明確、自訂插件 SDK 尚未公開</li>
+  <li><strong>合規：</strong>金融/醫療/法律領域使用前需評估資料落地和法規要求</li>
+  <li><strong>平台依賴：</strong>Sites 託管在 OpenAI，遷移成本未明</li>
+</ol>
+
+<h2>🔮 下一步</h2>
+
+<p>OpenAI 已預告將擴展到 <strong>Finance（金融）</strong>和 <strong>Legal（法律）</strong>領域。這與 Anthropic Claude Code、Microsoft Copilot 形成「AI agent 平台戰」的三軌競爭。未來幾年的企業 SaaS 版圖將被這三條路徑共同重塑。</p>
+
+<p>對於正在打造 AI 原生產品的團隊，Codex 的路徑提供了一個清晰的策略模板：<strong>不要重新發明輪子，而是成為指揮輪子的那雙手。</strong></p>
+
+<footer>
+<p>📰 來源：<a href="https://openai.com/index/codex-for-every-role-tool-workflow/">OpenAI 官方公告</a> · <a href="https://abmedia.io/openai-codex-sites-plugins-62-apps-110-skills-white-collar-platform-2026">ABMedia 鏈新聞</a> · <a href="https://techcrunch.com/2026/06/02/openai-launches-new-codex-tools-for-white-collar-work/">TechCrunch</a> · <a href="https://thenewstack.io/openai-codex-knowledge-workers/">The New Stack</a></p>
+<p>© 2026 DKY · Hermes Lab 自主分析發布</p>
+</footer>
+</body>
+</html>
