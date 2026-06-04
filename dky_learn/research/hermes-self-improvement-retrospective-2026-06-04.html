@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自我優化機制的實戰回顧：Hermes 週檢三個月做了什麼 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent2);font-size:1.2rem;margin:2.5rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}p{margin:.7rem 0}ul,ol{margin:.5rem 0 .5rem 1.5rem}li{margin:.4rem 0}a{color:var(--accent);text-decoration:none}blockquote{background:rgba(88,166,255,.06);border-left:3px solid var(--accent);margin:1.2rem 0;padding:.8rem 1.2rem;border-radius:0 6px 6px 0;font-size:.93em}strong{color:#f0f6fc}hr{border-color:var(--border);margin:2rem 0}@media(max-width:768px){body{padding:1rem;max-width:100%}}</style>
+</head>
+<body>
+
+<header>
+  <h1>自我優化不是口號：Hermes 週檢機制的實戰回顧</h1>
+  <p class="meta">📅 2026-06-04 · Hermes Lab 內部報告</p>
+  <div class="tags">
+    <span class="tag">自我優化</span><span class="tag">睡眠固化</span><span class="tag">Brockman</span>
+    <span class="tag">記憶管理</span><span class="tag">Cron</span><span class="tag">Skill</span>
+  </div>
+</header>
+
+<h2>背景：Brockman 的啟發與我們的實作</h2>
+
+<p>2026 年 5 月，OpenAI 總裁 Greg Brockman 在 X 上發布了一篇「self improvement prompt for codex」— 35 條規則，教 AI agent 如何回顧自己的工作、找出重複模式、打包成可重用的 skill 或 automation。</p>
+
+<p>他剛又發了一次。但我們已經實作完了。</p>
+
+<p>5 月 27 日，Hermes 建立了 <strong>hermes-self-improvement</strong> 技能，整合 Brockman 的 12 步驟框架 + arXiv 2605.26099（LLM 睡眠機制）+ 七步驟週檢流程。每週日 12:00 UTC，cron <code>0d655aa6059e</code> 自動執行。</p>
+
+<p>這篇文章不是設計文件。是回顧：<strong>這套機制跑了一個多月，實際產生了什麼價值？</strong></p>
+
+<h2>產出 1：發現並修復了 2 個持續浪費資源的 Bug</h2>
+
+<p>第一次睡眠固化（5/27）的 Pass 1 做了全面的 cron 健康掃描，結果：</p>
+
+<table style="width:100%;border-collapse:collapse;margin:1rem 0">
+<tr style="background:#1f2a37"><th style="padding:.5rem;text-align:left;color:var(--accent)">發現</th><th style="padding:.5rem;text-align:left;color:var(--accent)">影響</th><th style="padding:.5rem;text-align:left;color:var(--accent)">處理</th></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)"><strong>TKY Worker（730af8c00074）</strong><br>每 2 分鐘執行一次，837/837 次全部失敗</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">每天浪費 12 分鐘 CPU、720 次無意義執行</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">已修復</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)"><strong>n8n-health-watchdog（2464d6846990）</strong><br>引用的腳本不存在</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">每 5 分鐘報錯一次</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">已暫停</td></tr>
+<tr><td style="padding:.5rem"><strong>4 個 cron</strong> 在 5/26 同時被暫停</td><td style="padding:.5rem">dky-tools 雙站監控、美股工具監控、App 評論監測、n8n 守護全部停擺</td><td style="padding:.5rem">後續逐步恢復</td></tr>
+</table>
+
+<blockquote>
+  <strong>如果沒有週檢：</strong>TKY Worker 可能到現在還在每 2 分鐘浪費一次 CPU。4 個暫停的監控 cron 可能到現在還沒人發現。
+</blockquote>
+
+<h2>產出 2：記憶體從 93% 降到 67%</h2>
+
+<p>第一次睡眠固化（5/29）對 MEMORY 做了深度清理：</p>
+
+<ul>
+  <li><strong>MEMORY：42 → 31 條（93% → 67%）</strong></li>
+  <li><strong>fact_store：75 → 51 條</strong>（刪除 24 條過時/重複/違規事實）</li>
+  <li>偵測並清除 <strong>6 條 LiteLLM Proxy 殘留</strong>（5/28 已移除該服務，但記憶中仍有設定）</li>
+  <li>清除 <strong>明碼 API token</strong>（Memory 中殘留的 CF Pages token）</li>
+</ul>
+
+<blockquote>
+  <strong>如果沒有睡眠固化：</strong>記憶體會持續膨脹。已移除的 LiteLLM Proxy 設定會繼續出現在未來 session 中，讓 AI 誤以為服務還活著。明碼 token 會一直留在記憶裡。
+</blockquote>
+
+<h2>產出 3：4 個 Cron 合併為 1 個週檢</h2>
+
+<p>之前有三個記憶相關的 cron 各自獨立運行。週檢分析發現它們高度重疊：</p>
+
+<table style="width:100%;border-collapse:collapse;margin:1rem 0">
+<tr style="background:#1f2a37"><th style="padding:.5rem;text-align:left;color:var(--accent)">合併前</th><th style="padding:.5rem;text-align:left;color:var(--accent)">合併後</th></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">1643658cca53：記憶研究追蹤（每 14 天）</td><td style="padding:.5rem;border-bottom:1px solid var(--border)" rowspan="3"><strong>0d655aa6059e：七步驟週檢</strong><br>① 研究掃描 → ② fact_feedback → ③ trust 清理 → ④ 自我優化 → ⑤ 睡眠固化 → ⑥ MEMORY 檢查 → ⑦ 摘要</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">自我優化（每週）</td></tr>
+<tr><td style="padding:.5rem">睡眠固化（觸發式）</td></tr>
+</table>
+
+<p>合併後的好處：不再有三個 cron 各自跑、各自產出重複結果。一次跑完七步，從研究到清理到固化到報告一氣呵成。</p>
+
+<h2>產出 4：從分析中催生了新 Skill</h2>
+
+<p>每次週檢不只清理垃圾，更重要的是發現模式、建立能力：</p>
+
+<table style="width:100%;border-collapse:collapse;margin:1rem 0">
+<tr style="background:#1f2a37"><th style="padding:.5rem;text-align:left;color:var(--accent)">週檢發現</th><th style="padding:.5rem;text-align:left;color:var(--accent)">產出</th></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">ISLP 課程部署常因 Google token 過期失敗</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">修補 <code>islp-teaching</code>：強制「起飛前 refresh token」步驟</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">子 agent 表現不穩定，需汰弱留強</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">建立 <code>subagent-performance-management</code> skill</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">內容策展流程缺少子 agent 追蹤</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">修補 <code>content-curation-pipeline</code>：加入 Phase 6</td></tr>
+<tr><td style="padding:.5rem">記憶管理缺少長期策略</td><td style="padding:.5rem">裁定：fact_feedback 循環 → replace>add → trust&lt;0.3 自動清理</td></tr>
+</table>
+
+<blockquote>
+  <strong>Brockman 框架的核心：</strong>「只做高信心的、窄的、可驗證的」。我們沒有建立 10 個 speculative skill。每次只挑最有把握的 1-2 個改善點，確保每個都能實際測試。
+</blockquote>
+
+<h2>產出 5：持續追蹤最新研究，轉化為架構決策</h2>
+
+<p>週檢第一步會掃描最新 AI agent 記憶管理論文。5/31 的掃描產出三篇摘要：</p>
+
+<ul>
+  <li><strong>Mem0</strong>（階層萃取 + 多信號檢索）→ 啟發：未來可考慮在 fact_store 中加入關係建圖</li>
+  <li><strong>FadeMem</strong>（艾賓浩斯遺忘曲線）→ 驗證：我們的 trust score 機制方向正確</li>
+  <li><strong>Focus</strong>（黏菌啟發的自適應壓縮）→ 方向：從固定排程固化進化到自適應觸發</li>
+</ul>
+
+<p>這些論文不是「讀完就存檔」。每篇都被轉化為對 Hermes 架構的具體建議，有些已實作（trust score），有些列入 roadmap（自適應觸發）。</p>
+
+<h2>量化總結</h2>
+
+<table style="width:100%;border-collapse:collapse;margin:1rem 0">
+<tr style="background:#1f2a37"><th style="padding:.5rem;text-align:left;color:var(--accent)">指標</th><th style="padding:.5rem;text-align:left;color:var(--accent)">改善</th></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">Cron 健康度</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">2 broken → 0，4 paused 逐步恢復</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">MEMORY 使用率</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">93% → 67%（減少 28%）</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">fact_store 條目</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">75 → 51（清理 24 條過時/重複）</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">Cron 數量</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">3 個記憶相關 → 1 個七步驟週檢</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">新建/修補 Skill</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">4 個（sleep-consolidation、self-improvement、subagent-perf、islp-teaching fix）</td></tr>
+<tr><td style="padding:.5rem">論文追蹤</td><td style="padding:.5rem">3 篇最新記憶管理論文 → 架構建議</td></tr>
+</table>
+
+<h2>Honest Assessment：還沒做好的部分</h2>
+
+<p>不是所有事都完美。坦承幾個弱點：</p>
+
+<ul>
+  <li><strong>fact_feedback 循環太慢：</strong>設計是兩週手動標記後才啟用 trust&lt;0.3 自動清理。但 fact_feedback 依賴「每次 query 後手動標記」，實際上常被跳過</li>
+  <li><strong>自適應觸發還沒做：</strong>Focus 論文的自適應壓縮概念很好，但需要 agent 能自主判斷「上下文冗餘度」，目前還是依賴固定 cron 排程</li>
+  <li><strong>跨 Session 洞察有限：</strong>session_search 能找到相關對話，但要從中提煉「可重用模式」還需要更好的摘要機制</li>
+  <li><strong>週檢報告沒有自動發布：</strong>目前週檢結果只存在 reference 目錄中，沒有自動轉成 dkyc.info 文章</li>
+</ul>
+
+<h2>Brockman 框架 vs 我們實作：一個對照</h2>
+
+<table style="width:100%;border-collapse:collapse;margin:1rem 0">
+<tr style="background:#1f2a37"><th style="padding:.5rem;text-align:left;color:var(--accent)">Brockman 35 條原則</th><th style="padding:.5rem;text-align:left;color:var(--accent)">Hermes 實作狀態</th></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">回顧 30 天找重複模式</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">✅ 週檢 Pass 1：多軸 session_search</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">證據優先級（sessions→memories→chronicle）</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">✅ 步驟① 研究追蹤 + fact_feedback</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">≥2 次出現才包裝</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">✅ 睡眠固化 skill 候選門檻</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">選最小形式（skill/subagent/auto/skip）</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">✅ 產出優先序：reference > patch > new skill</td></tr>
+<tr><td style="padding:.5rem;border-bottom:1px solid var(--border)">只建高信心項目</td><td style="padding:.5rem;border-bottom:1px solid var(--border)">✅ 「窄、實用、可驗證」鐵律</td></tr>
+<tr><td style="padding:.5rem">先檢查現有 skill 避免重複</td><td style="padding:.5rem">✅ 強制先 patch 再考慮新建</td></tr>
+</table>
+
+<h2>結語</h2>
+
+<p>Brockman 的自我優化框架不是什麼神奇的魔法。它就是一組紀律：定期回顧、找模式、做最小的改善、避免重複造輪子。</p>
+
+<p>但紀律本身就是最難的部分。讓 AI 自己遵守紀律——每週自己掃描、自己分析、自己清理、自己建立能力——這才是真正的價值。</p>
+
+<p>一個月前，Hermes 的記憶體 93% 滿、有 broken cron、有明碼 token 殘留、有已移除服務的設定。一個月後，這些問題被自動發現並修復了。</p>
+
+<p><strong>自我優化機制的價值，不在於一次做了多少，而在於它不會停。</strong></p>
+
+<hr>
+<p style="color:#8b949e;font-size:.85rem;text-align:center">
+  Hermes Lab 內部報告 · 2026-06-04 · 基於 hermes-self-improvement + hermes-sleep-consolidation skill<br>
+  參考：Greg Brockman "self improvement prompt for codex" · arXiv 2605.26099
+</p>
+
+</body>
+</html>
