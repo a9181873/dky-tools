@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026，AI 終於開始「幫你做事」了 — 個人 AI 代理爆發的深層觀察 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.7rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent2);font-size:1.25rem;margin:2.5rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent);font-size:1rem;margin:1.5rem 0 .5rem}p{margin:.7rem 0}ul,ol{margin:.5rem 0 .5rem 1.5rem}li{margin:.4rem 0}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}blockquote{background:rgba(88,166,255,.06);border-left:3px solid var(--accent);margin:1.2rem 0;padding:.8rem 1.2rem;border-radius:0 6px 6px 0;font-size:.93em;color:#b0c8e0}blockquote strong{color:var(--accent)}.insight{background:rgba(210,153,29,.08);border-left:3px solid var(--warn);margin:1rem 0;padding:.8rem 1.2rem;border-radius:0 6px 6px 0}hr{border-color:var(--border);margin:2rem 0}strong{color:#f0f6fc}@media(max-width:768px){body{padding:1rem;max-width:100%}}</style>
+</head>
+<body>
+
+<header>
+  <h1>2026，AI 終於開始「幫你做事」了<br>個人 AI 代理爆發的深層觀察</h1>
+  <p class="meta">📅 2026-06-04 · Hermes Lab 深度分析</p>
+  <div class="tags">
+    <span class="tag">AI Agent</span><span class="tag">OpenClaw</span><span class="tag">Odysseus</span>
+    <span class="tag">Scout</span><span class="tag">Spark</span><span class="tag">nanobot</span>
+    <span class="tag">Always-On</span>
+  </div>
+</header>
+
+<h2>開場：我為什麼對這一波特別興奮</h2>
+
+<p>我做 AI 相關工作快兩年了。過去兩年大部分的所謂「AI 應用」，說穿了就是把 LLM 當成智能客服或文字產生器。你問、它答。你下指令、它執行。工具的邊界非常清楚。</p>
+
+<p>但 2026 年 5-6 月這兩個月，我觀察到一個質變。</p>
+
+<p>不是模型變得更聰明了。不是參數量突破天際。而是 AI 開始「留在背景、記住你是誰、在你沒開口的時候就把事做完了」。</p>
+
+<p>這個轉變的引爆點，是一週內發生的三件事：</p>
+
+<ol>
+  <li><strong>5/19 Google I/O</strong> 發表 Gemini Spark —「24/7 個人代理」，能代表你在背景處理郵件、行事曆、文件</li>
+  <li><strong>5/31</strong> 一個叫 Odysseus 的開源專案上線，4 天 49,000 stars — 它讓你在自己機器上跑一個完整的 AI 工作區</li>
+  <li><strong>6/2 Microsoft Build</strong> 發表 Scout — 基於 30 萬星的 OpenClaw 框架，包裝成企業級 Autopilot</li>
+</ol>
+
+<p>兩週之內，從開源社群到兩大巨頭，不約而同地指向同一個方向：<strong>AI 的下一個階段不是更會聊天，而是更會做事。</strong></p>
+
+<div class="insight">
+  💭 <strong>我的觀察：</strong>2024-2025 的關鍵詞是「多模態」和「長上下文」。2026 的關鍵詞只有一個：「Always-On Agent」。這不是漸進改良，是範式轉移。
+</div>
+
+<h2>OpenClaw：一個 MIT 專案如何逼微軟和 Google 倉促應戰</h2>
+
+<p>先說 OpenClaw，因為它是這整件事的起點。</p>
+
+<p>OpenClaw 是一個開源個人 AI 助理框架。核心能力很簡單：在你的機器上跑一個 AI，它能接 WhatsApp、Telegram、Discord、Slack、Signal、iMessage — 幾乎所有你用的通訊軟體。不只是回訊息，它能操作你的 shell、瀏覽網頁、讀寫檔案、整合 GitHub/Gmail/Spotify。</p>
+
+<p>關鍵數字：<strong>30 萬 GitHub stars</strong>。MIT 授權。2026 年 4 月突破這個數字時，整個科技圈都在討論同一件事：這個專案證明了「個人 AI 代理」不是科幻，人們真的需要它。</p>
+
+<p>微軟的反應最直接——不是自己從頭做，而是<strong>直接拿 OpenClaw 來包裝</strong>。加上自己的 Work IQ 智慧層、企業安全稽核、Policy Conformance 系統，就變成 Microsoft Scout。</p>
+
+<p>Google 的反應則是倉促的：5 月 I/O 大會上推出 Gemini Spark + Antigravity。Antigravity 是一個閉源的代理協調平台，功能上跟 OpenClaw 高度重疊，但 Google 選擇不開源。社群立刻有人做了 open-antigravity 仿製品。</p>
+
+<blockquote>
+  <strong>這裡有一個很有意思的現象：</strong>Big Tech 不再能「發明」下一個典範了。他們現在的角色是「把社群已經驗證的方向產品化、加上企業安全層、然後賣給企業客戶」。真正的創新引擎在 GitHub 上。
+</blockquote>
+
+<h2>Odysseus：5/31 才上線，4 天 49K 星 — 說明了什麼</h2>
+
+<p>如果 OpenClaw 證明市場存在，Odysseus 則證明需求遠未被滿足。</p>
+
+<p>Odysseus 是 pewdiepie-archdaemon 在 2026/5/31 發布的專案。它的定位跟 OpenClaw 不同：不是一個訊息閘道，而是一個<strong>完整的自託管 AI 工作區</strong>。</p>
+
+<p>讓我特別感興趣的幾個設計：</p>
+
+<h3>Cookbook：幫你挑模型的智慧系統</h3>
+<p>這是我最欣賞的功能。大多數 AI 工具假設你已經知道要用哪個模型。Odysseus 的 Cookbook 會<strong>掃描你的硬體（VRAM、RAM），然後推薦你能跑得動的最佳開源模型</strong>。你有一張 RTX 4090？它推薦 Llama-3-70B。你只有 8GB RAM 的舊筆電？它推薦 TinyLlama。然後一鍵幫你部署。</p>
+
+<p>這個設計思路非常務實——不是每個人都能租 A100 雲端實例。降低硬體門檻，才是真正的民主化。</p>
+
+<h3>深度研究：不只是搜尋，而是產出報告</h3>
+<p>多數 AI 工具的「研究」功能就是搜尋 + 摘要。Odysseus 的做法是多步驟迭代搜尋 → 交叉驗證 → 生成<strong>結構化 HTML 報告</strong>（含圖表、視覺化）。這讓 AI 從「幫你找資料」升級到「幫你產出分析」。</p>
+
+<h3>內建郵件 + 行事曆 + 文件編輯器</h3>
+<p>大多數 AI 工具需要你手動複製貼上到其他應用。Odysseus 把郵件、行事曆、文件全部內建在一個介面裡。AI 可以直接讀你的郵件、幫你回信、自動排行程、產生文件。不需要離開工作區。</p>
+
+<blockquote>
+  <strong>Odysseus 4 天 49K 星告訴我們的事：</strong>人們不想用 5 個不同的 AI 工具。人們要的是一個統一的、能真正融入工作流的 AI 工作區。而且他們願意自己架伺服器來達到這個目的。
+</blockquote>
+
+<h2>nanobot：3,000 行的極簡主義宣言</h2>
+
+<p>在所有喧囂中，nanobot 是最安靜也最值得注意的專案之一。</p>
+
+<p>它只有 <strong>3,000 行 Python</strong>。設計哲學寫在 README 第一行：「可讀性優先」。支援 25+ 訊息平台、25+ LLM、內建 Cron 排程、雙層記憶系統（短期歷史 + Dream 長期壓縮）。</p>
+
+<p>但重點不是功能，是架構哲學。nanobot 正在從「單檔 CLI」演化為<strong>「agent kernel」</strong>——核心保持最小穩定，所有擴充都透過標準介面掛載。這個思路跟 Linux kernel 一模一樣。</p>
+
+<div class="insight">
+  💭 <strong>我認為 nanobot 代表的方向比 OpenClaw 更長遠：</strong>不是做一個超強的 monolith agent，而是定義一個最小核心 + 開放外掛生態。3,000 行代碼意味著任何人可以在一天內讀完、理解、然後開始貢獻。這是真正的開源文化。
+</div>
+
+<h2>Scout 與 Spark：為什麼我不看好巨頭的「產品化」路線</h2>
+
+<p>微軟和 Google 都在做同一件事：把開源框架套上企業安全層，鎖定在自己的生態系裡，然後賣給企業客戶。</p>
+
+<p>這在短期內是對的——企業需要合規、稽核、權限控制。但長期來看，有兩個致命問題：</p>
+
+<h3>問題一：生態鎖定</h3>
+<p>Scout 只能在 M365 內操作。Spark 只能在 Workspace 內操作。但真實的工作流從來不是單一生態——你用 Gmail 但公司用 Teams。你用 Notion 但客戶用 SharePoint。<strong>一個只能在特定生態內運作的 agent，注定只能在特定場景有用。</strong></p>
+
+<h3>問題二：雲端強制</h3>
+<p>Scout 和 Spark 都要求你的資料上傳到微軟/Google 的雲端。對於個人使用者和中小企業來說或許無所謂，但對於金融、醫療、政府機構——這是不可接受的。而 OpenClaw、Odysseus、nanobot、Hermes 全部都支援完全本地部署。</p>
+
+<blockquote>
+  <strong>我的判斷：</strong>Scout 和 Spark 會成功，但不是在「個人 AI 代理」這個市場。它們會成功在「企業 IT 部門想買一個有 SLA、有稽核、有廠商負責的 AI 方案」的市場。真正的個人代理市場，屬於開源。
+</blockquote>
+
+<h2>Hermes 在這一波中的位置</h2>
+
+<p>寫到這裡，讀者可能會問：那你自己呢？Hermes 在這個光譜的哪裡？</p>
+
+<p>坦白說，Hermes 的定位跟上述所有方案都不同。我們不是一個「個人助理」，我們是一個<strong>開發運維平台</strong>。</p>
+
+<p>OpenClaw 幫你回 WhatsApp 訊息。Odysseus 幫你整理郵件。nanobot 幫你跑 Telegram bot。這些都是「個人生活助理」。</p>
+
+<p>Hermes 做的是不同的事：部署 Cloudflare Pages、管理 Docker 容器、寫程式、git push、爬網站做研究、排 cron job 自動巡邏價格、多模型交叉審查程式碼。這是「開發者＋維運者的工作代理」。</p>
+
+<p>我們跟上述方案的關係不是競爭，是互補。一個理想的未來是：OpenClaw 處理你的日常通訊，Odysseus 管理你的知識庫，Hermes 管理你的伺服器和程式碼。</p>
+
+<div class="insight">
+  💭 <strong>我的信念：</strong>未來的個人 AI 不會是「一個超強 agent 做所有事」。而是多個專門 agent 各自負責不同領域，透過 MCP（Model Context Protocol）互通。就像 Unix 哲學：Do one thing well。
+</div>
+
+<h2>2026 年 AI Agent 生態全景：我的分類法</h2>
+
+<p>市場上的 AI agent 專案可以分成四類，每一類解決不同問題：</p>
+
+<h3>類型一：個人通訊代理（Personal Communication Agent）</h3>
+<p><strong>代表：OpenClaw、nanobot</strong></p>
+<p>核心命題：你的 AI 應該在你所有的通訊平台上幫你。WhatsApp、Telegram、Discord、LINE——一個 agent，多平台。關鍵能力是訊息路由和跨平台狀態同步。</p>
+
+<h3>類型二：個人工作區（Personal Workspace）</h3>
+<p><strong>代表：Odysseus</strong></p>
+<p>核心命題：你的 AI 應該有一個完整的桌面環境。郵件、行事曆、文件、研究報告——全部在一個介面裡完成。關鍵能力是硬體感知模型部署和深度研究產出。</p>
+
+<h3>類型三：企業自動駕駛（Enterprise Autopilot）</h3>
+<p><strong>代表：Scout、Spark</strong></p>
+<p>核心命題：你的 AI 應該能操作企業辦公軟體。Outlook、Teams、Gmail、Docs——自動化行政工作。關鍵能力是企業安全合規和生態深度整合。</p>
+
+<h3>類型四：開發運維代理（DevOps Agent）</h3>
+<p><strong>代表：Hermes、OpenAI Codex CLI、Factory Droids</strong></p>
+<p>核心命題：你的 AI 應該能管理伺服器、寫程式、部署應用。terminal、git、Docker、cron——開發者的第二雙手。關鍵能力是真實系統操作和子代理並行。</p>
+
+<h3>還有一層：多代理協作框架</h3>
+<p><strong>代表：CrewAI、LangGraph、AutoGen、Antigravity</strong></p>
+<p>這層不是給終端使用者的，而是給開發者的。它們讓你把多個專門 agent 組成工作流。Antigravity 曾示範同時調度 93 個子代理完成一個專案。</p>
+
+<h2>五個我認為會定義下半年的趨勢</h2>
+
+<h3>1. MCP 會成為 AI 世界的 USB 接口</h3>
+<p>Model Context Protocol 正在變成連接 agent 和外部工具的標準。Scout、Spark、Odysseus、nanobot 全部宣稱 MCP-native。這意味著：未來不同 agent 和不同工具可以隨插即用，不需要每個組合都重新串接。</p>
+
+<h3>2. 自託管會從極客選擇變主流需求</h3>
+<p>當你的 AI 能讀你的郵件、看你的行事曆、操作你的檔案系統，你還會想把資料全部上傳到微軟或 Google 的雲端嗎？Odysseus 的爆發證明：很多人不想。本地部署 + 開源模型的組合會越來越成熟。</p>
+
+<h3>3. 「Dream 記憶」會成為標配</h3>
+<p>nanobot 的 Dream 機制、Odysseus 的 ChromaDB 向量記憶、OpenClaw 的持久上下文——大家都在解決同一個問題：如何讓 AI 記住你，而不是每次對話都像第一次見面。短期記憶 + 定期壓縮為長期事實，這個模式會成為標準做法。</p>
+
+<h3>4. Agent-to-Agent 通訊會出現</h3>
+<p>目前所有 agent 都是跟人類互動。但當你同時有 OpenClaw 管通訊、Odysseus 管知識、Hermes 管伺服器——它們之間需要能對話。MCP 可能演化出 agent-to-agent 協議。</p>
+
+<h3>5. 巨頭會繼續「開源套殼」，但真正的創新在社群</h3>
+<p>微軟拿 OpenClaw 做 Scout。Google 顯然也參考了 OpenClaw 做 Antigravity。但下一個 OpenClaw 或 Odysseus 不會來自 Big Tech——它會來自某個週末 hackathon 的個人開發者。</p>
+
+<h2>結語：我們正站在一個新時代的門口</h2>
+
+<p>回顧過去兩年：2023 是 LLM 元年，2024 是多模態元年，2025 是 AI coding 元年。</p>
+
+<p>2026 會是 <strong>AI Agent 元年</strong>。</p>
+
+<p>不是因為模型變得更強。而是因為我們終於想通了：AI 的價值不是回答問題，是解決問題。不是聊天，是做事。不是被動等待指令，是主動理解你的需求。</p>
+
+<p>當你的 AI 能在你睡覺時幫你處理郵件、排行程、監控伺服器、比價購物——它就從一個工具，變成了一個夥伴。</p>
+
+<p>而這一切，才剛開始。</p>
+
+<hr>
+<p style="color:#8b949e;font-size:.85rem;text-align:center">
+  Hermes Lab 深度分析 · 2026-06-04<br>
+  參考來源：Microsoft Build 2026 · Google I/O 2026 · GitHub openclaw/openclaw · pewdiepie-archdaemon/odysseus · HKUDS/nanobot · TechCrunch · The Verge
+</p>
+
+<script src="/assets/sidebar.js"></script>
+</body>
+</html>
