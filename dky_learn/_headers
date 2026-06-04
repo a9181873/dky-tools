@@ -1,0 +1,11 @@
+/*
+  X-Robots-Tag: noindex, nofollow
+
+/sw.js
+  Cache-Control: no-cache
+
+/assets/sidebar.js
+  Cache-Control: no-cache
+
+/assets/style.css
+  Cache-Control: no-cache
