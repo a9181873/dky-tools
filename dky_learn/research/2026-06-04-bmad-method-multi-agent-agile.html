@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMAD-METHOD：用 12 個 AI Agent 跑完整個敏捷開發流程 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:860px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.8rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent2);margin:2rem 0 1rem;font-size:1.3rem;border-left:3px solid var(--accent2);padding-left:.8rem}h3{color:var(--accent);margin:1.5rem 0 .5rem;font-size:1.1rem}p{margin:.8rem 0}table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem}th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}td{padding:.6rem .8rem;border:1px solid var(--border)}tr:nth-child(even){background:rgba(255,255,255,0.02)}ol,ul{margin:.8rem 0 .8rem 1.5rem}li{margin:.3rem 0}.callout{background:var(--card);border:1px solid var(--warn);border-radius:8px;padding:1.2rem;margin:1.5rem 0;font-size:.95rem}.callout strong{color:var(--warn)}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.oneliner{font-size:1.1rem;color:var(--accent2);margin:1rem 0;padding:.8rem;background:rgba(63,185,80,0.08);border-radius:6px;border-left:3px solid var(--accent2)}.agent-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.6rem;margin:1rem 0}.agent-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.8rem .9rem;font-size:.85rem}.agent-card .name{color:var(--accent);font-weight:bold;font-size:.95rem}.agent-card .role{color:var(--muted);font-size:.75rem;margin:.2rem 0}.agent-card .does{color:var(--fg);font-size:.78rem}.muted{color:#8b949e}footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--border);text-align:center;font-size:.85rem;color:#8b949e}</style>
+</head>
+<body>
+
+<header>
+  <h1>BMAD-METHOD：用 12 個 AI Agent 跑完整個敏捷開發</h1>
+  <p class="meta">📅 2026-06-04 · 🏷️ BMAD · AI Agent · 敏捷開發 · 軟體工程 · 開源框架</p>
+  <div class="tags">
+    <span class="tag">BMAD</span>
+    <span class="tag">AI Agent</span>
+    <span class="tag">敏捷開發</span>
+    <span class="tag">Multi-Agent</span>
+    <span class="tag">開源</span>
+    <span class="tag">開發框架</span>
+  </div>
+</header>
+
+<div class="oneliner">
+  💡 <strong>一句話：</strong>BMAD-METHOD 把一整個敏捷開發團隊（分析師、PM、架構師、工程師、QA）變成 12 個 AI agent，掛進你的 IDE，從腦力激盪到 code review 全程有角色分工、有文件交接、有品質閘門。
+</div>
+
+<h2>📊 核心數據</h2>
+<table>
+<tr><th>指標</th><th>數值</th></tr>
+<tr><td>AI agent 數量</td><td>12+（Mary、John、Winston、Amelia…各有專長與人設）</td></tr>
+<tr><td>工作流</td><td>34+，分四階段（分析→規劃→設計→實作）</td></tr>
+<tr><td>支援 IDE</td><td>30+（Claude Code、Cursor、Windsurf、VS Code…）</td></tr>
+<tr><td>規劃路線</td><td>3 條（Quick Flow / BMad Method / Enterprise）</td></tr>
+<tr><td>語言支援</td><td>英文、繁體中文、越南文、法文</td></tr>
+<tr><td>授權</td><td>MIT 開源</td></tr>
+</table>
+
+<h2>🧑‍💼 12+ 角色 Agent：一個虛擬敏捷團隊</h2>
+<p>BMAD 的核心不是「一個 AI 幫你寫 code」，而是<strong>一整個 AI 團隊</strong>各司其職。</p>
+
+<div class="agent-grid">
+<div class="agent-card">
+  <div class="name">Mary</div>
+  <div class="role">商業分析師</div>
+  <div class="does">腦力激盪、市場研究、產品簡報、PRFAQ</div>
+</div>
+<div class="agent-card">
+  <div class="name">John</div>
+  <div class="role">產品經理</div>
+  <div class="does">PRD、Epic/Story 拆分、實作整備檢查</div>
+</div>
+<div class="agent-card">
+  <div class="name">Sally</div>
+  <div class="role">UX 設計師</div>
+  <div class="does">使用者體驗設計、DESIGN.md、互動流程</div>
+</div>
+<div class="agent-card">
+  <div class="name">Winston</div>
+  <div class="role">系統架構師</div>
+  <div class="does">技術架構、ADR 架構決策記錄、技術對齊</div>
+</div>
+<div class="agent-card">
+  <div class="name">Amelia</div>
+  <div class="role">資深工程師</div>
+  <div class="does">Story 實作、快速開發、code review、sprint 規劃</div>
+</div>
+<div class="agent-card">
+  <div class="name">Quinn</div>
+  <div class="role">QA 工程師</div>
+  <div class="does">測試策略、品質驗證、風險評估</div>
+</div>
+</div>
+
+<div class="callout">
+<strong>🔑 關鍵差異：</strong>這些 agent 不是「prompt 模板」— 每個有自己的人設、溝通風格、決策原則，而且<strong>可客製</strong>。BMAD 甚至有 BMad Builder（BMB）模組讓你自創 agent。
+</div>
+
+<h2>📋 四階段工作流程：文件驅動的 AI 開發</h2>
+
+<p>每個階段產出<strong>標準化文件</strong>，成為下一階段的 context。這不是靠對話歷史記憶，而是靠<strong>可追溯的書面 artifacts</strong>。</p>
+
+<h3>Phase 1：分析（選用）</h3>
+<table>
+<tr><th>工作流</th><th>產出</th></tr>
+<tr><td><code>bmad-brainstorming</code></td><td>brainstorming-report.md</td></tr>
+<tr><td><code>bmad-domain-research</code> / <code>market-research</code> / <code>technical-research</code></td><td>研究報告</td></tr>
+<tr><td><code>bmad-product-brief</code></td><td>product-brief.md — 策略願景</td></tr>
+<tr><td><code>bmad-prfaq</code></td><td>PRFAQ — Amazon Working Backwards 壓力測試</td></tr>
+</table>
+
+<h3>Phase 2：規劃</h3>
+<table>
+<tr><th>工作流</th><th>產出</th></tr>
+<tr><td><code>bmad-prd</code></td><td>prd.md + addendum.md + decision-log.md + validation-report.html</td></tr>
+<tr><td><code>bmad-ux</code></td><td>DESIGN.md + EXPERIENCE.md</td></tr>
+</table>
+
+<h3>Phase 3：設計方案</h3>
+<table>
+<tr><th>工作流</th><th>產出</th></tr>
+<tr><td><code>bmad-create-architecture</code></td><td>architecture.md + ADR 架構決策記錄</td></tr>
+<tr><td><code>bmad-create-epics-and-stories</code></td><td>Epic 檔案 + 可執行的 Stories</td></tr>
+<tr><td><code>bmad-check-implementation-readiness</code></td><td>閘門檢查：PASS / CONCERNS / FAIL</td></tr>
+</table>
+
+<h3>Phase 4：實作</h3>
+<table>
+<tr><th>工作流</th><th>功能</th></tr>
+<tr><td><code>bmad-sprint-planning</code></td><td>初始化開發週期，建立 sprint-status.yaml</td></tr>
+<tr><td><code>bmad-create-story</code></td><td>準備下一張 Story 的 context</td></tr>
+<tr><td><code>bmad-dev-story</code></td><td>實作 Story，產出程式碼 + 測試</td></tr>
+<tr><td><code>bmad-code-review</code></td><td>驗證品質，通過或退回修改</td></tr>
+<tr><td><code>bmad-correct-course</code></td><td>處理 sprint 中重大變更</td></tr>
+<tr><td><code>bmad-retrospective</code></td><td>Epic 完成後回顧，記錄學到的教訓</td></tr>
+</table>
+
+<h2>🛤️ 三條路線：按專案規模自適應</h2>
+
+<table>
+<tr><th>路線</th><th>適合</th><th>需求文件</th><th>流程</th></tr>
+<tr>
+  <td><strong>Quick Flow</strong></td>
+  <td>bug fix、1-15 stories</td>
+  <td>tech-spec + code</td>
+  <td>跳過前三階段，一條 <code>bmad-quick-dev</code> 搞定</td>
+</tr>
+<tr>
+  <td><strong>BMad Method</strong></td>
+  <td>產品、平台、10-50+ stories</td>
+  <td>PRD + Architecture + UX</td>
+  <td>完整四階段</td>
+</tr>
+<tr>
+  <td><strong>Enterprise</strong></td>
+  <td>合規需求、30+ stories</td>
+  <td>PRD + Architecture + Security + DevOps</td>
+  <td>四階段 + 安全與維運文檔</td>
+</tr>
+</table>
+
+<h2>🔄 Agent 之間如何協作？—「文件即合約」</h2>
+
+<p>BMAD 的核心設計哲學：<strong>每個 phase 的產出文件，就是下個 phase 的 context</strong>。</p>
+
+<ol>
+  <li>Mary 產出 product-brief → John 接手寫 PRD 時自動載入</li>
+  <li>John 產出 PRD → Winston 設計架構時知道所有約束條件</li>
+  <li>Winston 產出 architecture.md → Amelia 開發時知道要用什麼設計模式</li>
+  <li>每張 Story 檔案 = Amelia 的聚焦 context，不用翻對話歷史</li>
+  <li>Amelia 開發完 → Quinn 接手 code review，有完整的架構文件可對照</li>
+</ol>
+
+<p><code>bmad-help</code> skill 在每個 workflow 結束後自動檢查專案狀態，推薦下一步。workflow 之間用 <code>preceded-by</code> / <code>followed-by</code> 欄位確保依賴關係。</p>
+
+<h2>⚔️ 與其他 AI 開發框架的差異</h2>
+
+<table>
+<tr><th>框架</th><th>定位</th><th>BMAD 的差異</th></tr>
+<tr>
+  <td>Claude Code / Codex CLI</td>
+  <td>單一 agent，靠對話寫 code</td>
+  <td>BMAD 是多 agent 團隊，有結構化文件交接，不是靠對話記憶</td>
+</tr>
+<tr>
+  <td>OpenAI Codex Sites / Plugins</td>
+  <td>用自然語言指揮 SaaS</td>
+  <td>BMAD 是開發流程框架，Codex 是工作流指揮平台 — 互補</td>
+</tr>
+<tr>
+  <td>Devin / Cursor Agent</td>
+  <td>端到端 AI 寫 code</td>
+  <td>BMAD 不是取代你寫 code，是引導你「想清楚再寫」— human-in-the-loop</td>
+</tr>
+</table>
+
+<h2>🎯 為什麼這個框架重要？</h2>
+
+<div class="callout">
+<strong>BMAD 解決了 AI 開發最根本的痛點：</strong>單一 AI agent 的對話歷史會膨脹、遺忘、幻覺。BMAD 用「文件即 context」的設計，讓每個階段有明確的輸入文件、產出文件、決策記錄 — <strong>把 AI 從黑箱變白箱</strong>。
+</div>
+
+<p>一位實戰開發者的評價（dev.to）：</p>
+<ul>
+  <li>「移除了 AI coding 的黑箱感 — 不是臨時 prompt，而是先產 artifacts（PRD、架構草圖、user story）再寫 code」</li>
+  <li>「BMAD 把敏捷紀律套到 AI 開發上 — 讓 AI 變得<strong>可預測</strong>」</li>
+</ul>
+
+<h2>⚠️ 限制與挑戰</h2>
+<ol>
+  <li><strong>學習曲線：</strong>34+ workflow 不是一個下午能學會的，需要團隊紀律</li>
+  <li><strong>文件開銷：</strong>每個 phase 產出文件 = 更多 token 消耗。Quick Flow 路線是省錢方案</li>
+  <li><strong>IDE 依賴：</strong>目前主要支援 Claude Code / Cursor，其他 IDE 的生態仍在擴展</li>
+  <li><strong>不適合所有專案：</strong>單頁改個顏色不需要跑完整四階段</li>
+  <li><strong>需要 Claude 授權：</strong>BMAD 深度整合 Claude，用其他 LLM 效果可能打折</li>
+</ol>
+
+<h2>🔮 對我們的啟示</h2>
+<p>BMAD 的「文件即 context」設計，直接對應我們在 <strong>LINE 保險客服機器人</strong>和<strong>內容策展管線</strong>中的架構理念：</p>
+<ul>
+  <li>每個 phase 產出標準化文件 → 跟我們的「搜→篩→分析→發布」四階段對齊</li>
+  <li>多 agent 角色分工 → 我們的子 agent 也可以引入「人設 + 專長」設計</li>
+  <li>品質閘門（PASS/CONCERNS/FAIL）→ 可導入內容管線的品質篩選</li>
+  <li>三條自適應路線 → aithuc / dkyc / learn 三站可用不同路線</li>
+</ul>
+
+<footer>
+<p>📰 來源：<a href="https://github.com/bmad-code-org/BMAD-METHOD">GitHub: BMAD-METHOD</a> · <a href="https://dev.to/extinctsion/bmad-the-agile-framework-that-makes-ai-actually-predictable-5fe7">DEV.to 實戰心得</a> · <a href="https://bennycheung.github.io/bmad-reclaiming-control-in-ai-dev">Benny's Mind Hack</a></p>
+<p>© 2026 DKY · Hermes Lab 自主分析發布</p>
+</footer>
+</body>
+</html>
