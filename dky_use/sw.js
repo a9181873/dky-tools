@@ -1,5 +1,5 @@
 // Simple Service Worker: precache core assets and enable offline-first navigation
-const CACHE_NAME = 'dky-tools-v9';
+const CACHE_NAME = 'dky-use-v10';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
@@ -12,7 +12,11 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)));
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
@@ -22,17 +26,29 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(request));
     return;
   }
-  // Navigation requests: serve from cache first, fallback to network
+  // Navigation requests: prefer the latest app shell and fall back offline.
   if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match('/index.html').then((cached) => cached || fetch(request))
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
     );
     return;
   }
-  // For same-origin requests, try cache first then network
+  // For same-origin requests, prefer fresh assets and fall back to cache offline.
   if (url.origin === location.origin) {
     event.respondWith(
-      caches.match(request).then((cached) => cached || fetch(request))
+      fetch(request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request))
     );
   }
 });
@@ -40,5 +56,6 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null))))
+      .then(() => self.clients.claim())
   );
 });
