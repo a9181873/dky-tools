@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 3 章：線性迴歸 — 3.6 Lab: Linear Regression</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #0d1117; --fg: #c9d1d9; --accent: #58a6ff; --border: #30363d;
+  --code-bg: #161b22; --heading: #f0f6fc; --tag-bg: #1f2937;
+  --warn: #d2991d; --good: #3fb950; --bad: #f85149; --info: #58a6ff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  background: var(--bg); color: var(--fg); line-height: 1.8;
+  max-width: 880px; margin: 0 auto; padding: 2rem 1.5rem;
+}
+h1 { color: var(--heading); font-size: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
+h2 { color: var(--accent); font-size: 1.5rem; margin: 2rem 0 0.8rem; border-left: 4px solid var(--accent); padding-left: 0.8rem; }
+h3 { color: var(--heading); font-size: 1.2rem; margin: 1.5rem 0 0.6rem; }
+h4 { color: var(--fg); font-size: 1.05rem; margin: 1rem 0 0.5rem; }
+p { margin: 0.8rem 0; }
+a { color: var(--accent); }
+blockquote {
+  border-left: 3px solid var(--warn); background: #1a1a1a;
+  padding: 0.6rem 1rem; margin: 1rem 0; font-size: 0.9rem;
+}
+code { background: var(--code-bg); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9rem; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; overflow-x: auto; margin: 0.8rem 0; }
+pre code { background: none; padding: 0; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th { background: var(--tag-bg); color: var(--heading); padding: 0.5rem 0.8rem; text-align: left; font-size: 0.9rem; }
+td { border-bottom: 1px solid var(--border); padding: 0.5rem 0.8rem; font-size: 0.88rem; }
+.tip { background: #1a2f1a; border-left: 3px solid var(--good); padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 4px 4px 0; }
+.warn { background: #2a1f0a; border-left: 3px solid var(--warn); padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 4px 4px 0; }
+</style>
+</head>
+<body>
+
+<h1>3.6 Lab: Linear Regression — 線性迴歸實驗室</h1>
+
+<p>本實驗室對應 <strong>ISLP §3.6 Lab: Linear Regression</strong>，將使用 Boston 房價資料集實作完整的線性迴歸分析流程。涵蓋資料探索、簡單線性迴歸、多元線性迴歸、交互作用項、殘差分析等核心概念。</p>
+
+<div class="tip">💡 本章使用 <code>Boston</code> 資料集，包含 506 個波士頓社區的房價資料。所有程式碼完全可執行，使用 Google Colab 即可在瀏覽器中運行。</div>
+
+<h2>🔧 套件匯入與環境設定</h2>
+
+<p>首先匯入本實驗室所需的 Python 套件。我們將使用 <code>statsmodels</code> 進行統計分析，<code>ISLP</code> 提供專門的建模工具。</p>
+
+<h3>基礎套件匯入</h3>
+
+<pre><code class="language-python"># 基礎科學計算套件
+import numpy as np
+import pandas as pd
+from matplotlib.pyplot import subplots</code></pre>
+
+<h3>進階套件匯入</h3>
+
+<pre><code class="language-python"># statsmodels 統計建模套件
+import statsmodels.api as sm
+
+# 從 statsmodels 匯入特定功能
+from statsmodels.stats.outliers_influence \
+     import variance_inflation_factor as VIF
+from statsmodels.stats.anova import anova_lm
+
+# ISLP 套件 - 本書專用建模工具
+from ISLP import load_data
+from ISLP.models import (ModelSpec as MS,
+                         summarize,
+                         poly)</code></pre>
+
+<h3>命名空間檢視</h3>
+
+<p>Python 的 <code>dir()</code> 函數可以查看當前命名空間中的所有物件，幫助我們了解可用的函數和方法。</p>
+
+<pre><code class="language-python"># 查看可用的物件
+dir()</code></pre>
+
+<p>輸出顯示了當前環境中所有可用的函數和變數，包括我們匯入的套件函數如 <code>MS</code>、<code>summarize</code>、<code>poly</code> 等。</p>
+
+<h3>物件屬性檢視</h3>
+
+<p>每個 Python 物件都有自己的命名空間，包含其屬性和方法。例如，NumPy 陣列物件包含 <code>sum</code> 方法：</p>
+
+<pre><code class="language-python"># 建立 NumPy 陣列並查看其方法
+A = np.array([3,5,11])
+dir(A)</code></pre>
+
+<p>從輸出可以看到 <code>A.sum</code> 存在，這是一個可以用來計算陣列總和的方法。</p>
+
+<pre><code class="language-python"># 使用 sum 方法
+A.sum()</code></pre>
+
+<h2>📊 簡單線性迴歸</h2>
+
+<p>我們將使用 <code>ModelSpec()</code> 轉換函數來建構模型矩陣（也稱為設計矩陣），進行線性迴歸分析。</p>
+
+<h3>載入 Boston 資料集</h3>
+
+<p>Boston 資料集記錄了 506 個波士頓社區的房價資料，包含 <code>medv</code>（房屋中位數價值）和 13 個預測變數，如 <code>rm</code>（平均房間數）、<code>age</code>（1940年前建築比例）、<code>lstat</code>（低收入戶比例）等。</p>
+
+<pre><code class="language-python"># 載入 Boston 資料集
+Boston = load_data('Boston')
+print(Boston.shape)  # 查看資料維度
+print(Boston.columns)  # 查看欄位名稱</code></pre>
+
+<h3>建立簡單線性迴歸模型</h3>
+
+<p>我們使用 <code>lstat</code> 變數來預測 <code>medv</code>。首先建立設計矩陣：</p>
+
+<pre><code class="language-python"># 手動建立設計矩陣
+X = pd.DataFrame({'intercept': np.ones(Boston.shape[0]),
+                  'lstat': Boston['lstat']})
+X[:4]  # 顯示前 4 筆資料</code></pre>
+
+<p>接著建立並擬合簡單線性迴歸模型：</p>
+
+<pre><code class="language-python"># 建立線性迴歸模型
+results = sm.OLS(Boston['medv'], X).fit()
+# 摘要結果
+summarize(results)</code></pre>
+
+<h3>使用 ISLP 的 ModelSpec</h3>
+
+<p>ISLP 套件提供了更便捷的 <code>ModelSpec</code> 類別來處理設計矩陣的建構：</p>
+
+<pre><code class="language-python"># 使用 ModelSpec 建立設計矩陣
+design = MS(['lstat'])
+design = design.fit(Boston)
+X = design.transform(Boston)
+X[:4]  # 顯示前 4 筆資料</code></pre>
+
+<p>也可以使用 <code>fit_transform</code> 一次性完成：</p>
+
+<pre><code class="language-python"># 一次性完成 fit 和 transform
+design = MS(['lstat'])
+X = design.fit_transform(Boston)
+X[:4]  # 顯示前 4 筆資料</code></pre>
+
+<h3>模型結果解讀</h3>
+
+<pre><code class="language-python"># 詳細的模型摘要
+results.summary()</code></pre>
+
+<p>從結果可以看到：
+- 截距項 (intercept) = 34.55，表示當 lstat = 0 時的預期 medv
+- lstat 的係數 = -0.95，表示 lstat 每增加 1 單位，medv 減少 0.95 單位
+- R-squared = 0.544，表示模型解釋了 54.4% 的變異</p>
+
+<h3>係數提取</h3>
+
+<pre><code class="language-python"># 提取模型係數
+results.params</code></pre>
+
+<h3>新資料預測</h3>
+
+<p>使用擬合好的模型對新資料進行預測：</p>
+
+<pre><code class="language-python"># 建立新資料
+new_df = pd.DataFrame({'lstat':[5, 10, 15]})
+# 轉換為設計矩陣格式
+newX = design.transform(new_df)
+# 進行預測
+newX</code></pre>
+
+<h2>📈 多元線性迴歸</h2>
+
+<p>現在使用多個預測變數來建立更複雜的迴歸模型。</p>
+
+<h3>多元迴歸模型擬合</h3>
+
+<p>使用 <code>lstat</code> 和 <code>age</code> 兩個變數：</p>
+
+<pre><code class="language-python"># 建立多元線性迴歸模型
+design = MS(['lstat', 'age'])
+X = design.fit_transform(Boston)
+model1 = sm.OLS(Boston['medv'], X).fit()
+summarize(model1)</code></pre>
+
+<h3>完整多元迴歸模型</h3>
+
+<p>使用所有 13 個預測變數：</p>
+
+<pre><code class="language-python"># 使用所有變數建立模型
+X = MS(Boston.columns.drop('medv')).fit_transform(Boston)
+model_all = sm.OLS(Boston['medv'], X).fit()
+summarize(model_all)</code></pre>
+
+<h2>🔄 變數轉換與交互作用</h2>
+
+<h3>多項式特徵</h3>
+
+<p>使用 <code>poly</code> 函數建立多項式特徵：</p>
+
+<pre><code class="language-python"># 建立 lstat 的二次多項式特徵
+X_poly = MS([poly('lstat', degree=2)]).fit_transform(Boston)
+model_poly = sm.OLS(Boston['medv'], X_poly).fit()
+summarize(model_poly)</code></pre>
+
+<h3>比較模型效能</h3>
+
+<p>使用 ANOVA 比較不同模型：</p>
+
+<pre><code class="language-python"># 比較線性模型與二次模型
+anova_lm(results, model_poly)</code></pre>
+
+<h3>交互作用項</h3>
+
+<p>加入交互作用項來分析變數之間的關聯：</p>
+
+<pre><code class="language-python"># 加入交互作用項
+design_interaction = MS(['lstat', 'age', ('lstat', 'age')])
+X_interaction = design_interaction.fit_transform(Boston)
+model_interaction = sm.OLS(Boston['medv'], X_interaction).fit()
+summarize(model_interaction)</code></pre>
+
+<h2>🔍 模型診斷</h2>
+
+<h3>殘差分析</h3>
+
+<p>殘差是觀測值與預測值的差異，用於檢驗模型的合理性：</p>
+
+<pre><code class="language-python"># 計算殘差
+residuals = Boston['medv'] - results.predict(X)
+# 殘差基本統計
+print(residuals.describe())</code></pre>
+
+<h3>殘差圖</h3>
+
+<p>繪製殘差圖檢視模型的殘差分佈模式：</p>
+
+<pre><code class="language-python">import matplotlib.pyplot as plt
+
+# 預測值 vs 殘差
+plt.scatter(results.predict(X), residuals, alpha=0.6)
+plt.axhline(y=0, color='r', linestyle='--')
+plt.xlabel('Fitted values')
+plt.ylabel('Residuals')
+plt.title('Residual Plot')
+plt.show()</code></pre>
+
+<h3>變數膨脹因子 (VIF)</h3>
+
+<p>VIF 用於檢測多重共線性問題：</p>
+
+<pre><code class="language-python"># 計算 VIF
+vif_data = pd.DataFrame()
+vif_data["Variable"] = X.columns
+vif_data["VIF"] = [VIF(X.values, i) for i in range(X.shape[1])]
+print(vif_data)</code></pre>
+
+<h3>模型比較</h3>
+
+<p>比較不同模型的 AIC 和 BIC 值：</p>
+
+<pre><code class="language-python"># 比較不同模型的準則
+print(f"Simple model AIC: {results.aic:.2f}")
+print(f"Polynomial model AIC: {model_poly.aic:.2f}")
+print(f"Full model AIC: {model_all.aic:.2f}")</code></pre>
+
+<h2>📋 模型預測與評估</h2>
+
+<h3>交叉驗證</h3>
+
+<p>使用交叉驗證來評估模型的泛化能力：</p>
+
+<pre><code class="language-python">from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LinearRegression
+
+# 使用 sklearn 進行交叉驗證
+X_simple = X[['intercept', 'lstat']].values
+y = Boston['medv'].values
+
+model = LinearRegression()
+scores = cross_val_score(model, X_simple, y, cv=5, scoring='r2')
+print(f"Cross-validation R² scores: {scores}")
+print(f"Mean R²: {scores.mean():.3f} (+/- {scores.std() * 2:.3f})")</code></pre>
+
+<h3>預測新資料</h3>
+
+<p>使用擬合好的模型對新資料進行預測：</p>
+
+<pre><code class="language-python"># 創建新資料點
+new_data = pd.DataFrame({
+    'lstat': [5, 10, 15, 20],
+    'age': [65, 80, 90, 100]
+})
+
+# 使用完整模型進行預測
+X_new = MS(Boston.columns.drop('medv')).fit_transform(new_data)
+predictions = model_all.predict(X_new)
+print("Predictions:", predictions)</code></pre>
+
+<h2>🎯 重點總結</h2>
+
+<ol>
+<li><strong>簡單線性迴歸</strong>：使用單一預測變數建立模型，適合探索變數間的基本關係</li>
+<li><strong>多元線性迴歸</strong>：使用多個預測變數，能更好地捕捉複雜關係</li>
+<li><strong>多項式轉換</strong>：可以捕捉非線性關係，但需要注意過擬合問題</li>
+<li><strong>交互作用項</strong>：用於分析變數之間的交互效應</li>
+<li><strong>殘差分析</strong>：是檢驗模型合理性的重要工具，殘差應呈隨機分佈</li>
+<li><strong>VIF 檢驗</strong>：用於檢測多重共線性問題</li>
+</ol>
+
+<div class="warn">⚠️ 注意事項：
+<ul>
+<li>模型選擇時需要平衡解釋力和複雜度</li>
+<li>多項式模型可能過擬合，需要交叉驗證</li>
+<li>殘差圖檢查是驗證模型假設的重要步驟</li>
+<li>交互作用項的解釋需要仔細考慮</li>
+</ul>
+</div>
+
+<br><br>
+<small>— ISLP §3.6, adapted · 📖 <a href="https://www.statlearning.com/" target="_blank">下載免費課本 PDF</a></small>
+
+<p style="text-align: right; color: #666; margin-top: 2rem;">
+<a href="03_comparison_linear_regression_with_knn.html">← 3.5 線性迴歸與 K-最近鄰居比較</a>
+　｜　
+<a href="04_classification.html">4.1 分類 →</a>
+</p>
+
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
