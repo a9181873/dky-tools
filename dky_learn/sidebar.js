@@ -1,20 +1,15 @@
-// DKY Learn — shared sidebar injection
+// 學習中心 — shared sidebar
 (function() {
   if (document.querySelector('.dky-sidebar')) return;
-  
-  const path = window.location.pathname;
-  
+
   const sidebarHTML = `
   <nav class="dky-sidebar sidebar">
     <div class="sidebar-header">
-      <a href="/">📚 DKY 學習中心</a>
-      <div class="sub">統計學習 · 機器學習 · Python</div>
+      <a href="/">📚 學習中心</a>
+      <div class="sub">系統課程 · 精選資源 · 自由探索</div>
     </div>
     <div class="sidebar-nav">
-      <div class="section-title">
-        統計學習入門 (ISLP)
-        <a href="/ISLP_textbook.pdf" class="textbook-link" title="下載課本 PDF">📖</a>
-      </div>
+      <div class="section-title">📊 統計學習入門 (ISLP)</div>
       <a href="/statistics/02_What_Is_Statistical_Learning.html" class="nav-item done">2.1 什麼是統計學習？</a>
       <a href="/statistics/02_Assessing_Model_Accuracy.html" class="nav-item done">2.2 評估模型準確度</a>
       <a href="/statistics/02_Lab_Python_Introduction.html" class="nav-item done">2.3 Lab: Python 入門</a>
@@ -22,18 +17,18 @@
       <a href="/statistics/3.2_multiple_linear_regression.html" class="nav-item done">3.2 多元線性迴歸</a>
       <a href="/statistics/3_3_other_considerations.html" class="nav-item done">3.3 迴歸模型的其他考量</a>
       <a href="/statistics/3.4_the_marketing_plan.html" class="nav-item done">3.4 行銷計畫</a>
-      <span class="nav-item pending">3.5 線性迴歸 vs KNN</span>
+      <a href="/statistics/3.5_linear_regression_vs_knn.html" class="nav-item done">3.5 線性迴歸 vs KNN</a>
+      <a href="/statistics/3.6_lab_linear_regression.html" class="nav-item done">3.6 Lab: 線性迴歸</a>
 
-      <div class="section-title" style="margin-top:1.2rem">機器學習 <span class="coming">即將推出</span></div>
+      <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
-      <div class="section-title" style="margin-top:0.8rem">Python <span class="coming">即將推出</span></div>
-
-      <div class="section-title" style="margin-top:0.8rem">論文研究</div>
-      <a href="/research/" class="nav-item-link">Agentic Boosting Weak Models</a>
+      <div class="section-title" style="margin-top:0.8rem">📖 精選資源</div>
+      <a href="/research/prompt-engineering-guide.html" class="nav-item-link">Prompt Engineering Guide</a>
+      <a href="/research/" class="nav-item-link">→ 全部資源</a>
     </div>
     <div class="sidebar-footer">
       <a href="https://tools.dky.tw">工具箱</a>
-      <a href="https://use.dky.tw">工作台</a>
+      <a href="https://www.statlearning.com/">ISLP 課本</a>
     </div>
   </nav>`;
 
@@ -57,10 +52,6 @@
     padding: 0.5rem 1rem 0.3rem; font-size: 0.72rem; text-transform: uppercase;
     letter-spacing: 0.04em; color: #8b949e; display: flex; align-items: center; gap: 0.5rem;
   }
-  .textbook-link {
-    font-size: 0.85rem; text-decoration: none; opacity: 0.6; transition: opacity 0.15s;
-  }
-  .textbook-link:hover { opacity: 1; }
   .nav-item {
     display: block; padding: 0.35rem 1rem 0.35rem 1.5rem; font-size: 0.84rem;
     color: #484f58; border-left: 2px solid transparent; text-decoration: none;
@@ -69,10 +60,8 @@
   .nav-item.done { color: #8b949e; }
   a.nav-item.done:hover { color: #f0f6fc; border-left-color: #58a6ff; }
   .nav-item.pending { color: #d2991d; }
-  .nav-item.future { color: #484f58; }
   .nav-item.done::before { content: "✓ "; color: #3fb950; font-size: 0.7rem; }
   .nav-item.pending::before { content: "○ "; color: #d2991d; font-size: 0.7rem; }
-  .nav-item.future::before { content: "· "; color: #484f58; }
   .nav-item-link {
     display: block; padding: 0.35rem 1rem 0.35rem 1.5rem; font-size: 0.84rem;
     color: #58a6ff; border-left: 2px solid transparent; text-decoration: none;
