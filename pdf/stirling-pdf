@@ -1,0 +1,5 @@
+#!/bin/sh
+if [ -f /opt/data/scripts/stirling_pdf_client.py ]; then
+  exec python3 /opt/data/scripts/stirling_pdf_client.py "$@"
+fi
+exec python3 /home/ubuntu/.hermes/scripts/stirling_pdf_client.py "$@"
