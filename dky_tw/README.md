@@ -24,14 +24,43 @@
     支援文字或直接將「任何檔案 (圖片、文件)」拖曳轉換為純文字的 Base64 Data URI，也能無損解碼回原本檔案。
 *   **⚖️ 文字內容比對 (Diff)**
     輕量級的程式碼 / 文本行對比工具，瞬間掌握內容的增減差異。
+*   **🧰 PDF 進階工具 (Stirling PDF)**
+    導向自架 Stirling PDF (`https://pdf.dky.tw`)，支援 OCR、壓縮、合併、分割、擷取頁面、轉 Word、轉文字與 Hermes 自動化。
 *   **📱 QR Code 生產器 (QR Code Generator)**
     無廣告、無浮水印，輸入網址立即產出高解析度的 Canvas 畫布，支援下載成純淨 PNG。
 
 ## 🚀 部署架構 (Deployment)
 
 1.  **靜態工具箱 + Pages Function**：大多數工具仍是純前端本機運算；IDEA Box 透過 Cloudflare Pages Function 代理 AI API，避免 API Key 暴露在瀏覽器。
-2.  **邊緣網路**：針對 Cloudflare Pages 最佳化設計，建議設定 `dky_tw` 作為建置根目錄 (Root directory)。
-3.  **無資料庫架構**：不儲存提案內容，瀏覽器送出後由 Pages Function 即時呼叫模型並回傳。
+2.  **PDF 進階入口**：PDF 大型處理交給 OCI 上的 Stirling PDF，`/pdf` 會重新導向 `https://pdf.dky.tw`。
+3.  **邊緣網路**：針對 Cloudflare Pages 最佳化設計，建議設定 `dky_tw` 作為建置根目錄 (Root directory)。
+4.  **無資料庫架構**：不儲存提案內容，瀏覽器送出後由 Pages Function 即時呼叫模型並回傳。
+
+### PDF 進階工具
+
+`dky_tw` 不再提供重複的陽春 PDF 工具箱入口；首頁與導覽列保留「PDF 進階」，連到 `https://pdf.dky.tw`。
+
+可用能力：
+
+* OCR：繁中 `chi_tra` + 英文 `eng`
+* 壓縮 PDF
+* 合併與分割 PDF
+* 擷取指定頁面
+* PDF 轉文字
+* PDF 轉 Word
+* Hermes 自動化批次處理
+
+舊路徑：
+
+```text
+/pdf -> https://pdf.dky.tw
+```
+
+完整文件：
+
+```text
+../docs/stirling-pdf-hermes.md
+```
 
 ### Cloudflare Pages 設定
 

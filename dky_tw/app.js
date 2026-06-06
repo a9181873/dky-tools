@@ -21,8 +21,7 @@ const ROUTES = {
   '/unit': 'unit',
   '/imgzip': 'imgzip',
   '/videozip': 'videozip',
-  '/video2gif': 'video2gif',
-  '/pdf': 'pdf'
+  '/video2gif': 'video2gif'
 };
 
 const metaList = {
@@ -45,7 +44,7 @@ const metaList = {
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
   videozip: { icon: '🎬', title: '影片壓縮', desc: '純瀏覽器端壓縮，GPU 硬體加速。提供 Discord/WhatsApp/郵件等常用輸出大小，自訂目標。100% 本機處理，無隱私風險！' },
   video2gif: { icon: '🎞️', title: '影片轉 GIF', desc: '擷取影片片段轉成 GIF 動圖。自訂幀率、畫質、起迄秒數，適合 Discord/Telegram 貼圖。純本機處理，零上傳。' },
-  pdf: { icon: '📄', title: 'PDF 工具箱', desc: '檢視 + 文字選取 / 拆頁合併重排旋轉 / 轉成圖片 zip。完全在瀏覽器內處理，零上傳。' }
+  stirlingpdf: { icon: '🧰', title: 'PDF 進階工具', desc: '開啟 Stirling PDF 自架服務，支援 OCR、壓縮、合併、分割、轉 Word 與批次處理。', href: 'https://pdf.dky.tw' }
 };
 
 window.tzDatabase = [
@@ -162,12 +161,14 @@ function currencyOptionsHTML(selected = 'USD') {
 const renderFields = {
   home: () => `
     <div class="tool-grid">
-      ${Object.entries(metaList).map(([k, meta]) => `
-        <div class="tool-card" onclick="UI.navigate('/${k}')">
+      ${Object.entries(metaList).map(([k, meta]) => {
+        const action = meta.href ? `window.open('${meta.href}', '_blank', 'noopener,noreferrer')` : `UI.navigate('/${k}')`;
+        return `
+        <div class="tool-card" onclick="${action}">
           <div class="icon">${meta.icon}</div><div class="label">${meta.title}</div>
           <div style="font-size:0.8rem; color:var(--muted); margin-top:8px; line-height:1.4">${meta.desc}</div>
         </div>
-      `).join('')}
+      `;}).join('')}
     </div>
   `,
   qr: () => `
@@ -1726,6 +1727,10 @@ const UI = {
   },
   searchSelect(key) {
     document.getElementById('search-overlay')?.remove();
+    if (metaList[key]?.href) {
+      window.open(metaList[key].href, '_blank', 'noopener,noreferrer');
+      return;
+    }
     this.navigate(`/${key}`);
   },
 
@@ -2133,6 +2138,10 @@ window.UI = UI;
 
 function renderRoute() {
   const path = location.pathname;
+  if (path === '/pdf') {
+    location.replace('https://pdf.dky.tw');
+    return;
+  }
   let route = ROUTES[path];
   
   // Try mapping root or /home to home explicitly
@@ -2143,9 +2152,8 @@ function renderRoute() {
 
   const meta = metaList[route] || (route === 'home' ? { title: '多功能工具箱', desc: '純客戶端、無需伺服器的實用戰備箱' } : { title: '工具', desc: '' });
 
-  const cardClass = route === 'pdf' ? 'card card--compact' : 'card';
   app.innerHTML = `
-    <div class="${cardClass}">
+    <div class="card">
       <h2>${meta.title}</h2>
       <p style="color:var(--muted);margin-top:4px">${meta.desc}</p>
       ${renderFields[route]?.() || '<p>頁面未找到</p>'}
