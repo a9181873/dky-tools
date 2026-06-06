@@ -4,7 +4,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prompt-Engineering-Guide — 提示工程開源知識庫 — DKY 研究筆記</title>
+<title>Prompt-Engineering-Guide — 提示工程開源學習資源 — DKY 學習中心</title>
 <style>
 :root {
   --bg: #0d1117; --card: #161b22; --border: #30363d;
@@ -35,95 +35,73 @@ th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--bor
 th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.85em; }
 td { font-size: 0.9em; }
 .one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
-.warn { background: #2a1a1a; border-left: 3px solid var(--red); padding: 10px 14px; font-size: 0.85em; border-radius: 0 6px 6px 0; margin: 10px 0; }
-.app-box { background: #142a1a; border-left: 3px solid var(--green); padding: 10px 14px; font-size: 0.85em; border-radius: 0 6px 6px 0; margin: 8px 0; }
 @media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
 </style>
 </head>
 <body>
 
-<h1>Prompt-Engineering-Guide：提示工程領域最完整的開源知識庫</h1>
+<h1>Prompt-Engineering-Guide：提示工程開源學習資源</h1>
 <div class="meta">
   GitHub: <a href="https://github.com/dair-ai/Prompt-Engineering-Guide" target="_blank">dair-ai/Prompt-Engineering-Guide</a> · 97K+ Stars · DAIR.AI 維護<br>
-  線上版: <a href="https://www.promptingguide.ai/" target="_blank">promptingguide.ai</a>
+  線上閱讀: <a href="https://www.promptingguide.ai/" target="_blank">promptingguide.ai</a>
 </div>
 
-<div class="one-liner">「不是一個工具，而是一張地圖——涵蓋 11 種提示技術、80+ 工具推薦、數十篇論文索引，AI Agent 開發者必備參考書。」</div>
+<div class="one-liner">由 DAIR.AI 維護的免費提示工程學習資源，涵蓋 11 種提示技術、含論文引用、Notebook 實作、多語言支援。</div>
 
 <div class="card">
-<h2>📊 關鍵數據</h2>
+<h2>📊 資源概覽</h2>
 <table>
-  <tr><th>指標</th><th>數據</th></tr>
+  <tr><th>項目</th><th>內容</th></tr>
   <tr><td>GitHub Stars</td><td style="color:var(--green);font-weight:700">97,000+</td></tr>
-  <tr><td>涵蓋提示技術</td><td>11 種方法論（Zero-Shot → ReAct → APE）</td></tr>
-  <tr><td>推薦工具數</td><td>80+，分 6 大類（開發/測試/部署/市集/圖片生成）</td></tr>
-  <tr><td>論文收錄</td><td>數十篇，含 RAG 研究專區、LLM Agents 研究專區</td></tr>
-  <tr><td>多語言支援</td><td>含繁體中文（zh-TW），另有日/韓/法/西/葡/德/俄等</td></tr>
-  <tr><td>互動學習</td><td>內建 Prompt Engineering 講義 PDF + Notebook 實作</td></tr>
+  <tr><td>提示技術</td><td>11 種方法論：Zero-Shot、Few-Shot、CoT、ReAct、RAG、ToT、Self-Consistency、PAL、Prompt Chaining、APE、ART</td></tr>
+  <tr><td>工具收錄</td><td>80+，涵蓋開發框架、測試工具、部署平台、提示市集、圖片生成</td></tr>
+  <tr><td>論文引用</td><td>每項技術附原始論文連結，含 RAG 研究專區、LLM Agents 研究專區</td></tr>
+  <tr><td>多語言</td><td>繁體中文、日文、韓文、法文、西班牙文、葡萄牙文、德文、俄文等</td></tr>
+  <tr><td>互動學習</td><td>內建講義 PDF + Jupyter Notebook 實作範例</td></tr>
 </table>
 </div>
 
 <div class="card">
-<h2>🔧 核心技術拆解</h2>
+<h2>📚 涵蓋的提示技術</h2>
 <table>
-  <tr><th>技術</th><th>機制</th><th>對 DKY 體系的直接應用</th></tr>
-  <tr>
-    <td style="color:var(--accent);font-weight:600">ReAct</td>
-    <td>推理（Thought）→ 行動（Action）→ 觀察（Observation）循環</td>
-    <td>Hermes agent 底層邏輯；任何需工具呼叫的 AI Agent 都基於此模式</td>
-  </tr>
-  <tr>
-    <td style="color:var(--accent);font-weight:600">RAG</td>
-    <td>檢索外部知識庫 → 增強 LLM 生成品質</td>
-    <td>Paperless-ngx 文件問答、dkyc.info 跨論文查詢、Notion 知識庫檢索</td>
-  </tr>
-  <tr>
-    <td style="color:var(--accent);font-weight:600">Prompt Chaining</td>
-    <td>將複雜任務拆成多階段，輸出餵入下一階段</td>
-    <td>n8n 內容策展管線：搜集→篩選→分析→發布，每階段獨立 prompt</td>
-  </tr>
-  <tr>
-    <td style="color:var(--accent);font-weight:600">Chain-of-Thought</td>
-    <td>強制模型輸出中間推理步驟</td>
-    <td>複雜保單缺口分析、研究論文摘要，提升推理準確度</td>
-  </tr>
-  <tr>
-    <td style="color:var(--accent);font-weight:600">APE</td>
-    <td>自動搜尋最優 prompt 指令，取代人工試錯</td>
-    <td>n8n 工作流、子 agent 指令自動優化，不需手動調 prompt</td>
-  </tr>
-  <tr>
-    <td style="color:var(--accent);font-weight:600">Outlines</td>
-    <td>約束 LLM 輸出為嚴格的 JSON/Pydantic schema</td>
-    <td>保險公式提取、API 回應結構化、多模型審查報告格式統一</td>
-  </tr>
+  <tr><th>技術</th><th>簡介</th><th>代表論文</th></tr>
+  <tr><td>Zero-Shot</td><td>不給範例，直接下指令</td><td>—</td></tr>
+  <tr><td>Few-Shot</td><td>提供少量範例引導模型</td><td>Brown et al. 2020</td></tr>
+  <tr><td>Chain-of-Thought (CoT)</td><td>要求模型輸出中間推理步驟</td><td>Wei et al. 2022</td></tr>
+  <tr><td>ReAct</td><td>推理+行動交錯，讓 LLM 使用外部工具</td><td>Yao et al. 2022</td></tr>
+  <tr><td>RAG</td><td>檢索外部知識庫增強生成品質</td><td>Meta AI</td></tr>
+  <tr><td>Tree of Thoughts (ToT)</td><td>探索多條推理路徑，允許回溯</td><td>Yao et al. 2023</td></tr>
+  <tr><td>Self-Consistency</td><td>多次推理取多數共識</td><td>Wang et al. 2022</td></tr>
+  <tr><td>Prompt Chaining</td><td>拆解複雜任務為多階段</td><td>—</td></tr>
+  <tr><td>APE</td><td>自動搜尋最優 prompt 指令</td><td>Zhou et al. 2022</td></tr>
+  <tr><td>PAL</td><td>將推理步驟卸載到程式執行環境</td><td>Gao et al. 2022</td></tr>
+  <tr><td>ART</td><td>自動生成推理步驟並選擇工具</td><td>Paranjape et al. 2023</td></tr>
 </table>
 </div>
 
 <div class="card">
-<h2>🛠 值得關注的工具推薦</h2>
+<h2>🛠 收錄的工具生態（六大類）</h2>
 <table>
-  <tr><th>工具</th><th>類別</th><th>推薦理由</th></tr>
-  <tr><td>Ollama</td><td>本地 LLM 執行</td><td>DKY 環境已部署，Guide 列為 CLI 首選</td></tr>
-  <tr><td>Dify</td><td>LLM 應用平台</td><td>開源、視覺化 RAG 管道編排，可補 n8n LLM 節點不足</td></tr>
-  <tr><td>PromptBench</td><td>提示測試</td><td>評估 prompt 穩健性，支援多模型並行對比</td></tr>
-  <tr><td>DSPy</td><td>提示優化框架</td><td>DKY 已整合，Guide 將其列為 RAG 核心工具</td></tr>
-  <tr><td>Chainlit</td><td>Chat UI 框架</td><td>快速為任何 LLM 應用加上對話介面，適合原型展示</td></tr>
-  <tr><td>Outlines</td><td>結構化生成</td><td>強制 JSON 輸出，適合 API 回應格式、保險公式提取</td></tr>
+  <tr><th>類別</th><th>代表工具</th></tr>
+  <tr><td>提示設計</td><td>OpenAI Playground、Google AI Studio、LM Studio、Ollama、PromptPerfect</td></tr>
+  <tr><td>測試與評估</td><td>PromptBench、PromptTools、PromptInject、YiVal</td></tr>
+  <tr><td>開發框架</td><td>LangChain、LlamaIndex、DSPy、Guidance、Outlines</td></tr>
+  <tr><td>部署平台</td><td>Dify、Portkey AI、Chainlit、Agenta</td></tr>
+  <tr><td>市集與分享</td><td>FlowGPT、PromptBase、ShareGPT、PromptSource</td></tr>
+  <tr><td>圖片生成</td><td>DreamStudio、Lexica、Prodia</td></tr>
 </table>
 </div>
 
-<h2>💡 落地應用建議</h2>
-
-<div class="app-box">1. <strong>技術選型第一站</strong>：任何 LLM 相關技術選型，先翻 Guide 對應章節看推薦什麼，取代 Google 亂搜。80+ 工具按類別整理，省去大量評估時間。</div>
-<div class="app-box">2. <strong>n8n Prompt 模板庫</strong>：每個 n8n LLM 節點撰寫 prompt 時，直接引用 Guide 的 CoT/ReAct/Few-Shot 範本，確保 prompt 設計有學理依據而非靠感覺。</div>
-<div class="app-box">3. <strong>論文素材來源</strong>：Guide 每項技術都附原始論文（Yao 2022 ReAct、Wei 2022 CoT、Zhou 2022 APE 等），可作為 dkyc.info 研究筆記的持續素材來源，論文引用鏈完整可追溯。</div>
-<div class="app-box">4. <strong>優先評估三工具</strong>：Ollama（已部署）、Outlines（結構化輸出剛需）、Dify（n8n 互補）。這三個是對 DKY 體系立即有價值的工具。</div>
-
-<div class="warn">⚠ 注意：Dify 偏向視覺化 LLM 應用平台，與 n8n 有功能重疊。建議先在獨立環境試用，確認互補關係後再決定是否整合。PromptBench 測試需消耗 API 呼叫次數，使用免費模型測試時注意 rate limit。</div>
+<h2>🔗 相關資源</h2>
+<div class="card">
+  <p>• <a href="https://github.com/dair-ai/Prompt-Engineering-Guide" target="_blank">GitHub 倉庫</a></p>
+  <p>• <a href="https://www.promptingguide.ai/" target="_blank">線上閱讀版 (promptingguide.ai)</a></p>
+  <p>• <a href="https://github.com/dair-ai/Prompt-Engineering-Guide/blob/main/lecture/Prompt-Engineering-Lecture-Elvis.pdf" target="_blank">講義 PDF</a></p>
+  <p>• <a href="https://github.com/dair-ai" target="_blank">DAIR.AI 組織</a>（另有 ML、NLP、RL 等課程資源）</p>
+</div>
 
 <p style="color:var(--muted);font-size:0.8em;margin-top:30px;">
-  <a href="index.html" style="color:var(--accent);">← 回論文筆記列表</a>
+  <a href="index.html" style="color:var(--accent);">← 回學習資源列表</a>
 </p>
 
 <script src="../sidebar.js"></script>
