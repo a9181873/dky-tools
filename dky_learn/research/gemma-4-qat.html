@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemma 4 QAT：量化感知訓練讓模型壓縮到 1GB — 研究筆記</title>
+<meta name="description" content="Google DeepMind 釋出 Gemma 4 QAT 版，品質優於傳統 PTQ，E2B 文字版小於 1GB，能在手機上跑。">
+<style>
+  :root { --bg: #fff; --text: #333; --accent: #1a56db; --border: #e5e7eb; --code-bg: #f8f9fa; }
+  body { font-family: 'Noto Serif TC', serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: var(--text); background: var(--bg); line-height: 1.8; }
+  h1 { color: var(--accent); border-bottom: 2px solid var(--accent); padding-bottom: 0.5rem; }
+  h2 { color: var(--accent); margin-top: 2rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  th, td { border: 1px solid var(--border); padding: 0.6rem 0.8rem; text-align: left; }
+  th { background: var(--code-bg); font-weight: 600; }
+  .tag { display: inline-block; background: var(--accent); color: #fff; padding: 0.15rem 0.6rem; border-radius: 3px; font-size: 0.8rem; margin-right: 0.3rem; }
+  .meta { color: #888; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .highlight { background: #fef3c7; padding: 0.8rem 1rem; border-left: 3px solid #f59e0b; margin: 1rem 0; }
+  .takeaway { background: #ecfdf5; padding: 0.8rem 1rem; border-left: 3px solid #10b981; margin: 1rem 0; }
+  ul { padding-left: 1.5rem; }
+  li { margin: 0.3rem 0; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>Gemma 4 QAT：量化感知訓練</h1>
+<div class="meta">2026-06-06 · 來源：<a href="https://blog.google/innovation-and-ai/technology/developers-tools/quantization-aware-training-gemma-4/">Google AI Blog</a> · 作者：Olivier Lacombe & Omar Sanseviero (Google DeepMind)</div>
+
+<div class="highlight">
+<strong>一句話：</strong>Google DeepMind 將量化感知訓練（QAT）導入 Gemma 4 全系列，E2B 文字版記憶體需求壓到 <strong>&lt;1GB</strong>，品質優於傳統 PTQ，目標是讓 LLM 在手機和筆電上原生執行。
+</div>
+
+<h2>關鍵數據：VRAM 需求對比</h2>
+
+<table>
+<tr><th>模型</th><th>FP16</th><th>Q4_0（QAT）</th><th>Mobile 格式</th></tr>
+<tr><td>Gemma 4 E2B</td><td>2 GB</td><td>1.2 GB</td><td><strong>1 GB</strong></td></tr>
+<tr><td>Gemma 4 E4B</td><td>4 GB</td><td>2.1 GB</td><td>1.8 GB</td></tr>
+<tr><td>Gemma 4 12B</td><td>12 GB</td><td>6.2 GB</td><td>5.2 GB</td></tr>
+<tr><td>Gemma 4 26B MOE</td><td>26 GB</td><td>13.5 GB</td><td>11.3 GB</td></tr>
+</table>
+
+<p>壓縮率：FP16 → Mobile 格式減少 <strong>50–57%</strong> 記憶體。文字專用模式（去掉音訊/視覺編碼器）可再進一步降低。</p>
+
+<h2>機制拆解</h2>
+
+<h3>QAT vs PTQ</h3>
+<p>傳統的 PTQ（Post-Training Quantization）在訓練完成後才量化權重，無法「適應」量化造成的精度損失。QAT 則在訓練過程中就模擬量化效果，模型學會在低精度下仍保持推理品質。Google 的結果顯示 QAT 品質顯著優於 PTQ baseline。</p>
+
+<h3>行動端專用量化格式</h3>
+<p>針對手機晶片設計了四項優化：</p>
+<ul>
+  <li><strong>靜態 Activation</strong>：預計算縮放參數，免除執行期的動態計算，減輕手機晶片負擔</li>
+  <li><strong>Channel-wise 量化</strong>：壓縮結構對齊手機加速器（ANE / DSP）原生格式，不需慢速轉換</li>
+  <li><strong>局部 2-bit 量化</strong>：僅對 token 生成層極限壓縮（2-bit），核心推理層保留較高精度 — 以空間換品質</li>
+  <li><strong>Embedding + KV Cache 壓縮</strong>：詞彙表與短期記憶是記憶體大戶，針對性壓縮讓長對話不爆 RAM</li>
+</ul>
+
+<h3>模態選擇性部署</h3>
+<p>Gemma 4 是多模態模型（文字＋音訊＋視覺）。若只需要文字推理，可只部署文字編碼器，去掉 Per-Layer Embeddings 的音訊/視覺組件，進一步降低記憶體。</p>
+
+<h2>落地應用建議</h2>
+
+<div class="takeaway">
+<ul>
+  <li><strong>邊緣部署首選 E2B</strong> — 1GB VRAM 意味著 Raspberry Pi 5（8GB）或舊款 MacBook Air 都能跑</li>
+  <li><strong>QAT > PTQ</strong> — 以後選量化模型，優先找有 QAT checkpoint 的版本（目前僅 Gemma 4 有）</li>
+  <li><strong>llama.cpp 支援</strong> — Q4_0 是 GGUF 標準格式，換 checkpoint 即可沿用現有推理棧</li>
+  <li><strong>ARM 邊緣部署</strong> — 你的 ARM 機器（Oracle Ampere）跑 QAT 版 E2B/E4B 理論上可行，值得測試</li>
+  <li><strong>注意</strong> — Mobile 格式需專屬推理引擎，目前可能僅 MediaPipe / AI Edge SDK 支援，通用工具鏈待補齊</li>
+</ul>
+</div>
+
+<h2>來源與延伸閱讀</h2>
+<ul>
+  <li><a href="https://blog.google/innovation-and-ai/technology/developers-tools/quantization-aware-training-gemma-4/">Google AI Blog: Gemma 4 with Quantization-Aware Training</a></li>
+  <li><a href="https://ai.google.dev/gemma">Gemma 官方文件與模型下載</a></li>
+  <li><a href="https://huggingface.co/google">HuggingFace: google/gemma-4-*</a></li>
+</ul>
+
+<div class="meta" style="margin-top: 2rem;">
+  <span class="tag">量化</span>
+  <span class="tag">邊緣部署</span>
+  <span class="tag">Gemma</span>
+  <span class="tag">QAT</span>
+  <span class="tag">Google DeepMind</span>
+</div>
+
+</body>
+</html>
