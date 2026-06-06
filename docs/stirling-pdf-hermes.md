@@ -10,7 +10,7 @@
 - 服務部署位置：OCI 主機 `/home/ubuntu/stack`
 - 反向代理：Caddy `pdf.{$DOMAIN}` 反代到 `stirling-pdf:8080`
 - Hermes API 入口：`http://127.0.0.1:18080`
-- Stirling 版本：Docker image `stirlingtools/stirling-pdf:latest`
+- Stirling 版本：Docker image `stirlingtools/stirling-pdf:latest-fat` (已升級為 fat 映像以修復 PDF 轉 DOCX 功能)
 - 目前驗證版本：`2.11.0`
 
 `tools.dky.tw` 只保留連往 Stirling PDF 的入口；原本較陽春的瀏覽器端 PDF 工具箱入口已撤下，避免功能重複。底層 `pdftext` 模組仍保留，因為「文字 / PDF 比對」仍需在瀏覽器端抽取 PDF 文字。
@@ -126,7 +126,7 @@ Google Drive 替代流程：
 Stirling PDF 由 OCI `/home/ubuntu/stack/docker-compose.yml` 管理：
 
 - service：`stirling-pdf`
-- image：`stirlingtools/stirling-pdf:latest`
+- image：`stirlingtools/stirling-pdf:latest-fat`
 - internal network：供 Caddy 反代
 - host binding：`127.0.0.1:18080:8080`，供 Hermes 使用
 - volumes：
@@ -134,6 +134,19 @@ Stirling PDF 由 OCI `/home/ubuntu/stack/docker-compose.yml` 管理：
   - `./stirling-pdf/logs:/logs`
   - `./stirling-pdf/pipeline:/pipeline`
   - `./stirling-pdf/tessdata:/usr/share/tessdata`
+  - `./stirling-pdf/customFiles:/customFiles`
+
+### 純淨化補丁 (Clean UI Patch)
+為了解決 v2.x 網頁 UI 充斥商業版 Pro 升級提示、問卷、Sponsor、GitHub 等無關連結，我們採用靜態 HTML 注入 CSS 補丁的方式將其徹底隱藏：
+1. **環境變數調整**：
+   - `DISABLE_PIXEL: "true"`
+   - `SYSTEM_CUSTOMHTMLFILES: "true"`
+2. **注入自訂 CSS 到 index.html**：
+   由於 React 前端打包檔名含隨機 Hash，我們部署了 `patch_ui.py` 補丁腳本。該腳本在容器啟動後執行，會自動從 `/app/app.jar` 解壓出原始的 `static/index.html`，將隱藏 Pro UI 的 CSS (`hide-pro.css`) 內容以 `<style>` 標籤注入其 `<head>`，並輸出到 `/customFiles/static/index.html`。
+3. **相關補丁程式碼**：
+   - 靜態 CSS 規則：[hide-pro.css](file:///Users/jy/tools/dky-tools/pdf/stack/customFiles/static/css/hide-pro.css)
+   - 自動注入腳本：[patch_ui.py](file:///Users/jy/tools/dky-tools/pdf/stack/customFiles/patch_ui.py)
+   - 容器重啟後，只需在容器內執行一次：`docker exec -it stack-stirling-pdf-1 python3 /customFiles/patch_ui.py` 並重啟容器（或在啟動時自動載入）。
 
 重要環境變數：
 

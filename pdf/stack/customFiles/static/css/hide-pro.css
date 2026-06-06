@@ -1,0 +1,70 @@
+/* =============================================================
+   Stirling PDF — 隱藏 Pro 升級、問卷、廣告連結
+   適用版本: v2.x (React/Tailwind frontend)
+   ============================================================= */
+
+/* 1. 隱藏 Upgrade to Pro 徽章/按鈕 */
+.pro-badge,
+[class*='pro-badge'],
+[class*='proBadge'],
+[class*='ProBadge'],
+[class*='upgrade'],
+[class*='Upgrade'] {
+    display: none !important;
+}
+
+/* 2. 隱藏指向 pricing / pro-plan / sponsor / buy-me-a-coffee 的連結 */
+a[href*='pricing'],
+a[href*='pro-plan'],
+a[href*='/pro'],
+a[href*='sponsor'],
+a[href*='buy-me-a-coffee'],
+a[href*='ko-fi'],
+a[href*='patreon'],
+a[href*='donate'],
+a[href*='survey'],
+a[href*='Survey'],
+a[href*='posthog'],
+a[href*='github.com/Stirling-Tools'],
+button[class*='upgrade'],
+button[class*='Upgrade'] {
+    display: none !important;
+}
+
+/* 3. 隱藏 License / 授權相關提示 */
+[class*='License'],
+[class*='license'],
+[class*='LicenseType'],
+[class*='licenseType'] {
+    display: none !important;
+}
+
+/* 4. 隱藏包含 Pro 連結的父容器（Mantine Menu 選單項目）*/
+.mantine-Menu-item:has(a[href*='pricing']),
+.mantine-Menu-item:has(a[href*='sponsor']),
+.mantine-Menu-item:has(a[href*='survey']),
+.mantine-NavLink-root:has(a[href*='pricing']),
+div:has(> a[href*='pricing']) {
+    display: none !important;
+}
+
+/* 5. Footer 廣告連結清理 */
+footer a[href*='survey'],
+footer a[href*='Survey'],
+footer a[href*='github'],
+footer a[href*='sponsor'],
+footer a[href*='donate'],
+footer a[href*='buy-me'],
+footer a[href*='stirlingpdf.com'] {
+    display: none !important;
+}
+
+/* 6. 隱藏可能出現的付費功能鎖定遮罩 */
+[class*='FeatureLock'],
+[class*='featureLock'],
+[class*='PaidFeature'],
+[class*='paidFeature'],
+[class*='ProFeature'],
+[class*='proFeature'] {
+    display: none !important;
+}
