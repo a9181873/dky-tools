@@ -148,6 +148,7 @@ services:
       - ./stirling-pdf/pipeline:/pipeline
       - ./stirling-pdf/tessdata:/usr/share/tessdata
       - ./stirling-pdf/customFiles:/customFiles
+      - ./stirling-pdf/proprietary-2.11.0-plain.jar:/app/lib/proprietary-2.11.0-plain.jar
     networks:
       - internal
     ports:
