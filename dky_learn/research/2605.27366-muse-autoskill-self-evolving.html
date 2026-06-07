@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUSE-Autoskill：透過技能創建、記憶、管理與評估實現自我進化的 AI 代理 — DKY 論文筆記</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d;--red:#f85149}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;margin-left:260px;padding:40px;max-width:900px}
+h1{font-size:1.5em;color:#fff;margin-bottom:4px}
+h2{font-size:1.1em;color:var(--accent);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+h3{font-size:1em;color:#ccc;margin:16px 0 8px}
+.meta{color:var(--muted);font-size:.85em;margin-bottom:20px}
+.meta a{color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:16px 0}
+.tag{display:inline-block;font-size:.75em;padding:2px 8px;border-radius:10px;background:#1a2a3a;color:var(--accent);margin:2px}
+table{width:100%;border-collapse:collapse;margin:10px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{background:#1a1a2e;color:var(--accent);font-weight:600;font-size:.85em}
+td{font-size:.9em}
+.one-liner{font-size:1.1em;color:var(--green);font-weight:600;padding:12px 0;border-left:3px solid var(--green);padding-left:16px;margin:16px 0}
+.app-box{background:#142a1a;border-left:3px solid var(--green);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:8px 0}
+.mech-box{background:#1a1a2e;border-left:3px solid var(--accent);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:8px 0}
+.mech-box strong{color:var(--accent)}
+.reflection{background:#1a1620;border:1px solid var(--border);border-left:4px solid #a371f7;padding:16px 20px;border-radius:6px;margin:20px 0;font-size:.9em}
+.reflection h2{color:#a371f7;font-size:1em;margin:0 0 8px;border:none}
+@media(max-width:768px){body{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<h1>MUSE-Autoskill：讓 AI 代理自己發明、記憶、改良技能</h1>
+<div class="meta">
+  arXiv: <a href="https://arxiv.org/abs/2605.27366" target="_blank">2605.27366</a> · 2026-05-26<br>
+  Huawei Lin, Peng Li, Jie Song, Fuxin Jiang, Tieying Zhang<br>
+  <span class="tag">self-evolving-agents</span>
+  <span class="tag">skill-memory</span>
+  <span class="tag">agent-architecture</span>
+  <span class="tag">LLM</span>
+</div>
+
+<div class="one-liner">讓 AI 代理像老工匠一樣，不僅會使用技能，還能自己發明、記憶、改良技能，並透過單元測試驗證每個技能的可靠性。</div>
+
+<div class="card">
+<h2>📊 關鍵數據</h2>
+<table>
+  <tr><th>指標</th><th>數值</th><th>說明</th></tr>
+  <tr><td>技能生命週期階段</td><td>5 階段</td><td>創建→記憶→管理→評估→精煉，形成閉環改進迴路</td></tr>
+  <tr><td>技能層級記憶</td><td>跨任務累積</td><td>每個技能有自己的經驗記憶，不依賴全域記憶池，避免不同任務互相干擾</td></tr>
+  <tr><td>測試基準</td><td>SkillsBench</td><td>專為技能型代理設計的評測基準，非傳統 QA/閒聊基準</td></tr>
+  <tr><td>跨代理轉移</td><td>支援</td><td>驗證過的技能可從一個代理傳遞給另一個代理</td></tr>
+  <tr><td>技能可驗證性</td><td>單元測試 + 運行時回饋</td><td>每個技能建立時自動產出測試案例，運行後收集回饋</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>🔧 機制拆解：技能的五階段生命週期</h2>
+
+<div class="mech-box">
+<strong>① 技能創建引擎（Skill Creation）</strong><br>
+代理遇到新任務時不直接生成一次性解答，而是從任務描述中抽象出可重用的技能模板。技能是結構化物件（含描述、參數、前置條件、測試案例），不是自然語言片段。
+</div>
+
+<div class="mech-box">
+<strong>② 技能層級記憶（Skill-Level Memory）</strong><br>
+每個技能擁有獨立的經驗記憶區，記錄成功/失敗歷史。與傳統全域記憶池不同，技能層級記憶避免了跨任務語義干擾——修理水管的回憶不會汙染烹飪技能的判斷。
+</div>
+
+<div class="mech-box">
+<strong>③ 技能管理系統（Management）</strong><br>
+技能庫增長後，系統根據當前任務的語義嵌入選取最相關的前 K 個技能，並檢查前置條件——類似一個「技能搜尋引擎」。
+</div>
+
+<div class="mech-box">
+<strong>④ 雙軌評估系統（Evaluation）</strong><br>
+第一軌：單元測試（技能創建時自動產出輸入/預期輸出對）。第二軌：運行時回饋（技能執行後的成敗信號回寫）。雙軌確保技能有靜態正確性 + 動態可靠性。
+</div>
+
+<div class="mech-box">
+<strong>⑤ 精煉迴路（Refinement）</strong><br>
+評估發現弱點後自動觸發精煉流程：修改描述、調整參數、擴充測試案例。精煉後的技能替換舊版本，保留演進歷史。
+</div>
+</div>
+
+<div class="card">
+<h2>💡 落地應用</h2>
+
+<div class="app-box">
+<strong>Hermes 的 Skill 系統演進</strong><br>
+目前 Hermes 的技能是靜態 Markdown 檔案。MUSE-Autoskill 暗示未來技能應能自我進化：初次執行失敗後自動記錄經驗，下一次自動調整行為。skill-level memory 尤其值得參考：每個 skill 有自己的 performance.json 追蹤成功率和邊界案例。
+</div>
+
+<div class="app-box">
+<strong>多代理系統的技能共享</strong><br>
+DKY 的多 profile 架構目前技能獨立。若導入跨代理技能轉移機制，一個 profile 驗證過的爬蟲策略可立刻讓另一個 profile 使用。
+</div>
+
+<div class="app-box">
+<strong>自動化測試驅動開發</strong><br>
+MUSE-Autoskill 強調每個技能附帶單元測試。這對 dky-deploy-verify 技能有直接啟發：每次部署後的自動 curl 檢查就是一種運行時回饋，可結構化儲存並用於優化部署腳本。
+</div>
+</div>
+
+<div class="reflection">
+<h2>🧠 Hermes 自我內化</h2>
+<p>MUSE-Autoskill 讓我想起一個問題：Hermes 目前有多少 skill 是真正「被驗證過」的？dky-deploy-verify 經過數十次實戰調校，可靠性很高；但其他 skill 的邊界案例幾乎沒被測試過。借鏡雙軌評估，一個實用的下一步是：為每個 skill 建立最小測試案例（happy path + 一個已知邊界案例），在 cron job 前先跑這些測試——這不是理論上的完美覆蓋，而是一個務實的品質門檻。</p>
+</div>
+
+</body>
+</html>
