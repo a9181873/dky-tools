@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>pi (earendil-works/pi) — 極簡可擴展 AI Coding Agent 深度分析 — 學習中心</title>
+<style>
+:root {
+  --bg: #0d1117; --card: #161b22; --border: #30363d;
+  --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+  --green: #3fb950; --orange: #d2991d; --red: #f85149;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.7;
+  margin-left: 260px; padding: 40px; max-width: 900px;
+}
+h1 { font-size: 1.5em; color: #fff; margin-bottom: 4px; }
+h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+h3 { font-size: 1em; color: #ccc; margin: 16px 0 8px; }
+.meta { color: var(--muted); font-size: 0.85em; margin-bottom: 20px; }
+.meta a { color: var(--accent); }
+.card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 20px; margin: 16px 0;
+}
+.tag {
+  display: inline-block; font-size: 0.75em; padding: 2px 8px;
+  border-radius: 10px; background: #1a2a3a; color: var(--accent); margin: 2px;
+}
+table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+th { background: #1a1a2e; color: var(--accent); font-weight: 600; font-size: 0.85em; }
+td { font-size: 0.9em; }
+.one-liner { font-size: 1.1em; color: var(--green); font-weight: 600; padding: 12px 0; border-left: 3px solid var(--green); padding-left: 16px; margin: 16px 0; }
+ul { padding-left: 20px; margin: 10px 0; }
+li { margin: 4px 0; }
+@media (max-width: 768px) { body { margin-left: 0; padding: 20px; } }
+</style>
+</head>
+<body>
+
+<h1>pi (earendil-works/pi) — 極簡可擴展 AI Coding Agent 深度分析</h1>
+<div class="meta">
+  GitHub: <a href="https://github.com/earendil-works/pi" target="_blank">earendil-works/pi</a> · 60.9K Stars · MIT · v0.79.0<br>
+  官方文件: <a href="https://pi.dev/docs/latest" target="_blank">pi.dev/docs/latest</a>
+</div>
+
+<div class="one-liner">TypeScript 原生的極簡 AI agent 工具包，核心是一個可自修改的 coding agent CLI，加上統一 LLM API、TUI 函式庫、Slack bot，以及一套完整的 extension/skill 生態。</div>
+
+<h2>架構總覽</h2>
+<div class="card">
+<table>
+  <tr><th>套件</th><th>用途</th></tr>
+  <tr><td>pi-ai</td><td>統一多 provider LLM API（OpenAI、Anthropic、Google、xAI…）</td></tr>
+  <tr><td>pi-agent-core</td><td>Agent runtime：tool calling、狀態管理、權限控制</td></tr>
+  <tr><td>pi-coding-agent</td><td>互動式 CLI coding agent，可讀寫檔案、執行 shell、改自己的原始碼</td></tr>
+  <tr><td>pi-tui</td><td>Terminal UI 函式庫，差異化渲染（differential rendering）</td></tr>
+</table>
+</div>
+
+<h2>與其他 Coding Agent 的核心差異</h2>
+
+<h3>1. 極簡核心 + 全系統權限 Extension</h3>
+<p>pi 刻意不內建 MCP、sub-agent、plan mode、permission popup、to-do 等功能。這些全部靠 extension 實作。Extension 以 TypeScript 模組載入，擁有完整系統權限——可註冊自訂工具、指令、快捷鍵、UI 元件，甚至替換內建工具、實作自訂壓縮邏輯、整合 SSH/Git checkpoint。</p>
+<p>這和 Claude Code（開箱即用、內建一切）走相反路線。pi 的哲學是「給開發者最大的自由度，不做預設」。</p>
+
+<h3>2. Agent Skills 標準 + Pi Packages 生態</h3>
+<p>pi 實作了 Agent Skills 標準（<code>/skill:name</code>），可定義 prompt template、技能包、主題。Extension、skill、prompt template、theme 可以打包成 Pi Package，透過 npm 或 git 分享。</p>
+<p>這建立了一個社群驅動的生態系——不是廠商決定你要用什麼功能，而是社群貢獻各種 extension。</p>
+
+<h3>3. Session 持久化 + 分支</h3>
+<p>pi 以 JSONL 儲存 session 歷史，支援 <code>/tree</code>（瀏覽對話分支）和 <code>/fork</code>（建立分支）。這讓開發者可以從過去的對話點分叉出新的探索路徑，而不破壞原始 session。</p>
+
+<h3>4. 自修改能力</h3>
+<p>pi 的 coding agent 可以直接修改 pi 自己的原始碼。這是「dogfooding」的極致——開發 pi 的人用 pi 開發 pi。</p>
+
+<h3>5. SDK 和 RPC 模式</h3>
+<p>除了 CLI，pi 提供 SDK 嵌入其他應用、RPC 模式整合非 Node.js 環境。這讓 pi 不只是終端機工具，而可以作為其他系統的 agent 後端。</p>
+
+<h2>供應鏈安全</h2>
+<p>pi 的依賴管理是業界最嚴格的之一：</p>
+<ul>
+  <li>所有外部依賴鎖定精確版本，僅內部 workspace 用範圍版本</li>
+  <li>.npmrc 強制 save-exact=true、min-release-age=2（不接受同日發布的套件）</li>
+  <li>package-lock.json 為唯一真相來源，pre-commit 阻擋未授權的 lockfile 變更</li>
+  <li>npm run check 驗證 pinned deps、import 相容性、shrinkwrap</li>
+  <li>所有文件化安裝和 self-update 指令都帶 --ignore-scripts</li>
+  <li>CI 用 npm ci --ignore-scripts + 排程 npm audit</li>
+</ul>
+
+<h2>對我們技術棧的價值評估</h2>
+<div class="card">
+<table>
+  <tr><th>評估維度</th><th>判斷</th><th>說明</th></tr>
+  <tr><td>取代 Claude Code / Codex CLI</td><td style="color:var(--red)">不建議</td><td>TypeScript 原生，我們 Python 為主；遷移成本高，成熟度不如 Claude Code</td></tr>
+  <tr><td>作為額外 coding agent 選項</td><td style="color:var(--orange)">低價值</td><td>多一個 agent 多一份維運成本，無明顯優勢</td></tr>
+  <tr><td>pi-ai 作為 LLM 抽象層</td><td style="color:var(--red)">不需要</td><td>Hermes + LiteLLM 已覆蓋多 provider 需求</td></tr>
+  <tr><td>pi-tui 終端機 UI</td><td style="color:var(--orange)">暫無需求</td><td>目前沒有 TUI 應用場景</td></tr>
+  <tr><td>Extension 架構借鑒</td><td style="color:var(--green)">有價值</td><td>極簡核心 + extension 的設計哲學可參考</td></tr>
+  <tr><td>供應鏈安全實踐</td><td style="color:var(--green)">高價值</td><td>可直接搬到 dky-tools 的 CI/CD</td></tr>
+  <tr><td>AGENTS.md 規範</td><td style="color:var(--green)">有價值</td><td>可為我們的 repo 建立類似的 agent 協作文件</td></tr>
+</table>
+</div>
+
+<h2>結論</h2>
+<p>pi 設計精良，哲學清晰（Unix 式極簡 + 可擴展），社群活躍（60.9K 星、212 貢獻者、227 次 release）。但它解決的問題我們已用 Hermes + Claude Code/Codex CLI 覆蓋。最大價值不在採用，而在借鑒：供應鏈安全做法、AGENTS.md 規範、極簡核心的設計決策。</p>
+<p>如果未來有大規模 TypeScript 專案需要 coding agent，或是 Agent Skills 標準成為跨工具通用格式，pi 會是第一選擇。</p>
+
+<br>
+<p style="color:var(--muted);font-size:0.8em;">
+  ← <a href="index.html" style="color:var(--accent);">回學習資源列表</a> ·
+  <a href="../" style="color:var(--accent);">回學習中心首頁</a>
+</p>
+
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
