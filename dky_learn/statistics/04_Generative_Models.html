@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§4.4 生成模型分類法：LDA、QDA 與 Naive Bayes</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+:root{--bg:#fff;--fg:#1a1a2e;--fg-muted:#555;--accent:#16213e;--border:#e0e0e0;--tag-bg:#e8f0fe;--tag-fg:#1a73e8;--code-bg:#f5f5f5;--box-bg:#f8f9fa;--green:#0d904f;--red:#c5221f}
+body{font-family:'Noto Sans TC',-apple-system,sans-serif;max-width:860px;margin:0 auto;padding:24px 20px 60px;color:var(--fg);line-height:1.75;background:var(--bg)}
+h1{font-size:1.8em;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:8px}
+h2{font-size:1.3em;color:var(--accent);margin-top:36px;border-left:4px solid var(--accent);padding-left:12px}
+h3{font-size:1.1em;margin-top:28px}
+.tag{display:inline-block;background:var(--tag-bg);color:var(--tag-fg);padding:2px 10px;border-radius:12px;font-size:.85em;margin:2px}
+.meta{color:var(--fg-muted);font-size:.9em;margin:6px 0 20px}
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.pros{background:#e8f5e9;padding:12px 16px;border-radius:8px}
+.cons{background:#fce4e4;padding:12px 16px;border-radius:8px}
+.pros h4{color:var(--green);margin:0 0 6px}
+.cons h4{color:var(--red);margin:0 0 6px}
+.scenario-box{background:var(--box-bg);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0;border-radius:0 8px 8px 0}
+.key-quote{background:linear-gradient(135deg,#e8f0fe,#f0e8fe);padding:16px 20px;border-radius:8px;font-size:1.05em;margin:20px 0;text-align:center;font-weight:500}
+pre{margin:0} code{font-size:.9em} pre code{border-radius:8px;padding:16px!important}
+table{border-collapse:collapse;width:100%;margin:12px 0}
+th,td{border:1px solid var(--border);padding:6px 12px;text-align:left;font-size:.92em}
+th{background:var(--accent);color:#fff}
+.ref{font-size:.85em;color:var(--fg-muted);margin:4px 0}
+.highlight{background:#fff3cd;padding:2px 4px;border-radius:3px}
+</style>
+</head>
+<body>
+
+<h1>§4.4 生成模型分類法</h1>
+<div class="meta">
+  <span class="tag">LDA</span> <span class="tag">QDA</span> <span class="tag">Naive Bayes</span> <span class="tag">貝氏定理</span>
+  <span class="tag">分類</span> · 難度 ★★★★ · 課本 p153–160
+</div>
+
+<div class="key-quote">
+  「與其直接畫一條線把兩類分開，不如先理解每一類『長什麼樣子』，再問新來的比較像誰。」
+</div>
+
+<h2>核心概念：生成 vs 判別</h2>
+<p>前面學的 logistic regression 是「判別模型」——直接學 \( \Pr(Y=k|X=x) \)（看到 x 時，它是哪一類？）。而 generative model 走另一條路：先學每一類的「樣子」\( f_k(x) \)，再用貝氏定理反推分類機率。</p>
+
+<p><strong>生活化比喻：</strong>判別模型像你去餐廳，看一眼菜就判斷「這是川菜還是日料」。生成模型則是你先學「川菜的辣椒+花椒是長這樣」、「日料的擺盤+醬油是長這樣」，再問新菜比較像誰。</p>
+
+<div class="scenario-box">
+<strong>📚 理論基礎</strong><br>
+貝氏定理：\( \Pr(Y=k|X=x) = \frac{\pi_k \cdot f_k(x)}{\sum_{l=1}^K \pi_l \cdot f_l(x)} \)，其中 \( \pi_k \) 是先驗機率（該類在母體中的比例），\( f_k(x) \) 是該類的密度函數。
+</div>
+
+<h2>LDA：線性判別分析</h2>
+
+<p>LDA 假設<span class="highlight">所有類別共享同一個共變異數矩陣</span> \( \mathbf{\Sigma} \)，但每個類有自己的平均 \( \boldsymbol{\mu}_k \)。這導致決策邊界是<strong>線性</strong>的。</p>
+
+\[
+\delta_k(x) = x^T \mathbf{\Sigma}^{-1} \boldsymbol{\mu}_k - \frac{1}{2} \boldsymbol{\mu}_k^T \mathbf{\Sigma}^{-1} \boldsymbol{\mu}_k + \log \pi_k
+\]
+
+<p>分類時選 \( \delta_k(x) \) 最大的 k。當 \( p \)（變數數量）很大時，LDA 需要估計 \( p(p+1)/2 \) 個共變異數參數。</p>
+
+<div class="pros-cons">
+<div class="pros"><h4>✅ 優點</h4>參數少、不易 overfit；n 小時比 QDA 穩定；線性邊界可解釋</div>
+<div class="cons"><h4>❌ 缺點</h4>真實資料各類變異程度常不同；邊界只能是線性的；對 outliers 敏感</div>
+</div>
+
+<h2>QDA：二次判別分析</h2>
+
+<p>QDA 放寬假設：每個類有自己的共變異數矩陣 \( \mathbf{\Sigma}_k \)。這讓決策邊界變成<strong>二次曲線</strong>，可以捕捉更複雜的分類邊界。</p>
+
+\[
+\delta_k(x) = -\frac{1}{2}(x-\boldsymbol{\mu}_k)^T \mathbf{\Sigma}_k^{-1}(x-\boldsymbol{\mu}_k) - \frac{1}{2}\log|\mathbf{\Sigma}_k| + \log \pi_k
+\]
+
+<p>但代價是參數量暴增：QDA 要估 \( K \times p(p+1)/2 \) 個參數，樣本不夠時會 overfit。</p>
+
+<div class="scenario-box">
+<strong>Bias-Variance 取捨</strong><br>
+LDA 假設 \( \mathbf{\Sigma}_1 = \mathbf{\Sigma}_2 = \cdots = \mathbf{\Sigma}_K \) → 高 bias（彈性低）但低 variance（參數少）。QDA 各類分別估 \( \mathbf{\Sigma}_k \) → 低 bias（彈性高）但高 variance（參數多）。<br>
+<strong>經驗法則：</strong>K 類多或 n 小 → LDA；各類明顯不同形狀 → QDA。
+</div>
+
+<h2>Naive Bayes</h2>
+
+<p>Naive Bayes 做一個大膽假設：<span class="highlight">給定類別後，所有 predictor 互相獨立</span>。也就是 \( f_k(x) = \prod_{j=1}^p f_{kj}(x_j) \)。這個假設幾乎在所有真實資料中都是「錯的」，但實戰上效果出奇地好。</p>
+
+<p>為什麼？因為即使它對 \( f_k(x) \) 的估計有偏差，分類時只在乎誰的 \( \delta_k(x) \) 最大，不求精確機率。bias-variance trade-off 再次發揮威力：引入偏差，換取極低 variance。</p>
+
+<div class="pros-cons">
+<div class="pros"><h4>✅ 優點</h4>極少參數（<span class="highlight">p≫n 時唯一可行的生成模型</span>）；可處理混合型態（連續+類別）；訓練/預測超快</div>
+<div class="cons"><h4>❌ 缺點</h4>獨立性假設在真實世界幾乎不成立；機率估計不準確（分類仍可）；高度相關 predictor 會放大偏差</div>
+</div>
+
+<h2>三種方法比較</h2>
+
+<table>
+<tr><th></th><th>LDA</th><th>QDA</th><th>Naive Bayes</th></tr>
+<tr><td>假設</td><td>各類共用 Σ</td><td>各類獨立 Σ<sub>k</sub></td><td>predictors 獨立</td></tr>
+<tr><td>邊界形狀</td><td>線性</td><td>二次曲線</td><td>非線性</td></tr>
+<tr><td>參數量</td><td>\( \frac{p(p+1)}{2} + Kp \)</td><td>\( K\cdot\frac{p(p+1)}{2} + Kp \)</td><td>最低</td></tr>
+<tr><td>適合情境</td><td>K 多、n 中等</td><td>各類形狀差異大</td><td>p 很大、n 很小</td></tr>
+<tr><td>預測速度</td><td>快</td><td>中等</td><td>最快</td></tr>
+</table>
+
+<h2>Python 實戰</h2>
+
+<pre><code class="language-python"># Google Colab / 本機通用
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc
+
+# ── 載入 Default 資料 ──
+from ISLP import load_data
+Default = load_data('Default')
+X = pd.get_dummies(Default[['student', 'balance', 'income']], drop_first=True)
+y = (Default['default'] == 'Yes').astype(int)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1)
+
+# ── LDA ──
+lda = LinearDiscriminantAnalysis()
+lda.fit(X_train, y_train)
+lda_pred = lda.predict(X_test)
+print("=== LDA 混淆矩陣 ===")
+print(confusion_matrix(y_test, lda_pred))
+
+# ── QDA ──
+qda = QuadraticDiscriminantAnalysis()
+qda.fit(X_train, y_train)
+qda_pred = qda.predict(X_test)
+print("\n=== QDA 混淆矩陣 ===")
+print(confusion_matrix(y_test, qda_pred))
+
+# ── Naive Bayes ──
+nb = GaussianNB()
+nb.fit(X_train, y_train)
+nb_pred = nb.predict(X_test)
+print("\n=== Naive Bayes 混淆矩陣 ===")
+print(confusion_matrix(y_test, nb_pred))
+
+# ── ROC 曲線比較 ──
+lda_prob = lda.predict_proba(X_test)[:,1]
+qda_prob = qda.predict_proba(X_test)[:,1]
+nb_prob = nb.predict_proba(X_test)[:,1]
+
+plt.figure(figsize=(8,6))
+for probs, label, color in [(lda_prob,'LDA','#1a73e8'),(qda_prob,'QDA','#0d904f'),(nb_prob,'Naive Bayes','#e37400')]:
+    fpr, tpr, _ = roc_curve(y_test, probs)
+    plt.plot(fpr, tpr, label=f'{label} (AUC={auc(fpr,tpr):.3f})', color=color, linewidth=2)
+plt.plot([0,1],[0,1],'k--',alpha=0.3)
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve: LDA vs QDA vs Naive Bayes')
+plt.legend()
+plt.savefig('/tmp/roc_comparison.png', dpi=120, bbox_inches='tight')
+plt.close()
+print("\n✅ ROC 圖已存為 /tmp/roc_comparison.png")
+</code></pre>
+
+<script>hljs.highlightAll();</script>
+
+<h2>應用場景</h2>
+
+<div class="scenario-box">
+<strong>🏦 信用風險（Default 資料）</strong><br>
+課本例：用 LDA 預測信用卡違約。預設閾值 50% 時，違約者的召回率只有 24.3%（75.7% 的違約者被漏掉）。調低閾值到 20%，召回率提升到 58.6%，但誤報也增加——這是 sensitivity-specificity 取捨的經典案例。
+</div>
+
+<div class="scenario-box">
+<strong>🧬 基因分類（p ≫ n）</strong><br>
+基因表現資料常有數千個 gene（predictor）但只有幾十個樣本（n）。LDA 無法處理（Σ 不可逆），QDA 更不用說。Naive Bayes 是唯一可行的生成模型選擇。
+</div>
+
+<h2>關鍵公式回顧</h2>
+
+<table>
+<tr><th>方法</th><th>判別函數</th><th>核心假設</th></tr>
+<tr><td>LDA</td><td>\( \delta_k(x) = x^T \Sigma^{-1} \mu_k - \frac{1}{2}\mu_k^T \Sigma^{-1}\mu_k + \log\pi_k \)</td><td>\( \Sigma_k = \Sigma \; \forall k \)</td></tr>
+<tr><td>QDA</td><td>\( \delta_k(x) = -\frac{1}{2}\log|\Sigma_k| - \frac{1}{2}(x-\mu_k)^T\Sigma_k^{-1}(x-\mu_k) + \log\pi_k \)</td><td>各類 \( \Sigma_k \) 不同</td></tr>
+<tr><td>Naive Bayes</td><td>\( \delta_k(x) = \log\pi_k + \sum_{j=1}^p \log f_{kj}(x_j) \)</td><td>predictors 獨立</td></tr>
+</table>
+
+<h2>對 Hermes 的啟發</h2>
+<div class="scenario-box">
+<strong>Naive Bayes 的 bias-variance trade-off 與 agent skill 設計</strong><br>
+Naive Bayes 的成功說明一個道理：簡化假設（bias ↑）換取穩定性（variance ↓）在資源不足時是正確策略。這與 Hermes skill 設計的「免費 LLM 只用於短摘要、分類、子任務」策略一致——不追求完美，只求在限制下做到最好。當 p≫n（任務多、資源少），簡化假設就是生存法則。
+</div>
+
+<p class="ref">📚 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §4.4, p153–160.<br>
+📚 Hastie, Tibshirani, Friedman (2009) <em>The Elements of Statistical Learning</em>, §4.3.</p>
+
+</body>
+</html>

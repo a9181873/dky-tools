@@ -20,7 +20,8 @@
       <a href="/statistics/3.5_linear_regression_vs_knn.html" class="nav-item done">3.5 線性迴歸 vs KNN</a>
       <a href="/statistics/3.6_lab_linear_regression.html" class="nav-item done">3.6 Lab: 線性迴歸</a>
       <span class="nav-item done">4.1-4.2 分類概述</span>
-      <a href="/statistics/4.3_logistic_regression.html" class="nav-item pending">4.3 邏輯回歸</a>
+      <a href="/statistics/4.3_logistic_regression.html" class="nav-item done">4.3 邏輯回歸</a>
+      <a href="/statistics/04_Generative_Models.html" class="nav-item pending">4.4 生成模型：LDA・QDA・Naive Bayes</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
