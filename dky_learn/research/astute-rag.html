@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Astute RAG 繁體中文研究筆記</title>
+<style>
+    body {
+        background-color: #ffffff;
+        color: #222222;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 2rem;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    h1, h2, h3 {
+        color: #001f3f; /* navy */
+        margin-top: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+    p {
+        margin-bottom: 1rem;
+    }
+    ul {
+        margin-bottom: 1rem;
+        padding-left: 2rem;
+    }
+    .summary {
+        background-color: #f0f8ff;
+        border-left: 4px solid #001f3f;
+        padding: 1rem;
+        margin-bottom: 2rem;
+        font-style: italic;
+    }
+    .footer {
+        margin-top: 3rem;
+        font-size: 0.9rem;
+        color: #555555;
+        text-align: center;
+        border-top: 1px solid #ddd;
+        padding-top: 1rem;
+    }
+</style>
+</head>
+<body>
+<h1>Astute RAG 研究筆記</h1>
+<div class="summary">
+一句話摘要：Astute RAG 是一種新穎的檢索增強生成方法，通過自適應 elicitation、迭代 consolidation 和可靠性 기반 最終答案選擇，有效克服不完美檢索和知識衝突，提升大型語言模型的可信度。
+</div>
+
+<h2>方法拆解（三步驟）</h2>
+<ol>
+    <li><strong>自適應 elicitation（適應性 elicitation）</strong>
+        <p>從 LLM 的內部知識中提取與查詢相關的關鍵資訊，以補充或校正檢索結果中可能的噪聲或錯誤。</p>
+    </li>
+    <li><strong>迭代 consolidation（來源感知的迴融）</strong>
+        <p>在明確來源標記的框架下，將內部 elicitation 知識與外部檢索知識進行多輪融合，逐步降低無關或誤導性資訊的影響。</p>
+    </li>
+    <li><strong>可靠性 based 最終答案選擇（可靠性驅動的答案選擇）</strong>
+        <p>根據資訊的可靠度（來源可信度、內部一致性、交叉驗證等）為每個候選答案打分，選擇分數最高的作為最終輸出。</p>
+    </li>
+</ol>
+
+<h2>關鍵數據</h2>
+<ul>
+    <li>實驗使用 <code>Gemini</code> 與 <code>Claude</code> 兩種大型語言模型。</li>
+    <li>在最糟檢索條件下（含大量無關、誤導或對抗性內容），Astute RAG 是唯一能達到或超越傳統 LLM 單獨使用性能的 RAG 方法。</li>
+    <li>相較於先前的 robustness‑enhanced RAG 基線，Astute RAG 在知識衝突情境下顯著提升答案正確率（具體提升幅度依資料集而異，但皆達統計顯著差異）。</li>
+    <li>進一步分析顯示，該方法有效解決 LLM 內部知識與外部檢索知識的衝突，進而提升系統的可信度與穩健性。</li>
+</ul>
+
+<h2>對 Hermes 應用分析</h2>
+<h3>對應 content-curation-pipeline 的環節</h3>
+<p>Hermes 的內容策展管線（content-curation-pipeline）大致可分為四個階段：</p>
+<ol>
+    <li>資訊蒐集（Web Search、Web Extract 等工具）</li>
+    <li>相關性過濾與去噪</li>
+    <li>知識整合（寫入記憶庫、建立關聯）</li>
+    <li>輸出生成（回答、報告等）</li>
+</ol>
+<p>Astute RAG 的核心功能適合作為「相關性過濾與去噪」以及「知識整合」之間的橋梁，特別是在後檢索階段處理不完整或有衝突的資訊。</p>
+
+<h3>目前 Hermes 可能缺少的機制</h3>
+<ul>
+    <li>缺乏自適適從 LLM 內部知識中 elicitation 關鍵線索的步驟；多依賴檢索分數或關鍵字匹配。</li>
+    <li>缺少來源感知的迭代融合機制，難以在多輪資訊交互中區分可信來源與噪聲。</li>
+    <li>缺乏基於可靠性的最終答案選擇，易於將低品質資訊直接寫入記憶。</li>
+</ul>
+
+<h3>如何補充</h3>
+<ol>
+    <li>在 <code>web_extract</code> 取得原始網頁內容後，插入一個 <strong>Astute RAG 處理模組</strong>：</li>
+    <ul>
+        <li>呼叫 LLM 進行自適應 elicitation，產生內部知識提示。</li>
+        <li>以來源標記（URL、域名等）為基礎，執行迭代 consolidation，將內部提示與外部文本進行加權合併。</li>
+        <li>設計可靠度評分函數（如來源權威度、跨來源一致性、LLM 自我評估），選擇最高分數的知識塊。</li>
+    </ul>
+    <li>將經 Astute RAG 篩選後的知識塊送往 Hermes 的記憶系統（Honcho 跨階段記憶或技能庫），作為後續生成的依據。</li>
+    <li>此過程可作為可選技能（skill）或工具集（toolset）掛載，僅在偵測到檢索品質低落時啟用，以節省成本。</li>
+</ol>
+
+<h2>限制</h2>
+<ul>
+    <li>額外的 LLM 推理成本：每次 elicitation 與 consolidation 都需要調用模型，可能增加延遲與費用。</li>
+    <li>依賴 LLM 內部知識的正確性：若模型本身包含錯誤知識，elicit 內容可能帶來偏差。</li>
+    <li>在極端對抗性檢索（大量精心構造的誤導資訊）下，仍有可能被騙過可靠性評分。</li>
+    <li>實作複�度提升：需要設計來源可信度評估、迭代輪數控制及分數校準等細節。</li>
+</ol>
+
+<div class="footer">
+引用：Fei Wang et al., ACL 2025, arXiv:2410.07176
+</div>
+</body>
+</html>
