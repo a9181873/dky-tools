@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§4.5 分類方法比較 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}.method-card{border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0;background:var(--card)}.method-card h4{color:var(--accent2);margin-bottom:.6rem}.method-card .form{color:#8b949e;font-family:'JetBrains Mono',monospace;font-size:.85rem}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>§4.5 分類方法比較</h1>
+  <div class="meta">
+    <span>📖 ISLP §4.5</span>
+    <span>📄 pp. 161–166</span>
+    <span class="difficulty">⭐⭐⭐</span>
+    <span>⏱️ 約 30 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">LDA</span>
+    <span class="tag">QDA</span>
+    <span class="tag">Naive Bayes</span>
+    <span class="tag">Logistic Regression</span>
+    <span class="tag">KNN</span>
+    <span class="tag">Bias-Variance Tradeoff</span>
+    <span class="tag">Decision Boundary</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="04_generative_models.html">← §4.4 生成式模型</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="04_generalized_linear_models.html">§4.6 廣義線性模型 →</a>
+</div>
+
+<!-- ====== 課程內容 ====== -->
+
+<h2>💡 開場：五種武器，誰最強？</h2>
+
+<p>想像你是武俠小說中的大俠，面對不同的對手，你會選擇不同的武器：長劍（直線攻擊）、雙節棍（非線性）、暗器（簡單快速）……這正是本章的核心問題：<strong>在分類問題中，LDA、QDA、Naive Bayes、邏輯迴歸和 KNN，這五種方法各有什麼長短？</strong></p>
+
+<p>本節是第四章的「大結局」——把前面所有方法攤在陽光下，從數學本質和實驗數據兩個角度，看看誰在什麼情境下勝出。這就像武林大會：不是比誰的招式花俏，而是比誰在實戰中最管用。</p>
+
+<div class="ref-box">
+James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §4.5, pp. 161–166.<br>
+核心方法參見：Fisher (1936) LDA、Hastie & Tibshirani (1996) GAM、Cover & Hart (1967) KNN。
+</div>
+
+<!-- ====== 4.5.1 分析性比較 ====== -->
+
+<h2>📐 §4.5.1 分析性比較：從數學看本質</h2>
+
+<p>所有分類方法的核心決策邏輯可以統一寫成：把觀察值分配給使 log-odds 最大的類別。對於 \(K\) 個類別，以類別 \(K\) 為基準，計算：</p>
+
+<div class="formula">
+\[
+\log\left(\frac{\Pr(Y=k \mid X=x)}{\Pr(Y=K \mid X=x)}\right)
+\]
+<span class="formula-label">— 式 (4.31) 分類決策的通用形式</span>
+</div>
+
+<p>這個式子的巧妙之處在於：<strong>不同方法只是用不同方式去逼近同一個目標</strong>。就像大家都想去台北，有人搭高鐵（參數法）、有人騎單車（非參數法），路線不同，目的地相同。</p>
+
+<h3>LDA：線性決策邊界</h3>
+
+<p>LDA 假設每個類別內的 \(X\) 服從多變量常態分布，且<strong>所有類別共享同一個共變異數矩陣 \(\Sigma\)</strong>。代入貝氏定理後：</p>
+
+<div class="formula">
+\[
+\log\left(\frac{\Pr(Y=k \mid X=x)}{\Pr(Y=K \mid X=x)}\right)
+= a_k + \sum_{j=1}^{p} b_{kj} x_j
+\]
+<span class="formula-label">— 式 (4.32) LDA 的 log-odds 是 <strong>x 的線性函數</strong></span>
+</div>
+
+<div class="callout">
+<strong>👁️ 一句話總結 LDA：</strong>假設資料是常態＋相同形狀，等於用一把尺量所有東西——簡單但有效（前提是假設成立）。
+</div>
+
+<h3>QDA：加入二次項的靈活性</h3>
+
+<p>QDA 放寬了「相同共變異數」的假設，每個類別有自己的 \(\Sigma_k\)。這讓 log-odds 中出現了 <strong>\(x_j x_l\) 的交互項</strong>：</p>
+
+<div class="formula">
+\[
+\log\left(\frac{\Pr(Y=k \mid X=x)}{\Pr(Y=K \mid X=x)}\right)
+= a_k + \sum_{j=1}^{p} b_{kj} x_j + \sum_{j=1}^{p}\sum_{l=1}^{p} c_{kjl} x_j x_l
+\]
+<span class="formula-label">— 式 (4.33) QDA 的 log-odds 是 <strong>x 的二次函數</strong></span>
+</div>
+
+<p>LDA 是 QDA 在 \(c_{kjl}=0\) 時的特例——這正是「所有類別共用 \(\Sigma\)」的數學表現。</p>
+
+<h3>Naive Bayes：最自由的加法模型</h3>
+
+<p>Naive Bayes 假設各特徵<strong>條件獨立</strong>：\(f_k(x) = \prod_j f_{kj}(x_j)\)。代入後得到：</p>
+
+<div class="formula">
+\[
+\log\left(\frac{\Pr(Y=k \mid X=x)}{\Pr(Y=K \mid X=x)}\right)
+= a_k + \sum_{j=1}^{p} g_{kj}(x_j)
+\]
+<span class="formula-label">— 式 (4.34) Naive Bayes 是 <strong>廣義加法模型 (GAM)</strong></span>
+</div>
+
+<p>其中 \(g_{kj}(x_j)\) 可以是<strong>任何函數</strong>——不一定要線性！這讓 Naive Bayes 極度靈活，但代價是：只能加法、不能乘法（無交互項）。</p>
+
+<h3>🔗 四種方法的血緣關係</h3>
+
+<table class="comparison-table">
+  <tr><th>關係</th><th>說明</th></tr>
+  <tr><td>LDA ⊂ QDA</td><td>LDA 是 QDA 在 \(c_{kjl}=0\) 時的特例（共變異數矩陣相等）</td></tr>
+  <tr><td>LDA ⊂ Naive Bayes</td><td>若 Naive Bayes 的 \(g_{kj}(x_j)\) 取線性形式，就是 LDA（這點非常不直覺！）</td></tr>
+  <tr><td>Naive Bayes = LDA（特例）</td><td>當 \(f_{kj}(x_j)\) 是單變量高斯 \(\mathcal{N}(\mu_{kj}, \sigma_j^2)\)，Naive Bayes 等價於對角 \(\Sigma\) 的 LDA</td></tr>
+  <tr><td>QDA ⟂ Naive Bayes</td><td>兩者互不包含：QDA 有交互項但形式受限；Naive Bayes 無交互項但函數自由</td></tr>
+</table>
+
+<div class="callout">
+<strong>🤯 最反直覺的發現：</strong>LDA 是 Naive Bayes 的特例！LDA 假設「常態＋共同共變異數」，Naive Bayes 假設「獨立」。兩個看似完全不同的假設，在數學上卻有一條通道相連。
+</div>
+
+<h3>邏輯迴歸的定位</h3>
+
+<p>多類別邏輯迴歸的形式是：</p>
+
+<div class="formula">
+\[
+\log\left(\frac{\Pr(Y=k \mid X=x)}{\Pr(Y=K \mid X=x)}\right)
+= \beta_{k0} + \sum_{j=1}^{p} \beta_{kj} x_j
+\]
+<span class="formula-label">— 式 (4.12) 邏輯迴歸也是 x 的線性函數</span>
+</div>
+
+<p>這和 LDA 的 (4.32) <strong>形式完全一樣</strong>！差別在於 <strong>參數估計方式</strong>：</p>
+
+<div class="pros-cons">
+<div class="pros"><h4>✅ LDA 參數估計</h4><ul><li>假設 \(X\) 服從常態分布</li><li>用 \(\pi_k, \mu_k, \Sigma\) 的最大概似估計</li><li>當常態假設成立時，效率極高</li></ul></div>
+<div class="cons"><h4>✅ 邏輯迴歸參數估計</h4><ul><li>不做 \(X\) 的分布假設</li><li>直接最大化條件概似函數</li><li>當常態假設不成立時更穩健</li></ul></div>
+</div>
+
+<h3>KNN：完全不同的物種</h3>
+
+<p>KNN 不寫公式、不做假設——它只問：「離我最近的 K 個鄰居投誰？」這是<strong>純非參數</strong>方法：</p>
+
+<ul>
+  <li><strong>無決策邊界形狀假設</strong>→ 可以捕捉極複雜的邊界</li>
+  <li><strong>代價</strong>→ 需要大量資料（\(n \gg p\)），否則變異數爆炸</li>
+  <li><strong>不解釋</strong>→ 沒有係數表，無法說「哪個變數重要」</li>
+</ul>
+
+<div class="scenario-box">
+<h4>🔬 自我內化：對 Hermes 架構的啟發</h4>
+<p>這一段「形式相同、估計方式不同」的洞察，直接對應到 <strong>AI agent 的模型選擇策略</strong>：LDA vs 邏輯迴歸的取捨，本質上就是「模型假設強 → 資料少也好用」vs「模型假設弱 → 需要更多資料」。在 Hermes 的子 agent 調度中，<strong>當任務的特徵分布已知（近似常態），可以走 LDA 式的預設路徑；當任務分布未知，應走邏輯迴歸式的資料驅動路徑</strong>。這正是 <code>subagent-performance-management</code> skill 中「根據任務類型動態選擇模型」的統計學基礎。</p>
+</div>
+
+<!-- ====== 4.5.2 實證比較：六大場景 ====== -->
+
+<h2>🧪 §4.5.2 實證比較：六大場景誰贏？</h2>
+
+<p>理論歸理論，戰場見真章。ISLP 作者設計了六個模擬場景，每種場景生成 100 組訓練資料，計算測試錯誤率。關鍵問題：<strong>在什麼條件下，哪種方法表現最好？</strong></p>
+
+<h3>實驗設計</h3>
+<p>所有場景都是 <strong>二元分類、\(p=2\) 個連續預測變數</strong>。三種線性邊界場景 + 三種非線性邊界場景。KNN 用兩種設定：\(K=1\) 和交叉驗證選 \(K\)。</p>
+
+<h3>📊 線性邊界場景（圖 4.11）</h3>
+
+<table class="comparison-table">
+  <tr><th>場景</th><th>設定</th><th>🏆 優勝者</th><th>💀 落敗者</th><th>關鍵教訓</th></tr>
+  <tr>
+    <td><strong>場景 1</strong></td>
+    <td>每類 \(n=20\)，不相關常態，不同均值</td>
+    <td>LDA、邏輯迴歸</td>
+    <td>KNN（變異數代價）、QDA（過度靈活）</td>
+    <td>當 LDA 假設完全成立時，簡單即是最佳</td>
+  </tr>
+  <tr>
+    <td><strong>場景 2</strong></td>
+    <td>同場景 1，但兩變數相關 \(\rho=-0.5\)</td>
+    <td>LDA、邏輯迴歸</td>
+    <td><strong>Naive Bayes（獨立性假設被打破！）</strong></td>
+    <td>Naive Bayes 的「Naive」不是說說而已——相關性一出現就崩</td>
+  </tr>
+  <tr>
+    <td><strong>場景 3</strong></td>
+    <td>每類 \(n=50\)，<strong>t 分布</strong>（厚尾），相關</td>
+    <td><strong>邏輯迴歸</strong></td>
+    <td>LDA（非常態）、QDA（非常態＋過度靈活）</td>
+    <td>當常態假設被打破，邏輯迴歸比 LDA 更穩健</td>
+  </tr>
+</table>
+
+<div class="callout">
+<strong>📌 線性場景核心結論：</strong>當決策邊界真的是線性的，LDA 和邏輯迴歸是最佳選擇。但如果你不確定常態假設是否成立——<strong>選邏輯迴歸，它更不容易翻車</strong>。
+</div>
+
+<h3>📊 非線性邊界場景（圖 4.12）</h3>
+
+<table class="comparison-table">
+  <tr><th>場景</th><th>設定</th><th>🏆 優勝者</th><th>💀 落敗者</th><th>關鍵教訓</th></tr>
+  <tr>
+    <td><strong>場景 4</strong></td>
+    <td>常態，類 1 相關 \(\rho=0.5\)，類 2 相關 \(\rho=-0.5\)<br>（QDA 假設成立）</td>
+    <td><strong>QDA</strong></td>
+    <td>Naive Bayes（獨立性被打破）</td>
+    <td>當 QDA 的假設成立時，它就是王者</td>
+  </tr>
+  <tr>
+    <td><strong>場景 5</strong></td>
+    <td>不相關常態，但 <strong>Y 來自複雜非線性函數</strong></td>
+    <td><strong>KNN-CV</strong></td>
+    <td><strong>KNN-1</strong>（未調參數的 KNN 最差！）</td>
+    <td>非參數方法需要正確的平滑度；\(K=1\) 過擬合，變異數爆炸</td>
+  </tr>
+  <tr>
+    <td><strong>場景 6</strong></td>
+    <td>對角共變異數（獨立），每類僅 <strong>\(n=6\)</strong></td>
+    <td><strong>Naive Bayes</strong></td>
+    <td>LDA、邏輯迴歸（邊界非線性）、QDA（小樣本估計不穩）、KNN（樣本太小）</td>
+    <td>小樣本 + 獨立特徵 = Naive Bayes 的甜蜜點</td>
+  </tr>
+</table>
+
+<div class="callout">
+<strong>📌 非線性場景核心結論：</strong>沒有永遠的王者。QDA 在中度非線性時勝出、KNN-CV 在極複雜邊界勝出、Naive Bayes 在小樣本獨立特徵時封神。關鍵不是記住誰贏，而是<strong>理解為什麼贏</strong>。
+</div>
+
+<!-- ====== 全方法比較 ====== -->
+
+<h2>⚖️ 五大方法完整對照</h2>
+
+<table class="comparison-table">
+  <tr><th>方法</th><th>決策邊界</th><th>核心假設</th><th>參數數量</th><th>最佳情境</th><th>脆弱點</th></tr>
+  <tr>
+    <td><strong>邏輯迴歸</strong></td>
+    <td>線性</td>
+    <td>無 X 分布假設</td>
+    <td>少</td>
+    <td>邊界線性 + 不確定常態假設</td>
+    <td>邊界高度非線性</td>
+  </tr>
+  <tr>
+    <td><strong>LDA</strong></td>
+    <td>線性</td>
+    <td>常態 + 共同 Σ</td>
+    <td>少</td>
+    <td>假設完全成立時（效率最高）</td>
+    <td>非常態、異質共變異數</td>
+  </tr>
+  <tr>
+    <td><strong>QDA</strong></td>
+    <td>二次</td>
+    <td>常態 + 各類自有 Σ</td>
+    <td>中</td>
+    <td>邊界中度非線性</td>
+    <td>非常態、高維度（參數爆炸）</td>
+  </tr>
+  <tr>
+    <td><strong>Naive Bayes</strong></td>
+    <td>靈活（加法）</td>
+    <td>條件獨立</td>
+    <td>中</td>
+    <td>小樣本 + 獨立特徵</td>
+    <td>特徵高度相關</td>
+  </tr>
+  <tr>
+    <td><strong>KNN</strong></td>
+    <td>任意</td>
+    <td>無（純非參數）</td>
+    <td>無（但 K 需調）</td>
+    <td>\(n \gg p\) + 複雜邊界</td>
+    <td>高維度（維度詛咒）、不解釋</td>
+  </tr>
+</table>
+
+<div class="pros-cons">
+<div class="pros"><h4>✅ 決策樹（快速指南）</h4>
+<ul>
+  <li>邊界線性？→ <strong>邏輯迴歸</strong>（安全牌）或 LDA（假設成立時）</li>
+  <li>邊界非線性 + 樣本充足？→ <strong>QDA</strong>（中度）或 <strong>KNN</strong>（重度）</li>
+  <li>樣本極少？→ <strong>Naive Bayes</strong></li>
+  <li>需要解釋係數？→ 避開 KNN</li>
+  <li>不確定？→ 下一章教你交叉驗證來選！</li>
+</ul></div>
+<div class="cons"><h4>⚠️ 常見陷阱</h4>
+<ul>
+  <li>以為 Naive Bayes「天真」就不好 → 場景 6 證明小樣本時它是王者</li>
+  <li>以為 KNN 是萬能非參數法 → 場景 5 證明 \(K=1\) 是最差選擇</li>
+  <li>以為 QDA 一定比 LDA 好 → 場景 1 證明多餘靈活性只增加變異數</li>
+  <li>忽略 Bias-Variance Tradeoff → 所有選擇的本質都是取捨</li>
+</ul></div>
+</div>
+
+<!-- ====== Python 實作：重現場景比較 ====== -->
+
+<h2>🐍 Python 實作：模擬六大場景</h2>
+
+<p>以下程式碼重現 ISLP §4.5.2 的核心比較邏輯（簡化版，使用 sklearn）：</p>
+
+<pre><code class="language-python"># ============================================
+# §4.5 分類方法比較 — ISLP 六大場景摘要
+# 基於 ISLP pp.164-166, Figures 4.11-4.12
+# ============================================
+
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import pandas as pd
+
+# ========== ISLP 課本圖 4.11-4.12 的近似錯誤率（從 boxplot 讀取中位數） ==========
+# 這些數值反映課本實證研究的结果，供參考比較
+
+data = {
+    '場景': [
+        '場景1 (線性,不相關,常態,n=20)',
+        '場景2 (線性,相關,常態,n=20)',
+        '場景3 (線性,相關,t分布,n=50)',
+        '場景4 (非線性,QDA假設,n=50)',
+        '場景5 (非線性,複雜邏輯,n=50)',
+        '場景6 (非線性,小樣本,n=6)',
+    ],
+    'Logistic':    [0.30, 0.19, 0.25, 0.35, 0.25, 0.35],
+    'LDA':         [0.30, 0.19, 0.28, 0.36, 0.27, 0.35],
+    'QDA':         [0.35, 0.20, 0.43, 0.30, 0.24, 0.30],
+    'Naive Bayes': [0.33, 0.27, 0.45, 0.35, 0.24, 0.25],
+    'KNN-1':       [0.42, 0.27, 0.48, 0.37, 0.32, 0.42],
+    'KNN-CV':      [0.37, 0.22, 0.35, 0.34, 0.20, 0.35],
+}
+df = pd.DataFrame(data).set_index('場景')
+
+print("=" * 60)
+print("📊 ISLP §4.5 六大場景分類方法比較")
+print("   數值為近似測試錯誤率（越低越好）")
+print("=" * 60)
+print(df.round(3))
+
+print("\n🏆 各場景最佳方法：")
+for idx, row in df.iterrows():
+    best_method = row.idxmin()
+    best_val = row.min()
+    star = "⭐⭐" if best_val == row.min() else ""
+    print(f"  {idx}: {best_method} ({best_val:.3f})")
+
+print("\n📌 線性邊界場景（1-3）：Logistic/LDA 勝出")
+print("📌 非線性邊界場景（4-6）：QDA / KNN-CV / Naive Bayes 各有所長")
+
+# ========== 快速繪圖：二維決策邊界示意 ==========
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.discriminant_analysis import (
+    LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
+)
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+
+def plot_decision_boundary(ax, clf, X, y, title):
+    """繪製二元分類決策邊界"""
+    h = 0.05
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    ax.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm')
+    ax.scatter(X[y==0, 0], X[y==0, 1], c='blue', s=20, label='Class 0', alpha=0.7)
+    ax.scatter(X[y==1, 0], X[y==1, 1], c='red', s=20, label='Class 1', alpha=0.7)
+    ax.set_title(title, fontsize=10)
+    ax.set_xlabel('X1'); ax.set_ylabel('X2')
+
+# 生成 QDA 場景資料（非線性邊界）
+np.random.seed(42)
+n = 80
+cov0 = np.array([[1, 0.5], [0.5, 1]])
+cov1 = np.array([[1, -0.5], [-0.5, 1]])
+X0 = np.random.multivariate_normal([0, 0], cov0, n)
+X1 = np.random.multivariate_normal([0, 0], cov1, n)
+X = np.vstack([X0, X1])
+y = np.hstack([np.zeros(n), np.ones(n)])
+
+classifiers = [
+    ('Logistic', LogisticRegression(max_iter=5000)),
+    ('LDA', LinearDiscriminantAnalysis()),
+    ('QDA', QuadraticDiscriminantAnalysis()),
+    ('Naive Bayes', GaussianNB()),
+    ('KNN (K=5)', KNeighborsClassifier(n_neighbors=5)),
+]
+
+fig, axes = plt.subplots(1, 5, figsize=(18, 3.5))
+for ax, (name, clf) in zip(axes, classifiers):
+    clf.fit(X, y)
+    acc = clf.score(X, y)
+    plot_decision_boundary(ax, clf, X, y, f'{name}\n(準確率: {acc:.2%})')
+
+plt.suptitle('§4.5 五大分類器決策邊界比較（QDA 場景）',
+             fontsize=13, fontweight='bold')
+plt.tight_layout()
+plt.savefig(DATA_PATH + 'islp_ch4_5_boundaries.png', dpi=120, bbox_inches='tight')
+plt.show()
+print("\n✅ 決策邊界圖已儲存至:", DATA_PATH + "islp_ch4_5_boundaries.png")</code></pre>
+</code></pre>
+
+<!-- ====== 應用場景 ====== -->
+
+<h2>🏭 真實世界的選擇</h2>
+
+<div class="scenario-box">
+<h4>🏦 金融業：信用卡詐欺偵測</h4>
+<p>詐欺交易比例極低（類別不平衡）、特徵維度高、決策邊界複雜。</p>
+<p><strong>推薦：邏輯迴歸</strong>（可解釋性：監管需求）或 <strong>Naive Bayes</strong>（處理高維稀疏特徵，且獨立性假設在文本特徵上合理）。KNN 在此情境維度詛咒嚴重。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🏥 醫療診斷：罕見疾病篩檢</h4>
+<p>樣本少（\(n=20\) 患者）、特徵數中等（\(p=5\) 生物標記）、需要估計機率（非純分類）。</p>
+<p><strong>推薦：Naive Bayes</strong>（場景 6 的啟示：極小樣本＋獨立特徵是最佳情境）或 <strong>LDA</strong>（若常態假設合理）。深度學習在此情境只會過擬合。</p>
+</div>
+
+<div class="scenario-box">
+<h4>📱 行銷科技：客戶分群</h4>
+<p>樣本量大（\(n=10^6\)）、邊界未知、需要解釋哪些特徵驅動轉換。</p>
+<p><strong>推薦：邏輯迴歸</strong>（大樣本下效率可接受，且提供清楚的係數解釋——「年齡每增加一歲，購買機率上升 X%」）。若邊界明顯非線性，考慮 QDA。</p>
+</div>
+
+<!-- ====== Bias-Variance 總結 ====== -->
+
+<h2>🎯 終極心法：Bias-Variance Tradeoff</h2>
+
+<p>所有比較的底層邏輯只有一個：<strong>偏差與變異數的取捨</strong>。</p>
+
+<div class="formula">
+\[
+\text{Expected Test Error} = \text{Bias}^2 + \text{Variance} + \text{Irreducible Error}
+\]
+</div>
+
+<table class="comparison-table">
+  <tr><th>方法</th><th>偏差</th><th>變異數</th><th>適用</th></tr>
+  <tr><td>LDA / 邏輯迴歸</td><td>高（線性限制）</td><td>低（參數少）</td><td>邊界線性或樣本少</td></tr>
+  <tr><td>QDA</td><td>中</td><td>中</td><td>中度非線性</td></tr>
+  <tr><td>Naive Bayes</td><td>中（加法限制）</td><td>低（獨立性降維）</td><td>高維、小樣本、獨立特徵</td></tr>
+  <tr><td>KNN (K=1)</td><td>極低</td><td>極高</td><td>僅 \(n \to \infty\) 時有效</td></tr>
+  <tr><td>KNN (K 大)</td><td>中</td><td>中</td><td>\(n \gg p\)</td></tr>
+</table>
+
+<div class="scenario-box">
+<h4>🔬 自我內化：Bias-Variance 與 Agent 路由策略</h4>
+<p>這張表的結構可以直接對應到 <strong>Hermes 的任務路由決策</strong>：</p>
+<ul>
+  <li><strong>高偏差低變異</strong>（LDA/邏輯迴歸）= 用小型專用模型處理已知任務類型。例如 FAQ 回答用 RAG pipeline。</li>
+  <li><strong>低偏差高變異</strong>（KNN-1）= 每次都用最大的 LLM 從頭推理。靈活但昂貴、不穩定。</li>
+  <li><strong>最佳平衡</strong>（QDA/Naive Bayes）= 混合策略：簡單任務走快速路徑（LDA），複雜任務才呼叫大模型（KNN-CV）。</li>
+</ul>
+<p>這正是 <code>subagent-driven-development</code> 中「根據任務複雜度動態分流」的理論基礎。統計學習的分類方法比較，本質上就是一張 <strong>agent 任務路由決策表</strong>。</p>
+</div>
+
+<!-- ====== 關鍵句 ====== -->
+
+<div class="key-quote">
+  沒有一個分類方法能在所有情境中勝出；選擇方法的藝術，在於理解你的資料、你的假設、以及偏差與變異數的取捨。
+  <span class="author">— ISLP §4.5，經由巴圖魯內化</span>
+</div>
+
+<div class="section-nav">
+  <a href="04_generative_models.html">← §4.4 生成式模型</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="04_generalized_linear_models.html">§4.6 廣義線性模型 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 4 章：分類 · §4.5 分類方法比較</p>
+  <p>Generated: 2026-06-11 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

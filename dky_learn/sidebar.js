@@ -21,7 +21,9 @@
       <a href="/statistics/3.6_lab_linear_regression.html" class="nav-item done">3.6 Lab: 線性迴歸</a>
       <span class="nav-item done">4.1-4.2 分類概述</span>
       <a href="/statistics/4.3_logistic_regression.html" class="nav-item done">4.3 邏輯回歸</a>
-      <a href="/statistics/04_Generative_Models.html" class="nav-item pending">4.4 生成模型：LDA・QDA・Naive Bayes</a>
+      <a href="/statistics/04_Generative_Models.html" class="nav-item done">4.4 生成模型：LDA・QDA・Naive Bayes</a>
+      <a href="/statistics/04_classification_methods_comparison.html" class="nav-item done">4.5 分類方法比較</a>
+      <span class="nav-item pending">4.6 廣義線性模型</span>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
