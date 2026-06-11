@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 4 章：分類 — 4.4 線性判別分析 (LDA)</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{hljs.highlightAll()})</script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);font-size:.75rem;padding:.2rem .7rem;border-radius:1rem}h2{font-size:1.3rem;color:var(--accent);margin:2rem 0 .8rem;border-left:3px solid var(--accent);padding-left:.7rem}h3{font-size:1rem;color:var(--accent2);margin:1.2rem 0 .5rem}p{margin:.5rem 0}code{background:var(--code-bg);color:var(--accent2);padding:.1rem .4rem;border-radius:3px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.85rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:1rem;overflow-x:auto;margin:.8rem 0}.ref-box{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:1rem;margin:1rem 0;font-size:.9rem}.ref-box .label{color:var(--warn);font-weight:700}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:.8rem 0}table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.88rem}th,td{border:1px solid var(--border);padding:.5rem .8rem;text-align:left}th{background:var(--code-bg);color:var(--accent);font-weight:600}blockquote{border-left:3px solid var(--accent);margin:.8rem 0;padding:.3rem 1rem;color:var(--fg);background:var(--card);border-radius:0 6px 6px 0}ul,ol{margin:.5rem 0 .5rem 1.4rem}li{margin:.2rem 0}.math-block{overflow-x:auto;margin:.8rem 0}.pro-con{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.8rem 0}.pro,.con{padding:1rem;border-radius:6px}.pro{background:#0a2f1a;border:1px solid var(--accent2)}.con{background:#2f0a0a;border:1px solid var(--danger)}.pro h4{color:var(--accent2)}.con h4{color:var(--danger)}a{color:var(--accent)}a:hover{opacity:.8}footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.8rem;color:#8b949e;text-align:center}@media(max-width:768px){body{padding:1rem}h1{font-size:1.5rem}.pro-con{grid-template-columns:1fr}}</style>
+</head>
+<body>
+
+<header>
+  <h1>4.4 線性判別分析：從貝氏定理到分類邊界</h1>
+  <div class="meta">
+    <span>📖 ISLP §4.4</span>
+    <span>📄 pp. 145–154</span>
+    <span class="difficulty">⭐⭐⭐ 中級</span>
+    <span>⏱️ 約 40 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">LDA</span>
+    <span class="tag">Bayes</span>
+    <span class="tag">classification</span>
+    <span class="tag">discriminant</span>
+    <span class="tag">QDA</span>
+  </div>
+</header>
+
+<div class="ref-box">
+  <span class="label">📖 課本引用：</span>James, Witten, Hastie, Tibshirani (2023). <em>An Introduction to Statistical Learning with Applications in Python</em>, §4.4, pp. 145–154.
+</div>
+
+<h2>💡 核心概念：從「誰比較像」到「機率最高的類別」</h2>
+<p>
+  想像你是百貨公司的專櫃小姐，遠遠看到一個人走過來。你腦袋裡快速運轉：這個人看起來像會買奢侈品、還是平價商品？你的判斷不是亂猜的——你是根據過往經驗中「買奢侈品的人平均長什麼樣」和「買平價商品的人平均長什麼樣」來做比較。<strong>線性判別分析 (LDA) 做的就是這件事：對每個類別建立一個「典型樣貌」，然後看新來的樣本跟誰最像。</strong>
+</p>
+<p>
+  數學上，LDA 假設每個類別的資料來自一個<strong>常態分佈 (Normal distribution)</strong>，且所有類別共用同一個<strong>共變異數矩陣 (covariance matrix)</strong>。這聽起來很嚴格，但正是這個假設讓 LDA 的決策邊界是一條直線（所以才叫「線性」判別），並且在高維度下比 Logistic Regression 更穩定。
+</p>
+
+<h2>📐 理論推導</h2>
+
+<h3>貝氏分類器的回歸</h3>
+<p>
+  回顧 §2.2 的貝氏分類器：對於一個新觀測值 \(X = x\)，我們選擇使 <strong>後驗機率 (posterior probability)</strong> \( \Pr(Y = k \mid X = x) \) 最大的類別。用貝氏定理展開：
+</p>
+<div class="math-block">
+\[
+\Pr(Y = k \mid X = x) = \frac{\pi_k \cdot f_k(x)}{\sum_{l=1}^{K} \pi_l \cdot f_l(x)}
+\]
+</div>
+<p>其中：</p>
+<ul>
+  <li>\(\pi_k\) = 類別 \(k\) 的<strong>事前機率 (prior)</strong>——還沒看到資料時，你認為它是類別 \(k\) 的機率</li>
+  <li>\(f_k(x)\) = 類別 \(k\) 的<strong>機率密度函數 (density)</strong>——在類別 \(k\) 中看到 \(X = x\) 的機率密度</li>
+</ul>
+
+<h3>LDA 的關鍵假設：\(p=1\)（單一預測變數）</h3>
+<p>
+  LDA 假設 \(f_k(x)\) 是一個常態分佈：
+</p>
+<div class="math-block">
+\[
+f_k(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x - \mu_k)^2}{2\sigma^2}\right)
+\]
+</div>
+<p>
+  <strong>關鍵：</strong>所有類別共用同一個 \(\sigma^2\)（變異數相同），但每個類別有自己的均值 \(\mu_k\)。把這個代入貝氏定理，取 log 並化簡後，我們得到：
+</p>
+<div class="math-block">
+\[
+\delta_k(x) = x \cdot \frac{\mu_k}{\sigma^2} - \frac{\mu_k^2}{2\sigma^2} + \log(\pi_k)
+\]
+</div>
+<p>
+  這就是 LDA 的<strong>判別函數 (discriminant function)</strong>。對於新觀測值 \(x\)，我們計算所有類別的 \(\delta_k(x)\)，選擇 \(\delta_k(x)\) 最大的類別。<strong>注意：\(\delta_k(x)\) 是 \(x\) 的線性函數</strong>——這正是「線性判別分析」名稱的由來。
+</p>
+
+<h3>推廣到 \(p > 1\)（多個預測變數）</h3>
+<p>
+  當有多個預測變數時，\(X\) 是一個向量，假設它來自多變量常態分佈：
+</p>
+<div class="math-block">
+\[
+f_k(x) = \frac{1}{(2\pi)^{p/2}|\Sigma|^{1/2}} \exp\left(-\frac{1}{2}(x - \mu_k)^T \Sigma^{-1} (x - \mu_k)\right)
+\]
+</div>
+<p>判別函數變成：</p>
+<div class="math-block">
+\[
+\delta_k(x) = x^T \Sigma^{-1} \mu_k - \frac{1}{2}\mu_k^T \Sigma^{-1} \mu_k + \log(\pi_k)
+\]
+</div>
+<p>
+  實務上，我們不知道 \(\mu_k\)、\(\Sigma\)、\(\pi_k\) 的真實值，只能用訓練資料來<strong>估計</strong>：
+</p>
+<ul>
+  <li>\(\hat{\mu}_k = \frac{1}{n_k} \sum_{i: y_i = k} x_i\) — 類別 \(k\) 的樣本均值</li>
+  <li>\(\hat{\Sigma} = \frac{1}{n-K} \sum_{k=1}^{K} \sum_{i:y_i=k} (x_i - \hat{\mu}_k)(x_i - \hat{\mu}_k)^T\) — 加權平均共變異數</li>
+  <li>\(\hat{\pi}_k = n_k / n\) — 類別 \(k\) 在訓練資料中的比例</li>
+</ul>
+
+<h2>🐍 Python 實作</h2>
+
+<div class="card">
+<h3>從頭實作 LDA（理解原理）</h3>
+<pre><code class="language-python">import numpy as np
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+
+# === 1. 載入資料 ===
+iris = load_iris()
+X, y = iris.data, iris.target
+feature_names = iris.feature_names
+class_names = iris.target_names
+
+# 只用前兩個類別（setosa=0, versicolor=1）和前兩個特徵做二元分類
+mask = y != 2
+X_bin, y_bin = X[mask, :2], y[mask]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_bin, y_bin, test_size=0.3, random_state=42
+)
+
+# === 2. 估計 LDA 參數 ===
+classes = np.unique(y_train)
+K = len(classes)
+n = len(y_train)
+p = X_train.shape[1]
+
+# 事前機率
+pi = np.array([np.mean(y_train == k) for k in classes])
+
+# 類別均值
+mu = np.array([X_train[y_train == k].mean(axis=0) for k in classes])
+
+# 加權共變異數矩陣
+Sigma = np.zeros((p, p))
+for k in range(K):
+    X_k = X_train[y_train == k]
+    centered = X_k - mu[k]
+    Sigma += centered.T @ centered
+Sigma /= (n - K)
+
+Sigma_inv = np.linalg.inv(Sigma)
+
+# === 3. 判別函數（線性分數） ===
+def discriminant(x):
+    scores = []
+    for k in range(K):
+        s = x @ Sigma_inv @ mu[k] - 0.5 * mu[k] @ Sigma_inv @ mu[k] + np.log(pi[k])
+        scores.append(s)
+    return np.argmax(scores)
+
+# === 4. 預測 ===
+y_pred = np.array([discriminant(x) for x in X_test])
+accuracy = np.mean(y_pred == y_test)
+print(f"從頭實作 LDA 準確率: {accuracy:.4f}")
+
+# === 5. 與 sklearn 比對 ===
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+lda_sk = LinearDiscriminantAnalysis()
+lda_sk.fit(X_train, y_train)
+y_pred_sk = lda_sk.predict(X_test)
+accuracy_sk = np.mean(y_pred_sk == y_test)
+print(f"sklearn LDA 準確率: {accuracy_sk:.4f}")
+print(f"結果一致: {np.array_equal(y_pred, y_pred_sk)}")</code></pre>
+</div>
+
+<div class="card">
+<h3>使用 sklearn 完整流程（多類別 + 視覺化）</h3>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.metrics import confusion_matrix, classification_report
+
+# 完整 Iris 三類別，全部四個特徵
+X_full, y_full = iris.data, iris.target
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X_full, y_full, test_size=0.3, random_state=42
+)
+
+# 訓練 LDA
+lda = LinearDiscriminantAnalysis()
+lda.fit(X_tr, y_tr)
+
+# 預測
+y_hat = lda.predict(X_te)
+print(f"準確率: {lda.score(X_te, y_te):.4f}")
+print("\n分類報告:")
+print(classification_report(y_te, y_hat, target_names=class_names))
+
+# 混淆矩陣
+cm = confusion_matrix(y_te, y_hat)
+print("混淆矩陣:")
+print(cm)
+
+# LDA 投影（降至 2 維做視覺化）
+X_lda = lda.transform(X_full)
+fig, ax = plt.subplots(figsize=(8, 6))
+for i, name in enumerate(class_names):
+    ax.scatter(X_lda[y_full == i, 0], X_lda[y_full == i, 1], 
+               label=name, alpha=0.7, s=40)
+ax.set_xlabel("LD1")
+ax.set_ylabel("LD2")
+ax.set_title("LDA 投影後的三類別 Iris 資料")
+ax.legend()
+plt.tight_layout()
+plt.show()
+
+# 印出各類別的事前機率與均值
+print(f"\n事前機率: {lda.priors_}")
+print(f"各類別均值形狀: {lda.means_.shape}")
+print(f"解釋變異比: {lda.explained_variance_ratio_}")</code></pre>
+</div>
+
+<h2>📊 LDA vs Logistic Regression 對照表</h2>
+
+<table>
+<tr><th>特性</th><th>LDA</th><th>Logistic Regression</th></tr>
+<tr><td>數學基礎</td><td>常態分佈假設 + 貝氏定理</td><td>直接建模 \(P(Y|X)\)</td></tr>
+<tr><td>假設</td><td>X 來自常態分佈、共變異數相同</td><td>無 X 分佈假設</td></tr>
+<tr><td>決策邊界</td><td>線性（直線/平面）</td><td>線性（logit 尺度）</td></tr>
+<tr><td>穩健性</td><td>假設符合時更精確</td><td>偏離常態時較穩健</td></tr>
+<tr><td>多類別</td><td>自然延伸（無需 one-vs-rest）</td><td>需多項式延伸或 one-vs-rest</td></tr>
+<tr><td>類別分離度佳時</td><td>參數估計較穩定</td><td>係數可能爆炸（完全分離問題）</td></tr>
+<tr><td>降維能力</td><td>內建（判別軸 = 降維投影）</td><td>無</td></tr>
+</table>
+
+<h2>🔄 延伸：二次判別分析 (QDA)</h2>
+<p>
+  LDA 假設所有類別共用同一個共變異數矩陣 \(\Sigma\)。如果放寬這個假設——允許每個類別有自己的 \(\Sigma_k\)——就變成了<strong>二次判別分析 (Quadratic Discriminant Analysis, QDA)</strong>。
+</p>
+<p>QDA 的判別函數中會出現 \(x^T \Sigma_k^{-1} x\) 這樣的二次項，因此決策邊界是曲線（二次曲面），而非直線。</p>
+
+<table>
+<tr><th>選擇 LDA</th><th>選擇 QDA</th></tr>
+<tr><td>訓練資料少、偏誤主導</td><td>訓練資料多、變異數主導</td></tr>
+<tr><td>各類別共變異數結構相似</td><td>各類別共變異數明顯不同</td></tr>
+<tr><td>偏好簡單模型（較低變異）</td><td>資料足夠支撐複雜模型</td></tr>
+</table>
+
+<h2>🎯 應用場景</h2>
+
+<div class="card">
+<h3>📈 信用評分卡</h3>
+<p>銀行使用 LDA 分析客戶資料（收入、負債比、信用歷史），將客戶分類為「違約」和「不違約」。LDA 的線性分數可以直接轉換為信用評分。</p>
+</div>
+
+<div class="card">
+<h3>🧬 基因表達分類</h3>
+<p>給定數千個基因的表達量，LDA 可以找出最具有判別能力的基因組合來區分不同癌症亞型。LDA 的降維特性在這裡特別有用（p ≫ n 問題）。</p>
+</div>
+
+<div class="card">
+<h3>📧 垃圾郵件過濾</h3>
+<p>基於詞頻特徵（如「免費」、「中獎」、「限時」等詞的出現次數），LDA 可以判斷郵件是否為垃圾郵件。在特徵接近常態分佈時（經過適當轉換），LDA 表現優異。</p>
+</div>
+
+<h2>⚖️ 優缺點</h2>
+
+<div class="pro-con">
+<div class="pro">
+<h4>✅ 優點</h4>
+<ul>
+  <li>數學基礎嚴謹，來自貝氏定理</li>
+  <li>多類別分類的自然解法（無需 one-vs-rest）</li>
+  <li>內建降維功能（判別軸 = 視覺化投影）</li>
+  <li>假設符合時比 Logistic Regression 更有效</li>
+  <li>類別分離度佳時係數估計穩定</li>
+</ul>
+</div>
+<div class="con">
+<h4>⚠️ 缺點</h4>
+<ul>
+  <li>強假設（常態分佈 + 同變異數）現實中少見</li>
+  <li>對離群值敏感</li>
+  <li>預測變數高度相關時共變異數矩陣可能不穩定</li>
+  <li>需要 \(n > p\)（否則 \(\hat{\Sigma}\) 不可逆）</li>
+</ul>
+</div>
+</div>
+
+<h2>💬 關鍵金句</h2>
+<blockquote>
+  「LDA 不是魔法——它只是把貝氏定理套上常態分佈，然後讓資料告訴你每個類別『長什麼樣子』。當這個假設合理時，它是最簡潔有效的分類器之一。」
+</blockquote>
+
+<h2>🧠 自我反思（對 Hermes 架構的啟發）</h2>
+<p>
+  LDA 的設計哲學對 AI agent 的記憶系統有深刻隱喻：<strong>每個類別有一個「典型樣貌」（均值 \(\mu_k\)），新來的資訊只需和這些典型樣貌比較即可做出決策</strong>。這正是「原型記憶」(prototype memory) 的核心概念——不需要儲存所有原始經驗，只需儲存壓縮後的典型表徵。
+</p>
+<p>
+  在 Hermes 架構中，skill 系統可以視為一種「判別函數」：當新任務來臨時，系統比較任務特徵與各 skill 的「適用範圍描述」，選擇最匹配的 skill。Tree-of-Experience 論文 (arXiv:2606.06960) 更進一步提出結構化經驗樹的概念——這與 LDA 的多層級判別不謀而合：高層節點做粗略分類，低層節點做精細調整。
+</p>
+
+<footer>
+  <a href="index.html">← 回首頁</a> · 
+  <a href="4.3_logistic_regression.html">← §4.3 邏輯回歸</a> · 
+  <a href="04_classification_methods_comparison.html">§4.5 分類方法比較 →</a>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>

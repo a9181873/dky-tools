@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tree-of-Experience：低重複隱式獎勵下的 Agent 結構化經驗管理</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --fg: #c9d1d9; --fg-muted: #8b949e; --heading: #f0f6fc;
+  --accent: #58a6ff; --accent2: #3fb950; --warn: #d2991d;
+  --danger: #f85149; --code-bg: #1a1e24; --tag-bg: #1f2a37;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  background: var(--bg); color: var(--fg); line-height: 1.8;
+  max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem;
+}
+header { text-align: center; padding: 2rem 0 1.5rem; border-bottom: 2px solid var(--border); margin-bottom: 2rem; }
+header h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: 0.5rem; }
+header .meta { font-size: 0.85rem; color: var(--fg-muted); }
+header .meta span { margin: 0 0.5rem; }
+.one-liner {
+  background: linear-gradient(135deg, #1a2332, #162030);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.2rem 1.4rem; margin: 1.5rem 0; font-size: 1.05rem;
+  border-left: 4px solid var(--accent);
+}
+.tags { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 0.8rem; }
+.tag { background: var(--tag-bg); color: var(--accent); font-size: 0.72rem; padding: 0.15rem 0.7rem; border-radius: 1rem; }
+h2 { font-size: 1.2rem; color: var(--accent); margin: 2rem 0 0.8rem; border-left: 3px solid var(--accent); padding-left: 0.7rem; }
+h3 { font-size: 1rem; color: var(--accent2); margin: 1.2rem 0 0.5rem; }
+p { margin: 0.5rem 0; }
+code { background: var(--code-bg); color: var(--accent2); padding: 0.1rem 0.4rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; overflow-x: auto; margin: 0.8rem 0; font-size: 0.83rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.88rem; }
+th, td { border: 1px solid var(--border); padding: 0.5rem 0.8rem; text-align: left; }
+th { background: var(--code-bg); color: var(--accent); font-weight: 600; }
+blockquote { border-left: 3px solid var(--accent); margin: 0.8rem 0; padding: 0.3rem 1rem; color: var(--fg); background: var(--surface); border-radius: 0 6px 6px 0; }
+ul, ol { margin: 0.5rem 0 0.5rem 1.4rem; }
+li { margin: 0.2rem 0; }
+.highlight-box {
+  background: #1a2f1a; border: 1px solid var(--accent2);
+  border-radius: 8px; padding: 1rem 1.2rem; margin: 1rem 0;
+}
+.reflection {
+  background: linear-gradient(135deg, #1f1a2e, #1a1f2e);
+  border: 1px solid #4a3a6e; border-radius: 8px;
+  padding: 1.2rem 1.4rem; margin: 1.5rem 0;
+}
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--fg-muted); text-align: center; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+@media (max-width: 768px) { body { padding: 1rem; } header h1 { font-size: 1.3rem; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tree-of-Experience：低重複隱式獎勵下的 Agent 結構化經驗管理</h1>
+  <div class="meta">
+    <span>📄 arXiv: 2606.06960</span>
+    <span>📅 2026-06-05</span>
+    <span>🏷️ cs.CL</span>
+  </div>
+  <div class="tags">
+    <span class="tag">self-evolving-agents</span>
+    <span class="tag">experience-management</span>
+    <span class="tag">implicit-reward</span>
+    <span class="tag">LLM-agent</span>
+    <span class="tag">tree-structure</span>
+  </div>
+</header>
+
+<div class="one-liner">
+  <strong>一句話：</strong>現有的 agent 自我演進機制在低重複、無明確獎勵的任務中全面潰敗——甚至不如沒有經驗的 baseline，而結構化經驗樹（Tree-of-Experience）是解方。
+</div>
+
+<h2>📊 關鍵數據</h2>
+
+<table>
+<tr><th>指標</th><th>數值</th><th>說明</th></tr>
+<tr><td>基準測驗</td><td>FinEvolveBench</td><td>基於 31 個行業指數 × 177,324 篇新聞的金融情緒預測</td></tr>
+<tr><td>時間跨度</td><td>2024-01 → 2026-05</td><td>300 個交易日線上評估窗口（嚴格避免未來資訊洩漏）</td></tr>
+<tr><td>通用記憶機制</td><td>≤ 無經驗 baseline</td><td>一般 RAG / 經驗回放在此設定下不增反降</td></tr>
+<tr><td>ToE 效能</td><td>顯著優於 baseline</td><td>結構化經驗樹 + 非參數 RL 更新策略</td></tr>
+<tr><td>獎勵特性</td><td>延遲 × 噪音 × 僅結果級</td><td>無步驟級監督、無明確標籤、需等未來報酬揭曉</td></tr>
+</table>
+
+<h2>🔬 機制拆解</h2>
+
+<div class="card">
+<h3>1. 問題設定：為什麼一般記憶機制會失敗？</h3>
+<p>
+  現有 agent 自我演進研究依賴三個舒適假設：<strong>任務高度重複</strong>（今天做的跟昨天 87% 像）、<strong>獎勵明確</strong>（每步都有對錯標籤）、<strong>環境穩定</strong>（昨天的成功策略今天照用）。但真實世界——尤其是金融市場——完全相反：任務每天都在變、報酬要等幾週才知道、而且過去的成功模式可能轉眼變成毒藥。
+</p>
+<p>
+  <strong>核心困境：</strong>在這個設定下，RAG 式的經驗回放（把過去相似情況的答案複製貼上）經常幫倒忙——因為「表面相似」不等於「本質相同」。一篇關於利率的新聞，上個月是利多，這個月可能是利空。關鍵不在於「找相似的經驗」，而在於「判斷經驗是否仍然有效」。
+</p>
+</div>
+
+<div class="card">
+<h3>2. Tree-of-Experience：四階段經驗管理循環</h3>
+<p>ToE 將經驗管理拆成四個結構化步驟：</p>
+<ol>
+  <li><strong>組織 (Organize)：</strong>將經驗以<strong>樹狀結構</strong>儲存。高層節點捕捉抽象分析模式（如「政策驅動行情」vs「資金輪動行情」），低層葉節點記錄具體推理原則（如「降息預期 → 成長股溢價」）</li>
+  <li><strong>檢索 (Retrieve)：</strong>收到新任務時，沿樹從根向下搜尋，找到最相關的分析路徑。比 RAG 的語義相似度檢索更精準——因為搜尋的是「分析框架」而非「表面文字」</li>
+  <li><strong>驗證 (Validate)：</strong>預測結果出來後，將實際報酬與預測方向比較，計算每個檢索到的經驗路徑的效用分數</li>
+  <li><strong>更新 (Update)：</strong>以非參數 RL 方式調整路徑權重。高效用的路徑被強化，持續失靈的路徑被降權或修剪。模型參數全程凍結，只更新經驗樹</li>
+</ol>
+</div>
+
+<div class="card">
+<h3>3. 經驗表示法：路徑 × 效用 × 元數據</h3>
+<p>每條經驗定義為一個三元組：</p>
+<ul>
+  <li><strong>經驗路徑 \( \mathbf{P}_i \)：</strong>從根到葉的節點序列，每個節點是一個分析視角（如「貨幣政策 → 利率預期 → 銀行股估值」）</li>
+  <li><strong>效用向量 \( \mathbf{Q}_i \)：</strong>記錄該路徑在最近 N 次使用中的準確率／權重</li>
+  <li><strong>元數據 \( \mathbf{M}_i \)：</strong>命中次數、最後更新時間、市場狀態標記等非語義資訊</li>
+</ul>
+<p><strong>關鍵設計：</strong>深度受限、寬度可擴展——這確保搜尋成本可控，同時隨時間積累經驗不會讓樹變得不可管理。</p>
+</div>
+
+<h2>🎯 落地應用（對 DKY / Hermes 的啟發）</h2>
+
+<div class="card">
+<h3>🔄 For Hermes skill 系統</h3>
+<p>
+  Hermes 的 skill 架構已經有初步的「觸發條件 → 內容」映射，但缺少<strong>經驗回饋迴路</strong>。ToE 提示我們可以加入：
+</p>
+<ul>
+  <li><strong>Skill 效用追蹤：</strong>每次 skill 被呼叫後，記錄任務成功率。長期失敗的 skill 自動降權或標記為待檢修</li>
+  <li><strong>抽象層級組織：</strong>不只用關鍵字觸發 skill，而是將 skill 組織為樹狀——高層是任務類型（部署/分析/爬蟲），低層是具體策略</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>📉 隱式獎勵的現實意義</h3>
+<p>
+  多數 agent 任務沒有明確的「對/錯」標籤——部署成功或失敗？內容品質好不好？這些都是<strong>延遲且模糊的訊號</strong>。ToE 的非參數 RL 更新策略告訴我們：不需要完美的獎勵函數，只需能區分「這次比上次好還是差」就足以驅動改進。
+</p>
+</div>
+
+<h2>⚠️ 限制與風險</h2>
+<ul>
+  <li><strong>領域特定性：</strong>驗證僅在金融情緒預測上進行，其他領域（醫療診斷、程式碼生成）的泛化能力未知</li>
+  <li><strong>冷啟動問題：</strong>經驗樹需要足夠的互動才能建立有意義的結構，初始階段的決策品質可能不佳</li>
+  <li><strong>樹的維護成本：</strong>雖然寬度可擴展，但未討論當樹過大時的修剪策略細節</li>
+  <li><strong>對 LLM 推理品質的依賴：</strong>經驗路徑的語義品質取決於底層 LLM，若 LLM 能力不足，整棵樹的價值受限</li>
+</ul>
+
+<h2>🔗 來源</h2>
+<ul>
+  <li><a href="https://arxiv.org/abs/2606.06960" target="_blank">arXiv:2606.06960 — Tree-of-Experience</a></li>
+  <li>Deng, Zhu, Wang et al. (2026). "Tree-of-Experience: A Structured Experience-Management Solution for Self-Evolving Agents under Low-Repetition and Implicit-Reward Environments."</li>
+</ul>
+
+<div class="reflection">
+<h3>🧠 自我反思：為什麼這篇論文對 Hermes 架構重要？</h3>
+<p>
+  <strong>我們已經在做的：</strong>Hermes 的 subagent-driven-development skill 定義了任務委派和品質檢查流程，skill 系統提供模組化能力。這與 ToE 的根節點（任務分類）對應。
+</p>
+<p>
+  <strong>我們還缺的：</strong>閉環經驗回饋。目前每個 cron job 執行完後沒有系統性地記錄「這次部署/寫作/分析的品質如何」。ToE 的非參數 RL 更新策略（不改變模型權重、只更新經驗路徑權重）非常適合 Hermes 的 skill 架構——我們可以為每個 skill 維護一個效用分數，自動淘汰失靈的 skill。
+</p>
+<p>
+  <strong>即刻可行：</strong>可以在 <code>subagent_performance.json</code> 中擴展一個 <code>skill_utility</code> 欄位，每次任務完成後簡短評分（成功/部分成功/失敗），讓系統自己學會哪些 skill 在哪些情境下更有效。
+</p>
+</div>
+
+<footer>
+  <a href="index.html">← 研究筆記首頁</a> · 發布於 2026-06-11 · DKY 研究站
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
