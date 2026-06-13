@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§4.6 廣義線性模型 — ISLP 統計學習課程</title>
+<style>
+:root {
+  --bg:#0d1117;
+  --bg-elevated: #161b22;
+  --bg-card: #1c2129;
+  --fg: #c9d1d9;
+  --fg-muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-dim: #1f6feb;
+  --green: #3fb950;
+  --orange: #d2991d;
+  --red: #f85149;
+  --border: #30363d;
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
+  --mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.75;
+  font-size: 16px;
+}
+.dky-layout {
+  display: flex;
+  min-height: 100vh;
+}
+main {
+  flex: 1;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+h1 { font-size: 1.8rem; color: var(--accent); margin: 1.5rem 0 0.5rem; }
+h2 {
+  font-size: 1.35rem; color: var(--accent); margin: 2rem 0 0.75rem;
+  padding-bottom: 0.35rem; border-bottom: 1px solid var(--border);
+}
+h3 { font-size: 1.1rem; color: var(--fg); margin: 1.25rem 0 0.5rem; }
+p { margin: 0.7rem 0; }
+code {
+  background: var(--bg-elevated); color: var(--orange);
+  padding: 0.15rem 0.4rem; border-radius: 4px; font-family: var(--mono); font-size: 0.9em;
+}
+pre {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  margin: 0.8rem 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+pre code { background: none; color: var(--fg); padding: 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+blockquote {
+  border-left: 3px solid var(--accent-dim);
+  padding: 0.5rem 1rem;
+  margin: 0.8rem 0;
+  background: var(--bg-elevated);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--fg-muted);
+}
+ul, ol { margin: 0.5rem 0 0.5rem 1.5rem; }
+li { margin: 0.25rem 0; }
+
+.meta-bar {
+  display: flex; flex-wrap: wrap; gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.tag {
+  display: inline-block;
+  background: var(--accent-dim);
+  color: var(--fg);
+  font-size: 0.78rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+.stars { color: var(--orange); font-size: 0.9rem; }
+
+.ref-box {
+  background: var(--bg-card);
+  border-left: 4px solid var(--accent-dim);
+  padding: 0.8rem 1.2rem;
+  margin: 1rem 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.9rem;
+}
+.ref-box strong { color: var(--accent); }
+
+.scenario-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+  border-radius: var(--radius);
+}
+.scenario-box h4 { color: var(--green); margin-bottom: 0.4rem; font-size: 0.95rem; }
+
+.pros-cons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.pros-cons > div {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+}
+.pros-cons h4 { margin-bottom: 0.4rem; font-size: 0.95rem; }
+.pros-cons .pros h4 { color: var(--green); }
+.pros-cons .cons h4 { color: var(--red); }
+.pros-cons ul { margin-left: 1.2rem; }
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+}
+.comparison-table th {
+  background: var(--bg-elevated);
+  color: var(--accent);
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+}
+.comparison-table td {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+}
+.comparison-table tr:nth-child(even) td { background: var(--bg-card); }
+
+.key-quote {
+  background: linear-gradient(135deg, var(--accent-dim) 0%, var(--bg-card) 100%);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  margin: 2rem 0;
+  font-size: 1.05rem;
+  font-style: italic;
+  text-align: center;
+  color: var(--fg);
+}
+
+.math-block { overflow-x: auto; padding: 0.3rem 0; }
+
+@media (max-width: 768px) {
+  .dky-layout { flex-direction: column; }
+  main { padding: 1rem; }
+  .pros-cons { grid-template-columns: 1fr; }
+  h1 { font-size: 1.4rem; }
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+</head>
+<body>
+<div class="dky-layout">
+<main>
+
+<h1>§4.6 廣義線性模型（Generalized Linear Models）</h1>
+
+<div class="meta-bar">
+  <span class="stars">★★★☆☆</span>
+  <span class="tag">廣義線性模型</span>
+  <span class="tag">GLM</span>
+  <span class="tag">卜瓦松迴歸</span>
+  <span class="tag">計數資料</span>
+  <span class="tag">連結函數</span>
+  <span style="color:var(--fg-muted);font-size:0.85rem;">課本 pp. 167–172</span>
+</div>
+
+<!-- ============================================================ -->
+<h2>📖 前言：當 Y 不是數字也不是類別</h2>
+
+<p>
+到目前為止，我們學了兩種 Y 的型態：<strong>連續數值</strong>（第三章的線性迴歸）
+和<strong>類別</strong>（第四章前半的分類方法）。但真實世界還有一種尷尬的 Y：<strong>計數（counts）</strong>——
+它不是連續的實數，也不是「是/否」的類別，而是 <strong>0, 1, 2, 3, …</strong> 的非負整數。
+</p>
+
+<p>
+想像你在管理 <strong>華盛頓特區的公共自行車系統</strong>（Bikeshare）。
+你想預測「某個小時會有幾個人租車」。這個數字：
+</p>
+<ul>
+  <li>不會是負的（不可能有 -5 個人租車）</li>
+  <li>不會是小數（不會有 3.7 個人）</li>
+  <li>平均值大的時候，變異數也大（尖峰時段人多且波動大；凌晨人少波動也小）</li>
+</ul>
+
+<p>
+線性迴歸在這三個點上都會出問題。本節將介紹 <strong>卜瓦松迴歸（Poisson Regression）</strong>，
+並將其統一進 <strong>廣義線性模型（GLM）</strong> 的框架中。
+</p>
+
+<div class="ref-box">
+📚 <strong>理論基礎</strong>：本節內容來自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em> §4.6。GLM 框架最早由 Nelder &amp; Wedderburn (1972) 在 <em>Journal of the Royal Statistical Society</em> 提出，是現代統計建模的基石之一。
+</div>
+
+<!-- ============================================================ -->
+<h2>4.6.1 用線性迴歸硬幹 Bikeshare 資料——然後翻車</h2>
+
+<p>
+我們拿 Bikeshare 資料直接跑最小平方法線性迴歸。結果看起來還行：
+</p>
+
+<table class="comparison-table">
+  <tr><th>係數</th><th>估計值</th><th>標準誤</th><th>t 值</th><th>p 值</th></tr>
+  <tr><td>截距</td><td>73.60</td><td>5.13</td><td>14.34</td><td>0.00</td></tr>
+  <tr><td>workingday</td><td>1.27</td><td>1.78</td><td>0.71</td><td>0.48</td></tr>
+  <tr><td>temp</td><td>157.21</td><td>10.26</td><td>15.32</td><td>0.00</td></tr>
+  <tr><td>weathersit[陰/霧]</td><td>-12.89</td><td>1.96</td><td>-6.56</td><td>0.00</td></tr>
+  <tr><td>weathersit[小雨/雪]</td><td>-66.49</td><td>2.97</td><td>-22.43</td><td>0.00</td></tr>
+</table>
+
+<p style="font-size:0.85rem;color:var(--fg-muted);">表 4.10 摘要：線性迴歸預測 Bikeshare 每小時租車人數。</p>
+
+<p>乍看合理：溫度高 → 租車多、天氣差 → 租車少。但仔細看有三個致命問題：</p>
+
+<h3>問題一：9.6% 的預測值是負的 🔴</h3>
+<p>
+線性迴歸模型不「知道」租車人數不能為負。在大雪紛飛的凌晨兩點，
+模型可能預測「-15 個人租車」——這在現實中毫無意義。
+</p>
+
+<h3>問題二：變異數不是常數（異質變異性）🔴</h3>
+<p>
+線性模型假設誤差項的變異數 σ² 是常數，但自行車資料明顯違反：
+凌晨雨天平均 5 人、標準差 3.7；晴天上午尖峰平均 244 人、標準差 132。
+<strong>平均值越大，變異數也越大</strong>。這違反了同質變異性假設。
+</p>
+
+<h3>問題三：Y 是整數，模型卻給連續值 🔴</h3>
+<p>
+線性模型 Y = β₀ + Σ Xⱼβⱼ + ε，其中 ε 是連續誤差 → Y 必然是連續的。
+但租車人數只能是整數（0, 1, 2, …），連續預測在概念上就不對。
+</p>
+
+<h3>取 log 可以救嗎？</h3>
+<p>
+對 Y 取 log 再跑迴歸可以避免負預測，也部分緩解異質變異性（見課本 Figure 4.14 右圖）。
+但解釋變得很尷尬：「Xⱼ 增加一單位，log(Y) 的平均增加 βⱼ」——誰聽得懂？
+而且 Y=0 時無法取 log。所以 <strong>取 log 只是權宜之計</strong>，不是正解。
+</p>
+
+<div class="scenario-box">
+  <h4>🏪 應用場景：零售店每日來客數預測</h4>
+  <p>便利商店想預測「明天會有幾個人走進店裡」。Y 是計數（0, 1, 2, …），
+  天氣好的週末人多（平均高、變異大），颱風天人少（平均低、變異小）。
+  用線性迴歸會預測出「負的來客數」，明顯不合理。Poisson 迴歸是正確選擇。</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>4.6.2 卜瓦松迴歸——為計數而生的模型</h2>
+
+<h3>卜瓦松分佈（Poisson Distribution）</h3>
+
+<p>
+如果隨機變數 Y 取值為非負整數 {0, 1, 2, …}，且服從卜瓦松分佈，則：
+</p>
+
+<div class="math-block">
+\[
+\Pr(Y = k) = \frac{e^{-\lambda} \lambda^k}{k!}, \quad k = 0, 1, 2, \ldots
+\]
+</div>
+
+<p>
+這裡 λ &gt; 0 是 Y 的期望值，而且 <strong>λ = E(Y) = Var(Y)</strong>。
+這就是卜瓦松分佈的關鍵特性：<strong>平均值等於變異數</strong>。
+平均值大 → 變異數也大，完美匹配 Bikeshare 的「尖峰波動大、離峰波動小」現象。
+</p>
+
+<blockquote>
+📐 <strong>生活化理解</strong>：想像一個櫃台，平均每小時有 λ=5 個人來。
+有時多來幾個（8 人）、有時少來幾個（2 人），這個「來客數」的波動幅度跟 λ 有關。
+λ=5 時波動有限，λ=100 時波動自然就大——卜瓦松用 λ = Var(Y) 捕捉了這個自然的規律。
+</blockquote>
+
+<h3>卜瓦松迴歸模型</h3>
+
+<p>
+當然，λ 不該是常數——它應該隨著天氣、時間、月份而變化。
+因此我們讓 <strong>log(λ) 是預測變數的線性組合</strong>：
+</p>
+
+<div class="math-block">
+\[
+\log\big(\lambda(X_1, \ldots, X_p)\big) = \beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p
+\]
+</div>
+
+<p>等價於：</p>
+
+<div class="math-block">
+\[
+\lambda(X_1, \ldots, X_p) = e^{\beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p}
+\]
+</div>
+
+<p>
+這裡用 <strong>log 連結</strong> 保證 λ 永遠為正（指數函數的輸出恆正），
+而且用最大概似法（MLE）估計係數，跟邏輯迴歸的估計方式相同。
+</p>
+
+<h3>程式碼示範：Poisson 迴歸實作</h3>
+
+<pre><code class="language-python"># Google Colab / 本機相容資料讀取
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+# 載入 Bikeshare 資料（來自 ISLP 套件）
+from ISLP import load_data
+Bike = load_data('Bikeshare')
+
+# 查看資料結構
+print("資料維度:", Bike.shape)
+print(Bike.head(3))
+print("\n租車人數分布:")
+print(Bike['bikers'].describe())
+
+# ---- Poisson 迴歸 ----
+# 使用 statsmodels 的 GLM 搭配 Poisson family
+model_pois = smf.glm(
+    'bikers ~ mnth + hr + workingday + temp + weathersit',
+    data=Bike,
+    family=sm.families.Poisson()
+).fit()
+
+print("\n=== Poisson 迴歸結果 ===")
+print(model_pois.summary().tables[1])
+
+# ---- 比較：線性迴歸（OLS）----
+model_lm = smf.ols(
+    'bikers ~ mnth + hr + workingday + temp + weathersit',
+    data=Bike
+).fit()
+
+# 計算線性迴歸的負預測比例
+neg_pred = (model_lm.fittedvalues < 0).mean() * 100
+print(f"\n線性迴歸負預測比例: {neg_pred:.1f}%")
+print(f"Poisson 迴歸負預測比例: 0.0% (模型本身禁止負值)")
+
+plt.show()
+</code></pre>
+
+<h3>Bikeshare 資料上的 Poisson 迴歸結果</h3>
+
+<table class="comparison-table">
+  <tr><th>係數</th><th>估計值</th><th>標準誤</th><th>z 值</th><th>p 值</th></tr>
+  <tr><td>截距</td><td>4.12</td><td>0.01</td><td>683.96</td><td>0.00</td></tr>
+  <tr><td>workingday</td><td>0.01</td><td>0.00</td><td>7.5</td><td>0.00</td></tr>
+  <tr><td>temp</td><td>0.79</td><td>0.01</td><td>68.43</td><td>0.00</td></tr>
+  <tr><td>weathersit[陰/霧]</td><td>-0.08</td><td>0.00</td><td>-34.53</td><td>0.00</td></tr>
+  <tr><td>weathersit[小雨/雪]</td><td>-0.58</td><td>0.00</td><td>-141.91</td><td>0.00</td></tr>
+</table>
+
+<p style="font-size:0.85rem;color:var(--fg-muted);">表 4.11：Poisson 迴歸預測 Bikeshare 租車人數。</p>
+
+<h3>係數解讀：乘法思維 🔑</h3>
+
+<p>
+Poisson 迴歸的係數要用 <strong>乘法</strong> 來解讀，而不是加法。
+因為 λ = e^(β₀ + β₁X₁ + …)，所以 Xⱼ 增加 1 單位，λ 會 <strong>乘以 e^(βⱼ)</strong>。
+</p>
+
+<ul>
+  <li>天氣從晴天變陰天：係數 = -0.08 → e^(-0.08) = <strong>0.923</strong>。陰天時的租車人數只有晴天的 92.3%。</li>
+  <li>天氣從陰天變雨天：係數變化 = -0.58 - (-0.08) = -0.50 → e^(-0.50) = <strong>0.607</strong>。雨天只有陰天的 60.7%。</li>
+  <li>溫度上升 1 單位（標準化）：係數 = 0.79 → e^(0.79) = <strong>2.20</strong>。租車人數變為 2.2 倍。</li>
+</ul>
+
+<div class="scenario-box">
+  <h4>📊 應用場景：客服中心來電量預測</h4>
+  <p>電信公司的客服中心每小時接到 Y 通電話。Y 是計數：
+  週一早上 9 點來電多（λ 大、波動大）、週日凌晨 3 點來電少（λ 小、波動小）。
+  用 Poisson 迴歸建模 λ = f(星期幾, 時段, 節假日)，就能準確安排客服人力。
+  線性迴歸預測的「負來電數」在這裡同樣荒謬。</p>
+</div>
+
+<h3>Poisson 迴歸 vs. 線性迴歸——三個關鍵差異</h3>
+
+<table class="comparison-table">
+  <tr><th>面向</th><th>線性迴歸 (OLS)</th><th>Poisson 迴歸</th></tr>
+  <tr>
+    <td><strong>係數解讀</strong></td>
+    <td>加法：Xⱼ +1 → E(Y) +βⱼ</td>
+    <td>乘法：Xⱼ +1 → E(Y) × e^(βⱼ)</td>
+  </tr>
+  <tr>
+    <td><strong>變異數假設</strong></td>
+    <td>Var(Y) = σ²（常數）</td>
+    <td>Var(Y) = E(Y)（隨平均值變化）</td>
+  </tr>
+  <tr>
+    <td><strong>預測範圍</strong></td>
+    <td>(-∞, +∞)，可能有負值</td>
+    <td>[0, +∞)，永遠非負</td>
+  </tr>
+</table>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ Poisson 迴歸優點</h4>
+    <ul>
+      <li>預測值永遠非負，不會出現「負的租車人數」</li>
+      <li>自動捕捉均值-變異數關係（mean ↑ → variance ↑）</li>
+      <li>係數有乘法解讀，在許多領域（流行病學、保險）更自然</li>
+      <li>MLE 估計，具備良好的大樣本性質</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ Poisson 迴歸缺點</h4>
+    <ul>
+      <li>假設 Var(Y) = E(Y)，實務上常有過度離散（overdispersion）</li>
+      <li>過度離散會使 z 值膨脹，p 值過度樂觀</li>
+      <li>需要較大的 λ 才能用常態近似做推論</li>
+      <li>只能處理計數，不能處理連續或有界資料</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>4.6.3 GLM：一個框架統治三種迴歸</h2>
+
+<p>
+現在我們學了三種迴歸——線性、邏輯斯、卜瓦松。它們看似不同，但其實共享一個
+<strong>統一結構</strong>。這就是 <strong>廣義線性模型（Generalized Linear Model, GLM）</strong> 的核心洞見。
+</p>
+
+<h3>GLM 的三個組件</h3>
+
+<p>每個 GLM 由三個部分組成：</p>
+
+<ol>
+  <li>
+    <strong>隨機成分（Random Component）</strong>：Y 服從某個指數族分佈
+    <ul>
+      <li>線性迴歸：Y ~ Normal(μ, σ²)</li>
+      <li>邏輯斯迴歸：Y ~ Bernoulli(p)</li>
+      <li>卜瓦松迴歸：Y ~ Poisson(λ)</li>
+    </ul>
+  </li>
+  <li>
+    <strong>系統成分（Systematic Component）</strong>：線性預測子 η = β₀ + β₁X₁ + … + βₚXₚ
+  </li>
+  <li>
+    <strong>連結函數（Link Function）</strong>：把 E(Y) 和線性預測子 η 連起來
+  </li>
+</ol>
+
+<div class="math-block">
+\[
+\eta = g\big(E(Y|X)\big) = \beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p
+\]
+</div>
+
+<h3>三種迴歸的連結函數對照</h3>
+
+<table class="comparison-table">
+  <tr><th>模型</th><th>Y 的分佈</th><th>連結函數 g(μ)</th><th>連結名稱</th><th>反連結 g⁻¹(η)</th></tr>
+  <tr>
+    <td>線性迴歸</td>
+    <td>Normal(μ, σ²)</td>
+    <td>g(μ) = μ</td>
+    <td>恆等連結 (identity)</td>
+    <td>μ = η</td>
+  </tr>
+  <tr>
+    <td>邏輯斯迴歸</td>
+    <td>Bernoulli(p)</td>
+    <td>g(μ) = log(μ/(1-μ))</td>
+    <td>邏輯連結 (logit)</td>
+    <td>μ = e^η / (1+e^η)</td>
+  </tr>
+  <tr>
+    <td>卜瓦松迴歸</td>
+    <td>Poisson(λ)</td>
+    <td>g(μ) = log(μ)</td>
+    <td>對數連結 (log)</td>
+    <td>μ = e^η</td>
+  </tr>
+</table>
+
+<h3>程式碼示範：GLM 統一介面</h3>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+from ISLP import load_data
+Bike = load_data('Bikeshare')
+
+# GLM 統一介面：只需換 family 參數
+families = {
+    'Gaussian (線性迴歸)': sm.families.Gaussian(),
+    'Poisson (卜瓦松迴歸)': sm.families.Poisson(),
+}
+
+print("=== 同一個公式，不同 family，不同結果 ===\n")
+for name, fam in families.items():
+    model = smf.glm(
+        'bikers ~ temp + workingday',
+        data=Bike,
+        family=fam
+    ).fit()
+    print(f"[{name}]")
+    print(f"  截距: {model.params.iloc[0]:.3f}")
+    print(f"  temp 係數: {model.params.iloc[1]:.3f}")
+    print(f"  AIC: {model.aic:.1f}\n")
+
+# 視覺化：比較三種連結函數
+eta = np.linspace(-3, 3, 200)
+fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+
+# Identity link
+axes[0].plot(eta, eta, 'b-', lw=2)
+axes[0].axhline(y=0, color='gray', ls='--', alpha=0.5)
+axes[0].set_title('Identity: μ = η')
+axes[0].set_xlabel('η')
+axes[0].set_ylabel('μ')
+
+# Logit link
+mu_logit = 1 / (1 + np.exp(-eta))
+axes[1].plot(eta, mu_logit, 'r-', lw=2)
+axes[1].axhline(y=0.5, color='gray', ls='--', alpha=0.5)
+axes[1].set_title('Logit: μ = e^η / (1+e^η)')
+axes[1].set_xlabel('η')
+
+# Log link
+mu_log = np.exp(eta)
+axes[2].plot(eta, mu_log, 'g-', lw=2)
+axes[2].axhline(y=0, color='gray', ls='--', alpha=0.5)
+axes[2].set_title('Log: μ = e^η')
+axes[2].set_xlabel('η')
+
+for ax in axes:
+    ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('/tmp/glm_links.png', dpi=100, bbox_inches='tight')
+print("✅ 已儲存連結函數比較圖")
+plt.show()
+</code></pre>
+
+<div class="ref-box">
+📚 <strong>延伸閱讀</strong>：GLM 框架遠不止這三種。其他常用家族包括 Gamma（正連續資料，如保險理賠金額）、
+Inverse Gaussian（偏態嚴重的正資料）、Negative Binomial（處理過度離散的計數資料）。
+所有這些都可以在同一個 GLM 框架內用 MLE 估計。
+</div>
+
+<!-- ============================================================ -->
+<h2>🔬 GLM 的深層洞見：對 Hermes 系統設計的啟發</h2>
+
+<p>
+GLM 給我們的最大教訓不是數學，而是<strong>設計哲學</strong>：
+</p>
+
+<blockquote>
+<strong>統一的介面 + 可替換的引擎 = 最大彈性</strong>。<br>
+GLM 的精髓在於：<code>η = Xβ</code>（線性預測子）不變，只換 <code>g(·)</code>（連結函數）和分佈家族，
+就能從線性迴歸切換到邏輯斯迴歸再切到卜瓦松迴歸。
+</blockquote>
+
+<p>
+這對 Hermes 子代理（sub-agent）系統的啟發：
+</p>
+<ul>
+  <li><strong>統一任務介面</strong>：像 GLM 的 <code>η = Xβ</code> 一樣，所有子代理應該接受相同的輸入格式（任務描述 + 上下文），讓協調者不用針對每個子代理寫特殊邏輯。</li>
+  <li><strong>可替換的執行引擎</strong>：像 GLM 換 family 參數一樣，子代理應該可以換底層模型（Claude Code ↔ Codex ↔ OpenCode），而不改變上層呼叫介面。</li>
+  <li><strong>連結函數 = 輸出轉換層</strong>：GLM 的連結函數確保預測在合理範圍內（log 保證 λ>0，logit 保證 p∈[0,1]）。子代理的輸出也應該經過一個驗證層，確保結果格式正確、數值合理。</li>
+</ul>
+
+<p>
+這正是 <code>subagent-driven-development</code> skill 設計中的核心原則：
+定義統一的任務 schema → 子代理自由選擇實作方式 → 結果經過審查層（critic）驗證。
+</p>
+
+<!-- ============================================================ -->
+<h2>📊 模型比較總覽</h2>
+
+<table class="comparison-table">
+  <tr>
+    <th>特性</th>
+    <th>線性迴歸</th>
+    <th>邏輯斯迴歸</th>
+    <th>卜瓦松迴歸</th>
+  </tr>
+  <tr>
+    <td>Y 型態</td>
+    <td>連續數值</td>
+    <td>二元類別 (0/1)</td>
+    <td>非負整數（計數）</td>
+  </tr>
+  <tr>
+    <td>Y 分佈</td>
+    <td>Normal</td>
+    <td>Bernoulli</td>
+    <td>Poisson</td>
+  </tr>
+  <tr>
+    <td>連結函數</td>
+    <td>Identity: g(μ)=μ</td>
+    <td>Logit: g(μ)=log(μ/(1-μ))</td>
+    <td>Log: g(μ)=log(μ)</td>
+  </tr>
+  <tr>
+    <td>預測範圍</td>
+    <td>(-∞, +∞)</td>
+    <td>[0, 1]</td>
+    <td>[0, +∞)</td>
+  </tr>
+  <tr>
+    <td>估計方法</td>
+    <td>最小平方法 / MLE</td>
+    <td>MLE</td>
+    <td>MLE</td>
+  </tr>
+  <tr>
+    <td>變異數結構</td>
+    <td>常數 σ²</td>
+    <td>μ(1-μ)</td>
+    <td>μ (= λ)</td>
+  </tr>
+  <tr>
+    <td>適用場景</td>
+    <td>房價、溫度、銷量</td>
+    <td>違約與否、點擊與否</td>
+    <td>來客數、事故數、電話量</td>
+  </tr>
+</table>
+
+<!-- ============================================================ -->
+<div class="key-quote">
+💡 「GLM 不只是三種迴歸的集合——它是一種<strong>分層設計的勝利</strong>：
+把『線性預測子』和『Y 的分佈假設』拆開，
+換一個連結函數就是一個全新的模型，但核心估計邏輯完全一樣。」
+</div>
+
+<hr style="border-color:var(--border);margin:2rem 0;">
+
+<p style="color:var(--fg-muted);font-size:0.85rem;text-align:center;">
+ISLP §4.6 Generalized Linear Models · 課本 pp. 167–172 ·
+下一節：§4.7 Lab: Logistic Regression, LDA, QDA, and KNN
+</p>
+
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../sidebar.js"></script>
+</body>
+</html>
