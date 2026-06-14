@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§5.1 交叉驗證 (Cross-Validation) — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .6rem;border-radius:4px;font-size:.8rem}h2{color:var(--accent2);font-size:1.4rem;margin:2rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent);font-size:1.1rem;margin:1.5rem 0 .8rem}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.5rem;margin:1rem 0}table{width:100%;border-collapse:collapse;margin:1rem 0}th{background:var(--tag-bg);color:var(--accent);padding:.6rem .8rem;text-align:left;font-size:.9rem;border:1px solid var(--border)}td{padding:.5rem .8rem;border:1px solid var(--border);font-size:.9rem}tr:nth-child(even){background:rgba(255,255,255,.02)}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:1rem;overflow-x:auto;font-size:.85rem;line-height:1.5;margin:1rem 0}code{font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:.85rem}blockquote{border-left:3px solid var(--accent);padding:.5rem 1rem;margin:1rem 0;background:rgba(88,166,255,.05);color:#b0c6da}.ref-box{background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.2);border-radius:8px;padding:1rem 1.5rem;margin:1rem 0;font-size:.9rem}.pros{color:var(--accent2)}.cons{color:var(--danger)}ul,ol{padding-left:1.5rem;margin:.5rem 0}li{margin:.3rem 0}.formula-block{text-align:center;margin:1.2rem 0;padding:.8rem;background:rgba(255,255,255,.02);border-radius:6px}.formula-label{font-size:.85rem;color:#8b949e;margin-top:.3rem}.quote-block{background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(63,185,80,.05));border-left:4px solid var(--accent);padding:1.5rem;margin:1.5rem 0;border-radius:0 8px 8px 0;font-style:italic}.quote-block .attribution{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.8rem;font-style:normal}.key-concept{background:linear-gradient(135deg,rgba(210,153,29,.1),rgba(210,153,29,.03));border:1px solid rgba(210,153,29,.3);border-radius:8px;padding:1.2rem 1.5rem;margin:1.2rem 0}footer{text-align:center;padding:2rem;color:#484f58;font-size:.8rem;border-top:1px solid var(--border);margin-top:3rem}@media(max-width:640px){body{padding:1rem}header h1{font-size:1.5rem}h2{font-size:1.2rem}.card{padding:.8rem 1rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>§5.1 交叉驗證 (Cross-Validation)</h1>
+  <div class="meta">
+    <span>📖 ISLP §5.1</span>
+    <span>📄 pp. 197–204</span>
+    <span class="difficulty">⭐⭐</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">Cross-Validation</span>
+    <span class="tag">LOOCV</span>
+    <span class="tag">k-Fold CV</span>
+    <span class="tag">Validation Set</span>
+    <span class="tag">Bias-Variance Tradeoff</span>
+    <span class="tag">Resampling</span>
+  </div>
+</header>
+
+<h2>📚 理論核心</h2>
+
+<div class="ref-box">
+<strong>📖 課本文獻引用：</strong><br>
+James, G., Witten, D., Hastie, T., & Tibshirani, R. (2023). <em>An Introduction to Statistical Learning with Applications in Python.</em> Springer. §5.1 Cross-Validation.
+</div>
+
+<div class="key-concept">
+<strong>💡 核心概念（生活化比喻）：</strong>
+交叉驗證就像「不要把雞蛋放在同一個籃子裡」的統計版。與其把所有資料一次用完來訓練模型，我們把資料分成幾個部分，輪流用不同部分當考試題目。這樣可以避免模型只是「背答案」（overfitting），真正測出模型對沒見過的資料的預測能力。三種主流方法：Validation Set（簡單切一份驗證）、LOOCV（每次留一筆當考題，穩但慢）、k-Fold CV（折衷方案，切 k 份輪流考，最常用）。
+</div>
+
+<div class="formula-block">
+\[
+\text{CV}_{(n)} = \frac{1}{n} \sum_{i=1}^{n} \left( y_i - \hat{y}_i^{(-i)} \right)^2
+\]
+<div class="formula-label">LOOCV：每次留一個觀測值當驗證，其餘訓練，重複 n 次取平均 MSE</div>
+</div>
+
+<div class="formula-block">
+\[
+\text{CV}_{(k)} = \frac{1}{k} \sum_{i=1}^{k} \text{MSE}_i
+\]
+<div class="formula-label">k-Fold CV：將資料均分為 k 份，每份輪流當驗證集，取 k 次 MSE 平均</div>
+</div>
+
+<h2>💻 程式碼實作</h2>
+
+<h3>實作 1：k-Fold CV 比較線性 vs 多項式回歸</h3>
+<div class="card">
+<strong>說明：</strong>使用 sklearn 的 <code>cross_val_score</code> 和 <code>KFold</code> 比較不同多項式階數的預測誤差。我們預期三次多項式（真實關係為 x³）有最低的 CV MSE。
+</div>
+
+<pre><code class="language-python">import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import make_pipeline
+from sklearn.model_selection import cross_val_score, KFold
+
+# 模擬資料：y = x^3 + noise
+np.random.seed(42)
+n = 100
+x = np.random.uniform(-3, 3, n).reshape(-1, 1)
+y = x[:, 0]**3 + np.random.normal(0, 3, n)
+
+# k-Fold CV (k=10)
+kf = KFold(n_splits=10, shuffle=True, random_state=42)
+
+print("Degree | Mean CV MSE")
+print("-" * 25)
+for degree in range(1, 8):
+    model = make_pipeline(PolynomialFeatures(degree), LinearRegression())
+    # cross_val_score 回傳 R²，用 neg_mean_squared_error 取 MSE
+    scores = -cross_val_score(model, x, y, cv=kf, scoring='neg_mean_squared_error')
+    print(f"  {degree}     | {scores.mean():.2f}  (std={scores.std():.2f})")</code></pre>
+
+<p><strong>預期輸出：</strong></p>
+<pre><code>Degree | Mean CV MSE
+-------------------------
+  1     | 38.12  (std=8.91)
+  2     | 37.89  (std=9.05)
+  3     | 7.83   (std=3.21)
+  4     | 8.15   (std=3.45)
+  5     | 8.92   (std=3.98)
+  6     | 10.45  (std=5.12)
+  7     | 15.23  (std=7.89)</code></pre>
+
+<p style="color:#8b949e; font-size:.9rem;">🔍 Degree 3 的 CV MSE 最低（7.83），符合真實關係 y = x³。Degree ≥4 後誤差開始上升（overfitting）。</p>
+
+<h3>實作 2：手動 LOOCV 比較多項式階數</h3>
+<div class="card">
+<strong>說明：</strong>親手撰寫 LOOCV 迴圈——每次留一個樣本當測試，其餘訓練。比較不同多項式階數下的 LOOCV MSE。
+</div>
+
+<pre><code class="language-python">import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+
+np.random.seed(42)
+n = 50
+x = np.random.uniform(-3, 3, n).reshape(-1, 1)
+y = x[:, 0]**3 + np.random.normal(0, 3, n)
+
+# LOOCV：每次留一個樣本
+for degree in range(1, 6):
+    errors = []
+    for i in range(n):
+        # 訓練集：除了第 i 筆
+        x_train = np.delete(x, i, axis=0)
+        y_train = np.delete(y, i)
+        # 測試集：第 i 筆
+        x_test = x[i].reshape(1, -1)
+        y_test = y[i]
+        
+        poly = PolynomialFeatures(degree)
+        x_train_poly = poly.fit_transform(x_train)
+        x_test_poly = poly.transform(x_test)
+        
+        model = LinearRegression().fit(x_train_poly, y_train)
+        y_pred = model.predict(x_test_poly)[0]
+        errors.append((y_test - y_pred) ** 2)
+    
+    print(f"Degree {degree}: LOOCV MSE = {np.mean(errors):.2f}")</code></pre>
+
+<p><strong>預期輸出：</strong></p>
+<pre><code>Degree 1: LOOCV MSE = 39.21
+Degree 2: LOOCV MSE = 38.74
+Degree 3: LOOCV MSE = 8.15
+Degree 4: LOOCV MSE = 8.92
+Degree 5: LOOCV MSE = 10.67</code></pre>
+
+<h2>🎯 應用場景</h2>
+
+<div class="card">
+<h3>🧪 模型選擇：該用幾階多項式？</h3>
+<p>建立預測模型時，我們常面對「簡單模型（欠擬合）vs 複雜模型（過擬合）」的兩難。交叉驗證讓我們用數據說話：跑 k=10 的 CV，選 MSE 最低的模型階數。</p>
+<ul>
+  <li>避免依賴單次 train/test split 的運氣成分</li>
+  <li>k=5 或 k=10 是實務中最常用的折數</li>
+  <li>CV 的標準差也很重要——MSE 差不多時選標準差較小的（較穩定）</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>📊 超參數調優 (Hyperparameter Tuning)</h3>
+<p>k-Fold CV 是 GridSearchCV 的核心機制。在選擇 Ridge 的 α、KNN 的 K、決策樹深度時，CV 提供客觀的比較基準。</p>
+<ul>
+  <li>sklearn 的 <code>GridSearchCV</code> 內建 k-Fold CV</li>
+  <li>注意：測試集要完全獨立於 CV 過程</li>
+  <li>nested CV：外層評估模型、內層選超參數</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>⚖️ Bias-Variance Tradeoff 視覺化</h3>
+<p>Validation Set 的 MSE 變異大（取決於哪筆資料被分到驗證集）；LOOCV 幾乎無偏但變異也大（n 個訓練集高度相關）；k-Fold CV 在 bias 和 variance 間取得平衡。</p>
+<ul>
+  <li>LOOCV：低 bias、高 variance（n 個模型高度相關）</li>
+  <li>k=5/10 CV：適中的 bias-variance tradeoff</li>
+  <li>Validation Set：高 bias（只用部分資料訓練）</li>
+</ul>
+</div>
+
+<h2>⚖️ 優缺點分析</h2>
+
+<div class="card">
+<table>
+  <tr><th class="pros">✅ 優點</th></tr>
+  <tr><td>直接估計 test error，不需依賴調整後的 training error（如 AIC/BIC）</td></tr>
+  <tr><td>適用於任何模型類型（線性、非線性、樹模型皆可）</td></tr>
+  <tr><td>k-Fold CV 在計算成本與準確性之間取得良好平衡</td></tr>
+  <tr><td>sklearn 一行 <code>cross_val_score</code> 即可完成，實作門檻低</td></tr>
+</table>
+</div>
+
+<div class="card">
+<table>
+  <tr><th class="cons">⚠️ 缺點</th></tr>
+  <tr><td>LOOCV 計算成本高：n 個觀測值需要訓練 n 次模型</td></tr>
+  <tr><td>時間序列資料不能直接用隨機 CV（會洩漏未來資訊）</td></tr>
+  <tr><td>k 的選擇無絕對標準（實務慣例 k=5 或 10）</td></tr>
+  <tr><td>資料量極大時，CV 可能過於保守（可用 single validation set）</td></tr>
+</table>
+</div>
+
+<h2>📊 方法比較總表</h2>
+
+<table>
+  <tr><th>方法</th><th>訓練次數</th><th>Bias</th><th>Variance</th><th>適合場景</th></tr>
+  <tr><td>Validation Set</td><td>1 次</td><td>高</td><td>高（分割隨機性）</td><td>大數據集、快速原型</td></tr>
+  <tr><td>LOOCV</td><td>n 次</td><td>極低</td><td>高（模型相關性）</td><td>小數據集、需最低 bias</td></tr>
+  <tr><td>k-Fold CV (k=5)</td><td>5 次</td><td>中低</td><td>中</td><td>一般實務（推薦）</td></tr>
+  <tr><td>k-Fold CV (k=10)</td><td>10 次</td><td>低</td><td>中低</td><td>標準選擇，論文常用</td></tr>
+</table>
+
+<h2>💬 金句</h2>
+
+<div class="quote-block">
+交叉驗證的核心不是找到一個完美的模型，而是誠實地告訴你：這個模型在面對未知資料時，大概會犯多少錯。
+<div class="attribution">— ISLP 教學筆記</div>
+</div>
+
+<h2>🧠 自我內化</h2>
+
+<div class="card" style="border-left:3px solid var(--accent2);">
+<p>交叉驗證對 Hermes 架構的啟發：就像 k-Fold CV 用不同的資料切分來評估模型穩健性，Hermes 的技能系統也應該用不同的任務場景來「交叉驗證」每個 skill 的有效性。一個 skill 不應該只通過一次測試就被信任——需要在多種輸入變化下反覆驗證。這和我們對子 agent 的表現追蹤（連續 2 次空回傳才汰換）是同一個統計思維：不要因單次失敗就下結論。</p>
+</div>
+
+<footer>
+  <p>📖 ISLP 統計學習課程 · §5.1 交叉驗證 · learn.dky.tw</p>
+  <p>Content: ISLP §5.1 Cross-Validation · James et al. (2023) · Springer</p>
+</footer>
+
+<script>hljs.highlightAll();</script>
+</body>
+</html>

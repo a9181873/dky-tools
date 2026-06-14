@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多 Agent 系統故障復原：失敗模式、可靠性陷阱與生產級復原策略</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --border: #30363d;
+  --fg: #c9d1d9; --fg-muted: #8b949e; --heading: #f0f6fc;
+  --accent: #58a6ff; --accent2: #3fb950; --warn: #d2991d;
+  --danger: #f85149; --code-bg: #1a1e24; --tag-bg: #1f2a37;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  background: var(--bg); color: var(--fg); line-height: 1.8;
+  max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem;
+}
+header { text-align: center; padding: 2rem 0 1.5rem; border-bottom: 2px solid var(--border); margin-bottom: 2rem; }
+header h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: 0.5rem; }
+header .meta { font-size: 0.85rem; color: var(--fg-muted); }
+.one-liner {
+  background: linear-gradient(135deg, #1a2332, #162030);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 1.2rem 1.4rem; margin: 1.5rem 0; font-size: 1.05rem;
+  border-left: 4px solid var(--accent);
+}
+.tags { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 0.8rem; }
+.tag { background: var(--tag-bg); color: var(--accent); font-size: 0.72rem; padding: 0.15rem 0.7rem; border-radius: 1rem; }
+h2 { font-size: 1.2rem; color: var(--accent); margin: 2rem 0 0.8rem; border-left: 3px solid var(--accent); padding-left: 0.7rem; }
+h3 { font-size: 1rem; color: var(--accent2); margin: 1.2rem 0 0.5rem; }
+p { margin: 0.5rem 0; }
+code { background: var(--code-bg); color: var(--accent2); padding: 0.1rem 0.4rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; overflow-x: auto; margin: 0.8rem 0; font-size: 0.83rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; margin: 0.8rem 0; }
+table { width: 100%; border-collapse: collapse; margin: 0.8rem 0; font-size: 0.88rem; }
+th, td { border: 1px solid var(--border); padding: 0.5rem 0.8rem; text-align: left; }
+th { background: var(--code-bg); color: var(--accent); font-weight: 600; }
+ul, ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+li { margin: 0.3rem 0; }
+.footnote { font-size: 0.8rem; color: var(--fg-muted); margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+a { color: var(--accent); }
+@media (max-width: 768px) { body { padding: 1rem; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>多 Agent 系統故障復原：失敗模式、可靠性陷阱與生產級復原策略</h1>
+  <div class="meta">Hermes Lab 研究彙整 · 2026-06-14</div>
+  <div class="tags">
+    <span class="tag">AI Agent</span><span class="tag">multi-agent</span><span class="tag">reliability</span><span class="tag">fault-tolerance</span><span class="tag">checkpoint</span><span class="tag">circuit-breaker</span><span class="tag">delegation</span>
+  </div>
+</header>
+
+<div class="one-liner">
+  多 Agent 系統不失敗的機率比你想的低很多。單步 95% 成功率連續 10 步，系統成功率只剩 59.9%。本文彙整 GitHub、Google DeepMind、MAST 研究及多家生產級實踐，拆解五種真實失敗模式與三層復原架構。
+</div>
+
+<h2>1. 複合可靠性陷阱</h2>
+
+<p>這是多 Agent 系統最容易被忽略的問題。每個子任務獨立看起來都很可靠（95%+），但串聯起來就劇烈衰減。</p>
+
+<div class="card">
+<table>
+  <tr><th>單步成功率</th><th>10 步後</th><th>20 步後</th></tr>
+  <tr><td>99%</td><td>90.4%</td><td>81.7%</td></tr>
+  <tr><td>95%</td><td style="color:var(--warn)">59.9%</td><td style="color:var(--danger)">35.8%</td></tr>
+  <tr><td>90%</td><td style="color:var(--danger)">34.9%</td><td style="color:var(--danger)">12.2%</td></tr>
+</table>
+</div>
+
+<p>Google DeepMind 2025 年 12 月的研究進一步顯示：無結構的多 Agent 網路相較於單 Agent，錯誤放大<span style="color:var(--danger)">高達 17.2 倍</span>。MAST 研究分析 1,642 次追蹤紀錄，多 Agent 系統的失敗率介於 <span style="color:var(--warn)">41%–86.7%</span>，其中最大失敗類別是協調崩潰（36.9%）。</p>
+
+<p>關鍵洞察：<strong>架構決定可靠性，不是模型能力</strong>。換更強的 LLM 只會平移整條曲線，不會消除複合效應。</p>
+
+<h2>2. 五種真實失敗模式</h2>
+
+<p>子 Agent 失敗和 API 呼叫失敗是兩回事。API 回 HTTP 狀態碼，子 Agent 可能回半成品、假成功、或偷偷污染下游。根據 <a href="https://www.aicodex.to/articles/multi-agent-failure-handling">AI Codex 的生產經驗</a>，實際會遇到這五種：</p>
+
+<div class="card">
+<table>
+  <tr><th>失敗模式</th><th>觸發情境</th><th>為什麼難抓</th></tr>
+  <tr>
+    <td><strong>Timeout mid-pipeline</strong></td>
+    <td>呼叫者逾時放棄，子 Agent 還在背景跑</td>
+    <td>沒有乾淨復原點，部分任務可能已完成</td>
+  </tr>
+  <tr>
+    <td><strong>Partial output</strong></td>
+    <td>max_tokens 截斷、JSON 格式損壞、錯誤嵌在文字中</td>
+    <td>看起來像成功回傳，Orchestrator 直接當有效結果</td>
+  </tr>
+  <tr>
+    <td><strong>Cascading failure</strong></td>
+    <td>平行 Agent B/C/D 中 D 失敗，其他已完成</td>
+    <td>Orchestrator 不知該等 B/C、拋棄結果、還是部分繼續</td>
+  </tr>
+  <tr>
+    <td><strong>Silent degradation</strong></td>
+    <td>輸出通過格式驗證但品質低落，污染下游</td>
+    <td>不拋例外、不觸發重試、最難偵測</td>
+  </tr>
+  <tr>
+    <td><strong>State inconsistency</strong></td>
+    <td>一個 Writer 完成寫入後 Agent 掛掉，另一半沒寫</td>
+    <td>下游看到不一致的狀態，難以判斷從哪復原</td>
+  </tr>
+</table>
+</div>
+
+<h2>3. 三層復原架構</h2>
+
+<h3>3.1 失敗分類 + 自動重試</h3>
+
+<p><a href="https://www.newline.co/@zaoyang/5-recovery-strategies-for-multi-agent-llm-failures--673fe4c4">newline 的研究</a>指出 2–3 次重試可達 >95% 成功率。但關鍵是分清楚什麼該重試、什麼不該。</p>
+
+<div class="card">
+<table>
+  <tr><th>失敗類型</th><th>範例</th><th>策略</th></tr>
+  <tr><td style="color:var(--accent2)">可重試（transient）</td><td>timeout、網路閃斷、API 529/503、空回應</td><td>指數退避重試，2^N 秒遞增，上限 3 次</td></tr>
+  <tr><td style="color:var(--danger)">不可重試（deterministic）</td><td>邏輯錯誤、工具不存在、max_iterations 耗盡、4xx</td><td>直接放棄或觸發 fallback，重試無意義</td></tr>
+</table>
+</div>
+
+<h3>3.2 Checkpoint + Idempotency</h3>
+
+<p>每次子任務完成後保存狀態到持久層（LangGraph 內建 SqliteSaver 是主流做法），失敗後從上一個檢查點恢復，不重跑已完成步驟。</p>
+
+<p><a href="https://www.aicodex.to/articles/multi-agent-failure-handling">AI Codex</a> 提出的關鍵設計：用輸入 hash 產出確定性 task ID，確保同一個輸入的重試不會產生副作用。</p>
+
+<pre>task_id = sha256(json.dumps(task_input)).hexdigest()[:16]
+# 相同輸入 → 相同 ID → 安全重試</pre>
+
+<h3>3.3 Circuit Breaker + Fallback Chain</h3>
+
+<p><a href="https://zylos.ai/research/2026-02-20-graceful-degradation-ai-agent-systems/">Zylos Research 的優雅降級研究</a>提出分層防禦：</p>
+
+<div class="card">
+<table>
+  <tr><th>層級</th><th>機制</th><th>解決什麼</th></tr>
+  <tr><td>L1</td><td>指數退避重試</td><td>瞬時故障</td></tr>
+  <tr><td>L2</td><td>模型級 Fallback：Opus → Sonnet → Haiku → cached</td><td>主要模型不可用</td></tr>
+  <tr><td>L3</td><td>Provider 級 Fallback：Anthropic → OpenAI → local</td><td>整個 Provider 掛掉</td></tr>
+  <tr><td>L4</td><td>Circuit Breaker：N 次失敗後熔斷，冷卻後探測</td><td>防止重試風暴打爆服務</td></tr>
+</table>
+</div>
+
+<p>Circuit breaker 狀態機：<code>CLOSED → (failures > threshold) → OPEN → (cooldown) → HALF-OPEN → (success) → CLOSED</code>。只應對基礎設施級故障（502/503/timeout）觸發，不因業務邏輯錯誤（400/401）跳閘。</p>
+
+<h2>4. GitHub 的三層合約模式</h2>
+
+<p><a href="https://github.blog/ai-and-ml/generative-ai/multi-agent-workflows-often-fail-heres-how-to-engineer-ones-that-dont/">GitHub 工程團隊</a>的核心洞察：「把 Agent 當程式碼對待，不是聊天介面。」他們提出三層強制合約：</p>
+
+<div class="card">
+<table>
+  <tr><th>層級</th><th>機制</th><th>效果</th></tr>
+  <tr><td>Typed Schema</td><td>每個 Agent 邊界強制型別檢查</td><td>無效訊息在進入下游前就失敗</td></tr>
+  <tr><td>Action Schema</td><td>Discriminated union 限制允許的操作集</td><td>Agent 不能發明不存在的動作</td></tr>
+  <tr><td>MCP Enforcement</td><td>每個工具呼叫前驗證 input/output schema</td><td>惡意/錯誤參數在執行前被攔截</td></tr>
+</table>
+</div>
+
+<h2>5. 生產級架構選擇</h2>
+
+<p><a href="https://towardsdatascience.com/the-multi-agent-trap/">Towards Data Science</a> 總結了三種經實戰驗證的多 Agent 架構：</p>
+
+<div class="card">
+<table>
+  <tr><th>架構</th><th>機制</th><th>適合場景</th><th>已知限制</th></tr>
+  <tr>
+    <td><strong>Plan-and-Execute</strong></td>
+    <td>一個 Planner 制定全盤計畫，多個 Executor 執行各步驟</td>
+    <td>文檔處理、客服、研究——目標明確、可順序拆解</td>
+    <td>環境變化時原始計畫失效，需要 re-plan checkpoint</td>
+  </tr>
+  <tr>
+    <td><strong>Supervisor-Worker</strong></td>
+    <td>中央 Supervisor 委派、監控、整合、路由</td>
+    <td>異質任務需不同專業——客服升級、內容管線、多源財務分析</td>
+    <td>Supervisor 成瓶頸時，讓 Worker 有邊界內自主權</td>
+  </tr>
+  <tr>
+    <td><strong>Swarm</strong></td>
+    <td>去中心化交接，Agent 根據上下文自行路由</td>
+    <td>高流量、路由邏輯內嵌——聊天客服、入職、分流</td>
+    <td>複雜交接圖需分散式追蹤才能 debug</td>
+  </tr>
+</table>
+</div>
+
+<p>Klarna 的 Plan-and-Execute 實際案例：一個前沿模型做規劃，多個小型模型執行各步驟，<strong>成本降低 90%</strong> 同時維持品質。協調收益在 4 個 Agent 後趨於平緩，超過後開銷吃掉效益。</p>
+
+<h2>6. 務實落地：最小可行復原層</h2>
+
+<p>綜合以上研究，不需拆成 6 個獨立模組。一個薄 wrapper 三層就夠：</p>
+
+<pre>
+委派任務
+│
+├─ ① 失敗分類（transient vs deterministic）
+│    └─ 只重試 timeout/空回應/529，不放 4xx/邏輯錯誤
+│
+├─ ② Checkpoint（輸入 hash → 任務 ID → SqliteSaver）
+│    └─ 失敗從上一個檢查點恢復，不重跑已完成步驟
+│
+└─ ③ Circuit Breaker（3 次失敗 → 熔斷 5min → 半開探測）
+     └─ 防止重試風暴，配合 fallback chain 降級
+</pre>
+
+<p>關鍵原則：<strong>重試前先分類、保存狀態再執行、熔斷比無限重試好</strong>。</p>
+
+<div class="footnote">
+  <p>參考來源：<br>
+  [1] <a href="https://www.newline.co/@zaoyang/5-recovery-strategies-for-multi-agent-llm-failures--673fe4c4">5 Recovery Strategies for Multi-Agent LLM Failures</a> — newline, 2025<br>
+  [2] <a href="https://www.aicodex.to/articles/multi-agent-failure-handling">Multi-agent failure handling: timeouts, partial outputs, and recovery patterns</a> — AI Codex<br>
+  [3] <a href="https://github.blog/ai-and-ml/generative-ai/multi-agent-workflows-often-fail-heres-how-to-engineer-ones-that-dont/">Multi-agent workflows often fail. Here's how to engineer ones that don't.</a> — GitHub Blog, 2026-02<br>
+  [4] <a href="https://zylos.ai/research/2026-02-20-graceful-degradation-ai-agent-systems/">Graceful Degradation Patterns in AI Agent Systems</a> — Zylos Research, 2026-02<br>
+  [5] <a href="https://towardsdatascience.com/the-multi-agent-trap/">The Multi-Agent Trap</a> — Towards Data Science, 2026-03<br>
+  [6] MAST 研究（1,642 traces, 7 frameworks）— 2025-03<br>
+  [7] Google DeepMind 多 Agent 錯誤放大研究 — 2025-12
+  </p>
+</div>
+
+</body>
+</html>
