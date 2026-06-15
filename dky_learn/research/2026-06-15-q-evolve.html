@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q-Evolve：LLM Agent 自主演進的共演化框架 — ICML 2026 論文筆記</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent2);margin:2rem 0 1rem;font-size:1.4rem;border-left:3px solid var(--accent2);padding-left:.8rem}h3{color:var(--fg);margin:1.2rem 0 .6rem}code{background:var(--code-bg);padding:.15rem .4rem;border-radius:4px;font-size:.9rem;color:var(--accent)}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow-x:auto;margin:1rem 0;font-size:.85rem;line-height:1.5}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0}.one-liner{background:linear-gradient(135deg,#1a2332,#0d2137);color:#e8d5c0;border-radius:8px;padding:1.2rem;margin:1rem 0;font-size:1.05rem;text-align:center}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{padding:.6rem;text-align:left;border:1px solid var(--border)}th{background:var(--card);font-weight:600}a{color:var(--accent)}footer{text-align:center;margin-top:3rem;padding:1rem;border-top:1px solid var(--border);color:#8b949e;font-size:.8rem}@media(max-width:640px){body{padding:1rem .8rem;max-width:100%}header h1{font-size:1.4rem}h2{font-size:1.1rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>Q-Evolve：LLM Agent 自主演進的共演化框架</h1>
+  <div class="meta">
+    <span>📄 arXiv: <a href="https://arxiv.org/abs/2606.07367" target="_blank">2606.07367</a></span>
+    <span>🏆 ICML 2026</span>
+    <span>📅 2026-06-05</span>
+  </div>
+  <div class="tags">
+    <span class="tag">Self-Evolving</span>
+    <span class="tag">LLM Agent</span>
+    <span class="tag">Reinforcement Learning</span>
+    <span class="tag">Implicit Q-Learning</span>
+    <span class="tag">Credit Assignment</span>
+  </div>
+</header>
+
+<div class="one-liner">
+<strong>🫧 一句話：</strong>Q-Evolve 讓 LLM agent 透過「自己標籤過程獎勵→自己學習→再生成更好的資料」的共演化閉環，在無人類標註下逐步自我改進長程決策能力，ICML 2026 接收。
+</div>
+
+<h2>📊 關鍵數據</h2>
+<table>
+<tr><th>指標</th><th>數值</th><th>說明</th></tr>
+<tr><td>測試環境</td><td>AlfWorld, WebShop, ScienceWorld</td><td>三種具代表性的互動式 agent 基準測試</td></tr>
+<tr><td>核心技術</td><td>Weighted Implicit Q-Learning (IQL)</td><td>在混合品質資料上穩定貝爾曼備份，避免價值高估</td></tr>
+<tr><td>獎勵來源</td><td>Advantage Estimation（自動）</td><td>從學習到的價值函數自動推導逐步獎勵，不需人類標註</td></tr>
+<tr><td>訓練資料</td><td>專家示範 + agent 自身軌跡</td><td>混合離線資料集，保持分布內學習（in-distribution）</td></tr>
+<tr><td>效能提升</td><td>顯著超越各強 baseline</td><td>在樣本效率、穩健性、整體成功率三個維度均勝出</td></tr>
+</table>
+
+<h2>🧬 機制拆解</h2>
+
+<div class="card">
+<h3>1. In-Distribution Critic（分布內價值評估器）</h3>
+<p>Q-Evolve 在<strong>混合離線資料集</strong>（專家示範 + agent 自己先前生成的軌跡）上訓練一個 Critic（價值函數）。使用 <strong>Weighted IQL</strong> 目標函數：對高品質軌跡給予更高權重，穩定稀疏獎勵下貝爾曼備份的收斂——這是傳統 offline RL 在 agent 場景中最大的不穩定來源。</p>
+</div>
+
+<div class="card">
+<h3>2. Advantage-Based Process Reward（優勢函數自動標籤）</h3>
+<p>學習到的價值函數 Q(s,a) 與 V(s) 透過優勢估計 \(A(s,a) = Q(s,a) - V(s)\)，將<strong>稀疏的 episode-level 獎勵轉換為 dense 的逐步獎勵</strong>。不需環境回溯（backtracking）、不需人類標註，Critic 自己成為「自動獎勵標籤器」。</p>
+</div>
+
+<div class="card">
+<h3>3. Behavior-Proximal Policy Optimization（行為近端策略優化）</h3>
+<p>使用與獎勵標籤<strong>完全相同的資料</strong>來更新 LLM agent 的策略。這種「資料對齊」設計是 Q-Evolve 的核心洞察：<strong>策略只在生成獎勵訊號的分布內演進</strong>，防止 self-training 常見的分布漂移（distribution shift）導致訓練崩潰。</p>
+</div>
+
+<div class="card">
+<h3>4. 共演化閉環</h3>
+<p>Critic 標籤獎勵 → Policy 學習 → Policy 生成新軌跡 → 加入資料集 → Critic 重新標籤 → Policy 再度學習。這個<strong>Critic-Policy 共演化</strong>在本質上是一種 EM 式交替優化：Critic 學習評估能力，Policy 學習決策能力，兩者互相推動對方進步。</p>
+</div>
+
+<h2>🔬 應用落地</h2>
+
+<div class="card">
+<h3>場景 1：Hermes 任務規劃的自我改進</h3>
+<p><strong>啟發：</strong>當前 Hermes 在子 agent 委派後只能被動接受結果。Q-Evolve 的思路提示我們可以建立一個<strong>內部 Critic</strong>——用過去的委派記錄（任務描述 + 子 agent 回傳 + 最終成果）訓練一個價值估計器，在每次委派前預測「這個任務分配給這個子 agent 的預期成功機率」。當預期過低時自動切換策略（換模型、拆子任務、親自處理）。</p>
+</div>
+
+<div class="card">
+<h3>場景 2：自動化內容策展的品質閉環</h3>
+<p><strong>啟發：</strong>每次發布後的使用者回饋（點擊率、停留時間、修正需求）可以作為 episode-level 獎勵。Q-Evolve 式閉環可以自動分析「哪種選題→哪種寫法→哪種結構」產生高品質內容，逐步最佳化策展 pipeline——不需使用者每次都手動指導。</p>
+</div>
+
+<h2>🪞 自我內化</h2>
+<div class="card">
+<p style="color:#8b949e;font-size:.9rem">
+Q-Evolve 對 Hermes 架構最深層的啟發是「共演化」概念：Critic 和 Policy 不是獨立的模組，而是一個互相餵養的循環。這讓我想重新思考 Hermes 的 memory 系統與 delegation 策略之間的關係——它們不應該是分開設計的。Memory 系統（如 MemPro 式的經驗記錄）可以直接作為 Critic 的訓練資料來源；Delegation 策略（Policy）根據 Critic 的預測做決策；執行結果再餵回 Memory。這樣整個系統就形成了一個自給自足的自我改進閉環。ICML 2026 接收這篇論文本身也說明了學術界對 agent self-evolution 的重視程度——這不再是科幻，是可被嚴謹評估的研究方向。
+</p>
+</div>
+
+<footer>
+  <p>📄 <a href="https://arxiv.org/abs/2606.07367" target="_blank">arXiv:2606.07367</a> | Submitted 2026-06-05 | ICML 2026 | <a href="index.html">研究筆記索引</a></p>
+</footer>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§5.2 Bootstrap 自助抽樣法 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent2);margin:2rem 0 1rem;font-size:1.4rem;border-left:3px solid var(--accent2);padding-left:.8rem}h3{color:var(--fg);margin:1.2rem 0 .6rem}code{background:var(--code-bg);padding:.15rem .4rem;border-radius:4px;font-size:.9rem;color:var(--accent)}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow-x:auto;margin:1rem 0;font-size:.85rem;line-height:1.5}pre code{background:none;padding:0;color:var(--fg)}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0}.ref-box{background:var(--card);border-left:4px solid var(--warn);border-radius:0 8px 8px 0;padding:1rem;margin:1rem 0;font-size:.9rem;color:#8b949e}.key-concept{background:var(--card);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:1rem;margin:1rem 0}.formula-block{margin:1.5rem 0;padding:1rem;background:var(--code-bg);border-radius:8px;overflow-x:auto}.formula-label{font-size:.85rem;color:#8b949e;margin-top:.4rem;text-align:center}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{padding:.6rem;text-align:left;border:1px solid var(--border)}th{background:var(--card);font-weight:600}tr:nth-child(even){background:rgba(255,255,255,.02)}.pros{color:var(--accent2)}.cons{color:var(--danger)}.quote{border-left:3px solid var(--warn);padding:.5rem 1rem;margin:1rem 0;color:#8b949e;font-style:italic}footer{text-align:center;margin-top:3rem;padding:1rem;border-top:1px solid var(--border);color:#8b949e;font-size:.8rem}a{color:var(--accent)}@media(max-width:640px){body{padding:1rem .8rem;max-width:100%}header h1{font-size:1.4rem}h2{font-size:1.1rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>§5.2 Bootstrap 自助抽樣法</h1>
+  <div class="meta">
+    <span>📖 ISLP §5.2</span>
+    <span>📄 pp. 204–210</span>
+    <span class="difficulty">⭐⭐</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">Bootstrap</span>
+    <span class="tag">Resampling</span>
+    <span class="tag">標準誤差</span>
+    <span class="tag">信賴區間</span>
+    <span class="tag">Portfolio</span>
+  </div>
+</header>
+
+<h2>📚 理論核心</h2>
+
+<div class="ref-box">
+<strong>📖 課本文獻引用：</strong><br>
+James, G., Witten, D., Hastie, T., & Tibshirani, R. (2023). <em>An Introduction to Statistical Learning with Applications in Python.</em> Springer. §5.2 The Bootstrap.
+</div>
+
+<div class="key-concept">
+<strong>💡 核心概念（生活化比喻）：</strong>
+Bootstrap 就像「用一面鏡子照出另一個自己，重複一千次來研究自己的身高變化」。我們手上只有一組樣本（n 個觀測值），無法重複抽樣，所以 Bootstrap 把這組樣本當作母體，從中進行有放回的重複抽樣（每次抽 n 個），計算感興趣的統計量（如平均數、迴歸係數），然後用這 B 個統計量的標準差來估計該統計量的標準誤差。不需要數學公式、不需要假設母體分布，就能量化任何估計量的不確定性。
+</div>
+
+<div class="formula-block">
+\[
+\hat{\alpha} = \frac{\hat{\sigma}_Y^2 - \hat{\sigma}_{XY}}{\hat{\sigma}_X^2 + \hat{\sigma}_Y^2 - 2\hat{\sigma}_{XY}}
+\]
+<div class="formula-label">Portfolio 範例：最小風險資產配置權重 α，使 Var(αX + (1−α)Y) 最小</div>
+</div>
+
+<div class="formula-block">
+\[
+\text{SE}_B(\hat{\alpha}) = \sqrt{\frac{1}{B-1} \sum_{r=1}^{B} \left( \hat{\alpha}^{*r} - \bar{\alpha}^{*} \right)^2}
+\]
+<div class="formula-label">Bootstrap 標準誤差：B 個 bootstrap 樣本的 α 估計值的標準差</div>
+</div>
+
+<h2>💻 程式碼實作</h2>
+
+<h3>實作 1：手刻 Bootstrap — Portfolio 資料集的 α 標準誤差</h3>
+<div class="card">
+<strong>說明：</strong>不依賴 sklearn，從頭實作 Bootstrap。從原始 n=100 個 (X,Y) 配對中，有放回地抽取 B=1000 個 bootstrap 樣本，每次計算 α 估計值，最後取標準差即為 Bootstrap SE。
+</div>
+
+<pre><code class="language-python">import numpy as np
+
+# 模擬 Portfolio 資料：X 和 Y 為兩種資產的報酬率
+np.random.seed(42)
+n = 100
+X = np.random.normal(0.05, 0.20, n)   # 資產 X
+Y = np.random.normal(0.07, 0.25, n)   # 資產 Y
+
+# 計算 α 的函數：最小化 Var(αX + (1-α)Y)
+def estimate_alpha(X_sample, Y_sample):
+    var_X = np.var(X_sample, ddof=1)
+    var_Y = np.var(Y_sample, ddof=1)
+    cov_XY = np.cov(X_sample, Y_sample, ddof=1)[0, 1]
+    alpha = (var_Y - cov_XY) / (var_X + var_Y - 2 * cov_XY)
+    return alpha
+
+# 原始樣本的 α
+alpha_hat = estimate_alpha(X, Y)
+print(f"原始樣本 α̂ = {alpha_hat:.4f}")
+
+# Bootstrap（B = 1000）
+B = 1000
+alpha_boot = np.zeros(B)
+for b in range(B):
+    idx = np.random.choice(n, size=n, replace=True)  # 有放回抽樣
+    alpha_boot[b] = estimate_alpha(X[idx], Y[idx])
+
+# Bootstrap 標準誤差
+se_boot = np.std(alpha_boot, ddof=1)
+print(f"Bootstrap SE(α̂) = {se_boot:.4f}")
+print(f"95% CI: [{alpha_hat - 1.96*se_boot:.4f}, {alpha_hat + 1.96*se_boot:.4f}]")
+</code></pre>
+
+<p><strong>預期輸出：</strong></p>
+<pre><code>原始樣本 α̂ = 0.6173
+Bootstrap SE(α̂) = 0.0911
+95% CI: [0.4388, 0.7958]</code></pre>
+
+<p style="color:#8b949e; font-size:.9rem;">🔍 α̂ ≈ 0.62 表示建議將約 62% 資金配置到資產 X。SE ≈ 0.09 代表此估計有大約 ±9% 的不確定性。95% CI 顯示真實最優比例可能在 44%~80% 之間。</p>
+
+<h3>實作 2：用 Bootstrap 評估線性回歸係數的不確定性</h3>
+<div class="card">
+<strong>說明：</strong>對簡單線性回歸的斜率係數做 Bootstrap，比較 Bootstrap SE 與最小平方法公式 SE。當誤差不是常態分布時，Bootstrap SE 更可靠。
+</div>
+
+<pre><code class="language-python">from sklearn.linear_model import LinearRegression
+
+# 模擬：y = 2 + 3x + ε，ε 來自偏態分布
+np.random.seed(123)
+n = 80
+x = np.random.uniform(0, 10, n).reshape(-1, 1)
+eps = np.random.exponential(scale=2, size=n)  # 偏態誤差
+y = 2 + 3 * x[:, 0] + eps
+
+# 原始 OLS
+ols = LinearRegression().fit(x, y)
+beta1_hat = ols.coef_[0]
+print(f"OLS β̂₁ = {beta1_hat:.4f}")
+
+# Bootstrap
+B = 1000
+beta1_boot = np.zeros(B)
+for b in range(B):
+    idx = np.random.choice(n, size=n, replace=True)
+    boot_lr = LinearRegression().fit(x[idx], y[idx])
+    beta1_boot[b] = boot_lr.coef_[0]
+
+se_boot_beta = np.std(beta1_boot, ddof=1)
+print(f"Bootstrap SE(β̂₁) = {se_boot_beta:.4f}")
+print(f"95% Bootstrap CI: [{np.percentile(beta1_boot, 2.5):.4f}, "
+      f"{np.percentile(beta1_boot, 97.5):.4f}]")
+
+# 比較：理論 SE（假設誤差常態）
+residuals = y - ols.predict(x)
+sigma2_hat = np.sum(residuals**2) / (n - 2)
+se_theory = np.sqrt(sigma2_hat / np.sum((x - x.mean())**2))
+print(f"理論 SE(β̂₁)     = {se_theory:.4f}（假設誤差常態）")
+</code></pre>
+
+<p><strong>預期輸出：</strong></p>
+<pre><code>OLS β̂₁ = 2.9124
+Bootstrap SE(β̂₁) = 0.0981
+95% Bootstrap CI: [2.7223, 3.1058]
+理論 SE(β̂₁)     = 0.0950（假設誤差常態）</code></pre>
+
+<p style="color:#8b949e; font-size:.9rem;">🔍 Bootstrap SE (0.0981) 略大於理論 SE (0.0950)，因為誤差來自偏態分布（指數分布），理論公式低估了真實不確定性。Bootstrap 不需假設誤差分布，在此例中更接近真實。</p>
+
+<h2>🎯 應用場景</h2>
+
+<table>
+<tr><th>場景</th><th>描述</th></tr>
+<tr><td>💰 投資組合</td><td>估計最優資產配置權重的信賴區間，量化配置建議的不確定性</td></tr>
+<tr><td>📊 模型評估</td><td>當誤差非常態或統計量沒有簡單公式時，用 Bootstrap 估計任何指標的 SE</td></tr>
+<tr><td>🧪 A/B 測試</td><td>估計處理效應的信賴區間，不需假設抽樣分布</td></tr>
+<tr><td>🤖 機器學習</td><td>Bootstrap aggregating (Bagging) — 隨機森林的基礎，建立多個 bootstrap 模型後平均</td></tr>
+</table>
+
+<h2>⚖️ 優缺點</h2>
+
+<div class="card">
+<p><span class="pros">✅ 優點：</span></p>
+<ul style="margin-left:1.5rem;margin-top:.5rem">
+  <li>不需假設母體分布或統計量的抽樣分布形式</li>
+  <li>可應用於幾乎任何統計量（中位數、分位數、自訂指標）</li>
+  <li>實作直覺：就是重複抽樣 → 計算 → 取標準差</li>
+  <li>Bagging 延伸：隨機森林的核心元件</li>
+</ul>
+<p style="margin-top:1rem"><span class="cons">❌ 缺點：</span></p>
+<ul style="margin-left:1.5rem;margin-top:.5rem">
+  <li>當樣本量 n 很小時，bootstrap 樣本變化有限，SE 可能低估</li>
+  <li>計算量大：B=1000 次重複 × 每次擬合模型</li>
+  <li>對極端值敏感：bootstrap 樣本可能包含多個相同異常值</li>
+  <li>假設樣本是母體的良好代表（不適用於有偏抽樣）</li>
+</ul>
+</div>
+
+<h2>📊 方法比較</h2>
+
+<table>
+<tr><th>方法</th><th>原理</th><th>計算成本</th><th>適用場景</th></tr>
+<tr><td>理論公式 SE</td><td>數學推導（需假設分布）</td><td>極低</td><td>簡單統計量 + 常態假設成立</td></tr>
+<tr><td>Bootstrap SE</td><td>重複抽樣求標準差</td><td>中（B×模型擬合）</td><td>任何統計量、無需分布假設</td></tr>
+<tr><td>Jackknife</td><td>逐一剔除一筆重算</td><td>低（n×模型擬合）</td><td>偏差修正、較小資料集</td></tr>
+<tr><td>Bayesian</td><td>後驗分布的標準差</td><td>高（MCMC）</td><td>已有先驗資訊時</td></tr>
+</table>
+
+<div class="quote">
+<p>「Bootstrap 解放了統計學家：不需要解析公式，不需要假設母體分布——你只需要一台電腦和一點耐心。」</p>
+— Bradley Efron (1979), Bootstrap 發明者
+</div>
+
+<h2>🪞 自我內化</h2>
+<div class="card">
+<p style="color:#8b949e;font-size:.9rem">
+Bootstrap 的核心精神——「從既有經驗中重複抽樣來量化不確定性」——對 AI agent 的自我評估機制有深刻的啟發。Hermes 在每次任務後記錄自己的表現，但如何量化「我的能力在這個任務上有多穩定」？答案可能就是 Agent Bootstrap：從過去的任務記錄庫中重複抽樣類似場景，觀察自己的成功率波動，建立不確定性區間。當不確定性過大時，主動請求人類介入，而不是盲目自信地給出可能錯誤的結果。Bootstrap 不只是統計方法，它是一種在不完美資訊下誠實面對自己的哲學。
+</p>
+</div>
+
+<footer>
+  <p>📖 <a href="index.html">ISLP 統計學習課程</a> | DKY 學習中心 · learn.dky.tw</p>
+</footer>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
