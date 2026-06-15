@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4.7 Lab: Logistic Regression, LDA, QDA, and KNN — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>4.7 Lab: Logistic Regression, LDA, QDA, and KNN</h1>
+  <div class="meta">
+    <span>📖 ISLP §4.7</span>
+    <span>📄 pp. 173–191</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 60 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">Logistic Regression</span>
+    <span class="tag">LDA</span>
+    <span class="tag">QDA</span>
+    <span class="tag">Naive Bayes</span>
+    <span class="tag">KNN</span>
+    <span class="tag">Poisson Regression</span>
+    <span class="tag">sklearn</span>
+    <span class="tag">Smarket</span>
+    <span class="tag">Caravan</span>
+    <span class="tag">Bikeshare</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="04_6_generalized_linear_models.html">← 4.6 Generalized Linear Models</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="05_1_cross_validation.html">5.1 Cross-Validation →</a>
+</div>
+
+<!-- ================================================================== -->
+<h2>🔬 Lab 概覽：五種分類器實戰</h2>
+
+<p>這堂 Lab 課是第 4 章的實戰精華。我們會在同一個資料集（<strong>Smarket</strong> 股市資料）上依序用五種分類器做預測，然後切換到 <strong>Caravan</strong> 保險資料和 <strong>Bikeshare</strong> 共享單車資料，體驗不同資料特性如何影響演算法選擇。</p>
+
+<div class="callout">
+<strong>🎯 學習目標</strong><br>
+1. 用 <code>sklearn</code> 實作 Logistic Regression、LDA、QDA、Naive Bayes、KNN<br>
+2. 理解訓練集/測試集分割與混淆矩陣（confusion matrix）解讀<br>
+3. 體會「尺度縮放」對距離型演算法（KNN）的關鍵影響<br>
+4. 認識 Poisson Regression 作為計數型反應變數的廣義線性模型
+</div>
+
+<div class="ref-box">
+James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §4.7, pp. 173–191. 所有程式碼可在 <a href="https://www.statlearning.com/" style="color:var(--accent)">statlearning.com</a> 取得完整 Jupyter Notebook。
+</div>
+
+<!-- ================================================================== -->
+<h2>4.7.1 股市資料：Smarket</h2>
+
+<p>想像你是一個股票交易員，每天早上打開 Bloomberg 終端機，想用<strong>前五天的報酬率</strong>預測<strong>今天大盤是漲還是跌</strong>。這就是 Smarket 資料集的場景——它是 S&amp;P 500 指數從 2001 到 2005 的每日資料，共 1,250 個交易日。</p>
+
+<pre><code class="language-python"># Colab / 本機通用資料讀取
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import summarize
+
+# 載入 Smarket 股市資料
+Smarket = load_data('Smarket')
+print(f"資料維度: {Smarket.shape}")
+print(f"欄位: {list(Smarket.columns)}")
+print(Smarket.head(5))
+
+# 相關係數矩陣（不含 Direction 類別變數）
+corr = Smarket.drop(columns=['Direction']).corr()
+print("\n相關係數矩陣：")
+print(corr.round(3))
+</code></pre>
+
+<div class="callout">
+<strong>💡 關鍵發現</strong>：所有 Lag1–Lag5 之間的相關係數幾乎為零。這表示過去的報酬率之間幾乎沒有線性相關——符合金融學上的「弱式效率市場假說」。
+</div>
+
+<!-- ================================================================== -->
+<h2>4.7.2 Logistic Regression</h2>
+
+<p>Logistic Regression（羅吉斯迴歸）像是一個「機率翻譯機」：把線性組合 \( \beta_0 + \beta_1 X_1 + \cdots \) 透過 sigmoid 函數壓縮到 (0,1) 之間，變成「上漲機率」。</p>
+
+<div class="formula">
+\[
+P(\text{Up} \mid X) = \frac{e^{\beta_0 + \beta_1 \text{Lag1} + \cdots}}{1 + e^{\beta_0 + \beta_1 \text{Lag1} + \cdots}}
+\]
+<div class="formula-label">公式 4.1：Logistic function — 把任意實數映射到 (0,1) 的魔法函數</div>
+</div>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import summarize
+from ISLP import confusion_table
+from sklearn.linear_model import LogisticRegression
+import statsmodels.api as sm
+
+Smarket = load_data('Smarket')
+
+# 用 statsmodels 做 Logistic Regression（含 p-value）
+X = sm.add_constant(Smarket[['Lag1','Lag2','Lag3','Lag4','Lag5','Volume']])
+y = (Smarket['Direction'] == 'Up').astype(int)
+model = sm.Logit(y, X).fit(disp=False)
+print(summarize(model))
+
+# 預測機率與分類
+probs = model.predict(X)
+pred_labels = np.where(probs > 0.5, 'Up', 'Down')
+
+# 混淆矩陣
+print("\n訓練集混淆矩陣：")
+print(confusion_table(pred_labels, Smarket['Direction']))
+
+# 訓練集準確率
+accuracy = np.mean(pred_labels == Smarket['Direction'])
+print(f"\n訓練集準確率: {accuracy:.1%}")
+</code></pre>
+
+<div class="callout">
+<strong>⚠️ 陷阱警報</strong>：上面算出來的是<strong>訓練集</strong>準確率，不是測試集！訓練集準確率 ≈ 52% 看起來還行，但那只是「用考卷背答案」——真正要測的是你沒看過的 2005 年資料。
+</div>
+
+<h3>正確做法：訓練/測試分割</h3>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP import confusion_table
+import statsmodels.api as sm
+
+Smarket = load_data('Smarket')
+
+# 用布林向量分割：2005 之前 = 訓練，2005 = 測試
+train = Smarket['Year'] < 2005
+X_train = sm.add_constant(Smarket.loc[train, ['Lag1','Lag2']])
+y_train = (Smarket.loc[train, 'Direction'] == 'Up').astype(int)
+X_test = sm.add_constant(Smarket.loc[~train, ['Lag1','Lag2']])
+y_test = (Smarket.loc[~train, 'Direction'] == 'Up').astype(int)
+
+# 只用 Lag1, Lag2 重新擬合
+model2 = sm.Logit(y_train, X_train).fit(disp=False)
+probs_test = model2.predict(X_test)
+pred_test = np.where(probs_test > 0.5, 'Up', 'Down')
+
+print("測試集混淆矩陣（2005 年，252 個交易日）：")
+print(confusion_table(pred_test, Smarket.loc[~train, 'Direction']))
+
+test_acc = np.mean(pred_test == Smarket.loc[~train, 'Direction'])
+print(f"\n測試集準確率: {test_acc:.1%}")
+print(f"（隨機猜測基準: {max(np.mean(y_test), 1-np.mean(y_test)):.1%}）")
+</code></pre>
+
+<div class="scenario-box">
+<h4>📊 實戰場景：信用卡詐欺偵測</h4>
+<p>Logistic Regression 是銀行業偵測詐欺交易的經典首選。每天數百萬筆交易中，只有 0.1% 是詐欺（極度不平衡類別）。Logistic Regression 的優勢在於：<strong>它直接輸出機率</strong>，風控團隊可以動態調整閾值——平常設 0.5，可疑時段降到 0.3，平衡抓詐率與誤報率。</p>
+</div>
+
+<!-- ================================================================== -->
+<h2>4.7.3 Linear Discriminant Analysis (LDA)</h2>
+
+<p>如果 Logistic Regression 是「直接用機率建模」，那 LDA 就是「先畫出每個類別的資料分布，再決定邊界」。LDA 假設每個類別的資料來自<strong>同一個共變異數矩陣</strong>（即不同類別的「形狀」相同，只是「位置」不同）的常態分佈。</p>
+
+<div class="formula">
+\[
+\delta_k(x) = x^T \Sigma^{-1} \mu_k - \frac{1}{2} \mu_k^T \Sigma^{-1} \mu_k + \log \pi_k
+\]
+<div class="formula-label">公式 4.24：LDA 判別函數 — 把新資料點 x 代入每個類別的「計分板」，分數最高的就是預測類別</div>
+</div>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+from ISLP import load_data
+from ISLP import confusion_table
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+
+Smarket = load_data('Smarket')
+train = Smarket['Year'] < 2005
+
+X_train = Smarket.loc[train, ['Lag1','Lag2']]
+y_train = Smarket.loc[train, 'Direction']
+X_test = Smarket.loc[~train, ['Lag1','Lag2']]
+y_test = Smarket.loc[~train, 'Direction']
+
+# LDA 擬合（store_covariance=True 才能看群組平均數）
+lda = LDA(store_covariance=True)
+lda.fit(X_train, y_train)
+
+# 先驗機率
+print(f"先驗機率 π_Down = {lda.priors_[0]:.3f}, π_Up = {lda.priors_[1]:.3f}")
+
+# 類別平均數
+print(f"\n類別平均數：\nDown:\n{lda.means_[0]}\nUp:\n{lda.means_[1]}")
+
+# 線性判別向量
+print(f"\n判別向量 (scalings_): {lda.scalings_.ravel()}")
+
+# 預測與評估
+lda_pred = lda.predict(X_test)
+print(f"\n測試集混淆矩陣：")
+print(confusion_table(lda_pred, y_test))
+print(f"測試準確率: {np.mean(lda_pred == y_test):.3f}")
+
+# 後驗機率：檢查是否有高信心度的「下跌」預測
+lda_prob = lda.predict_proba(X_test)
+print(f"\n最大下跌機率: {lda_prob[:,0].max():.3f}")
+print(f"下跌機率 > 0.9 的天數: {np.sum(lda_prob[:,0] > 0.9)}")
+</code></pre>
+
+<div class="callout">
+<strong>🤔 與 Hermes 架構的對話</strong>：LDA 的「先驗機率 × 條件機率」決策框架，本質上就是貝氏定理的工程實現。這啟發了我們在設計 Hermes 子 agent 排程時，可以對每種 task type 維護一個<strong>先驗成功率</strong>（相當於 LDA 的 π_k），搭配當下任務特徵（相當於條件機率），動態選擇最適合的 agent 模型。這就是「統計學習驅動的 agent 路由」。
+</div>
+
+<!-- ================================================================== -->
+<h2>4.7.4 Quadratic Discriminant Analysis (QDA)</h2>
+
+<p>LDA 假設所有類別共用同一個共變異數矩陣——就像假設所有學生的鉛筆盒形狀都一樣。QDA 放寬這個假設：<strong>每個類別有自己的共變異數矩陣</strong>。代價是參數量暴增，但換來的是更靈活的非線性決策邊界。</p>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+from ISLP import load_data
+from ISLP import confusion_table
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
+
+Smarket = load_data('Smarket')
+train = Smarket['Year'] < 2005
+
+X_train = Smarket.loc[train, ['Lag1','Lag2']]
+y_train = Smarket.loc[train, 'Direction']
+X_test = Smarket.loc[~train, ['Lag1','Lag2']]
+y_test = Smarket.loc[~train, 'Direction']
+
+# QDA 擬合
+qda = QDA(store_covariance=True)
+qda.fit(X_train, y_train)
+
+qda_pred = qda.predict(X_test)
+print("QDA 測試集混淆矩陣：")
+print(confusion_table(qda_pred, y_test))
+print(f"\nQDA 測試準確率: {np.mean(qda_pred == y_test):.3f}")
+print(f"(對比 LDA: 訓練集 2005 年前資料，但 QDA 預測 2005 年有 ~60% 準確率)")
+</code></pre>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ QDA 優點</h4>
+<ul>
+<li>決策邊界可以是<strong>二次曲線</strong>，更靈活</li>
+<li>當各類別真實分布形狀不同時，QDA 優於 LDA</li>
+<li>不需要做 Box's M test 等事前檢定</li>
+</ul>
+</div>
+<div class="cons">
+<h4>❌ QDA 缺點</h4>
+<ul>
+<li>參數量 = K × p(p+1)/2，比 LDA 多 K 倍</li>
+<li>小樣本時容易 overfit</li>
+<li>p 很大時（如基因資料）幾乎無法使用</li>
+</ul>
+</div>
+</div>
+
+<!-- ================================================================== -->
+<h2>4.7.5 Naive Bayes</h2>
+
+<p>Naive Bayes 的「Naive」來自一個大膽的假設：<strong>給定類別後，所有特徵彼此獨立</strong>。這就像假設「今天 Lag1 的漲跌」和「昨天 Lag2 的漲跌」完全無關——在金融資料上顯然不成立。但神奇的是，即使假設錯了，Naive Bayes 常常還是能做出不錯的預測。</p>
+
+<div class="formula">
+\[
+P(Y = k \mid X) = \frac{\pi_k \prod_{j=1}^{p} f_{kj}(x_j)}{\sum_{\ell} \pi_\ell \prod_{j=1}^{p} f_{\ell j}(x_j)}
+\]
+<div class="formula-label">Naive Bayes：把高維度的聯合機率拆成 p 個一維機率的乘積，大幅降低計算量</div>
+</div>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+from ISLP import load_data
+from ISLP import confusion_table
+from sklearn.naive_bayes import GaussianNB
+
+Smarket = load_data('Smarket')
+train = Smarket['Year'] < 2005
+
+X_train = Smarket.loc[train, ['Lag1','Lag2']]
+y_train = Smarket.loc[train, 'Direction']
+X_test = Smarket.loc[~train, ['Lag1','Lag2']]
+y_test = Smarket.loc[~train, 'Direction']
+
+# Naive Bayes（高斯型）
+nb = GaussianNB()
+nb.fit(X_train, y_train)
+
+# 檢查參數
+print("各類別每個特徵的平均數 (theta_)：")
+print(f"Down: {nb.theta_[0]}")
+print(f"Up:   {nb.theta_[1]}")
+print(f"\n各類別每個特徵的變異數 (var_)：")
+print(f"Down: {nb.var_[0]}")
+print(f"Up:   {nb.var_[1]}")
+
+# 手動驗證平均數計算
+print(f"\n手動計算 Down 類 Lag1 平均: {X_train[y_train=='Down']['Lag1'].mean():.4f}")
+print(f"手動計算 Down 類 Lag1 變異: {X_train[y_train=='Down']['Lag1'].var(ddof=0):.4f}")
+
+# 預測
+nb_pred = nb.predict(X_test)
+print(f"\nNaive Bayes 測試準確率: {np.mean(nb_pred == y_test):.3f}")
+</code></pre>
+
+<!-- ================================================================== -->
+<h2>4.7.6 K-Nearest Neighbors (KNN)</h2>
+
+<p>KNN 是最直覺的分類器——「近朱者赤，近墨者黑」。給定一個新資料點，找出訓練集中離它最近的 K 個鄰居，然後投票決定類別。KNN 沒有「訓練」階段（它只是把資料記下來），所有計算都發生在預測時。</p>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+from ISLP import load_data
+from ISLP import confusion_table
+from sklearn.neighbors import KNeighborsClassifier
+
+Smarket = load_data('Smarket')
+train = Smarket['Year'] < 2005
+
+X_train = Smarket.loc[train, ['Lag1','Lag2']]
+y_train = Smarket.loc[train, 'Direction']
+X_test = Smarket.loc[~train, ['Lag1','Lag2']]
+y_test = Smarket.loc[~train, 'Direction']
+
+# KNN with K=1
+knn1 = KNeighborsClassifier(n_neighbors=1)
+knn1.fit(X_train, y_train)
+knn1_pred = knn1.predict(X_test)
+print("K=1 測試集混淆矩陣：")
+print(confusion_table(knn1_pred, y_test))
+print(f"K=1 測試準確率: {np.mean(knn1_pred == y_test):.3f}")
+
+# KNN with K=3
+knn3 = KNeighborsClassifier(n_neighbors=3)
+knn3.fit(X_train, y_train)
+knn3_pred = knn3.predict(X_test)
+print(f"\nK=3 測試準確率: {np.mean(knn3_pred == y_test):.3f}")
+</code></pre>
+
+<!-- ================================================================== -->
+<h2>4.7.7 Caravan 保險資料：尺度縮放的威力</h2>
+
+<p>現在換一個完全不同風格的資料集：<strong>Caravan 保險資料</strong>。這是荷蘭一家保險公司的客戶資料，共 5,822 筆，85 個人口統計變數。目標是預測誰會買 caravan（露營拖車）保險——這是一個極度不平衡的問題：只有 6% 的人會買。</p>
+
+<div class="callout">
+<strong>🔥 關鍵教訓：KNN 對尺度極度敏感</strong><br>
+如果不用 StandardScaler 標準化，某個變數的尺度很大（例如「年收入」是萬元級），它會主宰距離計算，讓其他變數（例如「年齡」是 0-100）完全失去作用。這就是為什麼在 KNN 之前 <strong>一定要做標準化</strong>。
+</div>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+
+Caravan = load_data('Caravan')
+print(f"Caravan 維度: {Caravan.shape}")
+
+# Purchase 是目標變數
+print(f"\n購買比例: {Caravan['Purchase'].value_counts(normalize=True).round(4)}")
+
+# 特徵與目標
+X = Caravan.drop(columns=['Purchase'])
+y = (Caravan['Purchase'] == 'Yes').astype(int)
+
+# 標準化（KNN 的關鍵一步！）
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+print(f"標準化後各特徵標準差範圍: {X_scaled.std(axis=0, ddof=0).min():.3f} ~ {X_scaled.std(axis=0, ddof=0).max():.3f}")
+
+# 訓練/測試分割
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=1000, random_state=42
+)
+
+# KNN with K=1
+knn = KNeighborsClassifier(n_neighbors=1)
+knn.fit(X_train, y_train)
+y_pred = knn.predict(X_test)
+
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred)
+print(f"\nK=1 混淆矩陣：\n      預測No  預測Yes")
+print(f"實際No   {cm[0,0]}    {cm[0,1]}")
+print(f"實際Yes  {cm[1,0]}    {cm[1,1]}")
+
+# 關鍵指標：在預測為 Yes 的人中，有多少真的買了？
+precision_yes = cm[1,1] / (cm[0,1] + cm[1,1])
+print(f"\n預測為「會買」的人中，真正買了的比例: {precision_yes:.1%}")
+print(f"（隨機猜測基準: {y_test.mean():.1%}）")
+</code></pre>
+
+<h3>調整 K 值：調諧參數的力量</h3>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+import matplotlib.pyplot as plt
+from ISLP import load_data
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+
+Caravan = load_data('Caravan')
+X = StandardScaler().fit_transform(Caravan.drop(columns=['Purchase']))
+y = (Caravan['Purchase'] == 'Yes').astype(int)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=1000, random_state=42)
+
+# 嘗試不同 K 值
+Ks = [1, 3, 5, 7, 10, 15, 20]
+results = []
+for k in Ks:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(X_train, y_train)
+    y_pred = knn.predict(X_test)
+    acc = np.mean(y_pred == y_test)
+    cm = np.zeros((2,2), dtype=int)
+    for i in range(len(y_test)):
+        cm[y_test.iloc[i], y_pred[i]] += 1
+    prec = cm[1,1] / (cm[0,1] + cm[1,1]) if (cm[0,1] + cm[1,1]) > 0 else 0
+    results.append({'K': k, 'Accuracy': acc, 'Precision(Yes)': prec})
+
+print("K 值比較表：")
+print(f"{'K':>5}  {'整體準確率':>10}  {'Yes精確度':>10}")
+for r in results:
+    print(f"{r['K']:>5}  {r['Accuracy']:>10.3f}  {r['Precision(Yes)']:>10.3f}")
+
+# 視覺化
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+ax1.plot(Ks, [r['Accuracy'] for r in results], 'o-', color='#58a6ff')
+ax1.set_xlabel('K'); ax1.set_ylabel('Accuracy'); ax1.set_title('整體準確率 vs K')
+ax2.plot(Ks, [r['Precision(Yes)'] for r in results], 'o-', color='#3fb950')
+ax2.set_xlabel('K'); ax2.set_ylabel('Precision (Yes)'); ax2.set_title('Yes 精確度 vs K')
+fig.tight_layout()
+plt.show()
+</code></pre>
+
+<div class="callout">
+<strong>📈 調諧參數（Tuning Parameter）</strong>：K 值就是 KNN 的調諧參數——它不是從資料中學來的（不像迴歸係數 β），而是我們<strong>事先選定</strong>的。第 5 章會介紹交叉驗證（cross-validation）來系統性地選擇最佳調諧參數。
+</div>
+
+<!-- ================================================================== -->
+<h2>4.7.8 Bikeshare 資料：Poisson Regression</h2>
+
+<p>最後一個 Lab 實例是 <strong>Bikeshare</strong> 資料集，記錄了華盛頓特區共享單車每小時的租借次數。這裡的反應變數是「次數」（非負整數），不適合用線性迴歸（可能預測出負的租借量），但非常適合用 <strong>Poisson Regression</strong>——第 4.6 節介紹的廣義線性模型。</p>
+
+<div class="formula">
+\[
+\log(\lambda) = \beta_0 + \beta_1 \cdot \text{mnth} + \beta_2 \cdot \text{hr} + \beta_3 \cdot \text{workingday} + \cdots
+\]
+<div class="formula-label">Poisson Regression：反應變數的「對數期望值」是預測變數的線性函數</div>
+</div>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from ISLP import load_data
+from ISLP.models import summarize, ModelSpec as MS
+import statsmodels.api as sm
+
+Bike = load_data('Bikeshare')
+print(f"Bikeshare 維度: {Bike.shape}")
+print(f"欄位: {list(Bike.columns)}")
+
+# === 線性迴歸（基線比較） ===
+X = MS(['mnth', 'hr', 'workingday', 'temp', 'weathersit']).fit_transform(Bike)
+Y = Bike['bikers']
+M_lm = sm.OLS(Y, X).fit()
+print("\n=== 線性迴歸 ===")
+print(summarize(M_lm))
+
+# === Poisson Regression ===
+M_pois = sm.GLM(Y, X, family=sm.families.Poisson()).fit()
+print("\n=== Poisson Regression ===")
+print(summarize(M_pois))
+
+# === 視覺化：月份效應 ===
+# 從更豐富的模型提取係數
+X2 = MS(['mnth', 'hr', 'workingday', 'temp', 'weathersit']).fit_transform(Bike)
+M2_pois = sm.GLM(Y, X2, family=sm.families.Poisson()).fit()
+S2 = summarize(M2_pois)
+
+# 提取並繪製月份係數
+coef_month = S2[S2.index.str.contains('mnth')]['coef']
+# 補上 December（基準類別，係數 = 負的其他月份總和）
+months = Bike['mnth'].dtype.categories
+coef_month = pd.concat([coef_month, pd.Series([-coef_month.sum()], index=['mnth[Dec]'])])
+
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.bar(range(12), coef_month.values, color='#58a6ff', alpha=0.8)
+ax.set_xticks(range(12))
+ax.set_xticklabels(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
+ax.set_xlabel('Month'); ax.set_ylabel('Coefficient (log scale)')
+ax.set_title('Bikeshare: 月份對租借量的影響（Poisson）')
+ax.axhline(y=0, color='#f85149', linestyle='--', linewidth=0.8)
+plt.show()
+</code></pre>
+
+<div class="scenario-box">
+<h4>🚲 實戰場景：物流需求預測</h4>
+<p>電商平台需要預測每小時的訂單量來調度外送員。Poisson Regression 天然適合這個場景：反應變數是計數型（訂單數）、非負整數、變異數隨期望值增大而增大。搭配天氣、時段、促銷活動等預測變數，可以比線性迴歸更準確地預測尖峰需求。</p>
+</div>
+
+<!-- ================================================================== -->
+<h2>📊 五種分類器：全面比較</h2>
+
+<table class="comparison-table">
+<thead>
+<tr><th>方法</th><th>決策邊界</th><th>參數量</th><th>機率輸出</th><th>適用場景</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>Logistic Regression</td>
+<td>線性</td>
+<td>p+1</td>
+<td>✅ 天然</td>
+<td>需要係數解釋（p-value）時首選</td>
+</tr>
+<tr>
+<td>LDA</td>
+<td>線性</td>
+<td>K·p + p(p+1)/2</td>
+<td>✅ 後驗機率</td>
+<td>各類別近似常態且共變異數相同</td>
+</tr>
+<tr>
+<td>QDA</td>
+<td>二次曲線</td>
+<td>K·(p + p(p+1)/2)</td>
+<td>✅ 後驗機率</td>
+<td>各類別共變異數不同、樣本夠大</td>
+</tr>
+<tr>
+<td>Naive Bayes</td>
+<td>非線性</td>
+<td>K·2p（高斯型）</td>
+<td>✅ 後驗機率</td>
+<td>高維度資料（p ≫ n）、文字分類</td>
+</tr>
+<tr>
+<td>KNN (K=1)</td>
+<td>極度不規則</td>
+<td>0（無參數）</td>
+<td>❌ 需手算</td>
+<td>決策邊界高度非線性、樣本量中等</td>
+</tr>
+</tbody>
+</table>
+
+<!-- ================================================================== -->
+<h2>🏗️ 對 Hermes 架構的啟發：版本選擇就是一個分類問題</h2>
+
+<div class="callout">
+<strong>🔧 自我內化</strong><br>
+這堂 Lab 在 Smarket 資料上跑五種分類器並比較結果的過程，讓我想到 Hermes 在選擇子 agent 模型時面臨的類似決策：哪個模型最適合當前的任務類型？<br><br>
+<strong>啟發</strong>：我們可以借鏡 §4.5 的「分類器比較」框架，建立一個「agent 模型效能追蹤表」。每個任務類型（程式碼檢閱、資料分析、內容生成）記錄不同模型（DeepSeek、Qwen、MiMo）的歷史上成功率與延遲，做成類似混淆矩陣的「模型選擇矩陣」。當新任務進來時，根據任務特徵（複雜度、領域、語言）自動路由到歷史表現最好的模型——這就是 <strong>統計學習驅動的 agent 路由</strong>。<br><br>
+→ 這套框架已納入 <code>subagent-performance-management</code> skill 的模型汰換機制。
+</div>
+
+<!-- ================================================================== -->
+<div class="key-quote">
+在真實世界中，沒有永遠最好的分類器。與其問「哪個最好」，不如問「這個資料適合哪個」——真正的統計學習思維，是理解每種方法的假設與限制，並根據資料特性做出選擇。
+<span class="author">— 第 4 章 Lab 核心精神</span>
+</div>
+
+<div class="section-nav">
+  <a href="04_6_generalized_linear_models.html">← 4.6 Generalized Linear Models</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="05_1_cross_validation.html">5.1 Cross-Validation →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 4 章：Classification · §4.7 Lab: Logistic Regression, LDA, QDA, and KNN</p>
+  <p>Generated: 2026-06-15 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

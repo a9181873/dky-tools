@@ -24,7 +24,8 @@
       <a href="/statistics/04_Generative_Models.html" class="nav-item done">4.4 生成模型：LDA・QDA・Naive Bayes</a>
       <a href="/statistics/04_classification_methods_comparison.html" class="nav-item done">4.5 分類方法比較</a>
       <a href="/statistics/4_6_generalized_linear_models.html" class="nav-item done">4.6 廣義線性模型</a>
-      <span class="nav-item pending">4.7 Lab: 邏輯回歸・LDA・QDA・KNN</span>
+      <a href="/statistics/04_7_lab_classification_methods.html" class="nav-item done">4.7 Lab: 邏輯回歸・LDA・QDA・KNN</a>
+      <span class="nav-item pending">5.1 交叉驗證</span>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
