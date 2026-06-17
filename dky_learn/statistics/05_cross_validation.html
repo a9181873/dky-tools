@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§5.1 交叉驗證 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>§5.1 交叉驗證（Cross-Validation）</h1>
+  <div class="meta">
+    <span>📖 ISLP §5.1</span>
+    <span>📄 pp. 210–219</span>
+    <span class="difficulty">⭐⭐⭐ 中級</span>
+    <span>⏱️ 約 35 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">重抽樣方法</span>
+    <span class="tag">模型評估</span>
+    <span class="tag">LOOCV</span>
+    <span class="tag">k-fold CV</span>
+    <span class="tag">偏差-變異權衡</span>
+    <span class="tag">分類</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="4.7_lab_logistic_lda_qda_knn.html">← §4.7 Lab: 分類方法實戰</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="5.2_bootstrap.html">§5.2 Bootstrap →</a>
+</div>
+
+<!-- ==================== 概念導入 ==================== -->
+<h2>為什麼需要重抽樣？</h2>
+
+<p>回顧第 2 章，我們學過<strong>訓練誤差</strong>和<strong>測試誤差</strong>的區別：訓練誤差是模型在「見過的資料」上的表現，測試誤差才是模型在「全新資料」上的真正實力。問題是——現實世界裡我們通常<strong>沒有</strong>獨立的測試集。</p>
+
+<p>想像你要參加日文檢定，但你手邊只有歷屆試題。你把所有歷屆試題都做完了才去考試，分數當然漂亮——但你根本不知道自己是不是真的學會了，還是只是背了考古題的答案。這就像只用訓練誤差來評估模型：<strong>欺騙自己</strong>。</p>
+
+<div class="callout">
+<strong>💡 核心洞見</strong>：交叉驗證（Cross-Validation, CV）是一組「自己考自己」的方法——把有限的訓練資料反覆切割，一部分當作「模擬考題」（驗證集），用另一部分訓練模型，透過多次重複來估計真正的泛化能力。
+</div>
+
+<div class="ref-box">
+James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §5.1, pp. 210–219. 經典文獻：Stone (1974) Cross-validatory choice and assessment of statistical predictions; Geisser (1975) The predictive sample reuse method.
+</div>
+
+<!-- ==================== 5.1.1 ==================== -->
+<h2>5.1.1 驗證集法（Validation Set Approach）</h2>
+
+<h3>白話理解</h3>
+
+<p>驗證集法是最直覺的做法：把資料隨機切成兩塊——一塊當「教科書」（訓練集），一塊當「模擬考卷」（驗證集）。模型看完教科書就去考試，分數就當作是對真實實力的估計。</p>
+
+<p>課本以 <code>Auto</code> 資料集為例，想預測汽車的 <code>mpg</code>（每加侖英里數）用 <code>horsepower</code> 的多項式：一次、二次、三次⋯⋯哪個最好？驗證集法把 392 筆資料切半，196 筆訓練、196 筆驗證，結果發現：<strong>二次多項式最好，三次以上沒有明顯改進</strong>。</p>
+
+<div class="formula">
+\[\text{MSE}_{\text{validation}} = \frac{1}{n_{\text{val}}} \sum_{i=1}^{n_{\text{val}}} (y_i - \hat{y}_i)^2\]
+<div class="formula-label">用驗證集上的 MSE 估計測試誤差</div>
+</div>
+
+<h3>Python 實作</h3>
+
+<pre><code class="language-python"># Colab / 本機通用資料讀取前置
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# 讀取 Auto 資料
+auto = pd.read_csv(DATA_PATH + 'Auto.csv', na_values='?')
+auto = auto.dropna()
+X = auto[['horsepower']].values
+y = auto['mpg'].values
+
+# 單次驗證集法：隨機切成訓練/驗證
+X_train, X_val, y_train, y_val = train_test_split(
+    X, y, test_size=0.5, random_state=1)
+
+degrees = range(1, 11)
+val_mse = []
+for d in degrees:
+    poly = PolynomialFeatures(degree=d)
+    X_poly_train = poly.fit_transform(X_train)
+    X_poly_val = poly.transform(X_val)
+    model = LinearRegression().fit(X_poly_train, y_train)
+    y_pred = model.predict(X_poly_val)
+    val_mse.append(mean_squared_error(y_val, y_pred))
+
+# 找出最佳多項式次數
+best_d = degrees[np.argmin(val_mse)]
+print(f"最佳多項式次數: {best_d}")
+print(f"最低驗證 MSE: {min(val_mse):.2f}")
+
+# 繪圖
+plt.figure(figsize=(8, 4))
+plt.plot(degrees, val_mse, 'o-', color='#58a6ff', linewidth=2)
+plt.axvline(best_d, color='#3fb950', linestyle='--',
+            label=f'最佳 d={best_d}')
+plt.xlabel('多項式次數')
+plt.ylabel('驗證 MSE')
+plt.title('驗證集法：不同多項式次數的 MSE')
+plt.legend()
+plt.grid(alpha=0.3)
+plt.show()</code></pre>
+
+<h3>兩個致命缺陷</h3>
+
+<p>驗證集法簡單，但有兩個大問題：</p>
+<ol>
+  <li><strong>高變異性</strong>：隨機切法不同，MSE 估計差很多。課本 Figure 5.2 右圖重複 10 次，每次的「最佳次數」都不一樣。</li>
+  <li><strong>高估測試誤差</strong>：只用一半資料訓練 → 模型實力打折 → 驗證誤差偏高，不能反映用全量資料訓練的真正實力。</li>
+</ol>
+
+<!-- ==================== 5.1.2 ==================== -->
+<h2>5.1.2 留一交叉驗證（LOOCV）</h2>
+
+<h3>白話理解</h3>
+
+<p>LOOCV（Leave-One-Out Cross-Validation）是把驗證集法做到極致：每次只留「一筆」資料當驗證，其餘 \(n-1\) 筆當訓練。重複 \(n\) 次，每次輪流讓不同的一筆當「被留下來的那個」。最後把 \(n\) 次的誤差平均。</p>
+
+<p>用日檢比喻：你手上有 100 題考古題。LOOCV 的做法是：每次只留 1 題當模擬考，用其他 99 題練習，重複 100 次（每題都輪流當一次考題）。這樣<strong>每一題都被考過一次</strong>，不會有「剛好沒考到弱點」的運氣成分。</p>
+
+<div class="formula">
+\[\text{CV}_{(n)} = \frac{1}{n} \sum_{i=1}^{n} \text{MSE}_i\]
+<div class="formula-label">LOOCV：每次留一筆驗證，重複 n 次</div>
+</div>
+
+<div class="callout">
+<strong>🎯 神奇性質</strong>：對於線性迴歸（最小平方法），LOOCV 有一個超快速的計算公式，不需要真的訓練 n 次！利用 <strong>hat matrix</strong>（帽子矩陣）的對角線元素 \(h_i\)（槓桿值）：<br>
+\[\text{CV}_{(n)} = \frac{1}{n} \sum_{i=1}^{n} \left( \frac{y_i - \hat{y}_i}{1 - h_i} \right)^2\]
+用這個公式，<strong>一次迴歸</strong>就能算出 LOOCV 的結果！
+</div>
+
+<h3>Python 實作</h3>
+
+<pre><code class="language-python"># Colab / 本機通用資料讀取前置
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import LeaveOneOut
+from sklearn.metrics import mean_squared_error
+
+# 讀取 Auto 資料（用前 80 筆加速示範）
+auto = pd.read_csv(DATA_PATH + 'Auto.csv', na_values='?')
+auto = auto.dropna().head(80)
+X = auto[['horsepower']].values
+y = auto['mpg'].values
+
+# LOOCV 計算
+degrees = range(1, 8)
+loocv_mse = []
+for d in degrees:
+    poly = PolynomialFeatures(degree=d)
+    X_poly = poly.fit_transform(X)
+    loo = LeaveOneOut()
+    errors = []
+    for train_idx, val_idx in loo.split(X_poly):
+        model = LinearRegression().fit(X_poly[train_idx], y[train_idx])
+        y_pred = model.predict(X_poly[val_idx])
+        errors.append((y[int(val_idx[0])] - y_pred[0]) ** 2)
+    loocv_mse.append(np.mean(errors))
+
+best_d = degrees[np.argmin(loocv_mse)]
+print(f"LOOCV 最佳多項式次數: {best_d}")
+print(f"最低 LOOCV MSE: {min(loocv_mse):.2f}")
+
+plt.figure(figsize=(8, 4))
+plt.plot(degrees, loocv_mse, 's-', color='#d2991d', linewidth=2)
+plt.axvline(best_d, color='#3fb950', linestyle='--',
+            label=f'最佳 d={best_d}')
+plt.xlabel('多項式次數')
+plt.ylabel('LOOCV MSE')
+plt.title('LOOCV：不同多項式次數的交叉驗證誤差')
+plt.legend()
+plt.grid(alpha=0.3)
+plt.show()</code></pre>
+
+<!-- ==================== 5.1.3 ==================== -->
+<h2>5.1.3 k 折交叉驗證（k-Fold Cross-Validation）</h2>
+
+<h3>白話理解</h3>
+
+<p>LOOCV 聽起來很完美，但有兩大痛點：</p>
+<ol>
+  <li><strong>計算量大</strong>：n 筆資料要訓練 n 次模型（除非用 hat matrix 公式，但那只適用線性迴歸）。n=1000 就要訓練 1000 次。</li>
+  <li><strong>變異性反而偏高</strong>：這很反直覺——等一下會解釋。</li>
+</ol>
+
+<p><strong>k 折交叉驗證</strong>是折衷方案：把資料<strong>隨機</strong>分成 k 等份（k 折），每次用 k−1 折訓練、1 折驗證，重複 k 次。最常用的是 <strong>k=5</strong> 或 <strong>k=10</strong>。</p>
+
+<div class="formula">
+\[\text{CV}_{(k)} = \frac{1}{k} \sum_{i=1}^{k} \text{MSE}_i\]
+<div class="formula-label">k 折 CV：k 次訓練，每次用不同的 1/k 當驗證集</div>
+</div>
+
+<p>用日檢比喻：100 題分成 10 疊（k=10），每次留 1 疊（10 題）當模擬考，用另外 9 疊（90 題）練習，重複 10 次。比 LOOCV（每次只考 1 題）更有效率。</p>
+
+<h3>Python 實作：比較 LOOCV vs 5-fold vs 10-fold</h3>
+
+<pre><code class="language-python"># Colab / 本機通用資料讀取前置
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import LeaveOneOut, KFold, cross_val_score
+from sklearn.metrics import make_scorer, mean_squared_error
+
+# 讀取 Auto 資料（前 80 筆）
+auto = pd.read_csv(DATA_PATH + 'Auto.csv', na_values='?')
+auto = auto.dropna().head(80)
+X = auto[['horsepower']].values
+y = auto['mpg'].values
+
+degrees = range(1, 8)
+loocv_mse, cv5_mse, cv10_mse = [], [], []
+mse_scorer = make_scorer(mean_squared_error, greater_is_better=False)
+
+for d in degrees:
+    poly = PolynomialFeatures(degree=d)
+    X_poly = poly.fit_transform(X)
+    # LOOCV
+    loocv_mse.append(-cross_val_score(LinearRegression(), X_poly, y,
+                                       cv=LeaveOneOut(), scoring=mse_scorer).mean())
+    # 5-fold
+    cv5_mse.append(-cross_val_score(LinearRegression(), X_poly, y,
+                                     cv=KFold(5, shuffle=True, random_state=1),
+                                     scoring=mse_scorer).mean())
+    # 10-fold
+    cv10_mse.append(-cross_val_score(LinearRegression(), X_poly, y,
+                                      cv=KFold(10, shuffle=True, random_state=1),
+                                      scoring=mse_scorer).mean())
+
+print(f"LOOCV 最佳 d={degrees[np.argmin(loocv_mse)]}, MSE={min(loocv_mse):.2f}")
+print(f"5-fold 最佳 d={degrees[np.argmin(cv5_mse)]}, MSE={min(cv5_mse):.2f}")
+print(f"10-fold 最佳 d={degrees[np.argmin(cv10_mse)]}, MSE={min(cv10_mse):.2f}")
+
+plt.figure(figsize=(8, 4))
+plt.plot(degrees, loocv_mse, 's--', color='#d2991d', label='LOOCV')
+plt.plot(degrees, cv5_mse, 'o-', color='#58a6ff', label='5-fold CV')
+plt.plot(degrees, cv10_mse, 'D-', color='#3fb950', label='10-fold CV')
+plt.xlabel('多項式次數')
+plt.ylabel('CV MSE')
+plt.title('LOOCV vs 5-fold vs 10-fold 交叉驗證比較')
+plt.legend()
+plt.grid(alpha=0.3)
+plt.show()</code></pre>
+
+<!-- ==================== 5.1.4 ==================== -->
+<h2>5.1.4 k 折 CV 的偏差-變異權衡</h2>
+
+<h3>白話理解：為什麼 LOOCV 不是最好的？</h3>
+
+<p>這是最違反直覺的一節。多數人會想：LOOCV 用 n−1 筆訓練，幾乎用了全部資料，<strong>偏差應該最小</strong>啊——為什麼 k 折（例如 5 折或 10 折）反而給出更準確的測試誤差估計？</p>
+
+<p>答案是：<strong>偏差不是唯一的考量，變異數也很重要。</strong></p>
+
+<div class="callout">
+<strong>📊 LOOCV 高變異的原因</strong>：LOOCV 訓練 n 個模型，每個模型用 n−1 筆資料——這些訓練集之間<strong>幾乎完全相同</strong>（只差一筆）。因此這 n 個模型的輸出<strong>高度相關</strong>。把 n 個高度相關的量取平均，<strong>變異數反而大</strong>。<br><br>
+<strong>k 折 CV 低變異的原因</strong>：k 折只訓練 k 個模型（例如 5 或 10 個），訓練集之間的重疊較少 → 輸出相關性較低 → 平均後的變異數較小。
+</div>
+
+<div class="formula">
+\[\text{Var}\left(\frac{1}{n}\sum_{i=1}^n X_i\right) = \frac{\sigma^2}{n} + \frac{n-1}{n}\rho\sigma^2\]
+<div class="formula-label">當 \(X_i\) 之間相關性 \(\rho\) 很高時，平均值的變異數不會隨 n 增加而縮小</div>
+</div>
+
+<p><strong>結論</strong>：k=5 或 k=10 實證上給出最平衡的偏差-變異權衡——偏差不會太高（用了 80-90% 的資料訓練），變異也不會太大（只訓練 5-10 個不那麼相關的模型）。</p>
+
+<h3>Python 實作：展示 LOOCV 的變異性</h3>
+
+<pre><code class="language-python"># Colab / 本機通用資料讀取前置
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import cross_val_score, KFold, LeaveOneOut
+from sklearn.metrics import make_scorer, mean_squared_error
+
+# 讀取 Auto 資料（前 50 筆，使效果更明顯）
+auto = pd.read_csv(DATA_PATH + 'Auto.csv', na_values='?')
+auto = auto.dropna().head(50)
+X = auto[['horsepower']].values
+y = auto['mpg'].values
+mse_scorer = make_scorer(mean_squared_error, greater_is_better=False)
+
+# 固定 d=2（二次多項式），比較不同方法的穩定性
+poly = PolynomialFeatures(degree=2)
+X_poly = poly.fit_transform(X)
+
+# 10-fold CV：重複 20 次不同 shuffle 觀察變異
+cv10_runs = []
+for seed in range(20):
+    score = cross_val_score(LinearRegression(), X_poly, y,
+                            cv=KFold(10, shuffle=True, random_state=seed),
+                            scoring=mse_scorer)
+    cv10_runs.append(-score.mean())
+
+# 5-fold CV：重複 20 次
+cv5_runs = []
+for seed in range(20):
+    score = cross_val_score(LinearRegression(), X_poly, y,
+                            cv=KFold(5, shuffle=True, random_state=seed),
+                            scoring=mse_scorer)
+    cv5_runs.append(-score.mean())
+
+# LOOCV 只有一個值（無隨機性）
+loocv_score = -cross_val_score(LinearRegression(), X_poly, y,
+                                cv=LeaveOneOut(), scoring=mse_scorer).mean()
+
+print(f"LOOCV MSE: {loocv_score:.2f} (單一值，無隨機變異)")
+print(f"5-fold CV MSE: mean={np.mean(cv5_runs):.2f}, std={np.std(cv5_runs):.2f}")
+print(f"10-fold CV MSE: mean={np.mean(cv10_runs):.2f}, std={np.std(cv10_runs):.2f}")
+
+plt.figure(figsize=(8, 4))
+plt.axhline(loocv_score, color='#d2991d', linestyle='-', linewidth=2, label=f'LOOCV = {loocv_score:.2f}')
+plt.plot(range(20), cv5_runs, 'o-', color='#58a6ff', alpha=0.7, label='5-fold (每次重抽)')
+plt.plot(range(20), cv10_runs, 's-', color='#3fb950', alpha=0.7, label='10-fold (每次重抽)')
+plt.xlabel('隨機種子 (不同 shuffle)')
+plt.ylabel('CV MSE')
+plt.title('不同 CV 方法的穩定性比較 (d=2)')
+plt.legend()
+plt.grid(alpha=0.3)
+plt.show()</code></pre>
+
+<!-- ==================== 5.1.5 ==================== -->
+<h2>5.1.5 分類問題中的交叉驗證</h2>
+
+<h3>白話理解</h3>
+
+<p>前面都在講迴歸（Y 是連續值），但 CV 在分類問題上一樣好用！唯一的差別是：<strong>用錯誤分類率取代 MSE</strong>。</p>
+
+<div class="formula">
+\[\text{CV}_{(n)}^{\text{class}} = \frac{1}{n} \sum_{i=1}^{n} I(y_i \neq \hat{y}_i)\]
+<div class="formula-label">分類問題的 LOOCV：計算被分錯的比例</div>
+</div>
+
+<p>課本用二維模擬分類資料（Figure 2.13）做示範：用多項式羅吉斯迴歸（從線性到四次），10-fold CV 的最低點在<strong>四次多項式</strong>附近，真實測試誤差的最低點在三次——CV 近似得很好！右圖用 KNN 分類器，CV 的最佳 K 也非常接近真實最佳值。</p>
+
+<div class="callout">
+<strong>🔑 關鍵洞見</strong>：交叉驗證曲線的<strong>最低點位置</strong>比<strong>最低點的數值</strong>更重要。我們用 CV 選模型參數時，關心的是「哪個參數最好」，而不是「CV 誤差的絕對值是否精確」（課本 Figure 5.6 就是最好的例證）。
+</div>
+
+<h3>Python 實作：KNN 分類器的 CV 選參數</h3>
+
+<pre><code class="language-python"># Colab / 本機通用資料讀取前置
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+
+# 用 ISLP 內建 Caravan 資料（保險購買預測）
+from ISLP import load_data
+Caravan = load_data('Caravan')
+y = (Caravan['Purchase'] == 'Yes').astype(int).values
+X = Caravan.drop('Purchase', axis=1).values
+X = StandardScaler().fit_transform(X)
+
+# 用 10-fold CV 選最佳 K
+k_values = [1, 3, 5, 7, 9, 15, 25, 50]
+cv_errors = []
+for k in k_values:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    scores = cross_val_score(knn, X, y,
+                             cv=StratifiedKFold(10, shuffle=True, random_state=1),
+                             scoring='accuracy')
+    cv_errors.append(1 - scores.mean())
+
+best_k = k_values[np.argmin(cv_errors)]
+print(f"10-fold CV 最佳 K = {best_k}, 錯誤率 = {min(cv_errors):.4f}")
+
+plt.figure(figsize=(8, 4))
+plt.plot(k_values, cv_errors, 'o-', color='#58a6ff', linewidth=2)
+plt.axvline(best_k, color='#3fb950', linestyle='--',
+            label=f'最佳 K={best_k}')
+plt.xlabel('K (鄰居數)')
+plt.ylabel('10-fold CV 錯誤率')
+plt.title('用 CV 為 KNN 分類器選最佳 K (Caravan 資料)')
+plt.legend()
+plt.grid(alpha=0.3)
+plt.xscale('log')
+plt.show()</code></pre>
+
+<!-- ==================== 優缺點對照 ==================== -->
+<h2>三種重抽樣方法對照</h2>
+
+<table class="comparison-table">
+  <tr>
+    <th>方法</th><th>訓練次數</th><th>訓練集大小</th><th>偏差</th><th>變異</th><th>適用場景</th>
+  </tr>
+  <tr>
+    <td><strong>驗證集法</strong></td>
+    <td>1 次</td>
+    <td>~50%</td>
+    <td>偏高</td>
+    <td>偏高（依賴隨機切法）</td>
+    <td>超大資料集、快速原型</td>
+  </tr>
+  <tr>
+    <td><strong>LOOCV</strong></td>
+    <td>n 次</td>
+    <td>n−1</td>
+    <td>最低（幾乎無偏）</td>
+    <td>偏高（輸出高度相關）</td>
+    <td>n 小時可考慮；線性迴歸有快速公式</td>
+  </tr>
+  <tr>
+    <td><strong>k-fold CV</strong></td>
+    <td>k 次</td>
+    <td>(k−1)n/k</td>
+    <td>中等</td>
+    <td>較低</td>
+    <td>⭐ 業界標準，k=5 或 k=10</td>
+  </tr>
+</table>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ k-fold CV 的優勢</h4>
+    <ul>
+      <li>偏差-變異權衡最佳（k=5/10）</li>
+      <li>計算效率遠勝 LOOCV</li>
+      <li>不依賴單次隨機切法</li>
+      <li>分類/迴歸通用</li>
+      <li>sklearn 內建支援（cross_val_score）</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 注意事項</h4>
+    <ul>
+      <li>k 的選擇沒有理論保證（5/10 是經驗法則）</li>
+      <li>時間序列資料不能隨機切（需用 TimeSeriesSplit）</li>
+      <li>類別不平衡時需用 StratifiedKFold</li>
+      <li>CV 估計的標準誤通常被低估</li>
+      <li>特徵選擇若在 CV 外做會導致資料洩漏</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== 應用場景 ==================== -->
+<h2>真實世界應用場景</h2>
+
+<div class="scenario-box">
+  <h4>🏦 金融：信用評分模型驗證</h4>
+  <p>銀行建立貸款違約預測模型後，用 <strong>5-fold CV</strong> 評估 AUC。由於違約樣本稀少，必須使用 <strong>StratifiedKFold</strong> 確保每折的違約比例一致。CV 結果用來決定模型是否上線、以及設定授信門檻。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>🏥 醫療：診斷模型選擇</h4>
+  <p>用 MRI 影像預測腫瘤良性/惡性時，樣本數通常很少（n &lt; 200）。<strong>LOOCV</strong> 在這類小樣本場景很常見，因為每一筆昂貴的醫療資料都不能浪費。但要注意 LOOCV 的高變異可能導致模型選擇不穩定。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>📱 科技：A/B 測試離線評估</h4>
+  <p>新推薦演算法上線前，先在歷史資料上用 <strong>10-fold CV</strong> 評估點擊率提升。但要注意：使用者行為有時間相依性——不能把同一個使用者今天的資料放訓練、昨天的放驗證（時間穿越）。實務上常用 <strong>group-based CV</strong> 或時間分割。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>📊 行銷：客戶流失預測</h4>
+  <p>電信業者預測哪些客戶可能跳槽。用 <strong>10-fold stratified CV</strong> 比較羅吉斯迴歸 vs 隨機森林 vs XGBoost。CV 的標準差用來判斷模型之間的差異是否「統計顯著」——而不只是看平均準確率的高低。</p>
+</div>
+
+<!-- ==================== 自我內化 ==================== -->
+<h2>⚙️ 對 AI Agent 系統設計的啟發</h2>
+
+<p>交叉驗證的核心思想——「<strong>反覆切割、獨立驗證、不求單次完美</strong>」——對 AI agent 系統設計有深刻啟發：</p>
+
+<div class="callout">
+<strong>🔧 應用於 Hermes 子 Agent 評估</strong>：就像 k-fold CV 不依賴單次 train/test split，評估一個子 agent（如 code-review agent）的表現時，不應該只看它在「某一組 prompt」上的結果。應該設計一套 <strong>多樣化 benchmark tasks</strong>（類似 CV 的多折），讓每個 agent 在多個獨立任務上被測試，取平均表現——這樣才不會被「剛好抽到簡單題目」的運氣欺騙。<br><br>
+<strong>實務對應</strong>：這正是 <code>subagent-performance-management</code> skill 的設計哲學——連續劣化才切換模型，而非單次失敗就換。就像 CV 的「最低點位置比數值重要」——agent 表現的趨勢比單次分數更關鍵。
+</div>
+
+<!-- ==================== 今日關鍵句 ==================== -->
+<div class="key-quote">
+  用交叉驗證選模型，不是要找出「考最高分的方法」，而是要找出「換一批題目也不會考砸的方法」。
+  <span class="author">— ISLP §5.1 核心精神</span>
+</div>
+
+<!-- ==================== 導航 ==================== -->
+<div class="section-nav">
+  <a href="4.7_lab_logistic_lda_qda_knn.html">← §4.7 Lab: 分類方法實戰</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="5.2_bootstrap.html">§5.2 Bootstrap →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 5 章：重抽樣方法 · §5.1 交叉驗證</p>
+  <p>Generated: 2026-06-17 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
