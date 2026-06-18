@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAG：用 SQL JOIN 取代向量搜尋的 RAG 新架構 — DKY 論文筆記</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d;--red:#f85149}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;margin-left:260px;padding:40px;max-width:900px}
+h1{font-size:1.5em;color:#fff;margin-bottom:4px}
+h2{font-size:1.1em;color:var(--accent);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.meta{color:var(--muted);font-size:.85em;margin-bottom:20px}
+.meta a{color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:16px 0}
+.tag{display:inline-block;font-size:.75em;padding:2px 8px;border-radius:10px;background:#1a2a3a;color:var(--accent);margin:2px}
+table{width:100%;border-collapse:collapse;margin:10px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{background:#1a1a2e;color:var(--accent);font-weight:600;font-size:.85em}
+td{font-size:.9em}
+.one-liner{font-size:1.1em;color:var(--green);font-weight:600;padding:12px 0;border-left:3px solid var(--green);padding-left:16px;margin:16px 0}
+@media(max-width:768px){body{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<h1>SAG：用 SQL JOIN 取代向量搜尋的 RAG 新架構</h1>
+<div class="meta">
+arXiv: <a href="https://arxiv.org/abs/2606.15971" target="_blank">2606.15971</a> · 2026-06-14 · Zleap-AI<br>
+程式碼: <a href="https://github.com/Zleap-AI/SAG-Benchmark">github.com/Zleap-AI/SAG-Benchmark</a>
+</div>
+
+<div class="one-liner">不建全域知識圖譜，查詢時用 SQL JOIN 動態串聯事件；三基準 9 項 Recall 中 8 項最佳，已部署數億筆生產環境。</div>
+
+<div class="card">
+
+<h2>一句話</h2>
+<p>Zleap-AI 提出 <b>SAG</b>（SQL-Retrieval Augmented Generation），將文字拆成「事件 + 實體」存 SQL，查詢時用 JOIN 動態建局部超邊，取代稠密向量搜尋和靜態知識圖譜。三基準 9 項 Recall 指標中 8 項最佳，MuSiQue Recall@5 達 80%，已部署數億筆生產環境。</p>
+
+<h2>關鍵數據</h2>
+<table>
+<tr><th>項目</th><th>數據</th></tr>
+<tr><td>基準測試</td><td>HotpotQA / 2WikiMultiHop / MuSiQue</td></tr>
+<tr><td>Recall@K（共 9 項）</td><td>8/9 最佳</td></tr>
+<tr><td>MuSiQue Recall@5</td><td>80.0%</td></tr>
+<tr><td>生產規模</td><td>數億筆資料，線上檢索秒級</td></tr>
+</table>
+
+<h2>機制拆解</h2>
+<ul>
+<li><b>事件化存儲</b>：每段文字拆成一個語意完整事件 + 多個索引實體。不做全域圖，每筆資料在 SQL 中獨立存在。</li>
+<li><b>查詢時動態 JOIN</b>：收到查詢 → 從問題抽實體 → SQL JOIN 找共享實體的事件 → 形成局部超邊。只為這次查詢存在，不持久化。</li>
+<li><b>標準 DB 基礎設施</b>：用普通 SQLite/PostgreSQL。不需向量庫、不需圖資料庫。天然支援增量寫入、並行處理、水平擴展。</li>
+<li><b>不做全域圖的哲學</b>：省去圖重建、碎片化、維護成本，查詢時才決定關聯——這是 SAG 最核心的設計原則。</li>
+</ul>
+
+<h2>落地應用：對 Hermes Agent 的啟發</h2>
+<ul>
+<li><b>SQLite 路線正確</b>：Hermes 的 fact_store 已是 SQLite+FTS5，SAG 驗證了不需要 Neo4j 或向量資料庫。架構方向一致。</li>
+<li><b>缺失實體層</b>：fact_store 目前是扁平結構（事實 ID + 文字 + 信任分數），沒有實體標籤。要 SAG 化只需加 entity_tags 欄位。</li>
+<li><b>現在不急著改</b>：83 條事實的規模下，FTS5 全文搜尋已經夠用。等長到 500+ 條、多實體交叉查詢變頻繁時再進化——成本一樣（加欄位 + 寫入時抽實體），但效益有感。</li>
+<li><b>論文最有價值的不是 SQL JOIN</b>：而是「不做全域圖，查詢時才動態關聯」的設計哲學——這驗證了 Hermes 記憶架構的基礎決策是對的。</li>
+</ul>
+
+</div>
+
+<div class="card">
+<h2>標籤</h2>
+<span class="tag">RAG</span>
+<span class="tag">SQL</span>
+<span class="tag">記憶架構</span>
+<span class="tag">SAG</span>
+<span class="tag">fact_store</span>
+<span class="tag">Hermes</span>
+<span class="tag">Zleap-AI</span>
+</div>
+
+<p style="color:var(--muted);font-size:.8em;margin-top:30px">
+← <a href="index.html" style="color:var(--accent)">回論文筆記列表</a>
+</p>
+
+<script src="../sidebar.js"></script>
+</body>
+</html>
