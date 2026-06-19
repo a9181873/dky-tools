@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§6.2 脊迴歸與 Lasso：用懲罰項馴服過配 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .6rem;border-radius:12px;font-size:.8rem}h2{margin:2rem 0 .8rem;font-size:1.4rem;color:var(--accent2);border-bottom:1px solid var(--border);padding-bottom:.3rem}h3{margin:1.2rem 0 .5rem;font-size:1.15rem;color:#e6edf3}h4{font-size:1rem;color:var(--accent);margin:.8rem 0 .3rem}p{margin:.5rem 0}ul,ol{margin:.5rem 0;padding-left:1.5rem}li{margin:.3rem 0}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid var(--border);padding:.6rem .8rem;text-align:left}th{background:var(--card);color:var(--accent)}tr:nth-child(even){background:rgba(255,255,255,.02)}pre{background:var(--code-bg);padding:1rem;border-radius:8px;overflow-x:auto;margin:1rem 0;border:1px solid var(--border)}code{font-family:'JetBrains Mono','Fira Code',monospace;font-size:.85rem}.ref-box{background:var(--card);border-left:4px solid var(--accent);padding:1rem;margin:1rem 0;border-radius:0 8px 8px 0}.key-concept{background:var(--card);border-left:4px solid var(--accent2);padding:1rem;margin:1rem 0;border-radius:0 8px 8px 0}.one-liner{background:var(--card);border-left:4px solid var(--warn);padding:1rem;margin:1rem 0;border-radius:0 8px 8px 0;font-size:1.05rem}.mech-item{background:var(--card);padding:1rem;margin:.8rem 0;border-radius:8px;border:1px solid var(--border)}.app-item{background:var(--card);padding:1rem;margin:.8rem 0;border-radius:8px;border-left:3px solid var(--accent2)}.reflection{background:var(--card);border:1px solid var(--warn);padding:1.2rem;margin:1.5rem 0;border-radius:8px}.nav-back{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);text-align:center;font-size:.9rem}.nav-back a{color:var(--accent);text-decoration:none}.nav-back a:hover{text-decoration:underline}.formula{background:var(--code-bg);padding:.8rem 1rem;margin:.8rem 0;border-radius:6px;overflow-x:auto}.scenario{margin:1rem 0}a{color:var(--accent)}</style>
+</head>
+<body>
+
+<header>
+  <h1>§6.2 脊迴歸與 Lasso：用懲罰項馴服過配</h1>
+  <div class="meta">
+    <span>📖 ISLP §6.2</span>
+    <span>📄 pp. 245–260</span>
+    <span class="difficulty">⭐⭐</span>
+    <span>⏱️ 約 35 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">regularization</span>
+    <span class="tag">ridge</span>
+    <span class="tag">lasso</span>
+    <span class="tag">shrinkage</span>
+    <span class="tag">variable-selection</span>
+  </div>
+</header>
+
+<h2>📚 理論核心</h2>
+
+<div class="ref-box">
+<strong>📖 課本文獻引用：</strong><br>
+James, Witten, Hastie & Tibshirani (2021). ISLP §6.2. Springer.
+</div>
+
+<div class="key-concept">
+<strong>💡 核心概念（生活化比喻）：</strong><br>
+想像你在挑選食材做菜。子集選擇法（§6.1）像是「只留高麗菜和番茄，其他全丟掉」，激進但容易浪費邊角料。Ridge 和 Lasso 則是「所有食材都留著，但有些只加一小撮」——它們在最小平方法中加了一個罰金（λ × 係數平方或絕對值），強迫每個變數的權重「向 0 收縮」，讓模型在偏差與變異之間找到甜蜜點。Ridge 像溫和的收縮（所有人一起縮），Lasso 像有選擇的收縮（不重要的人直接歸零出局）。
+</div>
+
+<h2>📐 數學定義</h2>
+<div class="formula">\[\hat{\beta}^{R}_{\lambda} = \arg\min_{\beta} \left\{ \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_j x_{ij})^2 + \lambda \sum_{j=1}^{p} \beta_j^2 \right\}\]<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">Ridge 目標函數：懲罰項為係數平方和</p></div>
+<div class="formula">\[\hat{\beta}^{L}_{\lambda} = \arg\min_{\beta} \left\{ \sum_{i=1}^{n}(y_i - \beta_0 - \sum_{j=1}^{p}\beta_j x_{ij})^2 + \lambda \sum_{j=1}^{p} |\beta_j| \right\}\]<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">Lasso 目標函數：懲罰項為係數絕對值和</p></div>
+
+<h2>🐍 實作程式碼</h2>
+<h3>💻 Ridge 與 Lasso 正規化路徑圖 — 觀察 λ 變化時各係數如何收縮</h3>
+<pre><code class="language-python">import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Ridge, Lasso
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+# 載入 Credit 資料集（來自 ISLP 套件）
+from ISLP import load_data
+Credit = load_data('Credit')
+X = pd.get_dummies(Credit.drop('Balance', axis=1), drop_first=True)
+y = Credit['Balance']
+
+# 標準化（正規化前必須，否則懲罰項不公平）
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+X_scaled = pd.DataFrame(X_scaled, columns=X.columns)
+
+# 令 λ 對數均勻分佈
+alphas = np.logspace(-2, 5, 100)
+
+# Ridge 係數路徑
+ridge_coefs = []
+for a in alphas:
+    ridge = Ridge(alpha=a)
+    ridge.fit(X_scaled, y)
+    ridge_coefs.append(ridge.coef_)
+
+# Lasso 係數路徑
+lasso_coefs = []
+for a in alphas:
+    lasso = Lasso(alpha=a, max_iter=10000)
+    lasso.fit(X_scaled, y)
+    lasso_coefs.append(lasso.coef_)
+
+# 繪圖
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+for i, (coefs, title) in enumerate(zip([ridge_coefs, lasso_coefs],
+                                        ['Ridge (L2)', 'Lasso (L1)'])):
+    ax = axes[i]
+    ax.plot(alphas, coefs)
+    ax.set_xscale('log')
+    ax.set_xlabel('λ (log scale)')
+    ax.set_ylabel('Coefficient')
+    ax.set_title(title)
+    ax.axhline(0, color='black', linewidth=0.5, linestyle='--')
+    if i == 1:
+        ax.legend(X.columns, fontsize=7, loc='upper right')
+plt.tight_layout()
+plt.savefig('ridge_lasso_path.png', dpi=100)
+plt.show()
+print('Ridge: 係數向 0 收縮但永遠不歸零')
+print('Lasso: 不重要變數的係數會精確歸零（變數選擇）')</code></pre>
+<p style="color:#8b949e;font-size:.85rem">📤 預期輸出：兩張並排圖：左圖 Ridge 所有線平滑趨近 0；右圖 Lasso 線一條一條碰到 0 後消失</p>
+<h3>💻 交叉驗證選 λ — 用 10-fold CV 找最佳懲罰強度</h3>
+<pre><code class="language-python">from sklearn.linear_model import RidgeCV, LassoCV
+from sklearn.model_selection import cross_val_score
+
+# RidgeCV：內建 LOOCV 或 K-fold
+ridge_cv = RidgeCV(alphas=np.logspace(-2, 5, 100), store_cv_values=True)
+ridge_cv.fit(X_scaled, y)
+print(f'Ridge 最佳 λ: {ridge_cv.alpha_:.2f}')
+print(f'Ridge 最佳 CV MSE: {-ridge_cv.cv_values_.mean(axis=0).min():.2f}')
+
+# LassoCV：用 10-fold CV（ISLP 偏好，比 LOOCV 穩定）
+lasso_cv = LassoCV(alphas=np.logspace(-3, 2, 100), cv=10, max_iter=100000, random_state=1)
+lasso_cv.fit(X_scaled, y)
+print(f'\nLasso 最佳 λ: {lasso_cv.alpha_:.4f}')
+print(f'Lasso 最佳 CV MSE: {-lasso_cv.mse_path_.mean(axis=1).min():.2f}')
+
+# Lasso 選出的非零變數
+coef = pd.Series(lasso_cv.coef_, index=X.columns)
+nonzero = coef[coef != 0]
+print(f'\nLasso 選出 {len(nonzero)}/{len(coef)} 個變數：')
+print(nonzero.sort_values(ascending=False))</code></pre>
+<p style="color:#8b949e;font-size:.85rem">📤 預期輸出：Ridge 最佳 λ（較大）、Lasso 最佳 λ（較小且伴隨變數選擇）</p>
+
+
+<h2>📊 方法比較</h2>
+<table>
+<tr><th>特性</th><th>最小平方法</th><th>Ridge (L2)</th><th>Lasso (L1)</th></tr>
+<tr><td>懲罰項</td><td>無</td><td>λ Σβⱼ²</td><td>λ Σ|βⱼ|</td></tr>
+<tr><td>係數歸零</td><td>否</td><td>否（趨近但不到 0）</td><td>是（不重要變數精確歸零）</td></tr>
+<tr><td>變數選擇</td><td>手動</td><td>無</td><td>自動</td></tr>
+<tr><td>共線性容忍</td><td>差</td><td>極佳</td><td>中等</td></tr>
+<tr><td>解的型態</td><td>封閉解</td><td>封閉解</td><td>凸優化（無封閉解）</td></tr>
+</table>
+
+<h2>🎯 應用場景</h2>
+<div class="app-item">
+<h4>📊 行銷迴歸模型（高維度顧客屬性）</h4>
+<p>當顧客屬性多達數百項時，Lasso 可以自動挑出真正影響購買金額的 10-20 個變數，產出可解釋的簡約模型。</p>
+<ul><li>Ridge 適合所有變數都有微弱訊號的場景（如金融因子模型）</li>
+<li>Lasso 適合大部分變數是雜訊的場景（如基因資料、文字特徵）</li></ul>
+</div>
+<div class="app-item">
+<h4>🏠 房價預測的彈性網</h4>
+<p>實際操作中常混合 Ridge + Lasso 成 Elastic Net（這門課不講，scikit-learn 有 ElasticNet），取兩者之長。但 ISLP §6.2 先讓你搞懂兩者的基本行為差異。</p>
+<ul><li>先跑 Lasso 看哪些變數被留下來</li>
+<li>再用 Ridge 對留下的變數做最終預測（有時比純 Lasso 準）</li></ul>
+</div>
+
+
+<h2>⚖️ 優缺點</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0">
+<div style="background:var(--card);padding:1rem;border-radius:8px;border-left:3px solid var(--accent2)">
+<h4>優點</h4><ul><li>✅ 計算簡單（封閉解或凸優化）</li>
+<li>✅ Ridge 處理共線性極佳</li>
+<li>✅ Lasso 自動變數選擇，模型精簡</li>
+<li>✅ 交叉驗證選 λ 非常成熟</li></ul>
+</div>
+<div style="background:var(--card);padding:1rem;border-radius:8px;border-left:3px solid var(--danger)">
+<h4>缺點</h4><ul><li>⚠️ Ridge 不解釋變數重要性（全部保留）</li>
+<li>⚠️ Lasso 在 p>n 時最多選 n 個變數</li>
+<li>⚠️ λ 的選擇對結果影響巨大</li>
+<li>⚠️ 標準化是強制前置步驟，容易漏掉</li></ul>
+</div>
+</div>
+
+<h2>💬 金句</h2>
+<div class="ref-box">
+<em>「Ridge 讓所有人縮小，Lasso 讓不重要的人出局。選擇哪個，取決於你相信訊號是分散的還是稀疏的。」</em><br>
+<span style="color:#8b949e;font-size:.85rem">— ISLP §6.2 精神摘要</span>
+</div>
+
+<h2>🧠 自我內化</h2>
+<div class="reflection">
+<p>這對 Hermes 架構的啟發：Ridge/Lasso 的「懲罰項」概念與 agent memory 極其相似——不是所有經驗都該等權重記住。Lasso 式記憶管理（選擇性保留重要經驗、讓雜訊歸零）比 Ridge 式（全都記但打折）更適合 long-running agent。這呼應了 arXiv:2606.04536 TMEM 論文的參數化記憶思路。</p>
+</div>
+
+<div class="nav-back">
+<a href="index.html">← 回到統計學習首頁</a>
+</div>
+
+<script>hljs.highlightAll();</script>
+</body>
+</html>
