@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5.3 Lab: Cross-Validation and the Bootstrap — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>5.3 實作：交叉驗證與 Bootstrap</h1>
+  <div class="meta">
+    <span>📖 ISLP §5.3</span>
+    <span>📄 pp. 223–231</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 45 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">交叉驗證</span>
+    <span class="tag">Bootstrap</span>
+    <span class="tag">重抽樣</span>
+    <span class="tag">模型評估</span>
+    <span class="tag">LOOCV</span>
+    <span class="tag">K-Fold CV</span>
+    <span class="tag">sklearn</span>
+    <span class="tag">statsmodels</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="05_bootstrap.html">← 5.2 Bootstrap 原理</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="../index.html">課程總覽 →</a>
+</div>
+
+<h2>📖 實驗室概述</h2>
+
+<p>
+  這節實作課將帶你親手操作三種核心重抽樣技術：<strong>驗證集法（Validation Set）</strong>、<strong>交叉驗證（Cross-Validation）</strong>與 <strong>Bootstrap</strong>。我們的目標是用 <code>Auto</code> 資料集預測 <code>mpg</code>（每加侖英里數），並比較不同模型複雜度的表現。
+</p>
+
+<div class="ref-box">
+  課本 §5.3, pp. 223–231 · James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em> · Springer
+</div>
+
+<div class="callout">
+  <strong>💡 先備知識：</strong>建議先讀完 §5.1（交叉驗證原理）和 §5.2（Bootstrap 原理）再進行此實作。本實驗室使用 <code>statsmodels</code> 擬合模型、<code>sklearn</code> 做交叉驗證，兩者透過 <code>ISLP.models.sklearn_sm</code> 包裝器橋接。
+</div>
+
+<!-- ============================================================ -->
+<h2>5.3.1 驗證集法（Validation Set Approach）</h2>
+
+<p>
+  驗證集法就像<strong>把披薩切成兩半，一半試吃（訓練）、一半評分（驗證）</strong>——簡單直接，但結果高度依賴「怎麼切」。我們將 <code>Auto</code> 的 392 筆資料對半分，用 <code>horsepower</code> 預測 <code>mpg</code>。
+</p>
+
+<h3>步驟 1：匯入套件與載入資料</h3>
+
+<pre><code class="language-python"># === Google Colab + 本機相容資料路徑 ===
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, summarize, poly
+from sklearn.model_selection import train_test_split
+
+# 載入 Auto 資料集
+Auto = load_data('Auto')
+print(f"Auto shape: {Auto.shape}")  # (392, 9)
+print(Auto.head(3))
+</code></pre>
+
+<h3>步驟 2：分割訓練/驗證集並擬合線性模型</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from sklearn.model_selection import train_test_split
+
+Auto = load_data('Auto')
+
+# 392 筆 → 196 訓練 + 196 驗證
+Auto_train, Auto_valid = train_test_split(
+    Auto, test_size=196, random_state=0
+)
+print(f"訓練: {Auto_train.shape[0]} 筆, 驗證: {Auto_valid.shape[0]} 筆")
+
+# 僅用 horsepower 預測 mpg
+hp_mm = MS(['horsepower'])
+X_train = hp_mm.fit_transform(Auto_train)
+y_train = Auto_train['mpg']
+model = sm.OLS(y_train, X_train).fit()
+
+# 驗證集預測
+X_valid = hp_mm.transform(Auto_valid)
+y_valid = Auto_valid['mpg']
+valid_pred = model.predict(X_valid)
+mse_linear = np.mean((y_valid - valid_pred) ** 2)
+print(f"線性模型驗證 MSE: {mse_linear:.4f}")
+</code></pre>
+
+<h3>步驟 3：通用 evalMSE 函數 + 比較多項式次數</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, poly
+from sklearn.model_selection import train_test_split
+
+Auto = load_data('Auto')
+Auto_train, Auto_valid = train_test_split(
+    Auto, test_size=196, random_state=0
+)
+
+def evalMSE(terms, response, train, test):
+    """通用 MSE 評估：擬合 train → 預測 test → 回傳 MSE"""
+    mm = MS(terms)
+    X_train = mm.fit_transform(train)
+    y_train = train[response]
+    X_test = mm.transform(test)
+    y_test = test[response]
+    results = sm.OLS(y_train, X_train).fit()
+    test_pred = results.predict(X_test)
+    return np.mean((y_test - test_pred) ** 2)
+
+# 比較線性、二次、三次多項式（random_state=0）
+MSE = np.zeros(3)
+for idx, degree in enumerate(range(1, 4)):
+    MSE[idx] = evalMSE(
+        [poly('horsepower', degree)], 'mpg',
+        Auto_train, Auto_valid
+    )
+print("random_state=0:")
+for d, mse in zip(range(1, 4), MSE):
+    print(f"  次數={d}: MSE={mse:.4f}")
+</code></pre>
+
+<h3>步驟 4：不同分割的影響</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, poly
+from sklearn.model_selection import train_test_split
+
+Auto = load_data('Auto')
+
+def evalMSE(terms, response, train, test):
+    mm = MS(terms)
+    X_train = mm.fit_transform(train)
+    y_train = train[response]
+    X_test = mm.transform(test)
+    y_test = test[response]
+    results = sm.OLS(y_train, X_train).fit()
+    return np.mean((y_test - results.predict(X_test)) ** 2)
+
+# random_state=3 的分割
+Auto_train2, Auto_valid2 = train_test_split(
+    Auto, test_size=196, random_state=3
+)
+MSE2 = np.zeros(3)
+for idx, degree in enumerate(range(1, 4)):
+    MSE2[idx] = evalMSE(
+        [poly('horsepower', degree)], 'mpg',
+        Auto_train2, Auto_valid2
+    )
+print("random_state=3:")
+for d, mse in zip(range(1, 4), MSE2):
+    print(f"  次數={d}: MSE={mse:.4f}")
+print("兩個 random_state 給出不同 MSE → 驗證集法的弱點！")
+</code></pre>
+
+<div class="callout">
+  <strong>🔍 發現：</strong>二次多項式明顯優於線性（MSE 從 ~23.6 降到 ~18.8），但三次多項式幾乎沒有進步（~18.8）。這與 §3.1-3.2 的結論一致：<code>mpg</code> 與 <code>horsepower</code> 呈非線性關係，二次曲線已足夠。
+</div>
+
+<div class="scenario-box">
+  <h4>🏭 應用場景：汽車油耗預測</h4>
+  <p>汽車製造商需根據引擎馬力預估油耗。只用線性模型（MSE ≈ 23.6），誤差可能導致油耗標示不準。改用二次模型（MSE ≈ 18.8）可大幅降低誤差。但換一組訓練/驗證分割，MSE 就從 18.8 變成 17.0——需要更穩健的評估方法！</p>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 驗證集法優點</h4>
+    <ul><li>概念簡單、實作快速</li><li>計算量低（只擬合一次）</li><li>適合超大資料集初步篩選</li></ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 驗證集法缺點</h4>
+    <ul><li>MSE 高度依賴分割方式</li><li>只用到部分資料訓練</li><li>無法量化估計的變異性</li></ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>5.3.2 交叉驗證（Cross-Validation）</h2>
+
+<p>
+  交叉驗證的核心精神：<strong>不要只切一次，輪流切很多次再平均</strong>。想像找了 10 個朋友試吃新菜，每個人吃不同一口，綜合評分——比只問一個人客觀多了。
+</p>
+
+<div class="ref-box">
+  ISLP 套件提供 <code>sklearn_sm()</code> 包裝器，使 <code>statsmodels</code> 擬合的模型能被 <code>sklearn</code> 的 <code>cross_validate()</code> 使用。核心觀念：sklearn 期望模型有 <code>fit()</code>、<code>predict()</code>、<code>score()</code> 方法。
+</div>
+
+<h3>LOOCV 基礎示範</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, sklearn_sm
+from sklearn.model_selection import cross_validate
+
+Auto = load_data('Auto')
+hp_model = sklearn_sm(sm.OLS, MS(['horsepower']))
+X = Auto.drop(columns=['mpg'])
+y = Auto['mpg']
+
+# LOOCV: cv = 樣本數
+cv_results = cross_validate(hp_model, X, y, cv=Auto.shape[0])
+cv_err = np.mean(cv_results['test_score'])
+print(f"LOOCV 估計 MSE: {cv_err:.4f}")
+</code></pre>
+
+<h3>LOOCV 比較多項式次數（1~5）</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import sklearn_sm
+from sklearn.model_selection import cross_validate
+
+Auto = load_data('Auto')
+y = Auto['mpg']
+H = np.array(Auto['horsepower'])
+M = sklearn_sm(sm.OLS)
+
+cv_error = np.zeros(5)
+for i, d in enumerate(range(1, 6)):
+    X_poly = np.power.outer(H, np.arange(d + 1))
+    M_CV = cross_validate(M, X_poly, y, cv=Auto.shape[0])
+    cv_error[i] = np.mean(M_CV['test_score'])
+
+print("LOOCV 多項式比較:")
+for d, err in zip(range(1, 6), cv_error):
+    print(f"  次數={d}: CV MSE = {err:.4f}")
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, 6), cv_error, 'o-', color='#58a6ff', linewidth=2)
+plt.xlabel('Polynomial Degree')
+plt.ylabel('LOOCV Estimated Test MSE')
+plt.title('LOOCV: Polynomial Degree vs Test Error')
+plt.grid(alpha=0.3)
+plt.savefig('/tmp/islp_loocv_poly.png', dpi=100, bbox_inches='tight')
+plt.show()
+print("Chart saved to /tmp/islp_loocv_poly.png")
+</code></pre>
+
+<div class="callout">
+  <strong>📊 結果：</strong>線性→二次（24.23 → 19.25）MSE 大幅下降，二次以上幾乎持平——再次驗證「二次多項式是甜蜜點」，與課本 Figure 5.4 一致。
+</div>
+
+<h3>10-Fold CV：更快、幾乎一樣準</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import sklearn_sm
+from sklearn.model_selection import cross_validate, KFold
+
+Auto = load_data('Auto')
+y = Auto['mpg']
+H = np.array(Auto['horsepower'])
+M = sklearn_sm(sm.OLS)
+cv_10f = KFold(n_splits=10, shuffle=True, random_state=0)
+
+cv_err_10f = np.zeros(5)
+for i, d in enumerate(range(1, 6)):
+    X_poly = np.power.outer(H, np.arange(d + 1))
+    MCV = cross_validate(M, X_poly, y, cv=cv_10f)
+    cv_err_10f[i] = np.mean(MCV['test_score'])
+
+print("10-Fold CV:")
+for d, err in zip(range(1, 6), cv_err_10f):
+    print(f"  次數={d}: CV MSE = {err:.4f}")
+print("與 LOOCV 結果幾乎相同，但只需擬合 10 次！")
+</code></pre>
+
+<h3>ShuffleSplit：模擬多次驗證集法</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, sklearn_sm
+from sklearn.model_selection import cross_validate, ShuffleSplit
+
+Auto = load_data('Auto')
+hp_model = sklearn_sm(sm.OLS, MS(['horsepower']))
+X = Auto.drop(columns=['mpg'])
+y = Auto['mpg']
+
+# 10 次隨機分割取平均
+val10 = ShuffleSplit(n_splits=10, test_size=196, random_state=0)
+res10 = cross_validate(hp_model, X, y, cv=val10)
+print(f"10-split 平均 MSE: {res10['test_score'].mean():.4f}")
+print(f"10-split 標準差:   {res10['test_score'].std():.4f}")
+print("(標準差 ≠ 抽樣變異性，因訓練集有大量重疊)")
+</code></pre>
+
+<!-- ============================================================ -->
+<h2>5.3.3 Bootstrap</h2>
+
+<p>
+  Bootstrap 的核心精神：<strong>從你的資料中反覆抽樣（有放回），用這些假資料的統計量分布來估計真實的不確定性</strong>。就像把一份食譜重寫 1000 次，每次隨機抽掉/重複一些步驟，看成品差異有多大。
+</p>
+
+<h3>Bootstrap SE 通用函數</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+def boot_SE(func, D, n=None, B=1000, seed=0):
+    """Bootstrap 標準誤估計: SE = sqrt(E[X^2] - E[X]^2)"""
+    rng = np.random.default_rng(seed)
+    first_, second_ = 0.0, 0.0
+    n = n or D.shape[0]
+    for _ in range(B):
+        idx = rng.choice(D.index, n, replace=True)
+        value = func(D, idx)
+        first_ += value
+        second_ += value ** 2
+    return np.sqrt(second_ / B - (first_ / B) ** 2)
+
+print("boot_SE() 已定義 — 用於估計任意統計量的標準誤")
+</code></pre>
+
+<h3>範例一：投資組合 α 的 Bootstrap SE</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from ISLP import load_data
+
+def boot_SE(func, D, n=None, B=1000, seed=0):
+    rng = np.random.default_rng(seed)
+    first_, second_ = 0.0, 0.0
+    n = n or D.shape[0]
+    for _ in range(B):
+        idx = rng.choice(D.index, n, replace=True)
+        v = func(D, idx)
+        first_ += v
+        second_ += v ** 2
+    return np.sqrt(second_ / B - (first_ / B) ** 2)
+
+Portfolio = load_data('Portfolio')
+
+def alpha_func(D, idx):
+    cov_ = np.cov(D[['X', 'Y']].loc[idx], rowvar=False)
+    return (cov_[1, 1] - cov_[0, 1]) / (cov_[0, 0] + cov_[1, 1] - 2 * cov_[0, 1])
+
+alpha_SE = boot_SE(alpha_func, Portfolio, B=1000, seed=0)
+alpha_est = alpha_func(Portfolio, Portfolio.index)
+print(f"α 點估計 = {alpha_est:.5f}")
+print(f"Bootstrap SE(α) = {alpha_SE:.5f}")
+print(f"近似 95% CI: [{alpha_est - 2*alpha_SE:.4f}, {alpha_est + 2*alpha_SE:.4f}]")
+</code></pre>
+
+<h3>範例二：線性迴歸係數的 Bootstrap SE</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, summarize
+from sklearn.base import clone
+from functools import partial
+
+def boot_SE(func, D, n=None, B=1000, seed=0):
+    rng = np.random.default_rng(seed)
+    first_, second_ = 0.0, 0.0
+    n = n or D.shape[0]
+    for _ in range(B):
+        idx = rng.choice(D.index, n, replace=True)
+        v = func(D, idx)
+        first_ += v
+        second_ += v ** 2
+    return np.sqrt(second_ / B - (first_ / B) ** 2)
+
+def boot_OLS(model_matrix, response, D, idx):
+    D_ = D.loc[idx]
+    Y_ = D_[response]
+    X_ = clone(model_matrix).fit_transform(D_)
+    return sm.OLS(Y_, X_).fit().params
+
+Auto = load_data('Auto')
+hp_func = partial(boot_OLS, MS(['horsepower']), 'mpg')
+
+# Bootstrap SE
+hp_se = boot_SE(hp_func, Auto, B=1000, seed=10)
+print("Bootstrap SE:")
+print(hp_se)
+
+# 經典公式 SE
+hp_model = sm.OLS(Auto['mpg'], MS(['horsepower']).fit_transform(Auto))
+model_se = summarize(hp_model.fit())['std err']
+print("\nClassical SE:")
+print(model_se)
+
+print("\nBootstrap SE 較大 → 更誠實，不依賴線性/固定 x 假設")
+</code></pre>
+
+<h3>驗證：二次模型下兩者收斂</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, summarize, poly
+from sklearn.base import clone
+from functools import partial
+
+def boot_SE(func, D, n=None, B=1000, seed=0):
+    rng = np.random.default_rng(seed)
+    first_, second_ = 0.0, 0.0
+    n = n or D.shape[0]
+    for _ in range(B):
+        idx = rng.choice(D.index, n, replace=True)
+        v = func(D, idx)
+        first_ += v
+        second_ += v ** 2
+    return np.sqrt(second_ / B - (first_ / B) ** 2)
+
+def boot_OLS(model_matrix, response, D, idx):
+    D_ = D.loc[idx]
+    Y_ = D_[response]
+    X_ = clone(model_matrix).fit_transform(D_)
+    return sm.OLS(Y_, X_).fit().params
+
+Auto = load_data('Auto')
+quad_model = MS([poly('horsepower', 2, raw=True)])
+quad_func = partial(boot_OLS, quad_model, 'mpg')
+
+# Bootstrap SE
+quad_se = boot_SE(quad_func, Auto, B=1000)
+print("Bootstrap SE (quadratic):")
+print(quad_se)
+
+# Classical SE
+M_q = sm.OLS(Auto['mpg'], quad_model.fit_transform(Auto))
+quad_ce = summarize(M_q.fit())['std err']
+print("\nClassical SE (quadratic):")
+print(quad_ce)
+print("\n二次模型假設合理 → Bootstrap 與古典 SE 接近")
+</code></pre>
+
+<div class="callout">
+  <strong>🤔 Bootstrap SE 為什麼比經典公式大？</strong><br>
+  經典公式假設：(1) xᵢ 是固定的 (2) 誤差獨立同分布 (3) σ² 由殘差估計。<br>
+  實際上 <code>mpg ~ horsepower</code> 有非線性關係 → 殘差膨脹 → σ² 低估 → SE 低估。<br>
+  Bootstrap <strong>不做任何分布假設</strong>，直接從資料經驗分布抽樣，給出更誠實的不確定性。
+</div>
+
+<!-- ============================================================ -->
+<h2>三種方法的全面比較</h2>
+
+<table class="comparison-table">
+  <thead>
+    <tr><th>特性</th><th>驗證集法</th><th>K-Fold CV</th><th>Bootstrap</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>核心概念</td><td>單次隨機分割</td><td>輪流用不同子集驗證</td><td>有放回抽樣模擬分布</td></tr>
+    <tr><td>計算成本</td><td>極低（1 次擬合）</td><td>中等（K 次擬合）</td><td>高（B≈1000 次擬合）</td></tr>
+    <tr><td>偏誤</td><td>可能高估</td><td>較低（K-fold 平衡）</td><td>低（用完整資料）</td></tr>
+    <tr><td>變異性估計</td><td>無</td><td>可提供（折疊間變異）</td><td>精確（完整抽樣分布）</td></tr>
+    <tr><td>適用場景</td><td>超大資料集初步篩選</td><td>模型選擇、超參數調優</td><td>SE/CI 估計、不確定性量化</td></tr>
+    <tr><td>sklearn API</td><td><code>train_test_split</code></td><td><code>cross_validate + KFold</code></td><td>手寫（無內建）</td></tr>
+    <tr><td>典型 n</td><td>任意</td><td>n ≥ 100</td><td>n ≥ 30</td></tr>
+  </tbody>
+</table>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 交叉驗證優點</h4>
+    <ul><li>減少單次分割隨機性</li><li>LOOCV 幾乎無偏</li><li>K-fold 計算效率高</li><li>sklearn 一行呼叫</li></ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 交叉驗證缺點</h4>
+    <ul><li>LOOCV 計算量大（n 次）</li><li>K-fold 依賴折疊方式</li><li>無法直接給信賴區間</li><li>時間序列需特殊處理</li></ul>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ Bootstrap 優點</h4>
+    <ul><li>不需任何分布假設</li><li>可估計任意統計量 SE</li><li>自然擴展到信賴區間</li><li>對模型誤設較穩健</li></ul>
+  </div>
+  <div class="cons">
+    <h4>❌ Bootstrap 缺點</h4>
+    <ul><li>計算成本高（B 次擬合）</li><li>對極端值敏感</li><li>相依資料需 block bootstrap</li><li>估計量必須平滑</li></ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>🤖 給自己系統設計的啟發：Bootstrap → 多代理集成</h2>
+
+<div class="scenario-box">
+  <h4>🧠 從 Bootstrap 到 Hermes 多代理架構</h4>
+  <p>Bootstrap 的核心哲理——<strong>「用多個略有不同的資料集重複估計，匯總出穩健結論」</strong>——完美對應到 <code>subagent-driven-development</code> 架構：</p>
+  <ul style="margin-left:1.5rem; margin-top:0.5rem;">
+    <li><strong>單次驗證集法 ≈ 用一個子代理：</strong>結果高度依賴該代理的隨機性和 prompt 細節，不可靠</li>
+    <li><strong>K-fold CV ≈ 多個並行子代理：</strong>如 <code>multi-model-code-review</code> 的 4 模型交叉審查，≥2 共識才標記</li>
+    <li><strong>Bootstrap ≈ 重複抽樣執行：</strong>對同一任務用不同 seed/模型多次執行，從結果分布判斷穩定性</li>
+  </ul>
+  <p style="margin-top:0.5rem;">在 <code>multi-model-code-review</code> 中，≥2 模型共識才標記問題——正是「交叉驗證式」的品質保證。未來可擴展為「Bootstrap 式」：對同一段碼用不同提示詞/溫度重複審查，統計問題出現頻率與一致性。</p>
+</div>
+
+<!-- ============================================================ -->
+<div class="key-quote">
+  單次驗證可能欺騙你，交叉驗證讓你看清模型真面目，Bootstrap 讓你看清不確定性的全貌。
+  <span class="author">— ISLP §5 核心精神</span>
+</div>
+
+<div class="section-nav">
+  <a href="05_bootstrap.html">← 5.2 Bootstrap 原理</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="../index.html">課程總覽 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 5 章：重抽樣方法 · §5.3 實作：交叉驗證與 Bootstrap</p>
+  <p>Generated: 2026-06-21 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

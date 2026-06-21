@@ -27,7 +27,7 @@
       <a href="/statistics/04_7_lab_classification_methods.html" class="nav-item done">4.7 Lab: 邏輯回歸・LDA・QDA・KNN</a>
       <a href="/statistics/05_cross_validation.html" class="nav-item done">5.1 交叉驗證</a>
       <a href="/statistics/05_the_bootstrap.html" class="nav-item done">5.2 Bootstrap</a>
-      <span class="nav-item pending">5.3 Lab: CV & Bootstrap</span>
+      <a href="/statistics/05_lab_cross_validation_bootstrap.html" class="nav-item done">5.3 Lab: CV & Bootstrap</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
