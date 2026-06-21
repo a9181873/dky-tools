@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§6.3 降維方法：PCR 與 PLS — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:1rem;font-size:.75rem}h2{color:var(--accent);margin:2rem 0 .8rem;border-left:3px solid var(--accent);padding-left:.7rem;font-size:1.3rem}h3{color:var(--fg);margin:1.2rem 0 .5rem;font-size:1.05rem}.ref-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;margin:1rem 0;font-size:.9rem}.key-concept{background:linear-gradient(135deg,#1a2332,#162030);border:1px solid var(--accent);border-radius:8px;padding:1.2rem;margin:1rem 0;font-size:.92rem}.formula{background:var(--code-bg);padding:1.2rem;border-radius:6px;margin:.8rem 0;overflow-x:auto;font-size:.95rem}pre{background:var(--code-bg);padding:1.2rem;border-radius:6px;overflow-x:auto;font-size:.85rem;line-height:1.5}code{font-family:'Fira Code','Consolas',monospace}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid var(--border);padding:.6rem .8rem;text-align:left;font-size:.88rem}th{background:var(--card);color:var(--accent)}tr:nth-child(even){background:rgba(22,27,34,.5)}ul,ol{margin:.5rem 0 .5rem 1.5rem;line-height:1.8}li{margin:.3rem 0}.app-item{background:var(--card);border-left:3px solid var(--accent2);padding:.8rem 1rem;margin:.6rem 0;border-radius:0 6px 6px 0;font-size:.9rem}.app-item h4{color:var(--accent2);margin-bottom:.3rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}.pro-box{background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:1rem}.con-box{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:1rem}.pro-box h4{color:var(--accent2)}.con-box h4{color:var(--danger)}.quote-box{background:var(--card);border-left:4px solid var(--warn);padding:1rem 1.2rem;margin:1rem 0;border-radius:0 8px 8px 0;font-style:italic}.quote-box .attribution{font-size:.8rem;color:#8b949e;margin-top:.5rem;font-style:normal}.reflection{background:linear-gradient(135deg,#1f2a37,#162030);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0;font-size:.9rem;line-height:1.7}.nav-back{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.85rem;color:#8b949e}.nav-back a{color:var(--accent);text-decoration:none}.nav-back a:hover{text-decoration:underline}</style>
+</head>
+<body>
+
+<header>
+  <h1>§6.3 降維方法：PCR 與 PLS</h1>
+  <div class="meta">
+    <span>📖 ISLP §6.3</span>
+    <span>📄 pp. 260–272</span>
+    <span class="difficulty">⭐⭐</span>
+    <span>⏱️ 約 30 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">PCR</span>
+    <span class="tag">PLS</span>
+    <span class="tag">dimension-reduction</span>
+    <span class="tag">PCA</span>
+    <span class="tag">regularization</span>
+  </div>
+</header>
+
+<h2>📚 理論核心</h2>
+
+<div class="ref-box">
+<strong>📖 課本文獻引用：</strong><br>
+James, Witten, Hastie & Tibshirani (2021). ISLP §6.3. Springer.
+</div>
+
+<div class="key-concept">
+<strong>💡 核心概念（生活化比喻）：</strong><br>
+想像你有一份 50 個問題的問卷，但其中很多問題問的是同一件事（「你開心嗎？」「你快樂嗎？」「你滿意嗎？」）。與其逐題分析，不如先把 50 題壓縮成 5 個「隱藏主題」（如：情緒、收入、健康…）。PCR 就是先做 PCA 壓縮 → 再拿壓縮後的主成分做迴歸。但它有個盲點：壓縮時只看 X（不看 Y），可能把跟 Y 無關的方向也保留下來。PLS 改良了這點——它在壓縮 X 的同時，會偷看 Y 的方向，確保保留下來的成分對預測有用。兩者都是「先濃縮再分析」的降維策略，差在 PLS 是 supervised 降維，PCR 是 unsupervised。
+</div>
+
+<h2>📐 數學定義</h2>
+
+<div class="formula">
+\[ \mathbf{Z}_m = \mathbf{X} \mathbf{V}_m \]
+<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">取得前 m 個主成分：X 投影到前 m 個奇異向量上</p>
+</div>
+
+<div class="formula">
+\[ \hat{y}^{\text{PCR}} = \mathbf{Z}_m \hat{\theta} = \mathbf{X} \mathbf{V}_m (\mathbf{Z}_m^T \mathbf{Z}_m)^{-1} \mathbf{Z}_m^T \mathbf{y} \]
+<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">PCR：用 m 個主成分做最小平方法迴歸</p>
+</div>
+
+<div class="formula">
+\[ \mathbf{Z}_m^{\text{PLS}} = \mathbf{X} \mathbf{W}_m, \quad \mathbf{w}_k = \arg\max_{\|\mathbf{w}\|=1} \text{Cov}(\mathbf{X}\mathbf{w}, \mathbf{y})^2 \]
+<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">PLS：每個方向最大化 X 投影與 Y 的共變異數</p>
+</div>
+
+<h2>🐍 實作程式碼</h2>
+
+<h3>💻 PCR 與 PLS 完整實作 — Credit 資料集預測 Balance</h3>
+
+<pre><code class="language-python">import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+# ponytail: 最小可行實作 — PCR 手刻 + sklearn PLS，避免引進獨立 PLS 套件
+# 升級路徑：若需更多 PLS 變體（Sparse PLS、Kernel PLS），再引入專門套件
+
+# 載入 Credit 資料集
+from ISLP import load_data
+Credit = load_data('Credit')
+X = pd.get_dummies(Credit.drop('Balance', axis=1), drop_first=True)
+y = Credit['Balance']
+
+# 標準化（PCR/PLS 必須，否則主成分被尺度主導）
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 分割訓練/測試
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.3, random_state=42)
+
+# === PCR (Principal Components Regression) ===
+pca = PCA()
+X_train_pca = pca.fit_transform(X_train)
+X_test_pca = pca.transform(X_test)
+
+# 追蹤不同主成分數的 MSE
+pcr_mse_train, pcr_mse_test = [], []
+max_m = min(X_train.shape[0], X_train.shape[1])  # 最多 m 個成分
+for m in range(1, max_m + 1):
+    lm = LinearRegression()
+    lm.fit(X_train_pca[:, :m], y_train)
+    y_pred_train = lm.predict(X_train_pca[:, :m])
+    y_pred_test = lm.predict(X_test_pca[:, :m])
+    pcr_mse_train.append(mean_squared_error(y_train, y_pred_train))
+    pcr_mse_test.append(mean_squared_error(y_test, y_pred_test))
+
+best_m_pcr = np.argmin(pcr_mse_test) + 1
+print(f"PCR 最佳主成分數: M = {best_m_pcr}")
+print(f"PCR 測試 MSE: {pcr_mse_test[best_m_pcr - 1]:.2f}")
+
+# === PLS (Partial Least Squares) ===
+pls_mse_test = []
+for n_comp in range(1, min(X_train.shape[1], 15) + 1):
+    pls = PLSRegression(n_components=n_comp, scale=False)
+    pls.fit(X_train, y_train)
+    y_pred = pls.predict(X_test)
+    pls_mse_test.append(mean_squared_error(y_test, y_pred))
+
+best_n_pls = np.argmin(pls_mse_test) + 1
+print(f"PLS 最佳成分數: N = {best_n_pls}")
+print(f"PLS 測試 MSE: {pls_mse_test[best_n_pls - 1]:.2f}")
+
+# === 視覺化：PCR vs PLS 成分數 vs MSE ===
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.plot(range(1, max_m + 1), pcr_mse_test, 'o-', label='PCR (test)', color='#58a6ff')
+ax.plot(range(1, len(pls_mse_test) + 1), pls_mse_test, 's-', label='PLS (test)', color='#3fb950')
+ax.axvline(best_m_pcr, color='#58a6ff', linestyle='--', alpha=0.5,
+           label=f'PCR best M={best_m_pcr}')
+ax.axvline(best_n_pls, color='#3fb950', linestyle='--', alpha=0.5,
+           label=f'PLS best N={best_n_pls}')
+ax.set_xlabel('Number of Components')
+ax.set_ylabel('Test MSE')
+ax.set_title('PCR vs PLS: 成分數對預測誤差的影響')
+ax.legend()
+plt.tight_layout()
+plt.savefig('pcr_pls_comparison.png', dpi=100)
+plt.show()
+
+# === 解釋變異量（PCR 特有視角）===
+explained_var = pca.explained_variance_ratio_
+cumsum_var = np.cumsum(explained_var)
+print(f"\n前 5 個主成分解釋變異量: {cumsum_var[:5]}")
+print(f"達 90% 變異量需 M = {np.argmax(cumsum_var >= 0.9) + 1} 個成分")
+
+# === 最終比較 ===
+print(f"\n=== 總結 ===")
+print(f"PCR (M={best_m_pcr}): Test MSE = {pcr_mse_test[best_m_pcr - 1]:.2f}")
+print(f"PLS (N={best_n_pls}): Test MSE = {pls_mse_test[best_n_pls - 1]:.2f}")
+print("通常 PLS 需要更少成分達到相似或更佳表現，因為它會參考 Y。")
+</code></pre>
+
+<h2>🎯 應用場景</h2>
+
+<div class="app-item">
+<h4>🧬 基因表達資料分析</h4>
+<p>基因資料常見 p ≫ n（變數遠多於樣本）。PCR 先用 PCA 將數千個基因壓縮成數十個主成分再建模，避免過配。PLS 在此場景特別強——直接找與疾病（Y）最相關的基因組合方向。</p>
+</div>
+
+<div class="app-item">
+<h4>📊 行銷問卷分析</h4>
+<p>客戶滿意度問卷 50 題，許多題目高度相關。用 PLS 直接找出與「是否續約」（Y）最相關的潛在因子（如「服務品質感知」），比逐題分析更有效。</p>
+</div>
+
+<div class="app-item">
+<h4>🏭 工業製程監控</h4>
+<p>化工廠感測器數百個，但彼此高度共線（溫度↑→壓力↑→流量↑）。PLS 找出與最終產品品質（Y）相關的少數潛在變量，做即時監控。</p>
+</div>
+
+<h2>⚖️ PCR vs PLS vs Ridge/Lasso</h2>
+
+<table>
+<tr><th>方法</th><th>降維策略</th><th>是否看 Y</th><th>成分解釋性</th><th>適用場景</th></tr>
+<tr><td>PCR</td><td>PCA 無監督降維</td><td>❌</td><td>主成分為 X 空間最大變異方向</td><td>X 高度共線，但 PCA 方向恰巧與 Y 相關時</td></tr>
+<tr><td>PLS</td><td>監督降維（最大化 Cov(Xw, Y)）</td><td>✅</td><td>成分與 Y 直接相關</td><td>需要更少成分達到預測目標，或需要解釋性方向</td></tr>
+<tr><td>Ridge</td><td>L2 懲罰收縮係數</td><td>✅</td><td>保留所有原始變數</td><td>所有變數都有微小貢獻，不適合丟棄任何一個</td></tr>
+<tr><td>Lasso</td><td>L1 懲罰選變數</td><td>✅</td><td>自動歸零，選出子集</td><td>需稀疏解、可解釋變數（哪些 X 真正有用）</td></tr>
+</table>
+
+<h2>👍👎 優缺點</h2>
+
+<div class="pros-cons">
+<div class="pro-box">
+<h4>✅ 優點</h4>
+<ul>
+  <li>解決共線性：p ≫ n 時 Ridge/Lasso 也可，但 PCR/PLS 提供降維後的視覺化與解釋性</li>
+  <li>PLS 更少成分：通常 PLS 用比 PCR 更少的成分達相同 MSE，因為成分與 Y 直接相關</li>
+  <li>雜訊過濾：捨棄低變異主成分等於去除雜訊，類似 Ridge 收縮的效果</li>
+  <li>解釋性強：PLS 的潛在變量可直接對應業務因子（「顧客忠誠度分數」）</li>
+</ul>
+</div>
+<div class="con-box">
+<h4>⚠️ 缺點</h4>
+<ul>
+  <li>PCR 盲點：低變異方向可能正好與 Y 高度相關，但 PCA 會丟棄它</li>
+  <li>PLS 過配風險：成分數過多時會捕捉 Y 的雜訊（需交叉驗證選 N）</li>
+  <li>不保證稀疏：不同於 Lasso，PCR/PLS 每個成分是所有原始變數的線性組合，無變數選擇</li>
+  <li>PLS 理論較少：相較 PCR（PCA 理論完整），PLS 的統計性質較難推導</li>
+</ul>
+</div>
+</div>
+
+<h2>💬 金句</h2>
+
+<div class="quote-box">
+「Ridge 和 Lasso 讓所有變數一起縮；PCR 和 PLS 說：先別急著縮，讓我幫你把方向整理好。」
+<div class="attribution">— 第 6 章降維 vs 收縮的本質差異</div>
+</div>
+
+<h2>🧠 自我內化</h2>
+<div class="reflection">
+<p>PCR 和 PLS 的核心教訓不只適用於統計模型——它對 Agent 記憶設計也有直接啟發。PCA 是「客觀壓縮」——保留資料中變異最大的方向，但這些方向未必對任務有用。PLS 是「目的導向壓縮」——壓縮時直接瞄準預測目標。</p>
+<p>對應到 Hermes 的 skill/memory 系統：目前的做法類似 PCR——把所有過往對話壓縮成 embedding 或摘要，不加區別地保存。更好的做法是像 PLS——保存記憶時，同時考慮這條記憶對未來任務的預測價值。TMEM (2606.04536) 的 RL 可優化提取策略就是這種想法：決定「從歷史中提取什麼」本身是可以優化的，不是無差別備份。</p>
+<p>如果 Hermes 有一個「記憶寫入閘門」——每當新經驗進來，不只存摘要，還評估它對未來不同任務類型的預測貢獻，並優先保留高相關性的經驗——那就從 PCR 進化到 PLS 了。</p>
+</div>
+
+<div class="nav-back">
+<a href="index.html">← 回到 ISLP 課程目錄</a> &nbsp;|&nbsp;
+<a href="/">← 回到 DKY 學習中心</a>
+</div>
+
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

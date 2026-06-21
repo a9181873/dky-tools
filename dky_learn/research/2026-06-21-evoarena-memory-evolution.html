@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvoArena：追蹤記憶演化的 AI Agent 動態環境基準 — 不只「記住」，更要「跟上變化」</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:1rem;font-size:.75rem}h2{color:var(--accent);margin:2rem 0 .8rem;border-left:3px solid var(--accent);padding-left:.7rem;font-size:1.3rem}h3{color:var(--fg);margin:1.2rem 0 .5rem;font-size:1.05rem}h4{color:var(--accent);margin:.8rem 0 .3rem;font-size:.95rem}.ref-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;margin:1rem 0;font-size:.9rem}.one-liner{background:linear-gradient(135deg,#1a2332,#162030);border:1px solid var(--accent);border-radius:8px;padding:1.2rem;margin:1rem 0;font-size:1rem;text-align:center}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid var(--border);padding:.6rem .8rem;text-align:left;font-size:.88rem}th{background:var(--card);color:var(--accent)}tr:nth-child(even){background:rgba(22,27,34,.5)}ul,ol{margin:.5rem 0 .5rem 1.5rem;line-height:1.8}li{margin:.3rem 0}.mech-item{background:var(--card);border-left:3px solid var(--accent);padding:.8rem 1rem;margin:.6rem 0;border-radius:0 6px 6px 0;font-size:.9rem}.mech-item h4{color:var(--accent);margin-bottom:.3rem}.app-item{background:var(--card);border-left:3px solid var(--accent2);padding:.8rem 1rem;margin:.6rem 0;border-radius:0 6px 6px 0;font-size:.9rem}.app-item h4{color:var(--accent2);margin-bottom:.3rem}.reflection{background:linear-gradient(135deg,#1f2a37,#162030);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0;font-size:.9rem;line-height:1.7}.nav-back{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.85rem;color:#8b949e}.nav-back a{color:var(--accent);text-decoration:none}.nav-back a:hover{text-decoration:underline}</style>
+</head>
+<body>
+
+<header>
+  <h1>EvoArena：追蹤記憶演化的 AI Agent 動態環境基準<br><small style="font-size:1rem;color:#8b949e">EvoArena: Tracking Memory Evolution for Robust LLM Agents in Dynamic Environments</small></h1>
+  <div class="meta">
+    <span>📄 arXiv: 2606.13681</span>
+    <span>📅 2026-06-11 (v2: 2026-06-17)</span>
+    <span>📁 cs.CL</span>
+  </div>
+  <div class="tags">
+    <span class="tag">dynamic-environments</span>
+    <span class="tag">memory-evolution</span>
+    <span class="tag">agent-benchmark</span>
+    <span class="tag">EvoMem</span>
+    <span class="tag">GAIA</span>
+    <span class="tag">self-evolving</span>
+  </div>
+</header>
+
+<div class="one-liner">
+🎯 一句話核心結論：現有 Agent 基準測試都是「靜態快照」，EvoArena 首次引入環境演化鏈——Agent 平均準確率僅 39.6%；而 EvoMem 的 patch-based 記憶讓 Agent 追蹤環境變化，GAIA 提升 6.1%、LoCoMo 提升 4.8%。
+</div>
+
+<h2>📊 關鍵數據</h2>
+
+<table>
+<tr><th>指標</th><th>數值</th><th>說明</th></tr>
+<tr><td>Agent 在 EvoArena 平均準確率</td><td><strong>39.6%</strong></td><td>涵蓋 terminal、software、social 三域演化任務，現有 Agent 普遍不及格</td></tr>
+<tr><td>EvoMem GAIA 提升</td><td><strong>+6.1%</strong></td><td>超出動態基準，連靜態基準 GAIA 也受益——記憶演化機制具通用性</td></tr>
+<tr><td>EvoMem LoCoMo 提升</td><td><strong>+4.8%</strong></td><td>長期對話記憶任務中，patch-based 記憶追蹤勝過傳統檢索式記憶</td></tr>
+<tr><td>EvoMem 鏈級準確率提升</td><td><strong>+3.7%</strong></td><td>連續演化子任務（chain-level）：完成整個演化序列才算成功</td></tr>
+<tr><td>EvoMem 證據捕捉改善</td><td>顯著</td><td>機制分析：EvoMem 保留更完整的演化環境狀態，非局部摘要</td></tr>
+</table>
+
+<h2>🧠 機制拆解</h2>
+
+<div class="mech-item">
+<h4>1. EvoArena 動態基準 — 環境不是靜態快照</h4>
+<p>將現有 Harbor 相容基準（terminal、software、social）轉化為「演化鏈」——每個任務是序列中的一步，環境狀態隨步驟改變（API 變更、軟體版本更新、社交偏好漂移）。Agent 必須在每一步更新自己的知識和行為。</p>
+</div>
+
+<div class="mech-item">
+<h4>2. EvoMem — Patch-based 記憶演化</h4>
+<p>核心創新：將記憶變更記錄為「patch」（類似 git diff），而非完整快照。儲存的是「從狀態 A 到狀態 B 的 delta」。Agent 推理時不只查當前記憶，還能追溯「為什麼變成這樣」的演化歷史。</p>
+</div>
+
+<div class="mech-item">
+<h4>3. 鏈級準確率 (Chain-level Accuracy)</h4>
+<p>傳統基準只看單步成敗；EvoArena 要求 Agent 完成整個演化子任務序列才算成功。這捕捉了 Agent 的「持續適應力」——即使單步答對，若無法在後續步驟中根據演化更新行為，整條鏈仍算失敗。</p>
+</div>
+
+<div class="mech-item">
+<h4>4. 證據捕捉改善 (Evidence Capture)</h4>
+<p>機制分析顯示 EvoMem 的核心改善來自於「保留更完整的演化環境狀態」——不是選擇性摘要，而是結構化的變更記錄。這讓 Agent 能追溯推理鏈的完整性。</p>
+</div>
+
+<h2>💡 落地應用</h2>
+
+<div class="app-item">
+<h4>📌 持續整合的 Agent 監控</h4>
+<p>EvoArena 框架可直接應用於 CI/CD 管線中的 Agent 健康檢查：不只測「現在會不會答」，而是測「環境改了之後能不能跟上」。每次 API 變更、套件升級後，跑一次演化鏈測試。</p>
+</div>
+
+<div class="app-item">
+<h4>📌 長期部署的記憶版本管理</h4>
+<p>EvoMem 的 patch-based 方法對 Hermes/DKY 有直接啟發：skill 系統目前每次覆蓋式更新，沒有版本歷史。若改為 patch-based（記錄每次 skill 修改的 diff + 原因），Agent 就能追溯「為什麼加了這個規則」，在出錯時回滾到特定版本。</p>
+</div>
+
+<div class="app-item">
+<h4>📌 動態環境的 Agent 評測</h4>
+<p>目前 Agent 評測假設靜態世界；EvoArena 證明這是重大盲點。任何生產級 Agent 部署前都應該經過動態環境壓力測試——API deprecated、工具失效、使用者偏好改變——而不只是 MMLU/SWE-bench 靜態分數。</p>
+</div>
+
+<h2>⚠️ 限制與風險</h2>
+<ul>
+  <li><strong>39.6% 太低：</strong>目前 Agent 在動態環境中幾乎不及格，EvoMem 的 +1.5% 提升仍遠未解決問題——這領域才剛開始</li>
+  <li><strong>三域覆蓋：</strong>EvoArena 僅涵蓋 terminal、software、social 三域，未測試物理環境（機器人）或金融環境（市場變化）</li>
+  <li><strong>Patch 開銷：</strong>長期部署中 patch 累積可能超過記憶預算，需要類似 git garbage collection 的壓縮機制</li>
+  <li><strong>Patch 衝突：</strong>當多個演化方向同時發生（環境改了 API，同時使用者偏好也變了），patch 合併策略未定義</li>
+  <li><strong>GAIA +6.1% 的因果：</strong>論文未解釋為何動態記憶機制也提升靜態基準——可能是記憶結構本身的品質改善，也可能是特定任務重疊</li>
+</ul>
+
+<h2>🧠 自我內化</h2>
+<div class="reflection">
+<p>這篇論文之所以重要，不是因為 EvoMem 的 +1.5% 提升（老實說不大），而是因為它揭露了目前 Agent 評估的根本盲點：所有基準都假設世界是靜態的，但真實世界（和真實使用者）每天都在變。39.6% 的準確率是警鐘——我們在實驗室裡測到的「90% SWE-bench」可能毫無意義，因為部署後的第一週軟體套件就升級了。</p>
+<p>對 Hermes 的直接啟發是：目前的驗證流程（curl 200 + SPA fallback + MD5）也是靜態快照。EvoArena 的演化鏈概念暗示——我們該加入「動態驗證鏈」：不只確認首頁正常，而是確認「改完 sidebar → 部署 → 確認所有內部連結 → 確認 GitHub 同步 → 確認 CF Pages 未退化」。每一步都以前一步的結果為前提。</p>
+<p>更具野心的是 EvoMem 的 patch-based 記憶。如果把 Hermes 的 skill 檔案管理從「覆蓋式」改為「git-patch 式」（記錄每個 skill 的變更歷史 + 變更原因），當某個 skill 行為退化時，Agent 能追溯「我第 3 次修改時加了這個規則，目的為了修正 X bug，但副作用是破壞 Y」——這比現在「發現壞了就重寫」聰明得多。</p>
+</div>
+
+<div class="ref-box">
+<strong>📎 原始論文：</strong><a href="https://arxiv.org/abs/2606.13681" target="_blank">arXiv:2606.13681 — EvoArena: Tracking Memory Evolution for Robust LLM Agents in Dynamic Environments</a><br>
+<strong>📎 PDF：</strong><a href="https://arxiv.org/pdf/2606.13681" target="_blank">arxiv.org/pdf/2606.13681</a><br>
+<strong>📎 授權：</strong>CC BY 4.0<br>
+<strong>📎 作者：</strong>Jundong Xu, Qingchuan Li, Jiaying Wu, Yihuai Lan, Shuyue Stella Li, Huichi Zhou, Bowen Jiang, Lei Wang, Jun Wang, Anh Tuan Luu, Caiming Xiong, Hae Won Park, Bryan Hooi, Zhiyuan Hu
+</div>
+
+<div class="nav-back">
+<a href="../index.html">← 回到研究站首頁</a> &nbsp;|&nbsp;
+<a href="index.html">← 研究筆記列表</a>
+</div>
+
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
