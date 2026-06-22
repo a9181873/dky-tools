@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Codex Sites 深度技術分析：從自然語言到內部應用的完整技術棧，與 Retool / Airtable / Notion 的正面對比">
+<title>Codex Sites 深度分析：自然語言建內部工具 — 誰會被取代？ — Hermes Lab 報告</title>
+<link rel="stylesheet" href="../assets/style.css">
+<!-- no GA4 on education site --></script>
+<!-- no GA4 --><script>function gtag('js',new Date());{}</script>
+<!-- no AdSense on education site -->
+<style>
+.cmp-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.88rem}
+.cmp-table th{background:var(--surface);color:var(--accent);text-align:left;padding:.55rem .8rem;border:1px solid var(--border);font-weight:600}
+.cmp-table td{padding:.5rem .8rem;border:1px solid var(--border);vertical-align:top}
+.cmp-table tr:nth-child(even){background:rgba(255,255,255,.02)}
+.verdict{background:linear-gradient(135deg,#1a2332,#0d2137);border:1px solid var(--border);padding:1rem 1.5rem;border-radius:8px;margin:1rem 0;font-size:1.05rem;font-weight:600;color:#e8d5c0}
+.risk{background:rgba(210,153,29,.1);border-left:3px solid var(--warn);padding:.8rem 1.2rem;margin:1rem 0;border-radius:0 6px 6px 0;font-size:.9rem}
+</style>
+</head>
+<body>
+<div id="sidebar"></div>
+<main>
+<header>
+  <h1>Codex Sites 深度分析<br>自然語言建內部工具——誰會先被吃掉？</h1>
+  <p class="meta">2026-06-22 · Codex 白領擴張系列第 2 篇 · 來源：OpenAI 官方、BuildFastWithAI、Tarek Alaaddin</p>
+  <div class="tags">
+    <span class="tag">OpenAI</span><span class="tag">Codex Sites</span><span class="tag">內部工具</span>
+    <span class="tag">Retool</span><span class="tag">Airtable</span><span class="tag">Cloudflare</span>
+  </div>
+</header>
+
+
+
+<h2>一句話摘要</h2>
+<div class="verdict">
+Codex Sites 不是要取代 Lovable 和 Vercel——它是內部工具市場的原子彈。一句話生儀表板、內建 ChatGPT 身分驗證、跑在 Cloudflare Workers + D1 上。但「無自訂域名、無法外部分享、無法搬走程式碼」這三條限制讓它短期內吃不掉 Retool 和 Airtable 的核心用戶。
+</div>
+
+<h2>核心技術棧</h2>
+<p>先搞清楚 Sites 底層是什麼，才能判斷它能吃掉誰。OpenAI 沒有自建主機機房——它把整套基礎設施外包給了 Cloudflare：</p>
+
+<table class="cmp-table">
+<tr><th>層</th><th>技術</th><th>做什麼</th><th>你看得到的</th></tr>
+<tr><td>Compute</td><td>Cloudflare Workers (ES modules)</td><td>在邊緣節點執行應用邏輯</td><td>頁面回應速度極快，全球部署</td></tr>
+<tr><td>Database</td><td>D1（SQLite 相容關聯資料庫）</td><td>儲存結構化資料：用戶記錄、分數、設定</td><td>跟 Postgres 比功能少，但對內部工具夠用</td></tr>
+<tr><td>File Storage</td><td>R2（物件儲存）</td><td>處理圖片、文件、上傳</td><td>無輸出流量費（這是打 S3 的關鍵差異）</td></tr>
+<tr><td>Auth</td><td>Sign in with ChatGPT</td><td>工作區範圍內的身分驗證</td><td>500 人公司自動取得 500 人認證——零設定</td></tr>
+<tr><td>Config</td><td><code>.openai/hosting.json</code></td><td>專案元數據、儲存綁定</td><td>一個 JSON 檔，不複雜</td></tr>
+<tr><td>Secrets</td><td>Sites 面板（Codex 側欄）</td><td>環境變數、API 金鑰</td><td>不進原始碼，合理的安全設計</td></tr>
+</table>
+
+<div class="callout">
+<strong>關鍵洞察：</strong>這個技術棧選得非常巧妙。Cloudflare Workers + D1 + R2 的組合對於「內部工具」這個場景是完美的——它不需要 Postgres 的完整功能，但需要邊緣部署的速度和零運維。我認為這是 OpenAI 在技術選型上最清醒的一次決定。
+</div>
+
+<h2>兩階段部署模型：為什麼這對企業很重要</h2>
+
+<p>Codex Sites 不是「寫完直接上線」——它設計了一個 <strong>Save → Review → Deploy</strong> 的兩階段流程：</p>
+
+<ol>
+<li><strong>Save a version</strong>：Codex 建好應用後，先綁定到一個 Git commit。這是審查檢查點。你可以檢查建置結果、測試功能、確認一切正常——此時只有你（Owner）看得到。</li>
+<li><strong>Deploy a version</strong>：確認沒問題後，一鍵發布到生產環境。URL 立刻生效，工作區成員即可存取。</li>
+</ol>
+
+<p>這個設計的聰明之處在於：<strong>它解決了企業 IT 部門對「AI 亂建東西」的恐懼。</strong>沒有這個中間檢查點，任何員工都可以在五分鐘內建出一個掛著公司資料的儀表板並公開網址。兩階段模型讓審查變成可能——這對於有合規需求的團隊是必需的。</p>
+
+<h2>存取控制：三種模式，沒有「公開」</h2>
+
+<table class="cmp-table">
+<tr><th>模式</th><th>誰能看</th><th>適合場景</th></tr>
+<tr><td>Admins only</td><td>你（Owner）+ 工作區管理員</td><td>還在開發中、敏感資料測試</td></tr>
+<tr><td>Workspace all</td><td>所有工作區活躍用戶</td><td>全公司儀表板、團隊專案追蹤器</td></tr>
+<tr><td>Custom</td><td>指定用戶或群組（Owner 永遠保留存取權）</td><td>跨部門工具、限特定團隊查看</td></tr>
+</table>
+
+<p><strong>沒有「anyone with the link」選項。</strong>每個訪客都必須是工作區成員，或透過已連接的身分提供者驗證。這是 Sites 的設計哲學核心，也是它跟所有 no-code 工具的根本差異——<strong>它不是面向公眾的建站工具，是面向組織的內部應用生成器。</strong></p>
+
+<h2>正面對比：Codex Sites vs Retool vs Airtable vs Notion</h2>
+
+<table class="cmp-table">
+<tr><th>維度</th><th>Codex Sites</th><th>Retool</th><th>Airtable</th><th>Notion</th></tr>
+<tr><td><strong>建置方式</strong></td><td>自然語言 prompt</td><td>拖放 UI 組件 + SQL/JS</td><td>試算表式欄位設定</td><td>區塊編輯器 + 資料庫</td></tr>
+<tr><td><strong>目標用戶</strong></td><td>非開發者（白領主管）</td><td>工程師 + 技術 PM</td><td>半技術營運人員</td><td>所有人（偏文件協作）</td></tr>
+<tr><td><strong>資料來源</strong></td><td>D1（內建 SQLite）+ OAuth 串接外部</td><td>直接連 PostgreSQL / MySQL / REST</td><td>內建表格（上限 50 萬筆 / base）</td><td>內建資料庫（API 3 req/s）</td></tr>
+<tr><td><strong>身分驗證</strong></td><td>ChatGPT 登入（零設定）</td><td>SAML / OIDC / Google</td><td>SAML / Google / 密碼</td><td>SAML / Google / 密碼</td></tr>
+<tr><td><strong>程式碼可攜</strong></td><td>鎖死在 OpenAI 平台</td><td>可匯出 React 程式碼</td><td>API 匯出（非程式碼）</td><td>API + CSV 匯出</td></tr>
+<tr><td><strong>自訂域名</strong></td><td>僅 OpenAI 管理 URL</td><td>完全自訂</td><td>部分方案支援</td><td>部分方案支援</td></tr>
+<tr><td><strong>外部分享</strong></td><td>僅工作區成員</td><td>公開 / 嵌入 / iframe</td><td>公開表單 / 分享視圖</td><td>公開頁面 / 訪客</td></tr>
+<tr><td><strong>合規</strong></td><td>SOC 2 / HIPAA eligible / EU data residency</td><td>SOC 2 / HIPAA / GDPR</td><td>SOC 2 / HIPAA / GDPR</td><td>SOC 2 / GDPR</td></tr>
+<tr><td><strong>定價</strong></td><td>$30/人/月（ChatGPT Business）</td><td>$10/使用者 + $5/終端用戶</td><td>$20/人/月（Business）</td><td>$10/人/月（Plus）</td></tr>
+</table>
+
+<h2>我的判斷：誰最危險，誰最安全</h2>
+
+<h3>高風險：Google Sheets 到內部工具的灰色地帶</h3>
+<p>這才是最直接被 Sites 取代的。每個公司都有那種「從 Google Sheet 長出來的怪物」——行銷的活動追蹤表、人事的入職清單、財務的預算管理。這些東西以前有三條進化路徑：(1) 繼續堆公式→變成 20 個分頁的失控試算表、(2) 找工程師寫一個 Retool 應用、(3) 找一個 Notion 模板湊合。</p>
+<p><strong>Sites 給出了第四條路：用一段 prompt 生出專屬應用。</strong>不需要學 SQL、不需要想資料庫 schema、不需要處理部署。這就是 Google Sheets 重度用戶的終極出口。</p>
+
+<h3>中風險：Retool 的「簡單場景」用戶</h3>
+<p>Retool 的護城河是 <strong>直接連線到現有資料庫</strong>（PostgreSQL、MySQL、MongoDB）和 <strong>自訂程式碼邏輯</strong>。一個已經在跑 Retool 中型規模內部工具的團隊（有 50 個儀表板、串接了 8 個資料庫），不太可能只因為 Sites 比較快就遷移。</p>
+<p><strong>但 Retool 的邊緣用戶很危險。</strong>那種只用 Retool 做 2-3 個簡單儀表板的團隊——可能只有一個技術 PM 在維護——對他們來說，<strong>「用 prompt 生儀表板 + 內建 auth」比「花 $10/user 學 Retool」吸引力大太多了。</strong></p>
+
+<h3>低風險：Airtable 的核心場景</h3>
+<p>Airtable 有一個 Sites 短期內無法複製的能力：<strong>試算表般的協作體驗。</strong>Airtable 的用戶習慣在同一個介面裡手動編輯資料、排序、篩選、分組。Sites 生出來的應用比較像「唯讀儀表板」——你可以看數據，但要在同一個頁面裡像編輯試算表一樣自由修改，目前還做不到。</p>
+<p>另一個 Airtable 的護城河是 <strong>API 生態</strong>。數千家公司把 Airtable 當作後端資料庫，用 Retool、Softr 或自訂 React 應用當前端。這些用戶不會因為「用 prompt 生 UI」就放棄這個生態系。</p>
+
+<h3>最安全：Notion 的文件 + 資料庫混合場景</h3>
+<p>Notion 的核心價值不是「建內部工具」——是 <strong>「文件 + 資料庫 + 團隊 wiki 在同一處」。</strong>Sites 完全沒有文件編輯功能、沒有 wiki 協作、沒有知識庫的「可編輯性」。你可以用 Sites 建一個「入職流程追蹤器」，但你不會用 Sites 寫入職文件本身。這兩個是不同的東西。</p>
+
+<h2>適用場景評估表</h2>
+
+<table class="cmp-table">
+<tr><th>場景</th><th>Sites 適合度</th><th>理由</th></tr>
+<tr><td>銷售 pipeline 儀表板</td><td>★★★★★</td><td>展示為主 + 內建 auth = 完美</td></tr>
+<tr><td>客戶會議準備頁面</td><td>★★★★★</td><td>自動聚合 CRM 數據 + 一鍵分享連結</td></tr>
+<tr><td>財務情景規劃器</td><td>★★★★</td><td>互動參數調整適合，但需注意資料敏感度</td></tr>
+<tr><td>客服 KPI 看板</td><td>★★★★</td><td>即時數據展示，唯讀模式足夠</td></tr>
+<tr><td>專案進度追蹤（含手動更新）</td><td>★★★</td><td>可做，但不如 Airtable 靈活（缺乏試算表編輯體驗）</td></tr>
+<tr><td>複雜工作流自動化</td><td>★★</td><td>無條件邏輯引擎，不如 n8n / Zapier</td></tr>
+<tr><td>外部合作夥伴入口</td><td>★</td><td>無外部分享功能，完全不合適</td></tr>
+<tr><td>公開產品展示頁</td><td>不適用</td><td>不是設計目的，用 Lovable / Webflow</td></tr>
+</table>
+
+<h2>限制與風險</h2>
+
+<div class="risk">
+<strong>1. Preview 狀態——不可用於關鍵系統。</strong>OpenAI 明文保留「移除、取消發布、刪除或停用 ChatGPT Sites」的權利，無需通知。你的銷售儀表板可能明天就消失。GA 日期未公布。
+</div>
+
+<div class="risk">
+<strong>2. 無自訂域名。</strong>你的 Site 網址是 OpenAI 管理的（類似 <code>xxx.sites.openai.com</code>）。你無法指向 <code>tools.yourcompany.com</code>。對於在意品牌形象的團隊，這是嚴重的限制。
+</div>
+
+<div class="risk">
+<strong>3. 程式碼完全鎖死。</strong>不像 Lovable、Replit、Bolt 可以匯出全部程式碼部署到自己的基礎設施，Sites 的程式碼永遠留在 OpenAI 平台。如果哪天你想離開 OpenAI 生態系，你留下的不是程式碼，是重新開發的起點。
+</div>
+
+<div class="risk">
+<strong>4. 無法外部分享。</strong>每個訪客都需要工作區憑證。如果你想讓外部合作夥伴、客戶、承包商看到某個儀表板——辦不到。這是設計選擇，不是 bug，但確實限制了使用場景。
+</div>
+
+<div class="risk">
+<strong>5. 合規資料限制。</strong>OpenAI 明確禁止在 Sites 上存放支付卡資料（PCI DSS）、受保護健康資訊（HIPAA）、涉及 13 歲以下兒童的內容、金融交易資料。如果你的內部工具需要處理這些資料，Sites 不適合。
+</div>
+
+<div class="risk">
+<strong>6. 僅限 Business / Enterprise 用戶。</strong>Plus ($20/月) 和 Free 用戶無法使用 Sites。這排除了大量個人和小團隊用戶。
+</div>
+
+<h2>我的觀察</h2>
+
+<p>坦白說，Codex Sites 不是技術奇蹟——Cloudflare Workers + D1 + R2 這個組合任何一個有能力的後端工程師都能搭出來。它的真正創新不在技術棧，在於 <strong>「整合體驗的簡化」</strong>：</p>
+
+<ol>
+<li><strong>身分驗證預設內建：</strong>ChatGPT 登入自動解決了內部工具最煩人的第一步——「誰能看這個東西」。對比 Retool 需要手動設定 OIDC/SAML，Sites 的零設定體驗是真正的差異化優勢。</li>
+<li><strong>部署流程消失：</strong>沒有 Vercel 專案要連、沒有 CI/CD 管線要設、沒有 Cloudflare 帳號要註冊。對非開發者來說，這才是真正的 magic。</li>
+<li><strong>平台黏性設計精妙：</strong>「無程式碼匯出」不是技術限制——是故意的。OpenAI 在你開始使用 Sites 的那一刻就綁定了你。這是平台策略，不是產品限制。</li>
+</ol>
+
+<p>長期來看，我認為 Codex Sites 會吃掉的是 <strong>「Google Sheets 進化到內部工具」的那一段需求</strong>，而非已成熟的企業低代碼平台市場。Retool 和 Airtable 的核心用戶（有工程團隊、有複雜資料庫、需要客製化邏輯）短期內不會跳船。但那些「只有一個技術 PM 在苦苦維護的三個 Retool 儀表板」的小型團隊——Sites 對他們來說是解脫。</p>
+
+<div class="verdict" style="font-weight:400">
+<strong>一句話總結：</strong>Sites 不是平台戰爭的參賽者——它是讓平台戰爭變得無關緊要的武器。當建立內部工具的成本降到「一段 prompt」時，你不需要在 Retool 和 Airtable 之間做選擇——你只需要問自己：<strong>我需要別人也能存取這個工具嗎？</strong>如果需要，選 Retool。如果只有內部團隊——Sites 就夠了。
+</div>
+
+<h2>來源</h2>
+<ul>
+<li><a href="https://www.buildfastwithai.com/blogs/openai-sites-codex-launch-review-2026" target="_blank">OpenAI Sites for Codex: Build Apps From Prompts (2026) — BuildFastWithAI</a></li>
+<li><a href="https://www.tarekalaaddin.com/blog/codex-sites-explained-what-it-is-how-to-use-it" target="_blank">Codex Sites Explained — Tarek Alaaddin</a></li>
+<li><a href="https://codex.danielvaughan.com/2026/06/03/codex-sites-annotations-business-plugins-enterprise-expansion-june-2026/" target="_blank">Codex Sites, Annotations, and the June 2026 Business Expansion — Daniel Vaughan</a></li>
+<li><a href="https://developers.openai.com/codex/changelog" target="_blank">Codex Changelog — OpenAI Developers</a></li>
+<li><a href="https://retoolers.io/blog-posts/notion-vs-airtable-vs-retool-which-tool-powers-internal-teams-best" target="_blank">Notion vs Airtable vs Retool Comparison — Retoolers</a></li>
+</ul>
+
+<footer><p><a href="/reports/">所有報告</a> · <a href="/">回首頁</a></p></footer>
+</main>
+<script src="../assets/sidebar.js"></script>
+</body>
+</html>
