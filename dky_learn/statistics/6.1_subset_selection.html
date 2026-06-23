@@ -3,294 +3,708 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>§6.1 子集選擇法 — ISLP 統計學習課程</title>
+<title>6.1 子集選擇 — ISLP 統計學習課程</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .6rem;border-radius:12px;font-size:.8rem}h2{color:var(--accent);margin:2rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);margin:1.5rem 0 .8rem}.ref-box{background:var(--card);border-left:4px solid var(--accent);padding:1rem 1.2rem;border-radius:6px;margin:1.2rem 0}.key-concept{background:var(--card);border-left:4px solid var(--accent2);padding:1rem 1.2rem;border-radius:6px;margin:1.2rem 0;font-size:.95rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow-x:auto;margin:1rem 0}code{font-family:'Fira Code','Cascadia Code',Consolas,monospace;font-size:.9rem}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid var(--border);padding:.6rem .8rem;text-align:left}th{background:var(--card);color:var(--accent)}tr:nth-child(even){background:#161b2240}.pros-cons{display:flex;gap:1.5rem;margin:1rem 0;flex-wrap:wrap}.pros,.cons{flex:1;min-width:280px;background:var(--card);border-radius:8px;padding:1rem}.pros h3{color:var(--accent2)}.cons h3{color:var(--danger)}ul,ol{padding-left:1.5rem;margin:.5rem 0}li{margin:.3rem 0}.formula{background:var(--card);padding:1rem;border-radius:8px;margin:1rem 0;text-align:center;font-size:1.1rem;overflow-x:auto}.scenario{background:var(--card);border-radius:8px;padding:1rem 1.2rem;margin:1rem 0}.scenario h4{color:var(--accent);margin-bottom:.3rem}.quote{background:var(--card);border-left:4px solid var(--warn);padding:1.2rem;border-radius:6px;margin:1.5rem 0;font-style:italic}.quote .attr{font-style:normal;color:#8b949e;margin-top:.5rem;font-size:.9rem}.nav-back{text-align:center;margin:3rem 0 1rem}.nav-back a{color:var(--accent);text-decoration:none}@media(max-width:600px){body{padding:1rem}h1{font-size:1.5rem}.pros-cons{flex-direction:column}}</style>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
 </head>
 <body>
 
 <header>
-  <h1>§6.1 子集選擇法（Subset Selection）</h1>
+  <h1>6.1 子集選擇</h1>
   <div class="meta">
     <span>📖 ISLP §6.1</span>
-    <span>📄 pp. 229–240</span>
-    <span class="difficulty">⭐⭐⭐</span>
-    <span>⏱️ 約 30 分鐘</span>
+    <span>📄 pp. 239–248</span>
+    <span class="difficulty">★★★★☆</span>
+    <span>⏱️ 約 35 分鐘</span>
   </div>
   <div class="tags">
-    <span class="tag">Subset Selection</span>
+    <span class="tag">變數選擇</span>
+    <span class="tag">模型比較</span>
     <span class="tag">AIC</span>
     <span class="tag">BIC</span>
     <span class="tag">Cp</span>
-    <span class="tag">Adjusted R²</span>
-    <span class="tag">Stepwise</span>
+    <span class="tag">逐步迴歸</span>
+    <span class="tag">過擬合</span>
+    <span class="tag">偏差-變異取捨</span>
   </div>
 </header>
 
-<h2>📚 理論核心</h2>
+<div class="section-nav">
+  <a href="5.3_cv_bootstrap_lab.html">← 5.3 Lab: 交叉驗證與 Bootstrap</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="6.2_shrinkage_methods.html">6.2 收縮方法 →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- INTRO -->
+<!-- ============================================================ -->
+<h2>為什麼需要選擇變數？</h2>
+
+<p>想像你要搬家——你有一整間房子的家具，但新家只有一半大。你會怎麼做？當然是<strong>挑最重要的帶走</strong>。統計學習中的「子集選擇」(subset selection) 就是這個道理：從 \(p\) 個可能的預測變數中，挑出真正有用的那一組。</p>
+
+<p>為什麼不全部留著？因為多餘的變數不但不會幫忙，還會<strong>增加模型複雜度、放大變異數、導致過擬合</strong>。好的模型不是變數最多的模型，而是<strong>在測試資料上表現最好的模型</strong>。</p>
+
+<div class="callout">
+  <strong>🎯 核心目標</strong>：從 \(p\) 個預測變數中選出一個子集，使得模型在<strong>未見過的測試資料</strong>上有最小的預測誤差——而不僅僅是在訓練資料上看起來漂亮。
+</div>
 
 <div class="ref-box">
-<strong>📖 課本文獻引用：</strong><br>
-James, G., Witten, D., Hastie, T., & Tibshirani, R. (2023). <em>An Introduction to Statistical Learning with Applications in Python.</em> Springer. §6.1 Subset Selection.
+  James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, Chapter 6.1, pp. 239–248.
 </div>
 
-<div class="key-concept">
-<strong>💡 核心概念（生活化比喻）：</strong>
-挑選變數就像在自助餐廳選菜——你不是每道菜都夾（全模型 overfitting），也不是只吃白飯（只放截距 underfitting）。子集選擇法給你三種策略：<strong>最佳子集</strong>（每種組合都試吃一輪再決定，適合菜色少的）、<strong>向前逐步</strong>（先夾最想吃的，再慢慢補）、<strong>向後逐步</strong>（先全夾再一道一道放回去）。目標是用最少的變數達成最好的預測，就像用最少的菜吃出最均衡的營養。
-</div>
+<!-- ============================================================ -->
+<!-- 6.1.1 BEST SUBSET SELECTION -->
+<!-- ============================================================ -->
+<h2>6.1.1 最佳子集選擇 (Best Subset Selection)</h2>
 
-<h2>🔢 三種子集選擇法</h2>
+<h3>概念：暴力解法，全部試過</h3>
 
-<h3>1. 最佳子集選擇（Best Subset Selection）</h3>
-<p>暴力法。對 \(p\) 個預測變數，嘗試所有 \(2^p\) 種可能組合，對每種組合擬合模型，選出最佳者。</p>
+<p>最佳子集選擇的邏輯非常直覺：<strong>把所有可能的變數組合都試一遍，挑最好的</strong>。就像去 buffet 每一道菜都吃一口，再決定最喜歡的組合。</p>
 
-<table>
-<tr><th>步驟</th><th>操作</th></tr>
-<tr><td>1</td><td>令 \(\mathcal{M}_0\) 為空模型（僅截距），計算預測誤差</td></tr>
-<tr><td>2</td><td>對 \(k = 1, 2, \ldots, p\)：擬合所有 \(\binom{p}{k}\) 個含 \(k\) 個變數的模型，選 RSS 最小者為 \(\mathcal{M}_k\)</td></tr>
-<tr><td>3</td><td>用交叉驗證 / \(C_p\) / AIC / BIC / Adjusted \(R^2\) 從 \(\mathcal{M}_0, \ldots, \mathcal{M}_p\) 中選最佳模型</td></tr>
-</table>
+<p>具體來說，對於 \(p\) 個預測變數，我們要擬合所有包含恰好 \(k\) 個變數的模型（\(k = 0, 1, \dots, p\)），總共有 \(2^p\) 個可能的模型。演算法如下：</p>
 
 <div class="formula">
-\[
-\text{缺點：}p \approx 40 \text{ 時，}2^p \approx 10^{12}\text{，計算量爆炸 💥}
-\]
+  <strong>Algorithm 6.1：最佳子集選擇</strong><br><br>
+  1. 令 \(\mathcal{M}_0\) 為<strong>虛無模型</strong>（無任何預測變數），只預測樣本平均值。<br>
+  2. 對 \(k = 1, 2, \dots, p\)：<br>
+  &nbsp;&nbsp;(a) 擬合所有 \(\binom{p}{k}\) 個包含恰好 \(k\) 個變數的模型。<br>
+  &nbsp;&nbsp;(b) 選出 RSS 最小（或 \(R^2\) 最大）的模型，稱為 \(\mathcal{M}_k\)。<br>
+  3. 從 \(\mathcal{M}_0, \dots, \mathcal{M}_p\) 中，用<strong>驗證集誤差、\(C_p\)、AIC、BIC 或 adjusted \(R^2\)</strong> 選出最終模型。
 </div>
 
-<h3>2. 向前逐步選擇（Forward Stepwise Selection）</h3>
-<p>從空模型開始，每次加入「最有幫助」的一個變數，逐步建構。總共只需擬合約 \(1 + \sum_{k=0}^{p-1} (p-k) \approx 1 + p(p+1)/2\) 個模型。</p>
-
-<table>
-<tr><th>步驟</th><th>操作</th></tr>
-<tr><td>1</td><td>從 \(\mathcal{M}_0\)（僅截距）開始</td></tr>
-<tr><td>2</td><td>對 \(k = 0, \ldots, p-1\)：在所有 <strong>尚未選入</strong> 的變數中，選 RSS 最小者加入，得 \(\mathcal{M}_{k+1}\)</td></tr>
-<tr><td>3</td><td>用交叉驗證 / AIC / BIC 從 \(\mathcal{M}_0, \ldots, \mathcal{M}_p\) 中選最佳模型</td></tr>
-</table>
-
-<div class="key-concept">
-<strong>⚠️ 向前逐步的盲點：</strong>它不走回頭路——一旦變數被選入，就不會再被踢出。如果早期選入的變數在後期變得冗餘（與新加入的變數高度相關），它仍會留在模型中。這是向前逐步比最佳子集差的地方，但計算上實惠太多。
+<div class="callout">
+  <strong>⚠️ 關鍵陷阱</strong>：如果只用 RSS 或 \(R^2\) 來選最終模型，你<strong>永遠會選到包含所有變數的模型</strong>（因為訓練誤差隨變數增加而單調遞減）。但我們要的是<strong>測試誤差最小</strong>的模型，不是訓練誤差最小的！這就是為什麼步驟 3 必須使用 \(C_p\)、AIC、BIC、adjusted \(R^2\) 或交叉驗證。
 </div>
 
-<h3>3. 向後逐步選擇（Backward Stepwise Selection）</h3>
-<p>從全模型開始，每次踢出「最沒貢獻」的一個變數。要求 \(n > p\)（樣本數大於變數數）。</p>
+<h3>計算瓶頸：\(2^p\) 的詛咒</h3>
 
-<table>
-<tr><th>步驟</th><th>操作</th></tr>
-<tr><td>1</td><td>從 \(\mathcal{M}_p\)（全模型）開始</td></tr>
-<tr><td>2</td><td>對 \(k = p, p-1, \ldots, 1\)：在所有 <strong>目前仍在模型中</strong> 的變數中，踢掉 p-value 最大者，得 \(\mathcal{M}_{k-1}\)</td></tr>
-<tr><td>3</td><td>用交叉驗證 / AIC / BIC 從 \(\mathcal{M}_0, \ldots, \mathcal{M}_p\) 中選最佳模型</td></tr>
-</table>
+<p>最佳子集選擇的問題是<strong>計算量隨 \(p\) 指數成長</strong>。當 \(p = 10\)，約需考慮 1,024 個模型；當 \(p = 20\)，超過一百萬個；當 \(p = 40\)，超過一兆個——即使用最快的電腦也跑不動。</p>
 
-<h2>📏 模型選擇指標</h2>
+<pre><code class="language-python"># 最佳子集選擇的計算複雜度說明
+import numpy as np
 
-<p>選出 \(\mathcal{M}_0, \mathcal{M}_1, \ldots, \mathcal{M}_p\) 後，用什麼標準挑最終模型？</p>
+# 示範 2^p 的爆炸性成長
+for p in [5, 10, 15, 20, 30, 40]:
+    n_models = 2**p
+    print(f"p = {p:2d}: 需要考慮 {n_models:>15,} 個模型")
+# p =  5: 需要考慮              32 個模型
+# p = 10: 需要考慮           1,024 個模型
+# p = 15: 需要考慮          32,768 個模型
+# p = 20: 需要考慮       1,048,576 個模型
+# p = 30: 需要考慮   1,073,741,824 個模型
+# p = 40: 需要考慮 1,099,511,627,776 個模型</code></pre>
 
-<table>
-<tr><th>指標</th><th>公式</th><th>越低越好？</th></tr>
-<tr><td>\(C_p\)</td><td>\(C_p = \frac{1}{n}(\text{RSS} + 2d\hat{\sigma}^2)\)</td><td>✅ 越小越好</td></tr>
-<tr><td>AIC</td><td>\(\text{AIC} = -2\log L + 2d\)</td><td>✅ 越小越好</td></tr>
-<tr><td>BIC</td><td>\(\text{BIC} = \frac{1}{n}(\text{RSS} + \log(n)\,d\hat{\sigma}^2)\)</td><td>✅ 越小越好</td></tr>
-<tr><td>Adjusted \(R^2\)</td><td>\(\text{Adj }R^2 = 1 - \frac{\text{RSS}/(n-d-1)}{\text{TSS}/(n-1)}\)</td><td>✅ 越大越好</td></tr>
-</table>
+<h3>用 Credit 資料集示範</h3>
 
-<div class="key-concept">
-<strong>💡 BIC vs AIC 的核心差異：</strong>BIC 對參數數量的懲罰項是 \(\log(n)\) 而非 AIC 的 \(2\)。當 \(n > 7\) 時 \(\log(n) > 2\)，BIC 傾向選擇更簡約的模型。實務上：<strong>AIC 適合預測導向，BIC 適合詮釋導向</strong>（更傾向選出「真正重要」的少數變數）。
-</div>
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
 
-<h2>🐍 實作程式碼</h2>
-
-<pre><code class="language-python"># §6.1 子集選擇 — 完整 Python 實作
-# 可在 Google Colab 直接執行
-
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import itertools
+from itertools import combinations
+from ISLP import load_data
+from sklearn.linear_model import LinearRegression
+
+# 載入 Credit 資料集
+credit = load_data('Credit')
+# 只取數值型變數 + 將 region 轉為 dummy（仿課本 Figure 6.1）
+X_full = pd.get_dummies(credit.drop('Balance', axis=1), drop_first=True)
+y = credit['Balance']
+p = X_full.shape[1]
+
+# 只示範前 100 個組合（實際 2^11 = 2048 太多）
+np.random.seed(1)
+rss_list = []
+r2_list = []
+n_combos = min(100, 2**p)
+sampled = [np.random.choice(p, size=k+1, replace=False)
+           for k in range(p) for _ in range(min(30, n_combos//p))]
+
+for cols in sampled:
+    cols = list(set(cols))  # 去重
+    if len(cols) == 0:
+        continue
+    model = LinearRegression().fit(X_full.iloc[:, cols], y)
+    y_pred = model.predict(X_full.iloc[:, cols])
+    rss = np.sum((y - y_pred)**2)
+    tss = np.sum((y - np.mean(y))**2)
+    r2 = 1 - rss / tss
+    rss_list.append((len(cols), rss))
+    r2_list.append((len(cols), r2))
+
+# 找出每個 k 的最佳 RSS（紅色前沿）
+rss_df = pd.DataFrame(rss_list, columns=['k', 'RSS'])
+r2_df = pd.DataFrame(r2_list, columns=['k', 'R2'])
+best_rss = rss_df.groupby('k')['RSS'].min().reset_index()
+best_r2 = r2_df.groupby('k')['R2'].max().reset_index()
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.5))
+ax1.scatter(rss_df['k'], rss_df['RSS']/1e6, alpha=0.3, s=15, color='#58a6ff')
+ax1.plot(best_rss['k'], best_rss['RSS']/1e6, 'r-o', lw=2, markersize=5, label='Best (red frontier)')
+ax1.set_xlabel('Number of Predictors'); ax1.set_ylabel('RSS (×10⁶)')
+ax1.set_title('RSS vs Number of Predictors')
+ax1.legend(fontsize=8)
+
+ax2.scatter(r2_df['k'], r2_df['R2'], alpha=0.3, s=15, color='#58a6ff')
+ax2.plot(best_r2['k'], best_r2['R2'], 'r-o', lw=2, markersize=5, label='Best (red frontier)')
+ax2.set_xlabel('Number of Predictors'); ax2.set_ylabel('R²')
+ax2.set_title('R² vs Number of Predictors')
+ax2.legend(fontsize=8)
+plt.tight_layout(); plt.show()
+print('Done: Best subset selection demo (like Figure 6.1)')</code></pre>
+
+<!-- ============================================================ -->
+<!-- 6.1.2 STEPWISE SELECTION -->
+<!-- ============================================================ -->
+<h2>6.1.2 逐步選擇 (Stepwise Selection)</h2>
+
+<p>當 \(p\) 很大時，\(2^p\) 個模型根本跑不動。逐步選擇提供了一條「聰明捷徑」——<strong>不全部試，而是在模型空間中進行引導式搜尋</strong>。就像逛大賣場：你不會每條走道都走過，而是按照清單有方向地找。</p>
+
+<h3>前向逐步選擇 (Forward Stepwise Selection)</h3>
+
+<p>從<strong>零變數</strong>開始，每次加入一個「最能改善擬合」的變數，直到所有變數都被納入。</p>
+
+<div class="formula">
+  <strong>Algorithm 6.2：前向逐步選擇</strong><br><br>
+  1. 令 \(\mathcal{M}_0\) 為虛無模型。<br>
+  2. 對 \(k = 0, \dots, p-1\)：<br>
+  &nbsp;&nbsp;(a) 考慮所有 \(p-k\) 個「在 \(\mathcal{M}_k\) 基礎上多加入一個變數」的模型。<br>
+  &nbsp;&nbsp;(b) 選出 RSS 最小的，稱為 \(\mathcal{M}_{k+1}\)。<br>
+  3. 從 \(\mathcal{M}_0, \dots, \mathcal{M}_p\) 中用驗證集誤差 / \(C_p\) / AIC / BIC / adjusted \(R^2\) 選出最終模型。
+</div>
+
+<p>前向逐步選擇只需擬合 \(1 + p(p+1)/2\) 個模型，遠少於 \(2^p\)。當 \(p=20\) 時是 211 個 vs 1,048,576 個。</p>
+
+<h3>後向逐步選擇 (Backward Stepwise Selection)</h3>
+
+<p>從<strong>全模型</strong>（包含所有 \(p\) 個變數）開始，每次移除一個「最不有用」的變數。</p>
+
+<div class="formula">
+  <strong>Algorithm 6.3：後向逐步選擇</strong><br><br>
+  1. 令 \(\mathcal{M}_p\) 為全模型。<br>
+  2. 對 \(k = p, p-1, \dots, 1\)：<br>
+  &nbsp;&nbsp;(a) 考慮所有從 \(\mathcal{M}_k\) 移除一個變數後的 \(k\) 個模型（各含 \(k-1\) 個變數）。<br>
+  &nbsp;&nbsp;(b) 選出 RSS 最小的，稱為 \(\mathcal{M}_{k-1}\)。<br>
+  3. 同上，選出最終模型。
+</div>
+
+<div class="callout">
+  <strong>⚠️ 後向選擇的限制</strong>：後向選擇<strong>要求 \(n > p\)</strong>（樣本數大於變數數，否則全模型無法擬合）。而前向選擇可以在 \(n < p\) 的高維情境下使用（最多建構 \(\mathcal{M}_0, \dots, \mathcal{M}_{n-1}\)）。
+</div>
+
+<h3>用 sklearn 實作前向與後向選擇</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from ISLP import load_data
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
 
-# ============================================
-# 1. 讀取資料（ISLP 課本 Credit 資料集）
-# ============================================
-url = "https://www.statlearning.com/s/Credit.csv"
-credit = pd.read_csv(url)
-credit = pd.get_dummies(credit, columns=['Student', 'Gender', 'Married', 'Ethnicity'], drop_first=True)
-credit = credit.drop(columns=['Unnamed: 0'])
+# 載入 Credit 資料
+credit = load_data('Credit')
+X = pd.get_dummies(credit.drop('Balance', axis=1), drop_first=True)
+y = credit['Balance']
+feat_names = list(X.columns)
 
-y = credit['Balance'].values
-X_all = credit.drop(columns=['Balance'])
-feature_names = X_all.columns.tolist()
-X_all = X_all.values
-n, p = X_all.shape
+def forward_stepwise(X, y, max_features=None):
+    """前向逐步選擇：回傳每步選入的變數與對應的模型"""
+    n, p = X.shape
+    if max_features is None:
+        max_features = min(p, n - 1)
+    selected = []
+    remaining = list(range(p))
+    models = []
+    scores = []
+    for k in range(max_features):
+        best_rss = float('inf')
+        best_feat = None
+        best_model = None
+        for j in remaining:
+            cols = selected + [j]
+            model = LinearRegression().fit(X.iloc[:, cols], y)
+            rss = np.sum((y - model.predict(X.iloc[:, cols]))**2)
+            if rss < best_rss:
+                best_rss = rss
+                best_feat = j
+                best_model = model
+        selected.append(best_feat)
+        remaining.remove(best_feat)
+        models.append(best_model)
+        scores.append(best_rss)
+    return selected, models, scores
 
-print(f"樣本數 n={n}, 預測變數 p={p}")
-print(f"若做最佳子集 = 2^{p} = {2**p:,} 個模型 → 不可行，改用向前逐步")
+# 執行前向選擇
+sel_idx, models, rss_vals = forward_stepwise(X, y, max_features=10)
+print("變數選擇順序（前向）：")
+for i, idx in enumerate(sel_idx):
+    print(f"  Step {i+1}: {feat_names[idx]:<20s} RSS={rss_vals[i]/1e6:.2f}M")
 
-# ============================================
-# 2. 向前逐步選擇（Forward Stepwise）
-# ============================================
-selected = []           # 已選入的變數 index
-remaining = list(range(p))  # 尚未選入的變數 index
-models_log = []         # 記錄每個 k 的最佳模型
+# 視覺化：RSS 下降曲線
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(range(1, len(rss_vals)+1), np.array(rss_vals)/1e6, 'b-o', lw=2, markersize=6)
+ax.set_xlabel('Number of Predictors'); ax.set_ylabel('RSS (×10⁶)')
+ax.set_title('Forward Stepwise: RSS vs Model Size (Credit Data)')
+ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.show()</code></pre>
 
-for k in range(p):
-    best_rss = float('inf')
-    best_var = None
-    best_model = None
-    
-    for j in remaining:
-        trial_vars = selected + [j]
-        X_trial = X_all[:, trial_vars]
-        model = LinearRegression().fit(X_trial, y)
-        y_pred = model.predict(X_trial)
-        rss = np.sum((y - y_pred) ** 2)
-        
-        if rss < best_rss:
-            best_rss = rss
-            best_var = j
-            best_model = model
-    
-    selected.append(best_var)
-    remaining.remove(best_var)
-    models_log.append({
-        'k': k + 1,
-        'vars': [feature_names[i] for i in selected],
-        'RSS': best_rss,
-        'coef_count': len(selected) + 1  # +1 for intercept
-    })
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
 
-# ============================================
-# 3. 計算模型選擇指標
-# ============================================
-sigma2_hat = models_log[-1]['RSS'] / (n - p - 1)  # 用全模型估計 σ²
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from sklearn.linear_model import LinearRegression
 
-for m in models_log:
-    d = m['coef_count']  # 參數數（含截距）
-    m['Cp'] = (m['RSS'] + 2 * d * sigma2_hat) / n
-    m['AIC'] = n * np.log(m['RSS'] / n) + 2 * d
-    m['BIC'] = n * np.log(m['RSS'] / n) + np.log(n) * d
-    m['Adj_R2'] = 1 - (m['RSS'] / (n - d)) / (np.sum((y - np.mean(y))**2) / (n - 1))
+# 後向逐步選擇
+credit = load_data('Credit')
+X = pd.get_dummies(credit.drop('Balance', axis=1), drop_first=True)
+y = credit['Balance']
+feat_names = list(X.columns)
 
-# ============================================
-# 4. 輸出結果
-# ============================================
-results_df = pd.DataFrame(models_log)
-results_df = results_df.round({'RSS': 0, 'Cp': 1, 'AIC': 0, 'BIC': 0, 'Adj_R2': 4})
+def backward_stepwise(X, y):
+    """後向逐步選擇"""
+    n, p = X.shape
+    selected = list(range(p))
+    removal_order = []
+    rss_vals = []
+    for k in range(p, 1, -1):
+        worst_rss = float('inf')
+        worst_feat = None
+        for j in selected:
+            cols = [c for c in selected if c != j]
+            model = LinearRegression().fit(X.iloc[:, cols], y)
+            rss = np.sum((y - model.predict(X.iloc[:, cols]))**2)
+            if rss < worst_rss:
+                worst_rss = rss
+                worst_feat = j
+        selected.remove(worst_feat)
+        removal_order.append(worst_feat)
+        rss_vals.append(worst_rss)
+    # 最後剩一個變數
+    model = LinearRegression().fit(X.iloc[:, selected], y)
+    rss_vals.append(np.sum((y - model.predict(X.iloc[:, selected]))**2))
+    return removal_order, rss_vals
 
-print("\n📊 向前逐步選擇結果：")
-print(results_df[['k', 'Cp', 'AIC', 'BIC', 'Adj_R2']].to_string(index=False))
+removal, rss_bw = backward_stepwise(X, y)
+print("變數移除順序（後向）：")
+for i, idx in enumerate(removal):
+    print(f"  Step {i+1}: 移除 {feat_names[idx]:<20s}")
+print(f"  最後保留: {[feat_names[s] for s in [c for c in range(X.shape[1]) if c not in removal]]}")</code></pre>
 
-# 找出各指標的最優模型
-best_cp_k = results_df.loc[results_df['Cp'].idxmin(), 'k']
-best_bic_k = results_df.loc[results_df['BIC'].idxmin(), 'k']
-best_adjr2_k = results_df.loc[results_df['Adj_R2'].idxmax(), 'k']
+<!-- ============================================================ -->
+<!-- HYBRID APPROACHES -->
+<!-- ============================================================ -->
+<h3>混合方法 (Hybrid Approaches)</h3>
 
-print(f"\n✅ C_p 最優：{best_cp_k} 個變數")
-print(f"✅ BIC 最優：{best_bic_k} 個變數（最簡約）")
-print(f"✅ Adj-R² 最優：{best_adjr2_k} 個變數")
+<p>混合方法結合了前向與後向的優點：<strong>像前向選擇一樣逐步加入變數，但每加入一個新變數後，也檢查是否可以移除已選入但不再有用的變數</strong>。這種「邊加邊減」的策略更接近最佳子集選擇，同時保留了計算效率。</p>
 
-# 顯示 BIC 最優模型的變數
-best_bic_vars = results_df.loc[results_df['BIC'].idxmin(), 'vars']
-print(f"\n🏆 BIC 選出的關鍵變數：{best_bic_vars}")
+<!-- ============================================================ -->
+<!-- 6.1.3 CHOOSING THE OPTIMAL MODEL -->
+<!-- ============================================================ -->
+<h2>6.1.3 選擇最佳模型</h2>
 
-# ============================================
-# 5. 交叉驗證確認
-# ============================================
-print("\n🔬 5-fold CV 確認 BIC 最優模型：")
-X_best = X_all[:, [feature_names.index(v) for v in best_bic_vars]]
-model_best = LinearRegression()
-cv_scores = cross_val_score(model_best, X_best, y, cv=5, scoring='neg_mean_squared_error')
-rmse_cv = np.sqrt(-cv_scores.mean())
-print(f"5-Fold CV RMSE = {rmse_cv:.1f}")
+<p>子集選擇方法會產出一系列的模型 \(\mathcal{M}_0, \mathcal{M}_1, \dots, \mathcal{M}_p\)，現在的問題是：<strong>哪一個最好？</strong>因為訓練誤差（RSS / \(R^2\)）只會隨變數增加而改善，不能用來選。我們需要能<strong>估計測試誤差</strong>的指標。</p>
 
-# 對比全模型的 CV
-model_full = LinearRegression()
-cv_scores_full = cross_val_score(model_full, X_all, y, cv=5, scoring='neg_mean_squared_error')
-rmse_cv_full = np.sqrt(-cv_scores_full.mean())
-print(f"全模型 (p={p}) 5-Fold CV RMSE = {rmse_cv_full:.1f}")
-print(f"➡️ 變數從 {p} 降到 {best_bic_k}，CV RMSE 變化: {rmse_cv:.1f} vs {rmse_cv_full:.1f}")</code></pre>
+<h3>\(C_p\)、AIC、BIC 與 Adjusted \(R^2\)</h3>
 
-<div class="scenario">
-<h4>📊 預期輸出（Credit 資料集）</h4>
-<ul>
-  <li>BIC 通常選出 4–6 個變數（如 Income、Limit、Rating、Cards、Student_Yes）</li>
-  <li>全模型有 11 個變數，BIC 最優模型只保留約一半，預測誤差幾乎沒增加</li>
-  <li><strong>關鍵洞察：</strong>很多變數對預測 Balance 幫助有限，刪掉反而讓模型更簡潔、解釋性更好</li>
-</ul>
+<p>這些指標都在訓練誤差的基礎上<strong>加入懲罰項</strong>，懲罰模型複雜度（變數太多）。</p>
+
+<div class="formula">
+  <strong>\(C_p\) 統計量</strong>（Mallow's \(C_p\)）<br>
+  \[
+  C_p = \frac{1}{n}\left(\text{RSS} + 2d\hat{\sigma}^2\right)
+  \]
+  其中 \(d\) 是預測變數個數，\(\hat{\sigma}^2\) 是誤差變異數的估計（通常用全模型估計）。<br>
+  <strong>選擇 \(C_p\) 最小的模型。</strong>
+  <div class="formula-label">公式 6.2</div>
 </div>
 
-<h2>🌍 應用場景</h2>
-
-<div class="scenario">
-<h4>🏥 醫學研究 — 找出關鍵生物標記</h4>
-<p>你有 500 個基因表現量當預測變數，想找出真正影響疾病風險的那幾個。向前逐步 + BIC 能從 500 個中自動篩出 5-10 個最有預測力的基因，讓後續驗證實驗的成本大幅降低。</p>
+<div class="formula">
+  <strong>AIC（Akaike Information Criterion）</strong><br>
+  對高斯誤差的線性迴歸，AIC 與 \(C_p\) <strong>成比例</strong>：<br>
+  \[
+  \text{AIC} = \frac{1}{n}\left(\text{RSS} + 2d\hat{\sigma}^2\right)
+  \]
+  <div class="formula-label">公式（省略無關常數）</div>
 </div>
 
-<div class="scenario">
-<h4>📈 信用評分建模</h4>
-<p>銀行手上有 50+ 個客戶特徵（收入、負債比、職業、學歷...），但法規要求模型必須「可解釋」。向前逐步 + Adjusted R² 能選出 8-12 個核心變數，讓風控部門能清楚說明白「為什麼這個人被拒絕」。</p>
+<div class="formula">
+  <strong>BIC（Bayesian Information Criterion）</strong><br>
+  \[
+  \text{BIC} = \frac{1}{n}\left(\text{RSS} + \log(n) \cdot d \cdot \hat{\sigma}^2\right)
+  \]
+  由於 \(\log(n) > 2\)（當 \(n > 7\)），BIC 的<strong>懲罰比 \(C_p\) 更重</strong>，傾向選出更小的模型。
+  <div class="formula-label">公式 6.3</div>
 </div>
 
-<div class="scenario">
-<h4>🛒 電商轉換率優化</h4>
-<p>你有 200 個使用者行為特徵，想找出哪些真正影響購買轉換。向後逐步（從全模型開始踢）適合 n 大 p 中的情境，確保不遺漏任何潛在關鍵因子。</p>
+<div class="formula">
+  <strong>Adjusted \(R^2\)</strong><br>
+  \[
+  \text{Adjusted } R^2 = 1 - \frac{\text{RSS}/(n-d-1)}{\text{TSS}/(n-1)}
+  \]
+  <strong>選擇 adjusted \(R^2\) 最大的模型。</strong>注意：與 \(C_p\)、AIC、BIC 相反，這裡是<strong>越大越好</strong>。
+  <div class="formula-label">公式 6.4</div>
 </div>
 
-<h2>⚖️ 優缺點分析</h2>
-
-<div class="pros-cons">
-<div class="pros">
-<h3>✅ 優點</h3>
-<ul>
-  <li><strong>可解釋性強：</strong>直接告訴你哪些變數重要、哪些可丟</li>
-  <li><strong>減少 overfitting：</strong>移除雜訊變數，降低變異</li>
-  <li><strong>計算可控：</strong>向前/向後逐步在 p 很大時仍可行（不像最佳子集的 \(2^p\) 爆炸）</li>
-  <li><strong>多重指標：</strong>Cp、AIC、BIC、Adj-R² 提供不同角度的取捨</li>
-</ul>
-</div>
-<div class="cons">
-<h3>❌ 缺點</h3>
-<ul>
-  <li><strong>路徑依賴：</strong>向前逐步一旦選入就不會踢出，早期錯誤不可逆</li>
-  <li><strong>非全域最優：</strong>向前/向後逐步只保證局部最優，不保證找到最佳子集</li>
-  <li><strong>不穩定：</strong>小樣本變動可能導致選出的變數集合大幅改變</li>
-  <li><strong>未考慮交互作用：</strong>標準子集選擇只選主效應，自動忽略變數間的交互作用項</li>
-  <li><strong>向後逐步限制：</strong>要求 n > p，不適用高維度資料（p > n）</li>
-</ul>
-</div>
+<div class="callout">
+  <strong>🔄 生活化理解</strong>：\(C_p\) 和 AIC 像是「自助餐計價方式」——你可以拿很多道菜（變數），但每多拿一道就要多付 \(2\hat{\sigma}^2\) 元。BIC 更嚴格：每多一道要多付 \(\log(n)\hat{\sigma}^2\) 元，所以人多的時候（\(n\) 大）罰得更重。Adjusted \(R^2\) 則是「滿意度除以花的錢」，你希望每塊錢換到最多滿足感。
 </div>
 
-<h2>🆚 與其他方法的比較</h2>
+<h3>四種指標的比較實作</h3>
 
-<table>
-<tr><th>方法</th><th>何時用</th><th>計算量</th><th>全域最優？</th></tr>
-<tr><td>最佳子集</td><td>p ≤ 15</td><td>\(O(2^p)\) 💥</td><td>✅ 是</td></tr>
-<tr><td>向前逐步</td><td>p > n 也可用，預設首選</td><td>\(O(p^2)\)</td><td>❌ 否</td></tr>
-<tr><td>向後逐步</td><td>n > p，且懷疑大部分變數都有用</td><td>\(O(p^2)\)</td><td>❌ 否</td></tr>
-<tr><td>Lasso (§6.2)</td><td>p 很大、需要自動變數篩選</td><td>\(O(np)\)</td><td>❌ 但 convex</td></tr>
-<tr><td>Ridge (§6.2)</td><td>全部變數都要保留、只需收縮</td><td>\(O(np)\)</td><td>N/A</td></tr>
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from sklearn.linear_model import LinearRegression
+from itertools import combinations
+from math import comb
+
+credit = load_data('Credit')
+X = pd.get_dummies(credit.drop('Balance', axis=1), drop_first=True)
+y = credit['Balance']
+n, p = X.shape
+
+# 用全模型估計 sigma^2
+full_model = LinearRegression().fit(X, y)
+sigma2_hat = np.sum((y - full_model.predict(X))**2) / (n - p - 1)
+TSS = np.sum((y - np.mean(y))**2)
+
+# 對每個 k 找隨機子集計算 Cp, AIC, BIC, AdjR2
+np.random.seed(42)
+results = []
+for k in range(1, p+1):
+    best_cp = float('inf')
+    best_bic = float('inf')
+    best_adjr2 = -float('inf')
+    best_r2 = -float('inf')
+    # 隨機取若干組合
+    for _ in range(min(200, int(comb(p, k)) if k <= p//2 else 200)):
+        cols = list(np.random.choice(p, size=k, replace=False))
+        model = LinearRegression().fit(X.iloc[:, cols], y)
+        rss = np.sum((y - model.predict(X.iloc[:, cols]))**2)
+        r2 = 1 - rss / TSS
+        cp = (rss + 2 * k * sigma2_hat) / n
+        bic = (rss + np.log(n) * k * sigma2_hat) / n
+        adjr2 = 1 - (rss/(n-k-1)) / (TSS/(n-1))
+        if cp < best_cp: best_cp = cp
+        if bic < best_bic: best_bic = bic
+        if adjr2 > best_adjr2: best_adjr2 = adjr2
+        if r2 > best_r2: best_r2 = r2
+    results.append({'k': k, 'R2': best_r2, 'Cp': best_cp, 'BIC': best_bic, 'AdjR2': best_adjr2})
+
+rdf = pd.DataFrame(results)
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+axes[0].plot(rdf['k'], rdf['Cp'], 'b-o', lw=2, markersize=5)
+axes[0].set_xlabel('Number of Predictors'); axes[0].set_ylabel('Cp')
+axes[0].set_title('Cp (lower is better)')
+axes[0].axvline(rdf.loc[rdf['Cp'].idxmin(), 'k'], color='red', ls='--', alpha=0.7)
+axes[0].grid(True, alpha=0.3)
+
+axes[1].plot(rdf['k'], rdf['BIC'], 'orange', marker='s', lw=2, markersize=5)
+axes[1].set_xlabel('Number of Predictors'); axes[1].set_ylabel('BIC')
+axes[1].set_title('BIC (lower is better)')
+axes[1].axvline(rdf.loc[rdf['BIC'].idxmin(), 'k'], color='red', ls='--', alpha=0.7)
+axes[1].grid(True, alpha=0.3)
+
+axes[2].plot(rdf['k'], rdf['AdjR2'], 'g-^', lw=2, markersize=5)
+axes[2].set_xlabel('Number of Predictors'); axes[2].set_ylabel('Adjusted R²')
+axes[2].set_title('Adjusted R² (higher is better)')
+axes[2].axvline(rdf.loc[rdf['AdjR2'].idxmax(), 'k'], color='red', ls='--', alpha=0.7)
+axes[2].grid(True, alpha=0.3)
+
+plt.tight_layout(); plt.show()
+print(f"Cp 建議: {rdf.loc[rdf['Cp'].idxmin(), 'k']} 個變數")
+print(f"BIC 建議: {rdf.loc[rdf['BIC'].idxmin(), 'k']} 個變數（傾向更小模型）")
+print(f"AdjR² 建議: {rdf.loc[rdf['AdjR2'].idxmax(), 'k']} 個變數")
+print(f"R² (僅供參考，不能用來選!): {rdf.loc[rdf['R2'].idxmax(), 'k']} 個變數 (=全模型)")</code></pre>
+
+<h3>驗證集與交叉驗證</h3>
+
+<p>除了上述間接估計測試誤差的指標，我們也可以<strong>直接用驗證集或交叉驗證</strong>來估計測試誤差（詳見第五章）。這是最直接的方法：在不同資料分割上評估模型效能，選出平均驗證誤差最小的模型大小。</p>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score
+
+credit = load_data('Credit')
+X = pd.get_dummies(credit.drop('Balance', axis=1), drop_first=True)
+y = credit['Balance']
+n, p = X.shape
+
+# 用前向逐步選擇的順序，對每個 k 做交叉驗證
+def forward_order(X, y):
+    selected = []
+    remaining = list(range(X.shape[1]))
+    for _ in range(min(X.shape[1], X.shape[0]-1)):
+        best_rss = float('inf')
+        best_feat = None
+        for j in remaining:
+            cols = selected + [j]
+            model = LinearRegression().fit(X.iloc[:, cols], y)
+            rss = np.sum((y - model.predict(X.iloc[:, cols]))**2)
+            if rss < best_rss:
+                best_rss = rss
+                best_feat = j
+        selected.append(best_feat)
+        remaining.remove(best_feat)
+    return selected
+
+order = forward_order(X, y)
+cv_errors = []
+for k in range(1, len(order)+1):
+    cols = order[:k]
+    scores = cross_val_score(LinearRegression(), X.iloc[:, cols], y,
+                             cv=5, scoring='neg_mean_squared_error')
+    cv_errors.append(-scores.mean())
+
+best_k = np.argmin(cv_errors) + 1
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(range(1, len(cv_errors)+1), cv_errors, 'b-o', lw=2, markersize=6)
+ax.axvline(best_k, color='red', ls='--', alpha=0.7,
+           label=f'Best k={best_k} (min CV MSE)')
+ax.set_xlabel('Number of Predictors'); ax.set_ylabel('5-Fold CV MSE')
+ax.set_title('Cross-Validation for Model Size Selection (Credit Data)')
+ax.legend(); ax.grid(True, alpha=0.3)
+plt.tight_layout(); plt.show()
+print(f"交叉驗證建議的最佳模型大小: k = {best_k}")</code></pre>
+
+<!-- ============================================================ -->
+<!-- COMPARISON TABLE -->
+<!-- ============================================================ -->
+<h2>方法總比較</h2>
+
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>方法</th>
+      <th>搜尋的模型數</th>
+      <th>保證最優？</th>
+      <th>n &lt; p 可用？</th>
+      <th>計算成本</th>
+      <th>適用情境</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>最佳子集</strong></td>
+      <td>\(2^p\)</td>
+      <td>✅ 保證</td>
+      <td>❌</td>
+      <td>指數級</td>
+      <td>\(p \leq 30\text{–}40\)</td>
+    </tr>
+    <tr>
+      <td><strong>前向逐步</strong></td>
+      <td>\(1 + p(p+1)/2\)</td>
+      <td>❌ 不保證</td>
+      <td>✅</td>
+      <td>二次方級</td>
+      <td>高維 (\(p\) 大) 或 \(n < p\)</td>
+    </tr>
+    <tr>
+      <td><strong>後向逐步</strong></td>
+      <td>\(1 + p(p+1)/2\)</td>
+      <td>❌ 不保證</td>
+      <td>❌</td>
+      <td>二次方級</td>
+      <td>\(n > p\)，想從全模型開始刪</td>
+    </tr>
+    <tr>
+      <td><strong>混合方法</strong></td>
+      <td>略多於逐步</td>
+      <td>❌ 不保證</td>
+      <td>視實作而定</td>
+      <td>略高於逐步</td>
+      <td>想要接近最佳子集品質但不付全額</td>
+    </tr>
+  </tbody>
 </table>
 
-<div class="quote">
-<strong>💬 關鍵金句：</strong>
-「變數選擇的本質不是找到『最好』的模型，而是找到『夠好且夠簡單』的模型。」<br>
-<span class="attr">— 統計學習領域的普遍共識</span>
+<h2>模型選擇準則比較</h2>
+
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>準則</th>
+      <th>公式結構</th>
+      <th>懲罰項</th>
+      <th>選擇方向</th>
+      <th>理論基礎</th>
+      <th>傾向</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>\(C_p\)</strong></td>
+      <td>RSS \(+ 2d\hat{\sigma}^2\)</td>
+      <td>\(2d\hat{\sigma}^2\)</td>
+      <td>↓ 越小越好</td>
+      <td>測試 MSE 的不偏估計</td>
+      <td>中等</td>
+    </tr>
+    <tr>
+      <td><strong>AIC</strong></td>
+      <td>同 \(C_p\)（成比例）</td>
+      <td>\(2d\hat{\sigma}^2\)</td>
+      <td>↓ 越小越好</td>
+      <td>最大概似 + 懲罰</td>
+      <td>中等</td>
+    </tr>
+    <tr>
+      <td><strong>BIC</strong></td>
+      <td>RSS \(+ \log(n)d\hat{\sigma}^2\)</td>
+      <td>\(\log(n)d\hat{\sigma}^2\)</td>
+      <td>↓ 越小越好</td>
+      <td>貝氏推論</td>
+      <td>偏向更小模型</td>
+    </tr>
+    <tr>
+      <td><strong>Adjusted \(R^2\)</strong></td>
+      <td>\(1 - \frac{\text{RSS}/(n-d-1)}{\text{TSS}/(n-1)}\)</td>
+      <td>隱含在分母 \(n-d-1\)</td>
+      <td>↑ 越大越好</td>
+      <td>啟發式（較不嚴謹）</td>
+      <td>偏向較大模型</td>
+    </tr>
+    <tr>
+      <td><strong>交叉驗證</strong></td>
+      <td>直接估計測試誤差</td>
+      <td>無需公式懲罰</td>
+      <td>↓ CV 誤差越小越好</td>
+      <td>實證</td>
+      <td>資料驅動</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- PROS & CONS -->
+<!-- ============================================================ -->
+<h2>子集選擇的優缺點</h2>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 優點</h4>
+    <ul>
+      <li><strong>模型簡化</strong>：保留重要變數，去除雜訊變數，提升可解釋性</li>
+      <li><strong>降低變異數</strong>：減少過擬合風險，測試效能更穩定</li>
+      <li><strong>計算效率（逐步法）</strong>：\(O(p^2)\) 遠優於 \(O(2^p)\)</li>
+      <li><strong>模型選擇有理論基礎</strong>：\(C_p\)、AIC、BIC 都有嚴格的統計推導</li>
+      <li><strong>前向選擇可用於高維</strong>：\(n < p\) 時唯一可行的子集方法</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺點</h4>
+    <ul>
+      <li><strong>最佳子集計算瓶頸</strong>：\(p > 40\) 不可行</li>
+      <li><strong>逐步法不保證最優</strong>：引導式搜尋可能錯過最佳組合</li>
+      <li><strong>變數選擇不穩定</strong>：小資料變動可能導致選出完全不同的子集</li>
+      <li><strong>忽略變數間的協同效應</strong>：逐步法每次只看「加一個」的效果</li>
+      <li><strong>後向選擇需 \(n > p\)</strong>：無法用於高維資料</li>
+      <li><strong>Adjusted \(R^2\) 理論基礎較弱</strong>：不如 \(C_p\)/AIC/BIC 嚴謹</li>
+    </ul>
+  </div>
 </div>
 
-<h2>🧠 自我內化</h2>
+<!-- ============================================================ -->
+<!-- APPLICATION SCENARIOS -->
+<!-- ============================================================ -->
+<h2>應用場景</h2>
 
-<div class="ref-box">
-<strong>🔗 對 Hermes 架構的啟發：</strong>
-子集選擇的哲學和 <strong>AI Agent 的工具選擇（tool selection）</strong>有深刻對應——Hermes 有 N 個可用工具/技能，但不是每個任務都要全載入。向前逐步的策略（從最常用的工具開始，按需擴展）比全載入更有效率，BIC 的懲罰項則對應「每個工具都有載入成本（context window 消耗）」。這呼應了我們在 <code>structured-agent-workflow</code> 中對「最小必要工具集」的設計——不是把所有 MCP server 都掛上，而是像向前逐步一樣，從核心工具開始，只在任務真的需要時才擴張。
+<div class="scenario-box">
+  <h4>🏥 醫療診斷：找出關鍵生物標記</h4>
+  <p>在基因表達資料中（\(p\) 可能高達數萬個基因，\(n\) 可能只有數百個病人），前向逐步選擇可以從大量基因中篩選出與疾病最相關的少數幾個，建立簡潔且可解釋的診斷模型。BIC 在此情境特別有用，因為它傾向選出更小的模型。</p>
 </div>
 
-<div class="nav-back">
-<a href="index.html">← 回到課程首頁</a> &nbsp;|&nbsp;
-<a href="5.2_bootstrap.html">← §5.2 Bootstrap</a> &nbsp;|&nbsp;
-<a href="#">§6.2 Ridge & Lasso →</a>
+<div class="scenario-box">
+  <h4>💰 金融風控：信用評分模型</h4>
+  <p>使用 Credit 資料集建立信用卡違約預測模型時，最佳子集選擇（\(p=11\)，可行）可以找出最精簡的預測變數組合。模型越簡單，越容易向監管機關解釋、也越不容易過擬合到特定時期的資料。</p>
 </div>
 
+<div class="scenario-box">
+  <h4>📈 行銷分析：廣告支出優化</h4>
+  <p>在 Advertising 資料集中，我們想知道 TV、Radio、Newspaper 三種廣告管道哪些真正有效。後向逐步選擇從全模型開始刪除不顯著的變數（如 Newspaper），幫助行銷團隊把預算集中在真正有效的管道上。</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- HERMES SELF-IMPROVEMENT -->
+<!-- ============================================================ -->
+<h2>🔗 對 Hermes Agent 系統設計的啟發</h2>
+
+<div class="callout">
+  <strong>「子集選擇」對 AI Agent 架構的啟示</strong><br><br>
+  <strong>1. 工具/技能的「變數選擇」問題</strong>：就像統計模型不需要所有預測變數，AI Agent 也不需要載入所有 skill。每次任務前應做「skill subset selection」——根據任務特徵只載入相關的 3-5 個 skill，而非全部 50+ 個。這直接降低 context window 消耗（相當於降低「模型複雜度的懲罰」）。<br><br>
+  <strong>2. \(C_p\)/BIC 式的自我評估</strong>：可以設計一個類似 BIC 的內部指標來評估 skill 的「投資報酬率」——該 skill 被載入的次數 vs 實際被使用的次數 vs 任務成功率的貢獻。長期未被使用或貢獻低的 skill 應該被標記為「待淘汰」——這正是 <strong>BIC 懲罰多餘變數</strong>的精神。<br><br>
+  <strong>3. 前向逐步的漸進式擴展</strong>：當 Agent 碰到新任務類型時，不該一次載入所有可能的工具，而是像前向逐步選擇一樣——先從最基礎的工具開始，逐步加入一個「最可能改善效能」的新工具，用任務完成度作為「RSS」的類比來決定是否繼續擴展。
+</div>
+
+<!-- ============================================================ -->
+<!-- KEY QUOTE -->
+<!-- ============================================================ -->
+<div class="key-quote">
+  用全部變數做出來的模型，是偷看答案的考試成績；用最少變數做出來的模型，才是真正的實力。
+  <span class="author">— ISLP §6.1 精神：訓練誤差不代表測試誤差，簡約才是王道</span>
+</div>
+
+<div class="section-nav">
+  <a href="5.3_cv_bootstrap_lab.html">← 5.3 Lab: 交叉驗證與 Bootstrap</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="6.2_shrinkage_methods.html">6.2 收縮方法 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 6 章：Linear Model Selection and Regularization · §6.1 子集選擇</p>
+  <p>Generated: 2026-06-23 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>

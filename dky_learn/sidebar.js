@@ -28,6 +28,8 @@
       <a href="/statistics/05_cross_validation.html" class="nav-item done">5.1 交叉驗證</a>
       <a href="/statistics/05_the_bootstrap.html" class="nav-item done">5.2 Bootstrap</a>
       <a href="/statistics/05_lab_cross_validation_bootstrap.html" class="nav-item done">5.3 Lab: CV & Bootstrap</a>
+      <a href="/statistics/6.1_subset_selection.html" class="nav-item done">6.1 子集選擇</a>
+      <a href="/statistics/6.2_shrinkage_methods.html" class="nav-item pending">6.2 收縮方法</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
