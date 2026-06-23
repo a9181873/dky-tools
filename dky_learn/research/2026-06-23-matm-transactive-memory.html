@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多智能體交互記憶：讓 AI Agent 族群共享經驗軌跡的群體學習框架 — DKY 論文筆記</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .6rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}.one-liner{background:var(--card);border-left:3px solid var(--accent2);border-radius:0 8px 8px 0;padding:1rem 1.2rem;margin-bottom:2rem;font-size:1.05rem}h2{color:var(--accent2);font-size:1.4rem;margin:2rem 0 1rem;border-bottom:1px solid var(--border);padding-bottom:.5rem}h3{color:var(--accent);font-size:1.1rem;margin:1.5rem 0 .8rem}h4{color:var(--fg);font-size:1rem;margin:1rem 0 .5rem}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid var(--border);padding:.6rem .8rem;text-align:left;font-size:.9rem}th{background:var(--card);color:var(--accent)}tr:nth-child(even){background:var(--card)}.mech-item,.app-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}ul{margin:1rem 0 1rem 1.5rem}li{margin:.4rem 0;line-height:1.6}a{color:var(--accent)}p{margin-bottom:.8rem}</style>
+</head>
+<body>
+
+<header>
+  <h1>多智能體交互記憶：讓 AI Agent 族群共享經驗軌跡的群體學習框架<br><small style="font-size:1rem;color:#8b949e">Multi-Agent Transactive Memory</small></h1>
+  <div class="meta">
+    <span>📄 arXiv: 2606.19911</span>
+    <span>📅 2026-06-18</span>
+    <span>🏛️ UC Berkeley + CMU</span>
+  </div>
+  <div class="tags">
+    <span class="tag">agent-memory</span>
+    <span class="tag">multi-agent</span>
+    <span class="tag">trajectory-sharing</span>
+    <span class="tag">RAG</span>
+    <span class="tag">collective-learning</span>
+  </div>
+</header>
+
+<div class="one-liner">
+🎯 一句話核心結論：把個別 agent 執行過的任務軌跡存進共享倉庫，讓新 agent 直接檢索上手——不需要溝通、不需要聯合訓練，就能提升全體表現。
+</div>
+
+<h2>📊 關鍵數據</h2>
+<table>
+<tr><th>指標</th><th>數值</th><th>說明</th></tr>
+<tr><td>Test environments</td><td><strong>ALFWorld + WebArena</strong></td><td>Two standard interactive agent benchmarks with long, procedurally-rich trajectories</td></tr>
+<tr><td>Performance gain</td><td><strong>Significant improvement</strong></td><td>Consumer agents retrieving from MATM outperform no-memory baselines on downstream tasks</td></tr>
+<tr><td>Interaction steps</td><td><strong>Reduced</strong></td><td>Agents with trajectory retrieval need fewer steps to complete tasks</td></tr>
+<tr><td>Coordination needed</td><td><strong>Zero</strong></td><td>No inter-agent communication or joint training required; pure passive retrieval</td></tr>
+<tr><td>Author affiliations</td><td><strong>UC Berkeley + CMU + Waterloo</strong></td><td>Fernando Diaz (Google DeepMind) served as advisor</td></tr>
+
+</table>
+
+<h2>🧠 機制拆解</h2>
+<div class="mech-item">
+<h4>Producer Agent</h4>
+<p>After completing a task, stores the full (state, action, observation, reward) trajectory into the shared MATM repository</p>
+</div>
+<div class="mech-item">
+<h4>Consumer Agent</h4>
+<p>When facing a new task, retrieves similar historical trajectories from MATM and injects them as few-shot examples into its prompt</p>
+</div>
+<div class="mech-item">
+<h4>Trajectory Encoding & Retrieval</h4>
+<p>Converts trajectories into dense vectors for semantic similarity search - like RAG's retriever but operating on agent trajectories instead of human documents</p>
+</div>
+<div class="mech-item">
+<h4>MATM Repository</h4>
+<p>Population-level persistent storage; all agents read and write. Design pattern analogous to a human organization's knowledge base</p>
+</div>
+
+
+<h2>💡 落地應用</h2>
+<div class="app-item">
+<h4>📌 Hermes multi-profile knowledge sharing</h4>
+<p>If each Hermes profile's skill execution trajectories were stored in a shared repository, cross-profile agents could learn from each other's experiences. For example, the tools profile's deployment tricks could be retrieved by the learn profile without re-exploration.</p>
+</div>
+<div class="app-item">
+<h4>📌 Customer service agent fleet</h4>
+<p>Complex case trajectories solved by each agent go into MATM; newly deployed agents facing similar issues immediately have reference examples, drastically reducing onboarding cost.</p>
+</div>
+<div class="app-item">
+<h4>📌 Open agent ecosystem</h4>
+<p>If MATM becomes an open standard, developers could share agent trajectory datasets, similar to HuggingFace for model weights. This shifts the agent learning curve from 'every agent starts from zero' to 'standing on the shoulders of the entire community.'</p>
+</div>
+
+
+<h2>🧠 自我內化</h2>
+<div class="one-liner">
+<p>MATM's core insight: agent trajectories are not disposable waste but reusable procedural knowledge assets. This has direct implications for Hermes architecture: our current memory module only stores 'results' (summaries), but the most valuable part is the 'path' (what I did, what I tried, where I failed). If we could log complete tool-call trajectories (not just final outputs), cross-session learning efficiency would dramatically improve. This paper gives a clear engineering direction: add trajectory-level logging to Hermes memory with cross-profile retrieval support.</p>
+</div>
+
+<p style="margin-top:2rem;color:#8b949e;font-size:.85rem">
+  📎 論文連結：<a href="https://arxiv.org/abs/2606.19911" target="_blank">arxiv.org/abs/2606.19911</a>
+</p>
+
+</body>
+</html>
