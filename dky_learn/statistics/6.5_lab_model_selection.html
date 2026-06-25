@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6.5 Lab: Linear Model Selection and Regularization - ISLP Statistical Learning</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .6rem;border-radius:12px;font-size:.8rem}h2{color:var(--accent2);font-size:1.5rem;margin:2rem 0 .8rem;border-left:3px solid var(--accent2);padding-left:.8rem}h3{color:var(--accent);font-size:1.2rem;margin:1.5rem 0 .5rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;font-size:.9rem}code{font-family:'JetBrains Mono','Fira Code',monospace;font-size:.85rem}.ref-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;margin:1rem 0}.key-concept{background:var(--tag-bg);border-left:4px solid var(--accent);padding:1rem 1.2rem;border-radius:0 8px 8px 0;margin:1rem 0}.formula{background:var(--code-bg);padding:1rem 1.5rem;border-radius:8px;margin:1rem 0;overflow-x:auto}.comparison-table{width:100%;border-collapse:collapse;margin:1rem 0}.comparison-table th{background:var(--tag-bg);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.6rem .8rem;border:1px solid var(--border)}.pros-cons{display:flex;gap:1rem;margin:1rem 0;flex-wrap:wrap}.pros,.cons{flex:1;min-width:280px;padding:1rem;border-radius:8px}.pros{background:#1a2f1a;border:1px solid #2ea043}.cons{background:#2f1a1a;border:1px solid #da3633}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem}.quote{background:var(--tag-bg);border-left:4px solid var(--warn);padding:1rem 1.2rem;border-radius:0 8px 8px 0;margin:1rem 0;font-style:italic}.scenario{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;margin:1rem 0}.scenario h4{color:var(--accent2);margin-bottom:.5rem}footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);text-align:center;color:#8b949e;font-size:.85rem}a{color:var(--accent)}@media(max-width:600px){body{padding:1rem}h1{font-size:1.5rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>6.5 Lab: Linear Model Selection and Regularization</h1>
+  <div class="meta">
+    <span>ISLP 6.5 Lab</span>
+    <span>pp. 273-289</span>
+    <span>approx 45 min</span>
+  </div>
+  <div class="tags">
+    <span class="tag">lab</span>
+    <span class="tag">best-subset</span>
+    <span class="tag">ridge</span>
+    <span class="tag">lasso</span>
+    <span class="tag">cv</span>
+    <span class="tag">high-dim</span>
+  </div>
+</header>
+
+<h2>Theory</h2>
+<div class="ref-box">
+<strong>ISLP Textbook:</strong><br>
+James, Witten, Hastie, Tibshirani (2021). <em>An Introduction to Statistical Learning</em>, Ch6 Lab: Linear Model Selection and Regularization, pp. 273-289.
+</div>
+
+<div class="key-concept">
+<strong>Core Concept (Life Analogy):</strong><br>
+Model selection is like packing for a trip: you can't bring everything. Best Subset tries every 5-item combo (exhaustive but slow). Forward Stepwise adds one at a time (fast but greedy). Ridge shrinks everything (no one left behind). Lasso brutally zeros out items (only essentials survive). This lab ties all Ch6 theory into runnable code you can execute in Colab in 30 seconds.
+</div>
+
+<h2>Formulas</h2>
+<div class="formula">
+\[ \text{Ridge: } \min_\beta \left\{ \sum_{i=1}^n (y_i - X_i\beta)^2 + \lambda \sum_{j=1}^p \beta_j^2 \right\} \]
+<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">L2 penalty shrinks all coefficients toward zero but never to exactly zero</p>
+</div>
+<div class="formula">
+\[ \text{Lasso: } \min_\beta \left\{ \sum_{i=1}^n (y_i - X_i\beta)^2 + \lambda \sum_{j=1}^p |\beta_j| \right\} \]
+<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">L1 penalty can force coefficients to exactly zero: automatic feature selection</p>
+</div>
+
+<h2>Full Pipeline Code</h2>
+<h3>Best Subset + Ridge CV + Lasso CV + 5-Fold CV + p&gt;n Scenario</h3>
+<p style="color:#8b949e;margin-bottom:.8rem">Complete end-to-end implementation: data generation, best subset search, Ridge/Lasso with cross-validated alpha, model comparison via 5-fold CV, and high-dimensional (p&gt;n) stress test.</p>
+<pre><code class="language-python">import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, RidgeCV, LassoCV
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+from itertools import combinations
+import warnings
+warnings.filterwarnings('ignore')
+
+# 1. Generate synthetic data
+np.random.seed(42)
+n, p = 200, 30
+
+# Only 5 features matter (sparse true model)
+beta_true = np.zeros(p)
+beta_true[[0, 1, 4, 9, 15]] = [3.0, -2.0, 1.5, 0.8, -1.2]
+
+X = np.random.randn(n, p)
+X[:, 5:] += 0.3 * X[:, :5].sum(axis=1, keepdims=True) / 5
+y = X @ beta_true + np.random.randn(n) * 1.5
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=1)
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+print("Data:", X_train.shape, X_test.shape)
+baseline = mean_squared_error(y_test, np.full_like(y_test, y_train.mean()))
+print("Baseline MSE:", baseline)
+
+# 2. Best Subset Selection (k=5)
+print("\n--- Best Subset (k=5) ---")
+best_score = float('inf')
+best_combo = None
+for combo in combinations(range(p), 5):
+    lr = LinearRegression().fit(X_train_scaled[:, combo], y_train)
+    mse = mean_squared_error(y_test, lr.predict(X_test_scaled[:, combo]))
+    if mse < best_score:
+        best_score = mse
+        best_combo = combo
+
+true_important = {0, 1, 4, 9, 15}
+found = set(best_combo[:5])
+print(f"Best 5-feature subset: {sorted(best_combo)}")
+print(f"Test MSE: {best_score:.4f}")
+print(f"True signal recall: {len(true_important & found)}/5")
+
+# 3. Ridge Regression
+print("\n--- Ridge ---")
+ridge_cv = RidgeCV(alphas=np.logspace(-3, 3, 50))
+ridge_cv.fit(X_train_scaled, y_train)
+y_pred_ridge = ridge_cv.predict(X_test_scaled)
+print(f"Best alpha: {ridge_cv.alpha_:.4f}")
+print(f"Test MSE: {mean_squared_error(y_test, y_pred_ridge):.4f}")
+
+# 4. Lasso Regression
+print("\n--- Lasso ---")
+lasso_cv = LassoCV(alphas=np.logspace(-3, 1, 50), cv=5,
+                   max_iter=10000, random_state=42)
+lasso_cv.fit(X_train_scaled, y_train)
+y_pred_lasso = lasso_cv.predict(X_test_scaled)
+nz = np.sum(lasso_cv.coef_ != 0)
+selected = np.where(lasso_cv.coef_ != 0)[0]
+print(f"Best alpha: {lasso_cv.alpha_:.4f}, Non-zero coefs: {nz}")
+print(f"Selected: {sorted(selected)}")
+recall = len(true_important & set(selected)) / len(true_important)
+print(f"Recall: {recall:.0%}")
+print(f"Test MSE: {mean_squared_error(y_test, y_pred_lasso):.4f}")
+
+# 5. 5-Fold CV Comparison
+print("\n--- 5-Fold CV ---")
+models = {
+    'OLS': LinearRegression(),
+    'Ridge': Ridge(alpha=ridge_cv.alpha_),
+    'Lasso': Lasso(alpha=lasso_cv.alpha_, max_iter=10000)
+}
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+for name, model in models.items():
+    scores = cross_val_score(model, X_train_scaled, y_train,
+                             cv=kf, scoring='neg_mean_squared_error')
+    print(f"{name}: CV MSE = {-scores.mean():.4f} (+/- {scores.std():.4f})")
+
+# 6. High-Dimensional: p > n
+print("\n--- High-Dim: p=100, n=50 ---")
+np.random.seed(0)
+beta_big = np.zeros(100)
+beta_big[[0, 1, 2]] = [5.0, -3.0, 2.0]
+Xb = np.random.randn(50, 100)
+yb = Xb @ beta_big + np.random.randn(50) * 0.5
+Xb_tr, Xb_te, yb_tr, yb_te = train_test_split(
+    Xb, yb, test_size=15, random_state=1)
+scb = StandardScaler()
+Xb_tr_s = scb.fit_transform(Xb_tr)
+Xb_te_s = scb.transform(Xb_te)
+
+ridge_big = RidgeCV(alphas=np.logspace(-2, 2, 30)).fit(Xb_tr_s, yb_tr)
+lasso_big = LassoCV(alphas=np.logspace(-2, 1, 30), cv=5,
+                    max_iter=10000, random_state=42).fit(Xb_tr_s, yb_tr)
+
+print(f"Ridge (p>n): MSE={mean_squared_error(yb_te, ridge_big.predict(Xb_te_s)):.4f}")
+print(f"Lasso (p>n): MSE={mean_squared_error(yb_te, lasso_big.predict(Xb_te_s)):.4f}")
+print(f"Lasso selected: {np.sum(lasso_big.coef_ != 0)}/100")
+print("\nALL DONE")</code></pre>
+
+<h3>Bonus: Lasso Coefficient Path Visualization</h3>
+<p style="color:#8b949e;margin-bottom:.8rem">Show how true signal features (thick lines) survive regularization while noise features (thin gray) die at low alpha.</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+
+alphas = np.logspace(-3, 1, 100)
+coefs = []
+for a in alphas:
+    lasso = Lasso(alpha=a, max_iter=10000)
+    lasso.fit(X_train_scaled, y_train)
+    coefs.append(lasso.coef_)
+coefs = np.array(coefs)
+
+plt.figure(figsize=(12, 6))
+for i in [0, 1, 4, 9, 15]:
+    plt.plot(alphas, coefs[:, i], linewidth=2, label=f'Feature {i} (true)')
+for i in [2, 3, 5, 6, 7, 8, 10, 11, 12]:
+    plt.plot(alphas, coefs[:, i], alpha=0.3, linewidth=0.8, color='gray')
+plt.xscale('log')
+plt.axvline(lasso_cv.alpha_, color='red', linestyle='--',
+            label=f'CV best alpha={lasso_cv.alpha_:.3f}')
+plt.xlabel('Alpha (regularization strength)')
+plt.ylabel('Coefficient value')
+plt.title('Lasso Coefficient Paths: True Signals Survive Longer')
+plt.legend(fontsize=8)
+plt.tight_layout()
+plt.show()</code></pre>
+
+<h2>Method Comparison</h2>
+<table class="comparison-table">
+<tr><th>Method</th><th>Feature Selection</th><th>Speed (p=30)</th><th>p &gt; n OK</th><th>Interpretability</th></tr>
+<tr><td>Best Subset</td><td>Explicit k best</td><td>Slow: C(p,k)</td><td>No</td><td>High</td></tr>
+<tr><td>Forward Stepwise</td><td>Greedy path</td><td>Fast</td><td>No</td><td>Medium</td></tr>
+<tr><td>Ridge</td><td>None (all kept)</td><td>Fast</td><td>Yes</td><td>Low</td></tr>
+<tr><td>Lasso</td><td>Auto zero-out</td><td>Fast</td><td>Yes (n max)</td><td>High</td></tr>
+<tr><td>PCR/PLS</td><td>Dim reduction</td><td>Medium</td><td>Yes</td><td>Low</td></tr>
+</table>
+
+<h2>Application Scenarios</h2>
+<div class="scenario">
+<h4>Genomics: 20000 genes, 300 patients</h4>
+<p>Lasso is the standard tool: it automatically selects the handful of genes actually associated with the disease. Ridge would keep all 20000 genes with tiny coefficients (impossible to interpret). Best Subset is computationally impossible (C(20000, k) is astronomical).</p>
+<ul>
+<li>Use LassoCV or ElasticNetCV</li>
+<li>Always standardize first (gene expression scales vary wildly)</li>
+<li>Report selected genes + their coefficient signs</li>
+</ul>
+</div>
+
+<div class="scenario">
+<h4>Finance: 50 factors, 500 monthly returns</h4>
+<p>Cross-validated Ridge often wins here because all factors likely matter a little bit (macroeconomic forces), and n &gt; p means we can afford keeping everything. Forward Stepwise is popular in finance literature for interpretability (Fama-MacBeth tradition).</p>
+<ul>
+<li>RidgeCV for prediction, Forward Stepwise for reporting</li>
+<li>Use time-series CV (not random K-Fold) to respect temporal order</li>
+</ul>
+</div>
+
+<h2>Pros and Cons</h2>
+<div class="pros-cons">
+<div class="pros">
+<h4>Pros</h4>
+<ul>
+<li>All methods sklearn-native with CV wrappers</li>
+<li>Lasso gives interpretable sparse models automatically</li>
+<li>Ridge handles p &gt; n gracefully without feature count limits</li>
+<li>Full pipeline runs in seconds on Colab free tier</li>
+</ul>
+</div>
+<div class="cons">
+<h4>Cons</h4>
+<ul>
+<li>Best Subset impractical for p &gt; 20</li>
+<li>Lasso can be unstable with correlated features (arbitrarily picks one)</li>
+<li>Cross-validation alpha selection is noisy for small n</li>
+<li>All methods assume linearity (non-linear relationships need Ch7)</li>
+</ul>
+</div>
+</div>
+
+<h2>Key Quote</h2>
+<div class="quote">
+<strong>"Regularization is not optional in high dimensions - it is survival."</strong><br>
+<span style="font-size:.85rem;color:#8b949e">When p &gt; n, OLS has infinitely many perfect fits. You MUST bet on simplicity (sparsity or shrinkage) to generalize.</span>
+</div>
+
+<h2>Self-Reflection</h2>
+<p style="color:#8b949e;margin:1rem 0">
+For Hermes: This lesson mirrors our own agent architecture debates. Lasso-style "zero-out irrelevant features" maps to skill pruning (which skills actually matter?). Ridge-style "keep everything shrunk" maps to RAG retrieval (all memories contribute, but importance-weighted). The key insight from Ch6: <em>there is no universally best method</em> - the right choice depends entirely on your data structure and what you value (prediction vs interpretability, dense vs sparse truth). Same for agent memory systems: no single architecture dominates across all scenarios (as arXiv 2606.24775 also found this week).
+</p>
+
+<footer>
+  <p>ISLP Course | learn.dky.tw | Last updated: 2026-06-25</p>
+  <p><a href="index.html">All Chapters</a></p>
+</footer>
+
+<script>hljs.highlightAll();</script>
+</body>
+</html>
