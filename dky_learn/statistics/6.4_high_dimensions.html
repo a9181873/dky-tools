@@ -86,30 +86,30 @@ print(f"\nLasso selected {np.sum(lasso.coef_ != 0)} non-zero coefs (true model h
 
 <h2>📊 應用場景</h2>
 <div class="app-item">
-<h4>Gene Expression Analysis</h4>
-<p>5000 genes x 200 patients. Goal: find genes associated with cancer prognosis.</p>
+<h4>基因表現分析</h4>
+<p>5000 個基因 × 200 位病患。目標：找出與癌症預後相關的關鍵基因。</p>
 <ul>
-  <li>Lasso auto-selects dozens of candidate genes</li>
-  <li>Ridge distributes weights among correlated gene groups</li>
+  <li>Lasso 自動篩選出數十個候選基因</li>
+  <li>Ridge 將權重分散到相關基因群組中</li>
 </ul>
 </div>
 <div class="app-item">
-<h4>Marketing Mix Modeling</h4>
-<p>Hundreds of media channel variables, only a few quarters of weekly data.</p>
+<h4>行銷組合建模</h4>
+<p>數百個媒體管道變數，僅有少數幾季的週資料可供建模。</p>
 <ul>
-  <li>Regularization forces model to keep only truly predictive channels</li>
-  <li>Avoids mistaking noise for media effects</li>
+  <li>正則化強制模型只保留真正具預測力的管道</li>
+  <li>避免將雜訊誤判為媒體效果</li>
 </ul>
 </div>
 
 
 <h2>📊 維度情境比較表</h2>
 <table>
-<tr><th>Dimension</th><th>OLS</th><th>Ridge</th><th>Lasso</th></tr>
-<tr><td>p < n (low)</td><td>OK unbiased</td><td>Small bias, lower var</td><td>Can do variable selection</td></tr>
-<tr><td>p ~ n (medium)</td><td>High variance</td><td>Stable</td><td>Good choice</td></tr>
-<tr><td>p > n (high)</td><td>CRASH (no unique solution)</td><td>Must use</td><td>Best (sparsity)</td></tr>
-<tr><td>p >> n (ultra-high)</td><td>Completely unusable</td><td>Usable with caution</td><td>OK if truly sparse</td></tr>
+<tr><th>維度情境</th><th>OLS</th><th>Ridge</th><th>Lasso</th></tr>
+<tr><td>p &lt; n（低維度）</td><td>無偏估計</td><td>微小偏差、降低變異</td><td>可做變數篩選</td></tr>
+<tr><td>p ~ n（中維度）</td><td>高變異</td><td>穩定</td><td>理想選擇</td></tr>
+<tr><td>p &gt; n（高維度）</td><td>崩潰（無唯一解）</td><td>必須使用</td><td>最佳（稀疏性）</td></tr>
+<tr><td>p &gt;&gt; n（超高維度）</td><td>完全不可用</td><td>謹慎可用</td><td>若真稀疏則可行</td></tr>
 
 </table>
 
@@ -118,29 +118,29 @@ print(f"\nLasso selected {np.sum(lasso.coef_ != 0)} non-zero coefs (true model h
 <div class="pros">
 <h4>✅ 優勢</h4>
 <ul>
-  <li>✅ Regularization is the only way in high dimensions</li>
-  <li>✅ Lasso does both estimation + variable selection</li>
-  <li>✅ Ridge is more stable under high collinearity</li>
+  <li>✅ 正則化是高維度情境的唯一解方</li>
+  <li>✅ Lasso 同時做到估計與變數篩選</li>
+  <li>✅ Ridge 在高度共線性下更穩定</li>
 </ul>
 </div>
 <div class="cons">
 <h4>⚠️ 限制</h4>
 <ul>
-  <li>⚠️ Any model in high dimensions has limited interpretability</li>
-  <li>⚠️ Cross-validation may be unstable when p >> n</li>
-  <li>⚠️ Bet on sparsity may not hold for all problems</li>
+  <li>⚠️ 高維度下任何模型的可解釋性都有限</li>
+  <li>⚠️ p &gt;&gt; n 時交叉驗證可能不穩定</li>
+  <li>⚠️ 稀疏性假設不適用於所有問題</li>
 </ul>
 </div>
 </div>
 
 <div class="quote">
-<p>In high dimensions, you must bet on sparsity - believe that only a few predictors truly matter. This is not an option; it is a survival requirement.</p>
-<p class="attr">— Adapted from Hastie, Tibshirani & Friedman</p>
+<p>在高維度中，你必須賭稀疏性——相信只有少數預測變數真的重要。這不是選項，而是生存要件。</p>
+<p class="attr">— 改編自 Hastie, Tibshirani & Friedman</p>
 </div>
 
 <h2>🧠 自我內化</h2>
 <div class="key-concept">
-<p>This chapter's insight for Hermes: Hermes' skill system (skills/) is itself a form of 'regularization' - instead of stuffing all knowledge into the prompt, only load truly relevant skills. The core contradiction of high-dimensional problems (too many variables, too few observations) is isomorphic to the fundamental dilemma of agent prompt engineering (limited context, infinite information). Lasso bets on sparsity; Hermes bets on 'load only relevant skills'. This is not a coincidence - it's the same mathematical principle.</p>
+<p>本章對 Hermes 的啟示：Hermes 的 skill 系統（skills/）本身就是一種「正則化」——與其把所有知識塞進 prompt，只載入真正相關的技能。高維度問題的核心矛盾（變數太多、觀測太少）與 agent prompt engineering 的根本困境（上下文有限、資訊無限）異質同構。Lasso 賭的是稀疏性；Hermes 賭的是「只載入相關技能」。這不是巧合——是相同的數學原理。</p>
 </div>
 
 <script>hljs.highlightAll();</script>
