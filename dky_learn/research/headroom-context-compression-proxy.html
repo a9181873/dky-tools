@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Headroom: AI Agent Context 壓縮代理層 - DKY</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d;--red:#f85149}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;margin-left:260px;padding:40px;max-width:900px}
+h1{font-size:1.5em;color:#fff;margin-bottom:4px}
+h2{font-size:1.1em;color:var(--accent);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.meta{color:var(--muted);font-size:.85em;margin-bottom:20px}
+.meta a{color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:16px 0}
+table{width:100%%;border-collapse:collapse;margin:10px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{background:#1a1a2e;color:var(--accent);font-weight:600;font-size:.85em}
+td{font-size:.9em}
+.one-liner{font-size:1.1em;color:var(--green);font-weight:600;padding:12px 0;border-left:3px solid var(--green);padding-left:16px;margin:16px 0}
+.warn{background:#2a1a1a;border-left:3px solid var(--red);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:10px 0}
+.app-box{background:#142a1a;border-left:3px solid var(--green);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:8px 0}
+@media(max-width:768px){body{margin-left:0;padding:20px}}
+</style></head>
+<body>
+<h1>Headroom: LLM Agent Context 壓縮代理層</h1>
+<div class="meta"><a href="https://github.com/headroomlabs-ai/headroom">headroomlabs-ai/headroom</a> · Python/Rust · MIT<br>Context 優化層，透過多階段壓縮 pipeline + 可逆 CCR 架構，為 AI Agent 節省 60-95%% token。</div>
+<div class="one-liner">不是另一個 Agent 框架，而是插在 Agent 和 LLM 之間的透明壓縮代理層。SmartCrusher 壓縮 tool output + CCR 可逆快取，讓 LLM 在需要時回溯原始內容。</div>
+<div class="card"><h2>核心架構</h2><table>
+<tr><th>階段</th><th>功能</th><th>token 節省</th></tr>
+<tr><td>CacheAligner</td><td>提取 system prompt 動態內容（日期/UUID），穩定 prefix 提高 KV cache 命中</td><td>間接 (cache hit)</td></tr>
+<tr><td>SmartCrusher</td><td>統計方法壓縮 JSON array tool output，保留 errors/anomalies</td><td>主要來源</td></tr>
+<tr><td>ContentRouter</td><td>依內容型別路由到 SmartCrusher(JSON) / CodeCompressor(AST) / Kompress-base(ML prose)</td><td>路由決策</td></tr>
+<tr><td>ContextManager</td><td>Rolling Window 或 Intelligent Context (recency+semantic+TOIN 加權評分)</td><td>最終適配</td></tr>
+</table></div>
+<div class="card"><h2>CCR (Compress-Cache-Retrieve) 可逆架構</h2>
+<p>與論文 2606.10209 的單向 pruning 不同，Headroom 的 CCR 是可逆的：壓縮後的內容被快取，LLM 需要細節時可回溯取回原始內容。這解決了 pruning 的最大風險 — 丟掉後才發現需要。</p>
+<table>
+<tr><th>面向</th><th>論文 2606.10209</th><th>Headroom</th></tr>
+<tr><td>層級</td><td>語義層（整對 tool call 的留/丟/摘要）</td><td>Token 層（JSON/程式碼/散文壓縮）</td></tr>
+<tr><td>可逆性</td><td>不可逆（pruned = 永久丟棄）</td><td>可逆（CCR cache 可回溯）</td></tr>
+<tr><td>部署</td><td>研究原型</td><td>生產級 proxy</td></tr>
+<tr><td>Provider</td><td>GPT-5 only</td><td>OpenAI/Anthropic/Gemini/Cohere + 100+ via LiteLLM</td></tr>
+</table></div>
+<div class="card"><h2>Provider 支援</h2>
+<table>
+<tr><th>方式</th><th>支援</th></tr>
+<tr><td>Native SDK</td><td>OpenAI (GPT-4o), Anthropic (Claude), Google Gemini, Cohere Command</td></tr>
+<tr><td>OpenAI-compatible</td><td>Ollama, vLLM, Together, Groq, Fireworks, LM Studio</td></tr>
+<tr><td>LiteLLM callback</td><td>100+ providers (Bedrock, Azure, Vertex AI, Mistral)</td></tr>
+<tr><td>Framework</td><td>LangChain, Agno, Strands, LiteLLM, OpenClaw plugin</td></tr>
+</table></div>
+<div class="card"><h2>智能模組</h2>
+<table>
+<tr><th>模組</th><th>功能</th></tr>
+<tr><td>TOIN (Tool Output Intelligence Network)</td><td>學習壓縮模式，根據 LLM 回溯頻率調整策略</td></tr>
+<tr><td>headroom wrap</td><td>Ephemeral agent proxying — 臨時包裝任何 agent 指令</td></tr>
+<tr><td>headroom init</td><td>Persistent agent 設定 — 持續代理配置</td></tr>
+<tr><td>headroom learn</td><td>Session 分析與失敗學習</td></tr>
+<tr><td>RTK (Rust Token Killer)</td><td>Rust 原生高效 token 削減 + output shaping</td></tr>
+</table></div>
+<div class="card"><h2>對 Hermes 的整合評估</h2>
+<div class="app-box"><b>高價值：SmartCrusher 處理 tool output bloat</b><br>web_extract 和 browser_snapshot 常回傳數千 tokens HTML/JSON，大量是 noise。SmartCrusher 的統計壓縮直接命中這痛點。</div>
+<div class="app-box"><b>中價值：CacheAligner 優化 KV cache</b><br>我們的 system prompt 含大量靜態指令。CacheAligner 穩定 prefix 可提高 provider 端 cache 命中率，降低延遲與成本。</div>
+<div class="app-box"><b>低摩擦整合：LiteLLM callback</b><br>我們已有 litellm-model-proxy skill。Headroom 透過 LiteLLM callback 可無縫插入壓縮層，不需改 agent 程式碼。</div>
+<div class="warn"><b>風險</b><br>Rust core (headroom-proxy) 需在 ARM64 驗證編譯。CCR caching 的 latency overhead 需實測。Python-Rust bridge 的穩定性需評估。</div>
+</div>
+<div class="card"><h2>與論文的互補定位</h2>
+<p style="font-size:.85em">Headroom 和論文 2606.10209 可疊加使用：Headroom 處理 token-level 壓縮（SmartCrusher 削減 tool output），論文 C4 policy 處理語義層的保留/摘要策略。兩者組合可同時實現 60-95%% token 節省（Headroom）+ 20.6pp 完成率提升（C4 vs C2）。</p></div>
+<p style="color:var(--muted);font-size:.8em;margin-top:30px"> <a href="/research/" style="color:var(--accent)">回論文筆記首頁</a> · <a href="/" style="color:var(--accent)">DKY 學習中心</a></p>
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body></html>
