@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent-as-a-Router - DKY</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d;--red:#f85149}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;margin-left:260px;padding:40px;max-width:900px}
+h1{font-size:1.5em;color:#fff;margin-bottom:4px}
+h2{font-size:1.1em;color:var(--accent);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.meta{color:var(--muted);font-size:.85em;margin-bottom:20px}
+.meta a{color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:16px 0}
+table{width:100%%;border-collapse:collapse;margin:10px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)}
+th{background:#1a1a2e;color:var(--accent);font-weight:600;font-size:.85em}
+td{font-size:.9em}
+.one-liner{font-size:1.1em;color:var(--green);font-weight:600;padding:12px 0;border-left:3px solid var(--green);padding-left:16px;margin:16px 0}
+.warn{background:#2a1a1a;border-left:3px solid var(--red);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:10px 0}
+.app-box{background:#142a1a;border-left:3px solid var(--green);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:8px 0}
+@media(max-width:768px){body{margin-left:0;padding:20px}}
+</style></head>
+<body>
+<h1>Agent-as-a-Router: Agentic Model Routing for Coding Tasks</h1>
+<div class="meta">arXiv: <a href="https://arxiv.org/abs/2606.22902">2606.22902</a> · 2026-06-22 · NUS/Alibaba/UC Berkeley/ZJU/HKUST<br>Pengfei Zhou et al. · <a href="https://github.com/LanceZPF/agent-as-a-router">GitHub</a></div>
+<div class="one-liner">模型路由的瓶頸不是推理能力不足，而是資訊赤字。給 router per-dimension 歷史表現就提升 15.3%%；做成 C-A-F loop 累積執行經驗後，ID 和 OOD 都碾壓靜態 router。</div>
+<div class="card"><h2>關鍵數據: Route 表現全對照</h2><table>
+<tr><th>Router</th><th>ID AvgPerf%%</th><th>ID CumReg</th><th>OOD AvgPerf%%</th><th>類型</th></tr>
+<tr><td>Oracle</td><td>57.00</td><td>0</td><td>75.89</td><td>理論上界</td></tr>
+<tr><td style="color:var(--green);font-weight:700">ACRouter (ours)</td><td style="color:var(--green);font-weight:700">49.98</td><td style="color:var(--green);font-weight:700">205.5</td><td style="color:var(--green);font-weight:700">62.50</td><td>Agent-as-a-Router</td></tr>
+<tr><td>DimensionBest</td><td>47.50</td><td>277.4</td><td>N/A</td><td>Static Heuristic</td></tr>
+<tr><td>LinUCB</td><td>46.84</td><td>296.9</td><td>49.82</td><td>Online Bandit</td></tr>
+<tr><td>Qwen3.5-0.8B-FT</td><td>46.41</td><td>309.1</td><td>55.36</td><td>Static Trained</td></tr>
+<tr><td>Always-Opus 4.6</td><td>43.83</td><td>387.1</td><td>57.14</td><td>Single-Model</td></tr>
+<tr><td>LogReg</td><td>47.26</td><td>284.4</td><td style="color:var(--red)">19.64</td><td>Static Trained</td></tr>
+<tr><td>Random</td><td>38.75</td><td>533.6</td><td>31.25</td><td>Baseline</td></tr>
+</table><p style="font-size:.85em">ID: 2,919 tasks (9 coding dims)。OOD: 176 tasks (agentic programming)。靜態 classifier 在 OOD 崩到 8-21%%。</p></div>
+<div class="card"><h2>資訊赤字診斷</h2><table>
+<tr><th>Ablation</th><th>AvgPerf%%</th><th>Perf/$</th><th>解釋</th></tr>
+<tr><td>Oracle</td><td>57.00</td><td>8.20</td><td>每題選最佳模型</td></tr>
+<tr><td>DimensionBest</td><td>47.50</td><td>3.69</td><td>用 probing set prior</td></tr>
+<tr><td>Vanilla (zero-shot)</td><td>41.41</td><td>1.97</td><td>標準 LLM router</td></tr>
+<tr><td>+Dimension</td><td>41.18</td><td>1.81</td><td>告知 dimension 反略差</td></tr>
+<tr><td style="font-weight:700">+Perf stats</td><td style="font-weight:700;color:var(--green)">47.74</td><td>1.71</td><td>給 per-dimension 表現，+15.3%%</td></tr>
+</table><p style="font-size:.85em">Claude Sonnet 4.6 做 router，2,919 tasks。給 prior stats 後 LLM router 超越 heuristic DimensionBest (47.74 vs 47.50)。</p></div>
+<div class="card"><h2>C-A-F Loop 機制拆解</h2><table>
+<tr><th>元件</th><th>作用</th><th>ACRouter 實作</th></tr>
+<tr><td>Context c_i</td><td>累積歷史回饋+任務描述+metadata</td><td>DimensionBest prior + kNN top-10 + task embedding</td></tr>
+<tr><td>Action a_i</td><td>從 model pool 選模型執行</td><td>Qwen3.5-0.8B fine-tuned + weighted voting</td></tr>
+<tr><td>Feedback f_i</td><td>Verifier 回傳 score+token cost</td><td>AST+sandbox exec+LLM-as-Judge 加權</td></tr>
+<tr><td>Memory H</td><td>向量儲存所有歷史 (task,model,score,cost)</td><td>voyage-code-3/BGE-large, kNN top-10, FIFO 20K</td></tr>
+</table><p style="font-size:.85em">C-A-F = contextual multi-armed bandit。Cumulative regret 為 streaming metric。Orchestrator 成本極低 (/usr/bin/bash.054/M tokens)。</p></div>
+<div class="card"><h2>8 模型 Pool: 無單一王者</h2><table>
+<tr><th>模型</th><th>Avg%%</th><th>最強維度</th><th>最強 vs Opus</th></tr>
+<tr><td>Claude Opus 4.6</td><td>42.9%%</td><td>-</td><td>-</td></tr>
+<tr><td>GLM-5</td><td>-</td><td>Algorithm Design</td><td style="color:var(--green)">+86%%</td></tr>
+<tr><td>Qwen3-Max</td><td>-</td><td>Test Generation</td><td style="color:var(--green)">+111%%</td></tr>
+<tr><td>Kimi-K2.5</td><td>-</td><td>Data Science</td><td style="color:var(--green)">+30%%</td></tr>
+</table><p style="font-size:.85em">5 個不同模型在 9 個 dimension 中分別奪冠。Opus 總成本是 Kimi 的 ~12x。</p></div>
+<div class="card"><h2>落地應用建議</h2>
+<div class="app-box"><b>1. caf-router 加 Verifier+Memory</b><br>從靜態升級為動態。每次子 agent 完成記錄 (task,model,score,cost) 進向量 Memory，下次 kNN 檢索相似 task 的歷史表現。Agnes 免費模型做 Orchestrator。</div>
+<div class="app-box"><b>2. 子 agent 模型池建立 per-dimension 表現矩陣</b><br>NVIDIA NIM 4 模型推理/程式強但事實弱。建立 per-task-type 表現矩陣輔助 routing。</div>
+<div class="app-box"><b>3. 用 cumulative regret 取代成功率做 routing 指標</b><br>錯選模型的 score gap x 該 task type 頻率 = regret。比單純成功率更能捕捉 routing 失誤成本。</div>
+<div class="app-box"><b>4. 成本分離: routing policy 用最便宜模型</b><br>ACRouter 用 Qwen3.5-0.8B 做 Orchestrator。我們的 routing 決策用 Agnes Free 或本地規則。</div>
+</div>
+<div class="warn">限制: OOD test 僅 176 tasks，限 coding agent 場景。我們的子 agent 任務含內容生成、翻譯、爬蟲等非 coding 任務，需自建 per-task-type 矩陣。GPT-5.4 backend 跑 OOD 達 75%%，代表 backend 演進本身也有顯著效果。</div>
+<div class="card"><h2>我們的筆記</h2><p style="font-size:.85em">直接驗證 caf-router 方向同時指出關鍵缺陷：靜態 routing 無法泛化。升級路徑：加 Verifier（記錄實際執行結果）、加 Memory（kNN 檢索歷史）、用輕量模型做 Orchestrator。起點：為子 agent 任務建立 (task_type, model, success, cost) log。</p></div>
+<p style="color:var(--muted);font-size:.8em;margin-top:30px"> <a href="/research/" style="color:var(--accent)">回論文筆記首頁</a> · <a href="/" style="color:var(--accent)">DKY 學習中心</a></p>
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body></html>
