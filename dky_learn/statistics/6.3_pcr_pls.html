@@ -3,223 +3,538 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>§6.3 降維方法：PCR 與 PLS — ISLP 統計學習課程</title>
+<title>6.3 維度縮減方法 — ISLP 統計學習課程</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:1rem;font-size:.75rem}h2{color:var(--accent);margin:2rem 0 .8rem;border-left:3px solid var(--accent);padding-left:.7rem;font-size:1.3rem}h3{color:var(--fg);margin:1.2rem 0 .5rem;font-size:1.05rem}.ref-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;margin:1rem 0;font-size:.9rem}.key-concept{background:linear-gradient(135deg,#1a2332,#162030);border:1px solid var(--accent);border-radius:8px;padding:1.2rem;margin:1rem 0;font-size:.92rem}.formula{background:var(--code-bg);padding:1.2rem;border-radius:6px;margin:.8rem 0;overflow-x:auto;font-size:.95rem}pre{background:var(--code-bg);padding:1.2rem;border-radius:6px;overflow-x:auto;font-size:.85rem;line-height:1.5}code{font-family:'Fira Code','Consolas',monospace}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid var(--border);padding:.6rem .8rem;text-align:left;font-size:.88rem}th{background:var(--card);color:var(--accent)}tr:nth-child(even){background:rgba(22,27,34,.5)}ul,ol{margin:.5rem 0 .5rem 1.5rem;line-height:1.8}li{margin:.3rem 0}.app-item{background:var(--card);border-left:3px solid var(--accent2);padding:.8rem 1rem;margin:.6rem 0;border-radius:0 6px 6px 0;font-size:.9rem}.app-item h4{color:var(--accent2);margin-bottom:.3rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}@media(max-width:600px){.pros-cons{grid-template-columns:1fr}}.pro-box{background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:1rem}.con-box{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:8px;padding:1rem}.pro-box h4{color:var(--accent2)}.con-box h4{color:var(--danger)}.quote-box{background:var(--card);border-left:4px solid var(--warn);padding:1rem 1.2rem;margin:1rem 0;border-radius:0 8px 8px 0;font-style:italic}.quote-box .attribution{font-size:.8rem;color:#8b949e;margin-top:.5rem;font-style:normal}.reflection{background:linear-gradient(135deg,#1f2a37,#162030);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0;font-size:.9rem;line-height:1.7}.nav-back{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.85rem;color:#8b949e}.nav-back a{color:var(--accent);text-decoration:none}.nav-back a:hover{text-decoration:underline}</style>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
 </head>
 <body>
 
 <header>
-  <h1>§6.3 降維方法：PCR 與 PLS</h1>
+  <h1>6.3 維度縮減方法</h1>
   <div class="meta">
     <span>📖 ISLP §6.3</span>
-    <span>📄 pp. 260–272</span>
-    <span class="difficulty">⭐⭐</span>
-    <span>⏱️ 約 30 分鐘</span>
+    <span>📄 pp. 261–270</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 35 分鐘</span>
   </div>
   <div class="tags">
+    <span class="tag">維度縮減</span>
+    <span class="tag">PCA</span>
     <span class="tag">PCR</span>
     <span class="tag">PLS</span>
-    <span class="tag">dimension-reduction</span>
-    <span class="tag">PCA</span>
-    <span class="tag">regularization</span>
+    <span class="tag">主成分分析</span>
+    <span class="tag">偏最小平方法</span>
+    <span class="tag">線性組合</span>
+    <span class="tag">監督式降維</span>
   </div>
 </header>
 
-<h2>📚 理論核心</h2>
+<div class="section-nav">
+  <a href="statistics/6.2_shrinkage_methods.html">← 6.2 收縮方法</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="statistics/6.4_high_dimensions.html">6.4 高維度資料 →</a>
+</div>
+
+<!-- ============================================================ -->
+<h2>6.3.0 前言：為什麼需要「壓縮」變數？</h2>
+
+<p>想像你是一位人資主管，要從 100 份履歷中挑出 5 位候選人。每份履歷有 50 個欄位：年齡、學歷、工作年資、技能數、語言能力、證照數……。直接看 50 個維度會讓你頭昏眼花。但如果你發現「年齡 + 工作年資 ≒ 經驗指標」，而「技能數 + 證照數 ≒ 專業指標」，把 50 個欄位壓縮成 3-5 個「綜合指標」再評估，效率立刻暴增——這就是<b>維度縮減（Dimension Reduction）</b>的核心精神。</p>
 
 <div class="ref-box">
-<strong>📖 課本文獻引用：</strong><br>
-James, Witten, Hastie & Tibshirani (2021). ISLP §6.3. Springer.
+James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §6.3, pp. 261–270.<br>
+相關文獻：Hastie, Tibshirani &amp; Friedman (2009) <em>The Elements of Statistical Learning</em>, §3.5（ridge regression 與 PCR 的數學等價性）。
 </div>
 
-<div class="key-concept">
-<strong>💡 核心概念（生活化比喻）：</strong><br>
-想像你有一份 50 個問題的問卷，但其中很多問題問的是同一件事（「你開心嗎？」「你快樂嗎？」「你滿意嗎？」）。與其逐題分析，不如先把 50 題壓縮成 5 個「隱藏主題」（如：情緒、收入、健康…）。PCR 就是先做 PCA 壓縮 → 再拿壓縮後的主成分做迴歸。但它有個盲點：壓縮時只看 X（不看 Y），可能把跟 Y 無關的方向也保留下來。PLS 改良了這點——它在壓縮 X 的同時，會偷看 Y 的方向，確保保留下來的成分對預測有用。兩者都是「先濃縮再分析」的降維策略，差在 PLS 是 supervised 降維，PCR 是 unsupervised。
-</div>
+<h2>6.3.0 核心概念：用「線性組合」代替原始變數</h2>
 
-<h2>📐 數學定義</h2>
+<p>前兩節我們學到兩種控制變異的方法：<strong>子集選擇</strong>（直接挑幾個變數）和<strong>收縮</strong>（把係數往零壓）。兩者都用「原始變數」<em>X</em>₁, <em>X</em>₂, …, <em>X</em><sub>p</sub>。現在第三條路出現了：<strong>先創造新的「綜合變數」</strong>，再用這些綜合變數跑迴歸。</p>
 
 <div class="formula">
-\[ \mathbf{Z}_m = \mathbf{X} \mathbf{V}_m \]
-<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">取得前 m 個主成分：X 投影到前 m 個奇異向量上</p>
+  \[
+  Z_m = \sum_{j=1}^{p} \phi_{jm} X_j, \quad m = 1, \dots, M
+  \]
 </div>
+<div class="formula-label">方程式 6.16 — 每個新變數 Zₘ 是原始 p 個變數的線性組合</div>
+
+<p>然後用這些 Zₘ 來擬合：</p>
 
 <div class="formula">
-\[ \hat{y}^{\text{PCR}} = \mathbf{Z}_m \hat{\theta} = \mathbf{X} \mathbf{V}_m (\mathbf{Z}_m^T \mathbf{Z}_m)^{-1} \mathbf{Z}_m^T \mathbf{y} \]
-<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">PCR：用 m 個主成分做最小平方法迴歸</p>
+  \[
+  y_i = \theta_0 + \sum_{m=1}^{M} \theta_m z_{im} + \epsilon_i
+  \]
 </div>
+<div class="formula-label">方程式 6.17 — 只用 M 個新變數做最小平方法</div>
+
+<p>當 M &lt; p 時，我們把問題從「估計 p+1 個 β」降到了「估計 M+1 個 θ」——這就是「縮減」的由來。關鍵眉角在於：<strong>φⱼₘ 怎麼選？</strong>本節介紹兩種方法：</p>
+
+<ol style="margin-left:2rem;margin:.8rem 0;">
+  <li><strong>主成分迴歸（PCR）</strong>：用 PCA 找最能解釋 <em>X</em> 變異的方向（非監督式）</li>
+  <li><strong>偏最小平方法（PLS）</strong>：找同時解釋 <em>X</em> 和 <em>Y</em> 的方向（監督式）</li>
+</ol>
+
+<div class="callout">
+<strong>💡 直覺類比</strong>：PCR 像是一位不問你要什麼就先幫你把房間整理好的管家——他按照「東西的變異程度」整理。PLS 則是一位先問你「今天要找什麼」再整理的管家——他把「跟你的需求相關」的東西放在最前面。
+</div>
+
+<!-- ============================================================ -->
+<h2>6.3.1 主成分分析（PCA）入門</h2>
+
+<h3>PCA 的幾何直覺</h3>
+
+<p>想像你把 100 個城市的「人口數」和「廣告支出」畫成散佈圖（課本 Figure 6.14）。這兩個變數有明顯的線性關係——人口多的城市通常廣告支出也高。PCA 問：<strong>如果只能畫一條線來代表這整坨資料，這條線該怎麼畫？</strong></p>
+
+<ul style="margin-left:2rem;margin:.8rem 0;">
+  <li><strong>第一主成分（PC1）</strong>：沿著資料變異最大的方向。把每個點「投影」到這條線上，投影點的變異數最大。</li>
+  <li><strong>第二主成分（PC2）</strong>：與 PC1 垂直（正交），且在此限制下變異數最大。</li>
+</ul>
+
+<p>數學上，PC1 的方向由 <strong>負載量（loadings）</strong> 決定：</p>
 
 <div class="formula">
-\[ \mathbf{Z}_m^{\text{PLS}} = \mathbf{X} \mathbf{W}_m, \quad \mathbf{w}_k = \arg\max_{\|\mathbf{w}\|=1} \text{Cov}(\mathbf{X}\mathbf{w}, \mathbf{y})^2 \]
-<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">PLS：每個方向最大化 X 投影與 Y 的共變異數</p>
+  \[
+  Z_1 = 0.839 \times (\text{pop} - \overline{\text{pop}}) + 0.544 \times (\text{ad} - \overline{\text{ad}})
+  \]
+</div>
+<div class="formula-label">方程式 6.19 — 廣告資料的第一主成分（φ₁₁=0.839, φ₂₁=0.544）</div>
+
+<p>約束條件：φ₁₁² + φ₂₁² = 1（避免無限放大）。得到的 zᵢ₁ 稱為<strong>主成分分數（principal component scores）</strong>——每個城市從兩個數字變成一個數字。</p>
+
+<div class="callout">
+<strong>PCA 的雙重解釋</strong>：同一條 PC1 線既是 (1) 投影變異最大的方向，也是 (2) 所有點到這條線的垂直距離平方和最小的線。前者是「保留最多資訊」，後者是「失真最小」——同一件事的兩種說法。
 </div>
 
-<h2>🐍 實作程式碼</h2>
+<h3>PCA 的 Python 實作</h3>
 
-<h3>💻 PCR 與 PLS 完整實作 — Credit 資料集預測 Balance</h3>
+<pre><code class="language-python"># PCA 示範 — 用 sklearn 對廣告資料做主成分分析
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
 
-<pre><code class="language-python">import numpy as np
-import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split, cross_val_score
+import numpy as np
+import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from sklearn.cross_decomposition import PLSRegression
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
 
-# ponytail: 最小可行實作 — PCR 手刻 + sklearn PLS，避免引進獨立 PLS 套件
-# 升級路徑：若需更多 PLS 變體（Sparse PLS、Kernel PLS），再引入專門套件
+# ponytail: 使用課本 pop vs ad 模擬資料展示 PCA 幾何
+np.random.seed(1)
+n = 100
+pop = np.random.normal(40, 10, n)
+ad  = 5 + 0.5 * pop + np.random.normal(0, 3, n)
 
-# 載入 Credit 資料集
-from ISLP import load_data
-Credit = load_data('Credit')
-X = pd.get_dummies(Credit.drop('Balance', axis=1), drop_first=True)
-y = Credit['Balance']
-
-# 標準化（PCR/PLS 必須，否則主成分被尺度主導）
+X = np.column_stack([pop, ad])
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# 分割訓練/測試
-X_train, X_test, y_train, y_test = train_test_split(
-    X_scaled, y, test_size=0.3, random_state=42)
-
-# === PCR (Principal Components Regression) ===
 pca = PCA()
-X_train_pca = pca.fit_transform(X_train)
-X_test_pca = pca.transform(X_test)
+pca.fit(X_scaled)
 
-# 追蹤不同主成分數的 MSE
-pcr_mse_train, pcr_mse_test = [], []
-max_m = min(X_train.shape[0], X_train.shape[1])  # 最多 m 個成分
-for m in range(1, max_m + 1):
-    lm = LinearRegression()
-    lm.fit(X_train_pca[:, :m], y_train)
-    y_pred_train = lm.predict(X_train_pca[:, :m])
-    y_pred_test = lm.predict(X_test_pca[:, :m])
-    pcr_mse_train.append(mean_squared_error(y_train, y_pred_train))
-    pcr_mse_test.append(mean_squared_error(y_test, y_pred_test))
+print("主成分解釋變異比例:", pca.explained_variance_ratio_)
+print("PC1 負載量 (loadings):", pca.components_[0])
+print("PC2 負載量 (loadings):", pca.components_[1])
 
-best_m_pcr = np.argmin(pcr_mse_test) + 1
-print(f"PCR 最佳主成分數: M = {best_m_pcr}")
-print(f"PCR 測試 MSE: {pcr_mse_test[best_m_pcr - 1]:.2f}")
+Z = pca.transform(X_scaled)
 
-# === PLS (Partial Least Squares) ===
-pls_mse_test = []
-for n_comp in range(1, min(X_train.shape[1], 15) + 1):
-    pls = PLSRegression(n_components=n_comp, scale=False)
-    pls.fit(X_train, y_train)
-    y_pred = pls.predict(X_test)
-    pls_mse_test.append(mean_squared_error(y_test, y_pred))
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+axes[0].scatter(pop, ad, alpha=0.6, edgecolors='k', linewidth=0.5)
+axes[0].set_xlabel('Population'); axes[0].set_ylabel('Ad Spending')
+axes[0].set_title('Original Data')
+# 畫 PC1 方向
+mean_p, mean_a = pop.mean(), ad.mean()
+pc1_dir = pca.components_[0] * np.array([pop.std(), ad.std()])
+axes[0].arrow(mean_p, mean_a, pc1_dir[0]*15, pc1_dir[1]*15,
+              color='green', width=0.5, head_width=1.5, label='PC1')
+axes[0].arrow(mean_p, mean_a, -pc1_dir[0]*15, -pc1_dir[1]*15,
+              color='green', width=0.5, head_width=1.5)
+axes[0].legend()
 
-best_n_pls = np.argmin(pls_mse_test) + 1
-print(f"PLS 最佳成分數: N = {best_n_pls}")
-print(f"PLS 測試 MSE: {pls_mse_test[best_n_pls - 1]:.2f}")
+axes[1].scatter(Z[:, 0], Z[:, 1], alpha=0.6, edgecolors='k', linewidth=0.5)
+axes[1].axhline(0, color='gray', linestyle='--')
+axes[1].axvline(0, color='gray', linestyle='--')
+axes[1].set_xlabel('PC1'); axes[1].set_ylabel('PC2')
+axes[1].set_title('PCA-Transformed Data')
 
-# === 視覺化：PCR vs PLS 成分數 vs MSE ===
-fig, ax = plt.subplots(figsize=(10, 5))
-ax.plot(range(1, max_m + 1), pcr_mse_test, 'o-', label='PCR (test)', color='#58a6ff')
-ax.plot(range(1, len(pls_mse_test) + 1), pls_mse_test, 's-', label='PLS (test)', color='#3fb950')
-ax.axvline(best_m_pcr, color='#58a6ff', linestyle='--', alpha=0.5,
-           label=f'PCR best M={best_m_pcr}')
-ax.axvline(best_n_pls, color='#3fb950', linestyle='--', alpha=0.5,
-           label=f'PLS best N={best_n_pls}')
-ax.set_xlabel('Number of Components')
-ax.set_ylabel('Test MSE')
-ax.set_title('PCR vs PLS: 成分數對預測誤差的影響')
-ax.legend()
 plt.tight_layout()
-plt.savefig('pcr_pls_comparison.png', dpi=100)
+plt.savefig('/tmp/pca_demo.png', dpi=100)
 plt.show()
-
-# === 解釋變異量（PCR 特有視角）===
-explained_var = pca.explained_variance_ratio_
-cumsum_var = np.cumsum(explained_var)
-print(f"\n前 5 個主成分解釋變異量: {cumsum_var[:5]}")
-print(f"達 90% 變異量需 M = {np.argmax(cumsum_var >= 0.9) + 1} 個成分")
-
-# === 最終比較 ===
-print(f"\n=== 總結 ===")
-print(f"PCR (M={best_m_pcr}): Test MSE = {pcr_mse_test[best_m_pcr - 1]:.2f}")
-print(f"PLS (N={best_n_pls}): Test MSE = {pls_mse_test[best_n_pls - 1]:.2f}")
-print("通常 PLS 需要更少成分達到相似或更佳表現，因為它會參考 Y。")
+print("PC1 變異: {:.2f}, PC2 變異: {:.2f}".format(
+    np.var(Z[:, 0]), np.var(Z[:, 1])))
 </code></pre>
 
-<h2>🎯 應用場景</h2>
-
-<div class="app-item">
-<h4>🧬 基因表達資料分析</h4>
-<p>基因資料常見 p ≫ n（變數遠多於樣本）。PCR 先用 PCA 將數千個基因壓縮成數十個主成分再建模，避免過配。PLS 在此場景特別強——直接找與疾病（Y）最相關的基因組合方向。</p>
+<div class="callout">
+<strong>🔑 PCA 使用要點</strong>：進行 PCA 前<strong>務必先標準化</strong>（StandardScaler）。若原始變數單位不同（如「收入：萬元」vs「年齡：歲」），未標準化時，數值範圍大的變數會主導主成分方向。單位相同時（如全部是公斤）可跳過標準化。
 </div>
 
-<div class="app-item">
-<h4>📊 行銷問卷分析</h4>
-<p>客戶滿意度問卷 50 題，許多題目高度相關。用 PLS 直接找出與「是否續約」（Y）最相關的潛在因子（如「服務品質感知」），比逐題分析更有效。</p>
+<!-- ============================================================ -->
+<h2>6.3.1 主成分迴歸（PCR）</h2>
+
+<h3>從 PCA 到迴歸：一條龍流程</h3>
+
+<p>PCR 的做法非常直覺：</p>
+
+<ol style="margin-left:2rem;margin:.8rem 0;">
+  <li>對 <em>X</em> 做 PCA，得到 M 個主成分 Z₁, …, Zₘ</li>
+  <li>用這些 Z 對 <em>Y</em> 做最小平方法迴歸</li>
+  <li>用交叉驗證挑選最佳 M</li>
+</ol>
+
+<p>關鍵假設：<strong>X 變異最大的方向，通常也是跟 Y 最相關的方向</strong>。這個假設不保證成立，但實務上常常「夠用」。</p>
+
+<h3>PCR Python 實作</h3>
+
+<pre><code class="language-python"># PCR (Principal Components Regression) 示範
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score, KFold
+from sklearn.preprocessing import StandardScaler
+
+# ponytail: 用模擬資料展示 PCR 的 bias-variance tradeoff
+np.random.seed(42)
+n, p = 80, 30
+X = np.random.normal(0, 1, (n, p))
+# Y 只跟前 5 個主成分相關
+U, S, Vt = np.linalg.svd(X, full_matrices=False)
+Z_true = U[:, :5] @ np.diag(S[:5])
+true_coef = np.array([3, -2, 1.5, -1, 0.5])
+Y = Z_true @ true_coef + np.random.normal(0, 0.5, n)
+
+# 標準化
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 用不同 M 做 PCR
+kf = KFold(n_splits=10, shuffle=True, random_state=1)
+m_range = np.arange(1, min(p+1, 31))
+cv_means, cv_stds = [], []
+
+for m in m_range:
+    pca = PCA(n_components=m)
+    Z = pca.fit_transform(X_scaled)
+    lr = LinearRegression()
+    scores = cross_val_score(lr, Z, Y, cv=kf, scoring='neg_mean_squared_error')
+    cv_means.append(-scores.mean())
+    cv_stds.append(scores.std())
+
+# 畫 CV 曲線
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+ax1.plot(m_range, cv_means, 'b-o', markersize=4)
+ax1.fill_between(m_range,
+                 np.array(cv_means) - np.array(cv_stds),
+                 np.array(cv_means) + np.array(cv_stds), alpha=0.2)
+best_m = int(m_range[np.argmin(cv_means)])
+ax1.axvline(best_m, color='green', linestyle='--', label=f'Best M={best_m}')
+ax1.set_xlabel('Number of Components M'); ax1.set_ylabel('Cross-Validation MSE')
+ax1.set_title('PCR: CV Error vs M')
+ax1.legend()
+
+# 畫係數路徑
+coefs = []
+for m in m_range:
+    pca_m = PCA(n_components=m)
+    Z_m = pca_m.fit_transform(X_scaled)
+    lr_m = LinearRegression().fit(Z_m, Y)
+    beta_m = pca_m.components_.T @ lr_m.coef_
+    coefs.append(beta_m)
+coefs = np.array(coefs)
+
+for j in range(min(5, p)):
+    ax2.plot(m_range, coefs[:, j], alpha=0.7, label=f'Var {j+1}')
+ax2.axvline(best_m, color='green', linestyle='--')
+ax2.set_xlabel('M'); ax2.set_ylabel('Coefficient (original scale)')
+ax2.set_title('PCR Coefficient Paths')
+ax2.legend(fontsize=8)
+
+plt.tight_layout()
+plt.savefig('/tmp/pcr_demo.png', dpi=100)
+plt.show()
+print(f"Best M = {best_m}, CV MSE = {cv_means[int(best_m)-1]:.4f}")
+print(f"Full LS (M={p}) CV MSE = {cv_means[-1]:.4f}")
+</code></pre>
+
+<h3>PCR 的 Bias-Variance 取捨</h3>
+
+<p>課本 Figure 6.18 用兩個模擬資料集展示了 PCR 的典型 U 型曲線：M 太小 → 高偏差（漏掉重要訊號）；M 太大 → 高變異（接近最小平方法，過度擬合）。關鍵在於交叉驗證找到「甜蜜點」。</p>
+
+<div class="callout">
+<strong>PCR ≠ 特徵選取</strong>：PCR 不是特徵選取方法。每個主成分都是<strong>所有 p 個原始變數的線性組合</strong>，你無法說「我只用 pop 不用 ad」——Z₁ 同時包含兩者。這使得 PCR 在「可解釋性」上不如 Lasso，但預測表現往往不錯。事實上，PCR 和 ridge regression 在數學上有深刻的聯繫——可以把 ridge 視為 PCR 的「連續版本」。
 </div>
 
-<div class="app-item">
-<h4>🏭 工業製程監控</h4>
-<p>化工廠感測器數百個，但彼此高度共線（溫度↑→壓力↑→流量↑）。PLS 找出與最終產品品質（Y）相關的少數潛在變量，做即時監控。</p>
+<!-- ============================================================ -->
+<h2>6.3.2 偏最小平方法（PLS）</h2>
+
+<h3>PLS 的核心創新：讓 Y 來「監督」降維</h3>
+
+<p>PCR 有一個根本的盲點：PCA 看的是「<em>X</em> 自己的變異」，但<strong>變異最大的方向 ≠ 最會預測 Y 的方向</strong>。想像你的 Y 是「銷售額」，而 X 變數中有一個是「當天氣溫」——氣溫的變異很大，但可能跟銷售額幾乎無關。PCA 會把大量權重分配給氣溫，但對預測銷售額沒有幫助。</p>
+
+<p>PLS 的解法：<strong>讓 Y 參與方向選擇</strong>。計算第一 PLS 方向時，每個 φⱼ₁ 設為「Y 對 Xⱼ 的簡單線性迴歸係數」——也就是說，<strong>跟 Y 相關性愈高的變數，權重愈大</strong>。</p>
+
+<div class="formula">
+  \[
+  Z_1^{\text{PLS}} = \sum_{j=1}^{p} \hat{\beta}_j^{\text{simple}} X_j, \quad
+  \hat{\beta}_j^{\text{simple}} = \text{Cov}(X_j, Y) / \text{Var}(X_j)
+  \]
+</div>
+<div class="formula-label">PLS 第一方向：權重正比於各變數與 Y 的相關係數</div>
+
+<p>算出 Z₁ 後，把每個 Xⱼ 對 Z₁ 做迴歸取殘差（去除已解釋的部分），再用殘差重複上述步驟找 Z₂。重複 M 次，最後用全部 Z₁…Zₘ 對 Y 做最小平方法。</p>
+
+<h3>PLS Python 實作</h3>
+
+<pre><code class="language-python"># PLS (Partial Least Squares) 示範 — 比較 PCR vs PLS
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score, KFold
+from sklearn.preprocessing import StandardScaler
+
+# ponytail: 模擬 Y 只跟某幾個特定變數相關的情境，PLS 應優於 PCR
+np.random.seed(42)
+n, p = 80, 30
+X = np.random.normal(0, 1, (n, p))
+# Y 跟第 1, 3, 5 個原始變數強相關（不是主成分！）
+Y = 3*X[:, 0] - 2*X[:, 2] + 1.5*X[:, 4] + np.random.normal(0, 0.5, n)
+
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+Y_scaled = (Y - Y.mean()) / Y.std()  # 對 PLS 建議標準化 Y
+
+kf = KFold(n_splits=10, shuffle=True, random_state=1)
+m_range = np.arange(1, 16)
+
+# PCR
+pcr_cv = []
+for m in m_range:
+    Z = PCA(n_components=m).fit_transform(X_scaled)
+    scores = cross_val_score(LinearRegression(), Z, Y, cv=kf,
+                             scoring='neg_mean_squared_error')
+    pcr_cv.append(-scores.mean())
+
+# PLS
+pls_cv = []
+for m in m_range:
+    pls = PLSRegression(n_components=m, scale=False)
+    scores = cross_val_score(pls, X_scaled, Y_scaled, cv=kf,
+                             scoring='neg_mean_squared_error')
+    pls_cv.append(-scores.mean())
+
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.plot(m_range, pcr_cv, 'b-o', markersize=5, label='PCR')
+ax.plot(m_range, pls_cv, 'r-s', markersize=5, label='PLS')
+ax.set_xlabel('Number of Components M')
+ax.set_ylabel('Cross-Validation MSE')
+ax.set_title('PCR vs PLS: CV Error Comparison')
+ax.legend()
+plt.tight_layout()
+plt.savefig('/tmp/pls_vs_pcr.png', dpi=100)
+plt.show()
+
+best_pcr = m_range[np.argmin(pcr_cv)]
+best_pls = m_range[np.argmin(pls_cv)]
+print(f"PCR best M={best_pcr}, CV MSE={min(pcr_cv):.4f}")
+print(f"PLS best M={best_pls}, CV MSE={min(pls_cv):.4f}")
+print(f"PLS 相對於 PCR 改善: {(min(pcr_cv)-min(pls_cv))/min(pcr_cv)*100:.1f}%")
+</code></pre>
+
+<div class="callout">
+<strong>PLS 的現實定位</strong>：PLS 在<strong>化學計量學（chemometrics）</strong>領域非常受歡迎，因為光譜資料動輒上千個波長（變數），PLS 的監督式降維特別適合。但在一般統計學習問題中，PLS 的表現<strong>通常不比 ridge 或 PCR 好</strong>——監督式降維雖然降低偏差，但可能增加變異，兩者互相抵消。
 </div>
 
-<h2>⚖️ PCR vs PLS vs Ridge/Lasso</h2>
-
-<table>
-<tr><th>方法</th><th>降維策略</th><th>是否看 Y</th><th>成分解釋性</th><th>適用場景</th></tr>
-<tr><td>PCR</td><td>PCA 無監督降維</td><td>❌</td><td>主成分為 X 空間最大變異方向</td><td>X 高度共線，但 PCA 方向恰巧與 Y 相關時</td></tr>
-<tr><td>PLS</td><td>監督降維（最大化 Cov(Xw, Y)）</td><td>✅</td><td>成分與 Y 直接相關</td><td>需要更少成分達到預測目標，或需要解釋性方向</td></tr>
-<tr><td>Ridge</td><td>L2 懲罰收縮係數</td><td>✅</td><td>保留所有原始變數</td><td>所有變數都有微小貢獻，不適合丟棄任何一個</td></tr>
-<tr><td>Lasso</td><td>L1 懲罰選變數</td><td>✅</td><td>自動歸零，選出子集</td><td>需稀疏解、可解釋變數（哪些 X 真正有用）</td></tr>
-</table>
-
-<h2>👍👎 優缺點</h2>
+<!-- ============================================================ -->
+<h2>三種方法的優缺點對照</h2>
 
 <div class="pros-cons">
-<div class="pro-box">
-<h4>✅ 優點</h4>
+<div class="pros">
+<h4>✅ PCR 優點</h4>
 <ul>
-  <li>解決共線性：p ≫ n 時 Ridge/Lasso 也可，但 PCR/PLS 提供降維後的視覺化與解釋性</li>
-  <li>PLS 更少成分：通常 PLS 用比 PCR 更少的成分達相同 MSE，因為成分與 Y 直接相關</li>
-  <li>雜訊過濾：捨棄低變異主成分等於去除雜訊，類似 Ridge 收縮的效果</li>
-  <li>解釋性強：PLS 的潛在變量可直接對應業務因子（「顧客忠誠度分數」）</li>
+  <li>降維直覺：保留最多 X 變異的方向</li>
+  <li>與 ridge regression 有數學聯繫，理論完整</li>
+  <li>當訊號集中在前幾個主成分時表現極佳</li>
+  <li>sklearn 實作簡單成熟</li>
 </ul>
 </div>
-<div class="con-box">
-<h4>⚠️ 缺點</h4>
+<div class="cons">
+<h4>❌ PCR 缺點</h4>
 <ul>
-  <li>PCR 盲點：低變異方向可能正好與 Y 高度相關，但 PCA 會丟棄它</li>
-  <li>PLS 過配風險：成分數過多時會捕捉 Y 的雜訊（需交叉驗證選 N）</li>
-  <li>不保證稀疏：不同於 Lasso，PCR/PLS 每個成分是所有原始變數的線性組合，無變數選擇</li>
-  <li>PLS 理論較少：相較 PCR（PCA 理論完整），PLS 的統計性質較難推導</li>
+  <li>非監督式——可能保留對 Y 無用的高變異方向</li>
+  <li>不可解釋：每個主成分是所有原始變數的組合</li>
+  <li>需要標準化，對尺度敏感</li>
+  <li>M 需要用交叉驗證挑選，增加計算成本</li>
+</ul>
+</div>
+
+<div class="pros-cons" style="margin-top:1rem;">
+<div class="pros">
+<h4>✅ PLS 優點</h4>
+<ul>
+  <li>監督式降維，方向與 Y 相關</li>
+  <li>在 p ≫ n 的高維情境（如光譜資料）表現優異</li>
+  <li>同時使用 X 和 Y 的資訊，理論上更有效率</li>
+</ul>
+</div>
+<div class="cons">
+<h4>❌ PLS 缺點</h4>
+<ul>
+  <li>監督式未必優於非監督式——可能增加變異</li>
+  <li>實務上常常不比 ridge / PCR 好</li>
+  <li>迭代殘差計算可能累積數值誤差</li>
+  <li>需要同時標準化 X 和 Y</li>
 </ul>
 </div>
 </div>
 
-<h2>💬 金句</h2>
+<!-- ============================================================ -->
+<h2>方法比較總表</h2>
 
-<div class="quote-box">
-「Ridge 和 Lasso 讓所有變數一起縮；PCR 和 PLS 說：先別急著縮，讓我幫你把方向整理好。」
-<div class="attribution">— 第 6 章降維 vs 收縮的本質差異</div>
+<table class="comparison-table">
+<thead>
+<tr>
+  <th>特性</th>
+  <th>子集選擇 (6.1)</th>
+  <th>Ridge (6.2)</th>
+  <th>Lasso (6.2)</th>
+  <th>PCR (6.3.1)</th>
+  <th>PLS (6.3.2)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>降維方式</td>
+  <td>直接挑選變數</td>
+  <td>收縮係數</td>
+  <td>收縮＋稀疏</td>
+  <td>PCA 轉換，非監督</td>
+  <td>PLS 轉換，監督式</td>
+</tr>
+<tr>
+  <td>使用原始變數？</td>
+  <td>✅ 是</td>
+  <td>✅ 是</td>
+  <td>✅ 是</td>
+  <td>❌ 線性組合</td>
+  <td>❌ 線性組合</td>
+</tr>
+<tr>
+  <td>可解釋性</td>
+  <td>⭐⭐⭐ 高</td>
+  <td>⭐⭐ 中</td>
+  <td>⭐⭐⭐ 高</td>
+  <td>⭐ 低</td>
+  <td>⭐ 低</td>
+</tr>
+<tr>
+  <td>特徵選取</td>
+  <td>✅ 是</td>
+  <td>❌ 否</td>
+  <td>✅ 是</td>
+  <td>❌ 否</td>
+  <td>❌ 否</td>
+</tr>
+<tr>
+  <td>p ≫ n 適用</td>
+  <td>❌ 不佳</td>
+  <td>✅ 可</td>
+  <td>✅ 可</td>
+  <td>✅ 可</td>
+  <td>✅ 可</td>
+</tr>
+<tr>
+  <td>使用 Y 資訊</td>
+  <td>✅（透過 CV）</td>
+  <td>✅（透過 CV）</td>
+  <td>✅（透過 CV）</td>
+  <td>❌（僅 PCA）</td>
+  <td>✅（監督式）</td>
+</tr>
+<tr>
+  <td>調參數</td>
+  <td>選取變數數 k</td>
+  <td>λ（懲罰強度）</td>
+  <td>λ（懲罰強度）</td>
+  <td>M（主成分數）</td>
+  <td>M（PLS 方向數）</td>
+</tr>
+</tbody>
+</table>
+
+<!-- ============================================================ -->
+<h2>應用場景</h2>
+
+<div class="scenario-box">
+<h4>🏭 化學計量學 — 近紅外光譜分析（PLS 主場）</h4>
+<p>用近紅外光譜儀掃描樣本得到 1000+ 個波長的吸收值（p ≫ n），要預測樣本的含水量（Y）。PLS 的監督式降維在這個領域是黃金標準——它自動把跟含水量最相關的波長賦予高權重。</p>
 </div>
 
-<h2>🧠 自我內化</h2>
-<div class="reflection">
-<p>PCR 和 PLS 的核心教訓不只適用於統計模型——它對 Agent 記憶設計也有直接啟發。PCA 是「客觀壓縮」——保留資料中變異最大的方向，但這些方向未必對任務有用。PLS 是「目的導向壓縮」——壓縮時直接瞄準預測目標。</p>
-<p>對應到 Hermes 的 skill/memory 系統：目前的做法類似 PCR——把所有過往對話壓縮成 embedding 或摘要，不加區別地保存。更好的做法是像 PLS——保存記憶時，同時考慮這條記憶對未來任務的預測價值。TMEM (2606.04536) 的 RL 可優化提取策略就是這種想法：決定「從歷史中提取什麼」本身是可以優化的，不是無差別備份。</p>
-<p>如果 Hermes 有一個「記憶寫入閘門」——每當新經驗進來，不只存摘要，還評估它對未來不同任務類型的預測貢獻，並優先保留高相關性的經驗——那就從 PCR 進化到 PLS 了。</p>
+<div class="scenario-box">
+<h4>📊 金融風控 — 信用評分建模（PCR 應用）</h4>
+<p>銀行有 50+ 個客戶特徵（收入、負債比、過往還款紀錄、職業類別……），但許多彼此高度相關。先用 PCR 將變數壓縮成 5-8 個主成分，再用這些主成分建立違約預測模型，既減少共線性問題，又維持預測力。</p>
 </div>
 
-<div class="nav-back">
-<a href="index.html">← 回到 ISLP 課程目錄</a> &nbsp;|&nbsp;
-<a href="/">← 回到 DKY 學習中心</a>
+<div class="scenario-box">
+<h4>🧬 基因表現資料 — 癌症分類（PCR/PLS 通用）</h4>
+<p>基因晶片同時測量 20,000 個基因的表現量（p=20000），但只有 100 個病患樣本（n=100）。PCR 或 PLS 可將 20,000 維壓縮到 10-20 維，再進行癌症亞型分類——這是 p ≫ n 情境的經典解法。</p>
 </div>
+
+<!-- ============================================================ -->
+<h2>💡 來自 PCA 的系統設計啟發：正交分離原則</h2>
+
+<p>PCA 教我們一個深刻的設計原則：<strong>將高維混亂拆解為互相獨立（正交）的低維組件</strong>。每個主成分彼此不相關（Cov(Zᵢ, Zⱼ) = 0），所以你可以獨立地分析每個成分的貢獻，而不必擔心交互作用。</p>
+
+<p>這個原則可以直接應用到 AI agent 系統設計：</p>
+<ul style="margin-left:2rem;margin:.8rem 0;">
+  <li><strong>子 agent 隔離</strong>：像 PCA 的主成分一樣，每個子 agent 處理一個「正交」的任務面向（如：一個管 PDF 解析、一個管程式碼生成、一個管部署驗證），彼此不共享狀態，避免交互耦合。</li>
+  <li><strong>訊息壓縮</strong>：子 agent 回傳的不是原始資料，而是「摘要嵌入」——就像 PCA 將 p 維壓縮到 M 維，摘要保留最重要訊號、丟掉雜訊。</li>
+  <li><strong>變異解釋率 → 任務優先級</strong>：PCA 的 explained_variance_ratio_ 告訴你哪些成分最重要。同理，你可以追蹤每個子 agent 的「貢獻度」，優先分配資源給高影響力的任務。</li>
+</ul>
+
+<!-- ============================================================ -->
+<div class="key-quote">
+  降維不是丟掉資訊，而是用更少的座標軸，畫出同一幅圖。
+  <span class="author">— ISLP §6.3 核心精神</span>
+</div>
+
+<div class="section-nav">
+  <a href="statistics/6.2_shrinkage_methods.html">← 6.2 收縮方法</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="statistics/6.4_high_dimensions.html">6.4 高維度資料 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 6 章：線性模型選擇與正則化 · §6.3 維度縮減方法</p>
+  <p>Generated: 2026-06-27 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
 
 <script src="../sidebar.js"></script>
-<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 <script>hljs.highlightAll();</script>
 </body>
 </html>
