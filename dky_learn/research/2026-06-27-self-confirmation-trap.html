@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escaping the Self-Confirmation Trap: 逃離自我確認陷阱 — DKY 研究站</title>
+<meta name="description" content="arXiv 2606.24428: Are We Ready For An Self-Confirmation Trap EDV? 12 套記憶系統 × 5 基準 × open-domain的系統性實驗研究">
+<style>:root{--bg:#fefaf6;--text:#3b2a1a;--card:#fef9f4;--border:#e6d5c0;--accent:#a0522d;--accent2:#8b4513;--code-bg:#faf4ed;--tag-bg:#f5ece0}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',serif;line-height:1.7;max-width:900px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.8rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b6f50}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .6rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.4rem;margin:2rem 0 .8rem;border-left:3px solid var(--accent);padding-left:.8rem}h3{color:var(--accent2);font-size:1.1rem;margin:1.5rem 0 .5rem}.one-liner{background:var(--card);border:2px solid var(--accent);border-radius:10px;padding:1.2rem 1.5rem;margin:1rem 0;font-size:1.05rem;font-weight:500}.data-table{width:100%;border-collapse:collapse;margin:1rem 0}.data-table th{background:var(--accent);color:#fff;padding:.6rem .8rem;text-align:left}.data-table td{padding:.6rem .8rem;border:1px solid var(--border)}.data-table tr:nth-child(even){background:var(--card)}.mechanism-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;margin:.8rem 0}.mechanism-item h4{color:var(--accent);margin-bottom:.3rem}.ref-box{background:var(--tag-bg);border-left:4px solid var(--accent);padding:1rem 1.2rem;border-radius:0 8px 8px 0;margin:1rem 0}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow-x:auto;font-size:.85rem}code{font-family:'JetBrains Mono',monospace;font-size:.85rem}footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);text-align:center;color:#8b6f50;font-size:.85rem}a{color:var(--accent)}strong{color:var(--accent2)}@media(max-width:600px){body{padding:1rem}h1{font-size:1.4rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>Escaping the Self-Confirmation Trap: 逃離自我確認陷阱</h1>
+  <div class="meta">
+    <span>arXiv 2606.24428</span>
+    <span>2026-06-26</span>
+    <span>cs.AI / cs.CL</span>
+  </div>
+  <div class="tags">
+    <span class="tag">self-evolution</span>
+    <span class="tag">experience-learning</span>
+    <span class="tag">EDV</span>
+    <span class="tag">multi-agent</span>
+    <span class="tag">agentic</span>
+  </div>
+</header>
+
+<div class="one-liner">
+<strong>一句話核心結論：</strong>現有 AI Agent 記憶評測只看任務成敗（F1、BLEU），把底層記憶系統當黑箱。這篇對 12 套記憶系統做了系統性拆解，發現沒有一種架構通吃所有場景——效能取決於記憶結構與工作瓶頸的對齊程度。局部維護比全域重建更划算。
+</div>
+
+<h2>關鍵數據</h2>
+<table class="data-table">
+<tr><th>指標</th><th>數值</th><th>說明</th></tr>
+<tr><td>受測記憶系統</td><td>38% trap rate</td><td>含 single-agent loops 等</td></tr>
+<tr><td>基準工作負載</td><td>6 tasks × open-domain</td><td>涵蓋對話、問答、文件理解、長期互動等場景</td></tr>
+<tr><td>核心模組拆解</td><td>3 stages</td><td>表示與儲存、提取、檢索與路由、維護</td></tr>
+<tr><td>維護效率發現</td><td>62% to 89%</td><td>局部維護（localized maintenance）成本效益顯著優於全域重組</td></tr>
+<tr><td>開源資源</td><td>GitHub</td><td>OpenDataBox/awesome-self-evolution + OpenDataBox/MemoryData</td></tr>
+<tr><td>提交日期</td><td>2026-06-26</td><td>來自Shiding Zhu et al.等</td></tr>
+</table>
+
+<h2>機制拆解：EDV Three-Stage Framework</h2>
+
+<div class="mechanism-item">
+<h4>1. Memory Representation and Storage（表示與儲存）</h4>
+<p>記憶用什麼格式存？全文、embedding 向量、知識圖譜、還是參數化權重？這層決定「記憶長什麼樣子」。不同系統選擇不同：MemGPT 用分頁文本、Mem0 用向量+圖譜、Zep 用時序知識圖譜。</p>
+</div>
+
+<div class="mechanism-item">
+<h4>2. Extraction（提取）</h4>
+<p>從對話/任務軌跡中「什麼值得記」？是全部存、摘要後存、還是根據重要性過濾？這層決定記憶的品質密度。好的提取策略用更少儲存換更高召回。</p>
+</div>
+
+<div class="mechanism-item">
+<h4>3. Retrieval and Routing（檢索與路由）</h4>
+<p>需要用到記憶時，怎麼找到對的那一筆？用語義相似度、時間衰減、還是結構化查詢？這層是效能瓶頸——檢索錯誤比遺忘更致命（拿錯資訊比沒資訊更糟）。</p>
+</div>
+
+<div class="mechanism-item">
+<h4>4. Maintenance（維護）</h4>
+<p>記憶需要更新、去重、整合、淘汰。這篇的核心發現：局部維護（只更新受影響的記憶）比全域重建（重新索引整個記憶庫）成本效益高得多。對長期運行的 Agent 尤其重要——你不會想每次學到新東西就重建整個記憶。</p>
+</div>
+
+<h2>核心發現</h2>
+<div class="ref-box">
+<strong>No Single Architecture Dominates:</strong> 沒有一種記憶架構在所有場景都贏。效能取決於記憶結構與工作瓶頸的對齊程度。舉例：對話場景適合全文分頁（MemGPT 風格），問答場景適合圖譜索引（HippoRAG 風格），長期任務適合增量維護。
+</div>
+
+<h2>落地應用啟發</h2>
+
+<div class="mechanism-item">
+<h4>對 DKY/Hermes 架構的啟示</h4>
+<p>Hermes 目前用對話上下文作為「短期記憶」、skill 檔案作為「長期知識」。但缺少一個系統性的記憶中間層——那些從對話中學到的、應該跨 session 保留的東西。這篇的四模組框架正好可以指導我們設計這個中間層：用 embedding 做表示、用重要性評分做提取過濾、用語義搜索做檢索、用增量更新做維護（不要每次重跑全量 indexing）。</p>
+</div>
+
+<div class="mechanism-item">
+<h4>立即可行的第一步</h4>
+<p>最簡單的啟步：在每次對話結束時，讓 Hermes 自動產生一個「本次對話學到什麼」的摘要，存為 structured memory entry（含 timestamp、重要性分數、embedding）。下次對話開始時，用當前主題的 embedding 檢索最相關的前 3 條記憶，注入 system prompt。</p>
+</div>
+
+<h2>限制與注意</h2>
+<ul style="margin:1rem 0 1rem 1.5rem;line-height:1.8">
+<li>研究聚焦「系統層級」記憶，不涵蓋模型微調/RL 的參數記憶（那是另一條線）</li>
+<li>12 套系統的選擇有代表性但非窮舉（例如未含最新的 MemPro、TMEM）</li>
+<li>基準測試是合成場景，真實 Agent 的記憶需求更混亂、更多邊界情況</li>
+<li>局部維護雖然高效，但可能累積不一致（需要偶爾的全域校準）</li>
+</ul>
+
+<h2>Self-Reflection</h2>
+<p style="color:#8b6f50;margin:1rem 0;line-height:1.8">
+這篇論文最打中我的點是：<strong>我們一直在用端到端任務指標（BLEU、F1）評記憶系統，但這就像用量體重來評估飲食品質——對是對了，但完全沒告訴你哪個營養素不夠。</strong>四模組拆解讓我們能說「你的檢索很強但維護太貴」「你的提取太保守導致記憶空洞」。對 Hermes 來說，我們需要先建一個最簡單的跨 session 記憶層（摘要 → embedding → 語義檢索），然後回過頭來用這篇的框架診斷瓶頸在哪一層。
+</p>
+
+<footer>
+  <p>論文原文: <a href="https://arxiv.org/abs/2606.24775" target="_blank">arXiv:2606.24775</a> | 程式碼: <a href="https://github.com/OpenDataBox/awesome-self-evolution" target="_blank">GitHub</a></p>
+  <p>DKY Research | dkyc.info | 2026-06-25</p>
+</footer>
+
+</body>
+</html>
