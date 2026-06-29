@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>6.6 Lab 2: Ridge Regression and the Lasso - ISLP Statistical Learning</title>
+<title>6.6 Lab 2：脊迴歸與 Lasso — ISLP 統計學習</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -12,7 +12,7 @@
 <body>
 
 <header>
-  <h1>6.6 Lab 2: Ridge Regression and the Lasso</h1>
+  <h1>6.6 Lab 2：脊迴歸與 Lasso</h1>
   <div class="meta">
     <span>ISLP 6.6 Lab 2</span>
     <span>pp. 290-299</span>
@@ -28,30 +28,30 @@
   </div>
 </header>
 
-<h2>Theory</h2>
+<h2>理論背景</h2>
 <div class="ref-box">
-<strong>ISLP Textbook:</strong><br>
-James, Witten, Hastie, Tibshirani (2021). <em>An Introduction to Statistical Learning</em>, Ch6 Lab: Linear Model Selection and Regularization, pp. 273-289.
+<strong>課本出處：</strong><br>
+James, Witten, Hastie, Tibshirani (2021). <em>An Introduction to Statistical Learning</em>，第六章 Lab：線性模型選擇與正則化，pp. 273-289。
 </div>
 
 <div class="key-concept">
-<strong>Core Concept (Life Analogy):</strong><br>
-Ridge: Spread budget to every department (everyone gets less, but no one zero). Lasso: Brutally cut underperforming departments (coefficients hit zero). This lab visualizes the entire shrinkage process via regularization path plots - watch each coefficient shrink or disappear as penalty increases.: you can't bring everything. Best Subset tries every 5-item combo (exhaustive but slow). Forward Stepwise adds one at a time (fast but greedy). Ridge shrinks everything (no one left behind). Lasso brutally zeros out items (only essentials survive). Paste into Google Colab and run immediately.
+<strong>核心概念（生活比喻）：</strong><br>
+Ridge（脊迴歸）：把預算分散給所有部門（大家都少拿一點，但沒有人歸零）。Lasso：直接砍掉表現差的部門（係數直接歸零）。這個 Lab 透過正則化路徑圖視覺化整個收縮過程——觀察每個係數隨著懲罰力度增加而縮小或消失。你不可能什麼都帶。Best Subset 嘗試每種 5 項組合（窮舉，但很慢）。Forward Stepwise 一次加一個（快但貪婪）。Ridge 全部收縮（沒人被拋棄）。Lasso 直接歸零（只有精華存活）。貼到 Google Colab 立刻執行。
 </div>
 
-<h2>Formulas</h2>
+<h2>公式</h2>
 <div class="formula">
 \[ \text{Ridge: } \min_\beta \left\{ \sum_{i=1}^n (y_i - X_i\beta)^2 + \lambda \sum_{j=1}^p \beta_j^2 \right\} \]
-<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">L2 penalty shrinks all coefficients toward zero but never to exactly zero</p>
+<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">L2 懲罰將所有係數向零收縮，但永遠不會精確歸零</p>
 </div>
 <div class="formula">
 \[ \text{Lasso: } \min_\beta \left\{ \sum_{i=1}^n (y_i - X_i\beta)^2 + \lambda \sum_{j=1}^p |\beta_j| \right\} \]
-<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">L1 penalty can force coefficients to exactly zero: automatic feature selection</p>
+<p style="color:#8b949e;font-size:.9rem;margin-top:.3rem">L1 懲罰可將係數強制歸零：自動特徵選擇</p>
 </div>
 
-<h2>Full Pipeline Code</h2>
-<h3>Regularization Path Visualization + Cross-Validated Alpha Selection</h3>
-<p style="color:#8b949e;margin-bottom:.8rem">Focused on regularization path plots (coefficient shrinkage vs lambda), RidgeCV/LassoCV optimal alpha selection, coefficient comparison tables, and prediction evaluation. Designed for Google Colab.</p>
+<h2>完整程式碼</h2>
+<h3>正則化路徑視覺化 + 交叉驗證選擇最佳 Alpha</h3>
+<p style="color:#8b949e;margin-bottom:.8rem">重點：正則化路徑圖（係數收縮 vs lambda）、RidgeCV/LassoCV 最佳 alpha 選擇、係數比較表、預測評估。設計用於 Google Colab。</p>
 <pre><code class="language-python">import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, RidgeCV, LassoCV
@@ -159,8 +159,8 @@ print(f"Lasso (p>n): MSE={mean_squared_error(yb_te, lasso_big.predict(Xb_te_s)):
 print(f"Lasso selected: {np.sum(lasso_big.coef_ != 0)}/100")
 print("\nALL DONE")</code></pre>
 
-<h3>Bonus: Lasso Coefficient Path Visualization</h3>
-<p style="color:#8b949e;margin-bottom:.8rem">Show how true signal features (thick lines) survive regularization while noise features (thin gray) die at low alpha.</p>
+<h3>加分題：Lasso 係數路徑視覺化</h3>
+<p style="color:#8b949e;margin-bottom:.8rem">展示真正的訊號特徵（粗線）如何在正則化中存活，而雜訊特徵（細灰線）在低 alpha 時被消滅。</p>
 <pre><code class="language-python">import matplotlib.pyplot as plt
 
 alphas = np.logspace(-3, 1, 100)
@@ -186,72 +186,72 @@ plt.legend(fontsize=8)
 plt.tight_layout()
 plt.show()</code></pre>
 
-<h2>Method Comparison</h2>
+<h2>方法比較</h2>
 <table class="comparison-table">
-<tr><th>Method</th><th>Feature Selection</th><th>Speed (p=30)</th><th>p &gt; n OK</th><th>Interpretability</th></tr>
-<tr><td>Best Subset</td><td>Explicit k best</td><td>Slow: C(p,k)</td><td>No</td><td>High</td></tr>
-<tr><td>Forward Stepwise</td><td>Greedy path</td><td>Fast</td><td>No</td><td>Medium</td></tr>
-<tr><td>Ridge</td><td>None (all kept)</td><td>Fast</td><td>Yes</td><td>Low</td></tr>
-<tr><td>Lasso</td><td>Auto zero-out</td><td>Fast</td><td>Yes (n max)</td><td>High</td></tr>
-<tr><td>PCR/PLS</td><td>Dim reduction</td><td>Medium</td><td>Yes</td><td>Low</td></tr>
+<tr><th>方法</th><th>特徵選擇</th><th>速度 (p=30)</th><th>p &gt; n 可用</th><th>可解釋性</th></tr>
+<tr><td>最佳子集</td><td>明確選 k 個最佳</td><td>慢：C(p,k)</td><td>否</td><td>高</td></tr>
+<tr><td>向前逐步</td><td>貪婪路徑</td><td>快</td><td>否</td><td>中</td></tr>
+<tr><td>Ridge</td><td>無（全部保留）</td><td>快</td><td>是</td><td>低</td></tr>
+<tr><td>Lasso</td><td>自動歸零</td><td>快</td><td>是（最多 n 個）</td><td>高</td></tr>
+<tr><td>PCR/PLS</td><td>降維</td><td>中</td><td>是</td><td>低</td></tr>
 </table>
 
-<h2>Application Scenarios</h2>
+<h2>應用場景</h2>
 <div class="scenario">
-<h4>Genomics: 20000 genes, 300 patients</h4>
-<p>Lasso is the standard tool: it automatically selects the handful of genes actually associated with the disease. Ridge would keep all 20000 genes with tiny coefficients (impossible to interpret). Best Subset is computationally impossible (C(20000, k) is astronomical).</p>
+<h4>基因組學：20000 個基因，300 位患者</h4>
+<p>Lasso 是標準工具：自動選出與疾病真正相關的少數基因。Ridge 會保留全部 20000 個基因，每個係數極小（無法解釋）。最佳子集在計算上不可行（C(20000, k) 是天文數字）。</p>
 <ul>
-<li>Use LassoCV or ElasticNetCV</li>
-<li>Always standardize first (gene expression scales vary wildly)</li>
-<li>Report selected genes + their coefficient signs</li>
+<li>使用 LassoCV 或 ElasticNetCV</li>
+<li>務必先標準化（基因表現量尺度差異極大）</li>
+<li>報告選出的基因及其係數正負號</li>
 </ul>
 </div>
 
 <div class="scenario">
-<h4>Finance: 50 factors, 500 monthly returns</h4>
-<p>Cross-validated Ridge often wins here because all factors likely matter a little bit (macroeconomic forces), and n &gt; p means we can afford keeping everything. Forward Stepwise is popular in finance literature for interpretability (Fama-MacBeth tradition).</p>
+<h4>金融：50 個因子，500 個月報酬</h4>
+<p>交叉驗證的 Ridge 在這裡通常表現最好，因為所有因子可能都有一點影響（總體經濟力量），且 n &gt; p 代表我們撐得住保留全部因子。向前逐步在金融文獻中很受歡迎，因其可解釋性（Fama-MacBeth 傳統）。</p>
 <ul>
-<li>RidgeCV for prediction, Forward Stepwise for reporting</li>
-<li>Use time-series CV (not random K-Fold) to respect temporal order</li>
+<li>RidgeCV 做預測，向前逐步做報告</li>
+<li>使用時間序列交叉驗證（非隨機 K-Fold）以尊重時間順序</li>
 </ul>
 </div>
 
-<h2>Pros and Cons</h2>
+<h2>優缺點</h2>
 <div class="pros-cons">
 <div class="pros">
-<h4>Pros</h4>
+<h4>優點</h4>
 <ul>
-<li>All methods sklearn-native with CV wrappers</li>
-<li>Lasso gives interpretable sparse models automatically</li>
-<li>Ridge handles p &gt; n gracefully without feature count limits</li>
-<li>Full pipeline runs in seconds on Colab free tier</li>
+<li>所有方法皆 sklearn 原生，內建 CV 包裝器</li>
+<li>Lasso 自動產出可解釋的稀疏模型</li>
+<li>Ridge 優雅處理 p &gt; n 情境，不受特徵數量限制</li>
+<li>完整流程在 Colab 免費版上幾秒內跑完</li>
 </ul>
 </div>
 <div class="cons">
-<h4>Cons</h4>
+<h4>缺點</h4>
 <ul>
-<li>Best Subset impractical for p &gt; 20</li>
-<li>Lasso can be unstable with correlated features (arbitrarily picks one)</li>
-<li>Cross-validation alpha selection is noisy for small n</li>
-<li>All methods assume linearity (non-linear relationships need Ch7)</li>
+<li>最佳子集在 p &gt; 20 時不實用</li>
+<li>Lasso 在高度相關特徵上可能不穩定（隨機選一個）</li>
+<li>小樣本下交叉驗證的 alpha 選擇較不穩定</li>
+<li>所有方法假設線性關係（非線性關係需見第七章）</li>
 </ul>
 </div>
 </div>
 
-<h2>Key Quote</h2>
+<h2>關鍵引言</h2>
 <div class="quote">
-<strong>"Regularization is not optional in high dimensions - it is survival."</strong><br>
-<span style="font-size:.85rem;color:#8b949e">When p &gt; n, OLS has infinitely many perfect fits. You MUST bet on simplicity (sparsity or shrinkage) to generalize.</span>
+<strong>「在高維度中，正則化不是選項——是生存必需品。」</strong><br>
+<span style="font-size:.85rem;color:#8b949e">當 p &gt; n 時，OLS 有無限多個完美擬合。你必須押注在簡單性（稀疏性或收縮）上才能泛化。</span>
 </div>
 
 <h2>Self-Reflection</h2>
 <p style="color:#8b949e;margin:1rem 0">
-For Hermes: This lesson mirrors our own agent architecture debates. Lasso-style "zero-out irrelevant features" maps to skill pruning (which skills actually matter?). Ridge-style "keep everything shrunk" maps to RAG retrieval (all memories contribute, but importance-weighted). The key insight from Ch6: <em>there is no universally best method</em> - the right choice depends entirely on your data structure and what you value (prediction vs interpretability, dense vs sparse truth). Same for agent memory systems: no single architecture dominates across all scenarios (as arXiv 2606.24775 also found this week).
+對 Hermes 的啟發：這堂課呼應我們自己的 agent 架構辯論。Lasso 風格「歸零不相關特徵」對應技能修剪（哪些技能真正重要？）。Ridge 風格「全部保留但收縮」對應 RAG 檢索（所有記憶都有貢獻，但以重要性加權）。第六章的關鍵洞察：<em>沒有普遍最佳的方法</em>——正確的選擇完全取決於你的資料結構和你的目標（預測 vs 可解釋性、稠密真相 vs 稀疏真相）。Agent 記憶系統同理：沒有任何單一架構能在所有場景中稱霸（arXiv 2606.24775 本週也得到相同結論）。
 </p>
 
 <footer>
-  <p>ISLP Course | learn.dky.tw | Last updated: 2026-06-25</p>
-  <p><a href="index.html">All Chapters</a></p>
+  <p>ISLP 課程 | learn.dky.tw | 最後更新：2026-06-29</p>
+  <p><a href="index.html">所有章節</a></p>
 </footer>
 
 <script>hljs.highlightAll();</script>
