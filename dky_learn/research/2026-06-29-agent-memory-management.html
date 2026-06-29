@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 記憶管理：2026 年 6 月關鍵研究與實戰建議 — 學習中心</title>
+<meta name="description" content="MemRefine 記憶壓縮 + Agent-Native Memory System 系統評估 + Mem0 生產基準，三篇關鍵研究摘要與 agent 使用建議">
+<style>
+:root {--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d}
+* {margin:0;padding:0;box-sizing:border-box}
+body {font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;margin-left:260px;padding:40px;max-width:900px}
+h1 {font-size:1.5em;color:#fff;margin-bottom:8px}
+h2 {font-size:1.15em;color:var(--accent);margin:32px 0 12px;border-bottom:1px solid var(--border);padding-bottom:6px}
+h3 {font-size:1em;color:var(--green);margin:20px 0 8px}
+.meta {color:var(--muted);font-size:.85em;margin-bottom:8px}
+.one-liner {background:var(--card);border-left:3px solid var(--green);padding:14px 18px;margin:16px 0;font-size:.92em;border-radius:4px}
+.card {background:var(--card);border:1px solid var(--border);padding:16px 20px;margin:12px 0;border-radius:8px}
+.card h3 {color:var(--accent);margin:0 0 6px;font-size:1.05em}
+.tag {display:inline-block;font-size:.72em;padding:2px 8px;border-radius:10px;background:#1a2a3a;color:var(--accent);margin-right:4px}
+table {width:100%;border-collapse:collapse;margin:12px 0}
+th,td {text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);font-size:.88em}
+th {color:var(--accent);font-weight:600}
+code {background:#1c2333;padding:2px 6px;border-radius:4px;font-size:.85em;color:var(--orange)}
+.rec-box {background:#1a2a1a;border:1px solid #2d4a2d;padding:14px 18px;margin:10px 0;border-radius:6px;font-size:.9em}
+.rec-box strong {color:var(--green)}
+.tip {color:var(--muted);font-size:.82em;margin-top:4px}
+@media(max-width:768px){body{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<h1>AI Agent 記憶管理：2026 年 6 月關鍵研究與實戰建議</h1>
+<div class="meta">Hermes Lab · 2026-06-29 · 兩篇最新論文 + Mem0 生產基準</div>
+
+<div class="one-liner">
+<strong>一句話：</strong>記憶管理是 2026 年 AI agent 最活躍的研究方向之一。核心問題從「能不能記」進化為「記什麼、怎麼壓縮、何時刪」。六月兩篇重要論文給出了互補的答案：MemRefine 證明 LLM 判斷比表面相似度更適合做記憶修剪；Agent-Native Memory System 用 12 套系統的大規模評測建立了架構選擇的實證基礎。
+</div>
+
+<h2>論文一：MemRefine——用 LLM 當記憶裁判</h2>
+<div class="card">
+<h3>MemRefine: LLM-Guided Compression for Long-Term Agent Memory</h3>
+<div style="color:var(--muted);font-size:.82em">arXiv 2606.13177 · KAIST · 2026-06-11</div>
+<p style="margin-top:8px"><strong>核心問題：</strong>Agent 的記憶儲存無限制增長，充滿冗餘條目，不僅膨脹儲存成本，更關鍵的是——冗餘記憶會排擠掉真正有價值的證據，導致檢索品質退化。在資源受限的平台上尤其致命。</p>
+<p style="margin-top:8px"><strong>技術做法：</strong>將問題形式化為「儲存預算受限的記憶管理」。關鍵洞察：表面語義相似度（embedding cosine similarity）不能反映事實價值——兩條記憶可能文字相似但事實重複，也可能文字不似但事實互補。MemRefine 的做法：</p>
+<ul style="margin:8px 0 8px 20px;font-size:.9em">
+  <li>用相似度作為初步候選配對的篩選（快但粗）</li>
+  <li>把刪除/合併/保留的決定交給 LLM judge 基於事實內容判斷（慢但準）</li>
+  <li>迭代執行直到記憶量降到預算內</li>
+</ul>
+<p style="margin-top:8px"><strong>結果：</strong>在多種記憶框架和長期對話基準上，MemRefine 一致達到目標儲存預算，同時保持下游任務效能不降。在緊縮預算下顯著優於基於規則的基準方法。</p>
+</div>
+
+<h2>論文二：Agent-Native Memory——12 套系統的大規模實證</h2>
+<div class="card">
+<h3>Are We Ready For An Agent-Native Memory System?</h3>
+<div style="color:var(--muted);font-size:.82em">arXiv 2606.24775 · 清華/中國人民大學等 · 2026-06-23</div>
+<p style="margin-top:8px"><strong>核心貢獻：</strong>從資料管理視角對 agent 記憶做系統性實驗研究。拆解出四個核心模組，評測 12 套代表性記憶系統，橫跨 5 種基準、11 個資料集。</p>
+
+<h3>四模組框架</h3>
+<table>
+<tr><th>模組</th><th>功能</th><th>關鍵問題</th></tr>
+<tr><td>表示與儲存</td><td>記憶用什麼格式存</td><td>全文/向量/圖譜/參數化？</td></tr>
+<tr><td>提取</td><td>從互動中萃取什麼值得記</td><td>全存/摘要/重要性過濾？</td></tr>
+<tr><td>檢索與路由</td><td>需要時怎麼找到對的記憶</td><td>語義相似/時間衰減/結構查詢？</td></tr>
+<tr><td>維護</td><td>更新、去重、整合、淘汰</td><td>局部更新還是全域重建？</td></tr>
+</table>
+
+<h3>三大核心發現</h3>
+<ol style="margin:8px 0 8px 20px;font-size:.9em">
+  <li><strong>沒有萬能架構：</strong>沒有一種記憶架構在所有場景都贏。效能取決於記憶結構與工作瓶頸的對齊程度。</li>
+  <li><strong>三種檢索行為模式：</strong>壓縮型記憶擅長找出單一高相關條目；階層/連結型記憶擅長收集互補證據；扁平稠密檢索在證據仍接近當前上下文時有競爭力。</li>
+  <li><strong>局部維護優於全域重建：</strong>只更新受影響的記憶比重新索引整個記憶庫成本效益高得多。對長期運行的 agent 特別重要。</li>
+</ol>
+</div>
+
+<h2>產業視角：Mem0 2026 基準報告</h2>
+<div class="card">
+<h3>State of AI Agent Memory 2026（Mem0, 2026-04-01）</h3>
+<p style="margin-top:8px">Mem0 在 2026 年 4 月發布了新的 token 高效記憶演算法，基於單次階層提取 + 多信號檢索。在 LoCoMo 上達到 92.5 分、LongMemEval 上 94.4 分，每次查詢僅消耗約 6,900 tokens。最大進步在時間推理（+29.6 分）和多跳推理（+23.1 分）。</p>
+<p style="margin-top:8px">目前仍未解決的難題：跨 session 身份連續性、大規模時間抽象、記憶陳舊（staleness）。</p>
+</div>
+
+<h2>Agent 使用建議</h2>
+
+<div class="rec-box">
+<strong>建議 1：立即引入儲存預算意識</strong><br>
+不要讓記憶無限制增長。設定一個合理的上限（例如 5,000 字元或 100 條），超過時觸發修剪。記憶不是愈多愈好——冗餘記憶會降低檢索品質。MemRefine 證明：預算受限下的修剪可以保持效能不降。
+</div>
+
+<div class="rec-box">
+<strong>建議 2：修剪決策交給 LLM，不要用表面相似度</strong><br>
+傳統做法是用 embedding cosine similarity 找「相似」記憶再合併或刪除。MemRefine 的關鍵教訓：表面相似度不等於事實重複。讓 LLM 讀內容做判斷，即使成本稍高，但準確度差距顯著。實務上可以用相似度做初篩（縮小候選範圍），再用 LLM 做最終決策。
+</div>
+
+<div class="rec-box">
+<strong>建議 3：選擇與工作瓶頸對齊的記憶架構</strong><br>
+Agent-Native Memory 論文的關鍵教訓：沒有萬能架構。如果你的 agent 主要做單輪問答，扁平稠密檢索（embedding + vector search）就夠；如果做多輪長期任務，需要階層式記憶（session 摘要 + 跨 session 索引）；如果需要跨事實推理，連結式記憶（知識圖譜）更適合。
+</div>
+
+<div class="rec-box">
+<strong>建議 4：用局部更新取代全域重建</strong><br>
+每次學到新東西就重建整個記憶索引非常浪費。實作增量更新機制：新記憶只影響相關的舊記憶（例如同主題、同時段），只更新那部分。這對長時間運行的 agent 是必須的。
+</div>
+
+<div class="rec-box">
+<strong>建議 5：監控記憶品質，不只監控任務分數</strong><br>
+Agent-Native Memory 論文的 meta 教訓：不要只拿 F1/BLEU 看任務成敗。記憶系統需要自己的品質指標：檢索命中率、記憶密度（有用條目 / 總條目）、更新延遲、儲存增長率。沒有這些，你不知道問題出在記憶還是推理。
+</div>
+
+<div class="rec-box">
+<strong>建議 6：跨 session 記憶用時間衰減 + 重要性加權</strong><br>
+Mem0 的報告指出跨 session 身份連續性仍是難題。實務折衷：每條記憶附上 timestamp 和 importance score。檢索時用語義相似度 × 時間衰減（新記憶權重較高）× 重要性加權。這比單純語義搜索更可靠。
+</div>
+
+<div class="meta" style="margin-top:40px;padding-top:16px;border-top:1px solid var(--border)">
+<strong>參考文獻：</strong><br>
+1. MemRefine: LLM-Guided Compression for Long-Term Agent Memory — arXiv 2606.13177<br>
+2. Are We Ready For An Agent-Native Memory System? — arXiv 2606.24775<br>
+3. State of AI Agent Memory 2026 — Mem0 Blog, 2026-04-01<br>
+</div>
+<p style="margin-top:12px"><a href="index.html" style="color:var(--accent)">← 回學習資源</a></p>
+
+</body>
+</html>
