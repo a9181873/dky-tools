@@ -32,7 +32,7 @@
       <a href="/statistics/6.2_shrinkage_methods.html" class="nav-item done">6.2 收縮方法</a>
       <a href="/statistics/6.3_pcr_pls.html" class="nav-item done">6.3 PCR 與 PLS</a>
       <a href="/statistics/6.4_high_dimensions.html" class="nav-item done">6.4 高維度資料</a>
-      <span class="nav-item pending">6.5 Lab: 線性模型選擇與正則化</span>
+      <a href="/statistics/6.5_lab_regularization.html" class="nav-item done">6.5 Lab: 線性模型選擇與正則化</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6.5 Lab: 線性模型選擇與正則化方法 — ISLP 統計學習</title>
+<style>
+:root {
+  --bg:#0d1117; --surface:#161b22; --border:#30363d;
+  --fg:#c9d1d9; --fg-muted:#8b949e; --heading:#f0f6fc;
+  --accent:#58a6ff; --good:#3fb950; --warn:#d2991d; --bad:#f85149;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;
+  background:var(--bg); color:var(--fg); line-height:1.85;
+  margin-left:240px; padding:2.5rem 3rem 4rem; max-width:900px;
+}
+h1 { font-size:1.6rem; color:var(--heading); margin-bottom:0.2rem; }
+h2 {
+  font-size:1.2rem; color:var(--accent); margin:2.2rem 0 0.8rem;
+  border-left:3px solid var(--accent); padding-left:0.7rem;
+}
+h3 { font-size:1.05rem; color:var(--heading); margin:1.5rem 0 0.5rem; }
+.meta { color:var(--fg-muted); font-size:0.82rem; margin-bottom:1.5rem; display:flex; gap:1rem; flex-wrap:wrap; align-items:center; }
+.difficulty { display:inline-flex; gap:0.15rem; }
+.difficulty .star { color:var(--warn); }
+.tag-row { display:flex; gap:0.4rem; flex-wrap:wrap; margin:0.3rem 0; }
+.tag {
+  font-size:0.7rem; padding:0.12rem 0.55rem; border-radius:0.6rem;
+  background:#1a2a3a; color:var(--accent);
+}
+pre { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:1rem; overflow-x:auto; font-size:0.82rem; line-height:1.5; margin:0.8rem 0; }
+code { font-family:'JetBrains Mono','Fira Code','Consolas',monospace; }
+.quote-box {
+  background:var(--surface); border-left:3px solid var(--accent);
+  padding:0.8rem 1rem; margin:1rem 0; border-radius:0 6px 6px 0;
+  font-size:0.85rem; color:var(--fg-muted);
+}
+.quote-box strong { color:var(--accent); }
+.key-quote {
+  background:linear-gradient(135deg, #1a2332 0%, #0d1b2a 100%);
+  border:1px solid #1f6feb; border-radius:8px; padding:1.2rem 1.5rem;
+  margin:2rem 0; font-size:1rem; color:var(--heading);
+}
+.scenario-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:1rem 1.3rem; margin:0.8rem 0;
+}
+.scenario-box h4 { color:var(--accent); font-size:0.9rem; margin-bottom:0.3rem; }
+.pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0; }
+.pros, .cons {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:1rem 1.2rem;
+}
+.pros h4 { color:var(--good); font-size:0.9rem; margin-bottom:0.4rem; }
+.cons h4 { color:var(--bad); font-size:0.9rem; margin-bottom:0.4rem; }
+.pros ul, .cons ul { padding-left:1.2rem; font-size:0.85rem; }
+.pros li, .cons li { margin:0.25rem 0; }
+.comp-table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.84rem; }
+.comp-table th {
+  background:var(--surface); color:var(--heading); text-align:left;
+  padding:0.5rem 0.8rem; border-bottom:2px solid var(--border);
+}
+.comp-table td {
+  padding:0.5rem 0.8rem; border-bottom:1px solid var(--border);
+}
+.comp-table tr:nth-child(even) td { background:rgba(88,166,255,0.03); }
+.section-nav {
+  display:flex; justify-content:space-between; margin:2.5rem 0 1rem;
+  padding-top:1.5rem; border-top:1px solid var(--border);
+}
+.section-nav a { color:var(--accent); text-decoration:none; font-size:0.88rem; }
+.section-nav a:hover { text-decoration:underline; }
+.math-ref {
+  display:block; font-size:0.78rem; color:var(--fg-muted);
+  background:var(--surface); border-left:3px solid var(--accent);
+  padding:0.5rem 1rem; margin:0.6rem 0; border-radius:0 4px 4px 0;
+}
+footer { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border); font-size:0.75rem; color:var(--fg-muted); }
+@media (max-width:768px) { body { margin-left:0; padding:1.2rem; } }
+</style>
+</head>
+<body>
+
+<h1>6.5 Lab: 線性模型選擇與正則化方法</h1>
+<div class="meta">
+  <span>PAGE 課本 p.275–290</span>
+  <span class="difficulty">難度：<span class="star">★★★</span><span class="star">★★</span></span>
+  <span>TIME 約 45 分鐘</span>
+</div>
+<div class="tag-row">
+  <span class="tag">Lab</span>
+  <span class="tag">模型選擇</span>
+  <span class="tag">Ridge</span>
+  <span class="tag">Lasso</span>
+  <span class="tag">PCR</span>
+  <span class="tag">PLS</span>
+  <span class="tag">Hitters</span>
+</div>
+
+<div class="quote-box">
+  <strong>THEORY 理論基礎</strong>：本章 Lab 將前面 6.1–6.4 的所有理論付諸實作——子集選擇、脊回歸（Ridge）、Lasso、主成分回歸（PCR）與偏最小平方法（PLS）。核心資料集為 <em>Hitters</em>（1986 年大聯盟球員薪資），出自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>。
+</div>
+
+<p>這堂實作課是第 6 章的壓軸——我們不再紙上談兵，而是親手用 Python 實作從 <strong>子集選擇</strong>、<strong>脊回歸（Ridge）</strong>、<strong>Lasso</strong>、到 <strong>PCR 與 PLS</strong> 的完整流程。每個程式碼區塊都可獨立執行，建議你在 Colab 或本機 Jupyter 中跟著跑一遍。</p>
+
+<!-- ============ 6.5.1 ============ -->
+<h2>6.5.1 子集選擇方法（Subset Selection）</h2>
+
+<h3>向前選取法（Forward Selection）</h3>
+<p>目標：從 19 個候選變數中挑出最能預測球員<strong>薪資（Salary）</strong>的子集。課本採用 <strong>C<sub>p</sub> 統計量</strong>（Mallows' C<sub>p</sub>）作為模型選擇準則——C<sub>p</sub> 同時考量擬合誤差（RSS）與模型複雜度（懲罰多餘變數），選出「夠準又不冗餘」的模型。</p>
+
+<span class="math-ref">THEORY Mallows' C<sub>p</sub> = (RSS + 2p·&sigma;²) / n，其中 p 為變數個數，&sigma;² 用全模型 MSE 估計（課本 6.1.3）</span>
+
+<div class="scenario-box">
+  <h4>SCENE 應用場景：MLB 薪資談判</h4>
+  <p>球團想知道「哪些打擊數據真正值錢」。向前選取法從零開始，每次加入對薪資預測貢獻最大的變數，最後留下 10 個——包括安打數（Hits）、保送（Walks）、守備（PutOuts）——恰好反映市場對打擊與守備的重視。</p>
+</div>
+
+<pre><code class="language-python"># Forward Selection with Cp on Hitters data
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from statsmodels.api import OLS
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, Stepwise, sklearn_selected
+from functools import partial
+
+# Load and clean
+Hitters = load_data('Hitters')
+Hitters = Hitters.dropna()
+design = MS(Hitters.columns.drop('Salary')).fit(Hitters)
+Y = np.array(Hitters['Salary'])
+X = design.transform(Hitters)
+
+# Estimate sigma^2 from full model
+sigma2 = OLS(Y, X).fit().scale
+
+# Negative Cp scorer
+def nCp(sigma2, estimator, X, Y):
+    n, p = X.shape
+    Yhat = estimator.predict(X)
+    RSS = np.sum((Y - Yhat)**2)
+    return -(RSS + 2 * p * sigma2) / n
+
+neg_Cp = partial(nCp, sigma2)
+
+# Forward stepwise with Cp
+strategy = Stepwise.first_peak(design, direction='forward', max_terms=len(design.terms))
+hitters_Cp = sklearn_selected(OLS, strategy, scoring=neg_Cp)
+hitters_Cp.fit(Hitters, Y)
+selected = hitters_Cp.selected_state_
+print(f"Cp selected {len(selected)} variables:")
+for v in selected:
+    print(f"  {v}")
+</code></pre>
+
+<h3>交叉驗證選模型</h3>
+<p>除了 C<sub>p</sub>，交叉驗證（CV）是更通用的模型選擇方法。課本使用 <code>sklearn_selection_path</code> 擬合整條向前選取路徑，然後用 <code>cross_val_predict</code> 計算每個模型規模的 CV MSE。</p>
+
+<pre><code class="language-python"># CV-based forward selection path
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import sklearn.model_selection as skm
+from sklearn.model_selection import cross_val_predict
+from statsmodels.api import OLS
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS, Stepwise
+from ISLP.models import sklearn_selection_path
+
+Hitters = load_data('Hitters').dropna()
+design = MS(Hitters.columns.drop('Salary')).fit(Hitters)
+Y = np.array(Hitters['Salary'])
+
+# Fit full forward path
+strategy = Stepwise.fixed_steps(design, len(design.terms), direction='forward')
+full_path = sklearn_selection_path(OLS, strategy)
+full_path.fit(Hitters, Y)
+
+# 5-fold CV predictions along the path
+K = 5
+kfold = skm.KFold(K, shuffle=True, random_state=0)
+Yhat_cv = cross_val_predict(full_path, Hitters, Y, cv=kfold, method='predict')
+
+# CV MSE for each model size
+n_steps = Yhat_cv.shape[1]
+cv_mse = np.mean((Yhat_cv - Y[:, None])**2, axis=0)
+cv_se = np.std((Yhat_cv - Y[:, None])**2, axis=0, ddof=1) / np.sqrt(K)
+
+best_step = int(np.argmin(cv_mse))
+print(f"Best model size: {best_step} variables, CV MSE = {cv_mse[best_step]:.0f}")
+</code></pre>
+
+<h3>最佳子集選擇（Best Subset Selection）</h3>
+<p>與貪婪的向前選取不同，最佳子集對<strong>每個模型大小 k</strong> 窮舉所有組合，保證找到 RSS 最小的 k 變數模型。課本使用 <code>l0bnb</code> 套件實作（需 <code>!pip install l0bnb</code>）。由於 l0bnb 求解的是懲罰路徑而非固定子集大小，實際使用時需搭配 CV 選 &lambda;。</p>
+
+<div class="scenario-box">
+  <h4>SCENE 應用場景：基因組關聯研究（GWAS）</h4>
+  <p>當你有 50 萬個 SNP 標記卻只有幾千個樣本時，向前選取可能挑出 17 個「看似顯著」的 SNP——但課本特別警告：換一組獨立樣本重跑，選出的 17 個 SNP 可能完全不同！這正是 <strong>高維度陷阱</strong>：模型有預測力，但選出的變數不一定是「因果」。研究報告必須強調「這只是眾多可能模型之一」。</p>
+</div>
+
+<!-- ============ 6.5.2 ============ -->
+<h2>6.5.2 Ridge 回歸與 Lasso</h2>
+
+<h3>Ridge 回歸（脊回歸）</h3>
+<p>Ridge 在最小平方法加上 L&sb2; 懲罰項 &lambda;&middot;&Sigma;&beta;&sup2;，將係數「收縮」但不歸零。課本使用 <code>sklearn.linear_model.ElasticNet</code>（設 <code>l1_ratio=0</code> 即為 Ridge），並強調<strong>先標準化再擬合</strong>——因為 &lambda; 的懲罰效果會受變數量綱影響。</p>
+
+<pre><code class="language-python"># Ridge Regression with CV on Hitters data
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import sklearn.model_selection as skm
+import sklearn.linear_model as skl
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+
+# Prepare data
+Hitters = load_data('Hitters').dropna()
+design = MS(Hitters.columns.drop('Salary')).fit(Hitters)
+Y = np.array(Hitters['Salary'])
+X = design.transform(Hitters).drop('intercept', axis=1)
+X = np.asarray(X)
+
+# Ridge path with cross-validation
+K = 5
+kfold = skm.KFold(K, shuffle=True, random_state=0)
+lambdas = 10**np.linspace(8, -2, 100) / Y.std()
+
+scaler = StandardScaler(with_mean=True, with_std=True)
+ridgeCV = skl.ElasticNetCV(alphas=lambdas, l1_ratio=0, cv=kfold)
+pipeCV = Pipeline(steps=[('scaler', scaler), ('ridge', ridgeCV)])
+pipeCV.fit(X, Y)
+
+tuned_ridge = pipeCV.named_steps['ridge']
+best_lambda = tuned_ridge.alpha_
+best_mse = np.min(tuned_ridge.mse_path_.mean(1))
+n_nonzero = np.sum(np.abs(tuned_ridge.coef_) > 1e-6)
+print(f"Best lambda = {best_lambda:.4f}")
+print(f"CV MSE = {best_mse:.0f}")
+print(f"Nonzero coefs = {n_nonzero} (Ridge does NOT do variable selection)")
+</code></pre>
+
+<h3>Lasso：稀疏解與變數選擇</h3>
+<p>Lasso 用 L&sb1; 懲罰 &lambda;&middot;&Sigma;|&beta;|，能將部分係數<strong>精確壓縮到零</strong>——等於同時做模型選擇。課本對比 Hitters 資料：Ridge 保留全部 19 個變數，Lasso 只留 13 個，但 CV MSE 幾乎相同（Ridge 115,527 vs Lasso 114,691）。這就是 Lasso 的核心賣點：<strong>準度不減，模型更簡</strong>。</p>
+
+<pre><code class="language-python"># Lasso with CV on Hitters data
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import sklearn.model_selection as skm
+import sklearn.linear_model as skl
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+
+Hitters = load_data('Hitters').dropna()
+design = MS(Hitters.columns.drop('Salary')).fit(Hitters)
+Y = np.array(Hitters['Salary'])
+X = design.transform(Hitters).drop('intercept', axis=1)
+X = np.asarray(X)
+
+K = 5
+kfold = skm.KFold(K, shuffle=True, random_state=0)
+
+scaler = StandardScaler(with_mean=True, with_std=True)
+lassoCV = skl.ElasticNetCV(n_alphas=100, l1_ratio=1, cv=kfold)
+pipeCV = Pipeline(steps=[('scaler', scaler), ('lasso', lassoCV)])
+pipeCV.fit(X, Y)
+
+tuned_lasso = pipeCV.named_steps['lasso']
+coef = tuned_lasso.coef_
+n_nonzero = np.sum(np.abs(coef) > 1e-6)
+n_zero = np.sum(np.abs(coef) <= 1e-6)
+
+print(f"Best alpha = {tuned_lasso.alpha_:.4f}")
+print(f"CV MSE = {np.min(tuned_lasso.mse_path_.mean(1)):.0f}")
+print(f"Nonzero: {n_nonzero}, Zeroed: {n_zero}")
+print(f"Lasso drops {n_zero} variables vs Ridge, same accuracy!")
+</code></pre>
+
+<div class="scenario-box">
+  <h4>SCENE 應用場景：客戶流失預測</h4>
+  <p>電信公司有 200+ 個客戶行為特徵，但高層只想知道「哪 5 個因素最重要」。Ridge 無法給答案（所有係數都非零），Lasso 卻能直接挑出前 5 個——便在簡報時一句話講清楚。這就是 <strong>可解釋性 vs 預測力的取捨</strong>。</p>
+</div>
+
+<h3>嵌套交叉驗證（Nested CV）</h3>
+<p>用 CV 選 &lambda; 後，我們還需要估計最終模型的泛化誤差。但不能用同一份資料既選 &lambda; 又評估誤差（資料洩漏！）。解決方案：<strong>外層 train/test split + 內層 CV 選 &lambda;</strong>。</p>
+
+<pre><code class="language-python"># Nested CV: outer split for evaluation, inner CV for tuning
+import numpy as np
+import sklearn.model_selection as skm
+import sklearn.linear_model as skl
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+
+Hitters = load_data('Hitters').dropna()
+design = MS(Hitters.columns.drop('Salary')).fit(Hitters)
+Y = np.array(Hitters['Salary'])
+X = design.transform(Hitters).drop('intercept', axis=1)
+X = np.asarray(X)
+
+lambdas = 10**np.linspace(8, -2, 100) / Y.std()
+scaler = StandardScaler(with_mean=True, with_std=True)
+
+outer_valid = skm.ShuffleSplit(n_splits=1, test_size=0.25, random_state=1)
+inner_cv = skm.KFold(n_splits=5, shuffle=True, random_state=2)
+
+ridgeCV = skl.ElasticNetCV(alphas=lambdas, l1_ratio=0, cv=inner_cv)
+pipeCV = Pipeline(steps=[('scaler', scaler), ('ridge', ridgeCV)])
+results = skm.cross_validate(pipeCV, X, Y, cv=outer_valid,
+                             scoring='neg_mean_squared_error')
+test_mse = -results['test_score'][0]
+print(f"Nested CV test MSE = {test_mse:.0f}")
+print("This is the unbiased estimate of generalization error!")
+</code></pre>
+
+<!-- ============ 6.5.3 ============ -->
+<h2>6.5.3 主成分回歸（PCR）與偏最小平方法（PLS）</h2>
+
+<h3>主成分回歸（PCR）</h3>
+<p>PCR 先用 PCA 將 p 個原始變數壓縮成 M 個主成分，再用這些主成分做線性回歸。核心思想：<strong>降維後再做回歸，避免 p &asymp; n 時的過擬合</strong>。課本用 <code>sklearn.decomposition.PCA</code> + <code>Pipeline</code>，並以 GridSearchCV 選最佳主成分數 M。</p>
+
+<pre><code class="language-python"># PCR with CV for number of components
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import sklearn.model_selection as skm
+import sklearn.linear_model as skl
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.pipeline import Pipeline
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+
+Hitters = load_data('Hitters').dropna()
+design = MS(Hitters.columns.drop('Salary')).fit(Hitters)
+Y = np.array(Hitters['Salary'])
+X = design.transform(Hitters).drop('intercept', axis=1)
+X = np.asarray(X)
+
+K = 5
+kfold = skm.KFold(K, shuffle=True, random_state=0)
+scaler = StandardScaler(with_mean=True, with_std=True)
+
+# PCR with GridSearchCV for n_components
+pca = PCA()
+linreg = skl.LinearRegression()
+pipe = Pipeline([('scaler', scaler), ('pca', pca), ('linreg', linreg)])
+
+param_grid = {'pca__n_components': range(1, 20)}
+grid = skm.GridSearchCV(pipe, param_grid, cv=kfold,
+                        scoring='neg_mean_squared_error')
+grid.fit(X, Y)
+
+best_M = grid.best_params_['pca__n_components']
+best_mse = -grid.best_score_
+print(f"Best n_components = {best_M}")
+print(f"CV MSE = {best_mse:.0f}")
+
+# Explained variance
+pipe_best = grid.best_estimator_
+evr = pipe_best.named_steps['pca'].explained_variance_ratio_
+print(f"M=1 captures {evr[0]*100:.1f}% variance")
+print(f"M=2 cumulative: {sum(evr[:2])*100:.1f}%")
+</code></pre>
+
+<h3>偏最小平方法（PLS）</h3>
+<p>PLS 與 PCR 同樣做降維，但關鍵差異：PLS 在提取成分時<strong>同時考量 X 的變異與 Y 的相關性</strong>——不像 PCR 只看 X 的變異。這讓 PLS 在較少成分時通常表現更好，尤其當 Y 與 X 的前幾個主成分關係不大時。</p>
+
+<pre><code class="language-python"># PLS Regression with CV
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import sklearn.model_selection as skm
+from sklearn.cross_decomposition import PLSRegression
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+
+Hitters = load_data('Hitters').dropna()
+design = MS(Hitters.columns.drop('Salary')).fit(Hitters)
+Y = np.array(Hitters['Salary'])
+X = design.transform(Hitters).drop('intercept', axis=1)
+X = np.asarray(X)
+
+K = 5
+kfold = skm.KFold(K, shuffle=True, random_state=0)
+
+pls = PLSRegression(scale=True)
+param_grid = {'n_components': range(1, 20)}
+grid = skm.GridSearchCV(pls, param_grid, cv=kfold,
+                        scoring='neg_mean_squared_error')
+grid.fit(X, Y)
+
+best_n = grid.best_params_['n_components']
+best_mse = -grid.best_score_
+print(f"PLS best n_components = {best_n}")
+print(f"CV MSE = {best_mse:.0f}")
+print("PLS typically needs fewer components than PCR")
+</code></pre>
+
+<div class="scenario-box">
+  <h4>SCENE 應用場景：化工製程監控</h4>
+  <p>煉油廠有 200 個感測器（溫度、壓力、流量），要預測最終辛烷值。PCR 會優先保留變異大的感測器——但它們可能跟辛烷值無關（例如環境溫度）。PLS 則會<strong>挑出與辛烷值相關的感測器組合</strong>，用更少成分達到相同準度，讓現場工程師容易解讀。</p>
+</div>
+
+<!-- ============ 方法比較表 ============ -->
+<h2>方法總比較</h2>
+<table class="comp-table">
+  <thead>
+    <tr><th>方法</th><th>核心機制</th><th>變數選擇</th><th>適用情境</th><th>課本 MSE</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>向前選取 + C<sub>p</sub></td><td>逐步加入，C<sub>p</sub> 平衡 RSS 與複雜度</td><td>YES 是</td><td>變數不太多（p &lt; 40）</td><td>—</td></tr>
+    <tr><td>Ridge 回歸</td><td>L&sb2; 懲罰收縮所有係數</td><td>NO 否</td><td>所有變數都可能有貢獻</td><td>115,527</td></tr>
+    <tr><td>Lasso</td><td>L&sb1; 懲罰可將係數壓至零</td><td>YES 是</td><td>需要稀疏可解釋模型</td><td>114,691</td></tr>
+    <tr><td>PCR</td><td>PCA 降維 → 線性回歸</td><td>NO 否</td><td>共線性嚴重、p &asymp; n</td><td>~116,000</td></tr>
+    <tr><td>PLS</td><td>監督式降維 → 線性回歸</td><td>NO 否</td><td>需 Y 相關性引導降維</td><td>~116,000</td></tr>
+  </tbody>
+</table>
+
+<!-- ============ 優缺點對照 ============ -->
+<h2>Lab 方法優缺點對照</h2>
+<div class="pros-cons">
+  <div class="pros">
+    <h4>PRO 優點</h4>
+    <ul>
+      <li>所有程式碼基於 <code>sklearn</code> Pipeline，乾淨可複用</li>
+      <li>GridSearchCV 自動調參，無需手動迴圈</li>
+      <li>交叉驗證 vs 驗證集的差別有清楚對照</li>
+      <li>嵌套 CV 提供無偏的泛化誤差估計</li>
+      <li>標準化納入 Pipeline，避免資料洩漏</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>CON 注意事項</h4>
+    <ul>
+      <li><code>l0bnb</code> 最佳子集需額外安裝，非標準 sklearn</li>
+      <li>ISLP 的 <code>sklearn_selected</code> 封裝了 statsmodels，學習曲線較陡</li>
+      <li>ElasticNet 同時做 Ridge 和 Lasso 的路徑擬合，概念上容易混淆</li>
+      <li>PCR/PLS 結果對標準化敏感——忘記標準化會得到完全不同的主成分</li>
+      <li>嵌套 CV 計算量大（內層 CV × 外層 split），小資料集慎用</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ 關鍵句 ============ -->
+<div class="key-quote">
+  QUOTE <strong>今日關鍵句</strong>：「模型選擇的本質不是找到『唯一正確的模型』，而是在預測力與可解釋性之間找到最適合當下任務的平衡點。Lasso 用 13 個變數做到和 Ridge 19 個變數幾乎一樣的準度，提醒我們：<em>更簡單的模型，往往更值得信任。</em>」
+</div>
+
+<!-- ============ 自我內化 ============ -->
+<div class="quote-box">
+  <strong>DESIGN 系統設計啟發</strong>：Lasso 的 L&sb1; 懲罰啟發了 <strong>Hermes Agent 的工具選擇策略</strong>——與其讓 agent 載入全部 30+ 個 skills，不如給每個任務類型一個「稀疏啟動配置」（只載入相關的 3–5 個 skill）。這降低了 context window 負擔（&asymp; Ridge 的收縮效果），同時確保關鍵工具不會被遺漏。就像 Lasso 把不必要的係數壓到零，我們也該把不必要的 skill 擋在 prompt 外。
+</div>
+
+<!-- ============ Section Nav ============ -->
+<div class="section-nav">
+  <a href="6.4_high_dimensions.html">PREV 6.4 高維度資料</a>
+  <a href="../">HOME 回首頁</a>
+</div>
+
+<footer>
+  基於 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em> · 程式碼改寫自課本 Lab 6.5
+</footer>
+
+<script src="../sidebar.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script>hljs.highlightAll();</script>
+</body>
+</html>
