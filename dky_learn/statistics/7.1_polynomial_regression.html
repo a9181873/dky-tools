@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7.1 多項式迴歸 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.78rem;border:1px solid var(--border)}.section-nav{display:flex;justify-content:space-between;margin-bottom:2rem;padding:.7rem 1rem;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:.85rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}h2{color:var(--accent);margin:2.2rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);font-size:1.35rem}h3{color:var(--fg);margin:1.5rem 0 .7rem;font-size:1.1rem}p{margin:.8rem 0}.callout{background:var(--card);border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 8px 8px 0;font-size:.95rem}.callout strong{color:var(--accent)}.ref-box{background:var(--card);border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:8px;font-size:.85rem;color:#8b949e}.ref-box em{color:var(--fg)}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;overflow-x:auto;margin:1rem 0;padding:1rem;font-size:.85rem;line-height:1.5}code{font-family:'Fira Code','Cascadia Code',Consolas,monospace}.scenario-box{background:var(--card);border:1px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:8px}.scenario-box h4{color:var(--accent);margin-bottom:.5rem}.scenario-box::before{content:"🎯 應用場景";display:block;color:var(--warn);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros-cons>div{background:var(--card);border:1px solid var(--border);padding:1rem;border-radius:8px}.pros-cons h4{margin-bottom:.5rem;font-size:.9rem}.pros-cons .pros h4{color:var(--accent2)}.pros-cons .cons h4{color:var(--danger)}.pros-cons ul{list-style:none;font-size:.88rem}.pros-cons .pros ul li::before{content:"✅ ";color:var(--accent2)}.pros-cons .cons ul li::before{content:"❌ ";color:var(--danger)}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.85rem;overflow-x:auto;display:block}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border);white-space:nowrap}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.key-quote{margin:2rem 0;padding:1.5rem 2rem;background:var(--card);border-left:4px solid var(--warn);border-radius:8px;font-size:1.05rem;font-style:italic;text-align:center}.key-quote::before{content:"「";color:var(--accent);font-size:2rem;vertical-align:-.7rem}.key-quote::after{content:"」";color:var(--accent);font-size:2rem;vertical-align:-.7rem}footer{margin-top:3rem;padding:1.5rem 0;border-top:1px solid var(--border);text-align:center;font-size:.8rem;color:#8b949e}footer a{color:var(--accent);text-decoration:none}.hermes-insight{background:var(--card);border:2px solid var(--warn);padding:1.2rem;margin:1.5rem 0;border-radius:8px}.hermes-insight::before{content:"🤖 Hermes 系統啟發";display:block;color:var(--warn);font-size:.8rem;text-transform:uppercase;margin-bottom:.5rem;font-weight:700}</style>
+</head>
+<body>
+
+<header>
+  <h1>7.1 多項式迴歸（Polynomial Regression）</h1>
+  <div class="meta">
+    <span>📖 ISLP §7.1</span>
+    <span>📄 pp. 290–293</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">多項式迴歸</span>
+    <span class="tag">非線性模型</span>
+    <span class="tag">基函數展開</span>
+    <span class="tag">Wage 資料集</span>
+    <span class="tag">標準誤</span>
+    <span class="tag">多項式邏輯回歸</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="6.5_lab_regularization.html">← 6.5 Lab: 正則化</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <a href="7.2_step_functions.html">7.2 階梯函數 →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- 7.1 核心概念 -->
+<!-- ============================================================ -->
+
+<h2>從直線到曲線：為什麼線性不夠用？</h2>
+
+<p>到目前為止，整本書的焦點都在 <strong>線性模型</strong> 上。線性迴歸簡單、解讀容易、推論方便，但它在預測能力上有先天限制——現實世界的關係往往是彎的，不是直的。</p>
+
+<p>想像你要用「年齡」預測「薪資」：20 歲和 40 歲的薪資差距，會跟 40 歲和 60 歲的差距一樣嗎？顯然不會。薪資通常呈現倒 U 型：年輕時期快速成長，中年到達高峰，接近退休時平緩甚至下滑。一條直線根本無法捕捉這種曲線。</p>
+
+<div class="callout">
+<strong>多項式迴歸</strong>：將標準線性模型 \( y_i = \beta_0 + \beta_1 x_i + \epsilon_i \) 擴展為包含 \( x_i \) 的高次冪項：
+\[
+y_i = \beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \beta_3 x_i^3 + \cdots + \beta_d x_i^d + \epsilon_i \quad\quad (7.1)
+\]
+核心精神：創造額外的<strong>預測變數</strong> \( x_i^2, x_i^3, \dots, x_i^d \)，然後就像平常一樣用最小平方法擬合。雖然模型對 \( x_i \) 不是線性的，但對 <strong>係數</strong> \( \beta_j \) 仍然是線性的，所以不需要新的估計方法。
+</div>
+
+<p>用生活化比喻：線性迴歸像用 <strong>一把直尺</strong> 量身高——你只能畫一條直線穿過資料。多項式迴歸則像拿 <strong>一卷軟尺</strong>，它可以彎曲來貼合曲線，彎曲的程度由多項式的次數 \( d \) 控制。</p>
+
+<div class="ref-box">
+📚 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §7.1, pp. 290–293. 多項式迴歸是最簡單的「超越線性」方法，為後續的階梯函數、樣條、GAM 等非線性方法奠定基礎。
+</div>
+
+<!-- ============================================================ -->
+<!-- Python Demo: 多項式擬合 -->
+<!-- ============================================================ -->
+
+<h2>實戰：用多項式迴歸預測薪資</h2>
+
+<p>我們用 ISLP 內建的 <code>Wage</code> 資料集來示範。這個資料包含 3,000 名男性勞工的薪資和人口統計資訊。我們用「年齡」來預測「薪資」，從 1 次（直線）逐漸增加到 4 次（曲線），觀察擬合的變化。</p>
+
+<pre><code class="language-python"># 7.1 多項式迴歸：Wage 資料集的示範
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from ISLP import load_data
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+
+# 讀取 Wage 資料
+wage = load_data('Wage')
+age = wage['age'].values.reshape(-1, 1)
+wage_val = wage['wage'].values
+
+# 比較不同次數的多項式擬合
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+degrees = [1, 3, 4]
+titles = ['Degree 1 (線性)', 'Degree 3 (三次)', 'Degree 4 (四次)']
+
+age_grid = np.linspace(age.min(), age.max(), 200).reshape(-1, 1)
+
+for ax, d, title in zip(axes, degrees, titles):
+    poly = PolynomialFeatures(degree=d, include_bias=False)
+    X_poly = poly.fit_transform(age)
+    model = LinearRegression().fit(X_poly, wage_val)
+    X_grid_poly = poly.transform(age_grid)
+    y_pred = model.predict(X_grid_poly)
+    ax.scatter(age[::20], wage_val[::20], alpha=0.3, s=4, color='#58a6ff')
+    ax.plot(age_grid, y_pred, color='#f85149', linewidth=2, label=f'd={d}')
+    ax.set(xlabel='Age', ylabel='Wage ($1,000)', title=title)
+    ax.legend()
+
+plt.tight_layout()
+plt.show()
+print(f"Degree-4 R-squared = {LinearRegression().fit(PolynomialFeatures(degree=4, include_bias=False).fit_transform(age), wage_val).score(PolynomialFeatures(degree=4, include_bias=False).fit_transform(age), wage_val):.3f}")
+print(f"Degree-1 R-squared = {LinearRegression().fit(age, wage_val).score(age, wage_val):.3f}")</code></pre>
+
+<p>觀察結果：<code>degree=1</code>（直線）的 \( R^2 \) 相當低——一條直線解釋不了薪資的倒 U 型軌跡。<code>degree=4</code> 的曲線明顯更貼近資料的整體趨勢，\( R^2 \) 顯著提升。但注意，更高次數不代表更好——下一節會討論如何選擇最佳次數。</p>
+
+<!-- ============================================================ -->
+<!-- 標準誤與信賴區間 -->
+<!-- ============================================================ -->
+
+<h2>擬合的變異：信賴區間怎麼算？</h2>
+
+<p>看到圖上的虛線了嗎？那兩條虛線代表估計的 <strong>95% 信賴區間</strong>——是 \( 2 \times \) 點標準誤的範圍。</p>
+
+<p>假設我們在某個年齡 \( x_0 \) 上計算了擬合值：</p>
+\[
+\hat{f}(x_0) = \hat{\beta}_0 + \hat{\beta}_1 x_0 + \hat{\beta}_2 x_0^2 + \hat{\beta}_3 x_0^3 + \hat{\beta}_4 x_0^4 \quad\quad (7.2)
+\]
+
+<p>這個擬合值的變異有多大？最小平方法會給出每個 \( \hat{\beta}_j \) 的變異估計，以及係數之間的共變異。如果 \( \hat{\mathbf{C}} \) 是 \( 5 \times 5 \) 的係數共變異矩陣，且定義向量 \( \boldsymbol{\ell}_0^T = (1, x_0, x_0^2, x_0^3, x_0^4) \)，則擬合值的變異為：</p>
+\[
+\text{Var}[\hat{f}(x_0)] = \boldsymbol{\ell}_0^T \hat{\mathbf{C}} \boldsymbol{\ell}_0
+\]
+
+<p>把這個開根號就是 <strong>點標準誤</strong>。對每個 \( x_0 \) 重複此計算，就得到整條信賴區間曲線。</p>
+
+<pre><code class="language-python"># 信賴區間的近似計算示範
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from ISLP import load_data
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+
+wage = load_data('Wage')
+age = wage['age'].values.reshape(-1, 1)
+wage_val = wage['wage'].values
+
+# 擬合 degree-4 多項式
+poly = PolynomialFeatures(degree=4, include_bias=False)
+X_poly = poly.fit_transform(age)
+model = LinearRegression().fit(X_poly, wage_val)
+
+# 計算標準誤（近似：來自殘差變異）
+age_grid = np.linspace(age.min(), age.max(), 200).reshape(-1, 1)
+X_grid_poly = poly.transform(age_grid)
+y_pred = model.predict(X_grid_poly)
+
+# 殘差變異估計
+n = len(wage_val)
+residuals = wage_val - model.predict(X_poly)
+sigma2_hat = np.sum(residuals**2) / (n - 5)  # 5 = number of coefficients
+
+# 近似信賴區間（大樣本下寬度近似常數）
+se_fit = np.sqrt(sigma2_hat) * np.ones_like(y_pred)
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.scatter(age[::15], wage_val[::15], alpha=0.3, s=5, color='#58a6ff')
+ax.plot(age_grid, y_pred, color='#f85149', linewidth=2, label='Degree-4 fit')
+ax.fill_between(age_grid.ravel(), y_pred - 2*se_fit, y_pred + 2*se_fit,
+                alpha=0.15, color='#58a6ff', label='Approx 95% CI')
+ax.set(xlabel='Age', ylabel='Wage ($1,000)')
+ax.legend()
+plt.show()</code></pre>
+
+<p>課本 Figure 7.1（左）顯示：信賴區間在資料密集的區域（30–60 歲）較窄，在兩端（極年輕和極年長）較寬——因為兩端的樣本點少，估計自然較不確定。這跟選舉民調的邏輯一樣：樣本少，誤差範圍就大。</p>
+
+<!-- ============================================================ -->
+<!-- 多項式邏輯回歸 -->
+<!-- ============================================================ -->
+
+<h2>多項式 + 邏輯回歸：預測「高收入族群」</h2>
+
+<p>觀察 Figure 7.1（左）會發現一個有趣現象：薪資分布似乎來自 <strong>兩個不同族群</strong>——一群年收入低於 $250K 的「普通勞工」，和一小群超過 $250K 的「高收入者」（整個資料集只有 79 人）。</p>
+
+<p>我們可以把薪資轉成二元變數（是否 &gt; $250K），然後用 <strong>多項式邏輯回歸</strong> 來預測這個二元結果：</p>
+
+\[
+\Pr(y_i > 250 \mid x_i) = \frac{\exp(\beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \cdots + \beta_d x_i^d)}{1 + \exp(\beta_0 + \beta_1 x_i + \beta_2 x_i^2 + \cdots + \beta_d x_i^d)} \quad\quad (7.3)
+\]
+
+<pre><code class="language-python"># 多項式邏輯回歸：預測薪資 > $250K 的機率
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from ISLP import load_data
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import PolynomialFeatures
+
+wage = load_data('Wage')
+age = wage['age'].values.reshape(-1, 1)
+high_earner = (wage['wage'].values > 250).astype(int)
+
+# 擬合 degree-4 多項式邏輯回歸
+poly = PolynomialFeatures(degree=4, include_bias=False)
+X_poly = poly.fit_transform(age)
+logreg = LogisticRegression(C=1e10, solver='lbfgs', max_iter=2000)
+logreg.fit(X_poly, high_earner)
+
+# 預測網格上的機率
+age_grid = np.linspace(age.min(), age.max(), 200).reshape(-1, 1)
+X_grid_poly = poly.transform(age_grid)
+probs = logreg.predict_proba(X_grid_poly)[:, 1]
+
+fig, ax = plt.subplots(figsize=(10, 6))
+jitter_high = np.random.uniform(-0.02, 0.02, size=np.sum(high_earner == 1))
+jitter_low  = np.random.uniform(-0.02, 0.02, size=np.sum(high_earner == 0))
+ax.scatter(age[high_earner == 1], high_earner[high_earner == 1] + jitter_high,
+           alpha=0.5, s=8, color='#f85149', label='> $250K')
+ax.scatter(age[high_earner == 0], high_earner[high_earner == 0] + jitter_low,
+           alpha=0.2, s=8, color='#8b949e', label='<= $250K')
+ax.plot(age_grid, probs, color='#58a6ff', linewidth=2.5, label='Predicted probability')
+ax.set(xlabel='Age', ylabel='Pr(Wage > $250K)')
+ax.legend()
+ax.set_ylim(-0.05, 1.05)
+plt.show()
+
+# 統計高收入者分布
+n_high = np.sum(high_earner == 1)
+print(f"High earners (>$250K): {n_high} / {len(high_earner)} ({n_high/len(high_earner)*100:.1f}%)")</code></pre>
+
+<p>課本 Figure 7.1（右）顯示：成為高收入者的機率在中年（約 40–50 歲）達到高峰，之後逐漸下降。但信賴區間相當寬——尤其是在右側（年長端）——原因是 <strong>樣本極度不平衡</strong>：雖然總樣本數 \( n = 3{,}000 \) 很大，但只有 79 人屬於高收入，導致係數估計變異很大。</p>
+
+<!-- ============================================================ -->
+<!-- 次數選擇 -->
+<!-- ============================================================ -->
+
+<h2>多項式次數的選擇：太少？太多？</h2>
+
+<p>多項式迴歸最關鍵的選擇就是次數 \( d \)。用圖形化的方式幫助理解：</p>
+
+<table class="comparison-table">
+  <thead>
+    <tr><th>次數</th><th>說明</th><th>擬合結果</th><th>風險</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>d=1</code></td><td>標準線性迴歸</td><td>一條直線</td><td>嚴重低度擬合——無法捕捉曲線趨勢</td></tr>
+    <tr><td><code>d=2</code></td><td>二次多項式</td><td>單一彎曲（U 型或倒 U）</td><td>只能有一個轉折點</td></tr>
+    <tr><td><code>d=3</code></td><td>三次多項式</td><td>兩次彎曲</td><td>開始有過度擬合的潛在風險</td></tr>
+    <tr><td><code>d=4</code></td><td>四次多項式（課本例）</td><td>靈活但合理</td><td>對 Wage 資料恰到好處</td></tr>
+    <tr><td><code>d≥10</code></td><td>高次多項式</td><td>極度彎曲</td><td><strong>嚴重過度擬合</strong>——尤其在資料邊緣呈現瘋狂擺盪（課本 Figure 7.7）</td></tr>
+  </tbody>
+</table>
+
+<pre><code class="language-python"># 比較不同次數：使用交叉驗證來選擇最佳次數
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from ISLP import load_data
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import make_pipeline
+
+wage = load_data('Wage')
+age = wage['age'].values.reshape(-1, 1)
+wage_val = wage['wage'].values
+
+max_degree = 12
+cv_means = []
+cv_stds = []
+
+for d in range(1, max_degree + 1):
+    pipe = make_pipeline(PolynomialFeatures(degree=d, include_bias=False),
+                         LinearRegression())
+    scores = cross_val_score(pipe, age, wage_val, cv=10,
+                             scoring='neg_mean_squared_error')
+    cv_means.append(-scores.mean())
+    cv_stds.append(scores.std())
+
+fig, ax = plt.subplots(figsize=(9, 5))
+ax.errorbar(range(1, max_degree + 1), cv_means, yerr=cv_stds,
+            marker='o', color='#58a6ff', capsize=4)
+best_d = np.argmin(cv_means) + 1
+ax.axvline(best_d, color='#f85149', linestyle='--', alpha=0.5,
+           label=f'Best d={best_d} (test MSE={cv_means[best_d-1]:.1f})')
+ax.set(xlabel='Polynomial Degree', ylabel='10-Fold CV Mean MSE')
+ax.legend()
+plt.show()
+print(f"Optimal degree d={best_d}, CV test MSE={cv_means[best_d-1]:.1f}")
+print(f"d=1 test MSE={cv_means[0]:.1f}, d=12 test MSE={cv_means[11]:.1f}")</code></pre>
+
+<p>交叉驗證結果清楚展示偏差-變異權衡：低次數（\( d=1 \)）測試誤差高（高偏差、低變異），適中次數（約 \( d=4 \sim 7 \)）測試誤差最低，後續次數測試誤差再次上升（低偏差、高變異）——這就是過度擬合。</p>
+
+<!-- ============================================================ -->
+<!-- 應用場景 -->
+<!-- ============================================================ -->
+
+<div class="scenario-box">
+  <h4>金融：年齡-收入生命週期模型</h4>
+  <p>銀行信用卡部門用多項式迴歸建立客戶的「終身價值」曲線——年齡與預期支出/收入的關係是非線性的。行銷部門根據曲線的斜率變化決定何時提高信用額度（年輕族群）或推出退休理財產品（年長族群）。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>公共衛生：疾病風險的年齡曲線</h4>
+  <p>某些疾病（如特定癌症）的發生率與年齡呈非線性關係：中年達到高峰後下降。多項式邏輯回歸可在流行病學研究中精確量化這種關係，並計算各年齡層的風險機率。</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 優缺點對照 -->
+<!-- ============================================================ -->
+
+<h2>優缺點對照</h2>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 優點</h4>
+    <ul>
+      <li>概念簡單——只需創造新變數 \( x^2, x^3, \dots \)，就用標準最小平方法</li>
+      <li>與現有線性迴歸框架完全相容——不需要新演算法</li>
+      <li>係數仍可解讀（雖然需要小心邊際效應）</li>
+      <li>適合捕捉整體平滑趨勢</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺點</h4>
+    <ul>
+      <li>多項式是<strong>全域</strong>函數——調整一處的擬合會影響所有地方的預測</li>
+      <li>高次數在資料邊界會產生極端擺盪（Runge 現象）</li>
+      <li>只能在整條曲線上使用同一種函數形式——無法對不同區域做不同處理</li>
+      <li>次數選擇沒有內建準則，需要交叉驗證等外部方法</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 類似技術比較 -->
+<!-- ============================================================ -->
+
+<h2>類似方法比較</h2>
+
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>方法</th><th>形式</th><th>參數</th><th>全域／局部</th><th>適用情境</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>多項式迴歸</strong></td>
+      <td>\( y = \beta_0 + \sum_{j=1}^d \beta_j x^j \)</td>
+      <td>次數 \( d \)</td>
+      <td>全域</td>
+      <td>平滑、單一彎曲趨勢</td>
+    </tr>
+    <tr>
+      <td>階梯函數（§7.2）</td>
+      <td>將 X 分段，每段擬合常數</td>
+      <td>切點數 \( K \)</td>
+      <td>局部</td>
+      <td>資料有關鍵轉折點</td>
+    </tr>
+    <tr>
+      <td>迴歸樣條（§7.4）</td>
+      <td>分段多項式，節點處平滑連接</td>
+      <td>節點數 + 次數</td>
+      <td>局部</td>
+      <td>複雜曲線，需要區域靈活性</td>
+    </tr>
+    <tr>
+      <td>平滑樣條（§7.5）</td>
+      <td>懲罰最小平方，自動平滑</td>
+      <td>平滑參數 \( \lambda \)</td>
+      <td>全域（但可局部調整）</td>
+      <td>需要自動化、不希望手選節點</td>
+    </tr>
+    <tr>
+      <td>GAM（§7.7）</td>
+      <td>\( y = \beta_0 + f_1(x_1) + \cdots + f_p(x_p) \)</td>
+      <td>各 \( f_j \) 的平滑度</td>
+      <td>加性</td>
+      <td>多變數，非線性加性效果</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- 基礎函數觀點 -->
+<!-- ============================================================ -->
+
+<h2>多項式迴歸的「基函數」觀點</h2>
+
+<p>多項式迴歸可以被視為 <strong>基函數方法（basis function approach）</strong> 的特例（§7.3）。我們選擇一組固定的函數 \( b_1(x), b_2(x), \dots, b_K(x) \)，然後擬合：</p>
+\[
+y_i = \beta_0 + \beta_1 b_1(x_i) + \beta_2 b_2(x_i) + \cdots + \beta_K b_K(x_i) + \epsilon_i
+\]
+
+<p>對多項式迴歸而言，基函數就是 \( b_j(x) = x^j \)。這個視角的好處是：一旦我們理解多項式只是其中一種基函數選擇，後續的階梯函數、樣條、小波等非線性方法就都掉進同一個框架——<strong>只是換了一組不同的 \( b_j(\cdot) \) 而已</strong>。整個第 7 章就是在討論不同基函數選擇的權衡。</p>
+
+<!-- ============================================================ -->
+<!-- Hermes 系統啟發 -->
+<!-- ============================================================ -->
+
+<div class="hermes-insight">
+<p><strong>對 AI Agent 系統設計的啟發：</strong>多項式迴歸的核心困境——<strong>全域函數無法局部調整</strong>——是 AI agent 架構設計中的經典問題。一個負責所有任務的「全域 agent 模型」就像高次多項式：在某個任務上調整參數，卻意外破壞了另一個任務的表現。</p>
+<p>這正是為什麼現代 agent 系統採用 <strong>模組化設計</strong>：如同 §7.2–§7.7 將討論的階梯函數、樣條、局部迴歸和 GAM，好的 agent 系統也應該用「分段專家」而非「一個大模型解決一切」。Hermes 的子 agent 分派機制（delegate_task、Kanban swarm）正是把這個統計學洞見實作到系統架構中——每個 worker 只負責自己那一段的擬合，透過協調者確保邊界平滑。</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 今日關鍵句 -->
+<!-- ============================================================ -->
+
+<div class="key-quote">
+  非線性不是敵人，是資訊——關鍵在於用對的工具去捕捉它。多項式迴歸是最簡單的第一步，但全世界的複雜關係中，大多需要用分段、局部的視角才能看清全貌。
+</div>
+
+<footer>
+  <p>📖 課程內容出自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, Springer.</p>
+  <p>第 24 堂課 · DKY Learning Hub · <a href="https://learn.dky.tw">learn.dky.tw</a> · 課本授權 <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
+</footer>
+
+<script>hljs.highlightAll();</script>
+<script src="../sidebar.js"></script>
+</body>
+</html>
