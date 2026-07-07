@@ -2,114 +2,42 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>7.2 階梯函數 — 統計學習入門 (ISLP)</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-<style>
-:root {
-  --bg:#0d1117; --surface:#161b22; --border:#30363d;
-  --fg:#c9d1d9; --fg-muted:#8b949e; --heading:#f0f6fc;
-  --accent:#58a6ff; --good:#3fb950; --warn:#d2991d;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-  background: var(--bg); color: var(--fg); line-height: 1.8;
-  margin-left: 240px; padding: 2rem 2.5rem 3rem; max-width: 900px;
-}
-h1 { font-size: 1.5rem; color: var(--heading); margin-bottom: 0.2rem; }
-.subtitle { color: var(--fg-muted); font-size: 0.82rem; margin-bottom: 1.8rem; }
-h2 {
-  font-size: 1.1rem; color: var(--accent); margin: 2rem 0 0.6rem;
-  border-left: 3px solid var(--accent); padding-left: 0.7rem;
-}
-h3 { font-size: 1rem; color: var(--heading); margin: 1.2rem 0 0.4rem; }
-p { margin: 0.6rem 0; }
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
 
-.tag-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.6rem 0; }
-.tag {
-  font-size: 0.7rem; padding: 0.15rem 0.55rem; border-radius: 0.7rem;
-  background: #1a2a3a; color: var(--accent);
-}
 
-.theorem-box {
-  background: var(--surface); border-left: 3px solid var(--accent);
-  border-radius: 0 6px 6px 0; padding: 1rem 1.2rem; margin: 1rem 0;
-}
-.theorem-box .label { font-size: 0.75rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 0.4rem; }
-
-.scenario-box {
-  background: linear-gradient(135deg, #1a2332, #162030);
-  border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.2rem; margin: 1rem 0;
-}
-.scenario-box .label { font-size: 0.75rem; color: var(--warn); font-weight: 600; margin-bottom: 0.3rem; }
-
-.pros-cons {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0;
-}
-.pros, .cons {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 6px; padding: 0.9rem 1.1rem;
-}
-.pros h4 { color: var(--good); font-size: 0.85rem; margin-bottom: 0.4rem; }
-.cons h4 { color: #f85149; font-size: 0.85rem; margin-bottom: 0.4rem; }
-.pros ul, .cons ul { padding-left: 1.2rem; font-size: 0.84rem; color: var(--fg-muted); }
-.pros li, .cons li { margin: 0.25rem 0; }
-
-.compare-table {
-  width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.84rem;
-}
-.compare-table th {
-  background: var(--surface); color: var(--accent); padding: 0.45rem 0.7rem;
-  text-align: left; border-bottom: 2px solid var(--border); font-weight: 600;
-}
-.compare-table td {
-  padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--border); color: var(--fg-muted);
-}
-
-.key-quote {
-  background: linear-gradient(135deg, #163020, #1a2332);
-  border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem 1.5rem;
-  margin: 1.5rem 0; font-size: 0.92rem; color: var(--heading); font-style: italic;
-  text-align: center;
-}
-.key-quote::before { content: "\300C"; font-size: 1.6rem; color: var(--accent); }
-.key-quote::after { content: "\300D"; font-size: 1.6rem; color: var(--accent); }
-
-pre { border-radius: 6px; margin: 0.8rem 0; overflow-x: auto; }
-code { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.82rem; }
-
-.section-nav {
-  display: flex; justify-content: space-between; margin: 2.5rem 0 1rem;
-  padding-top: 1.2rem; border-top: 1px solid var(--border);
-  font-size: 0.84rem;
-}
-
-footer { margin-top: 2rem; padding-top: 1.2rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--fg-muted); }
-
-@media (max-width: 768px) {
-  body { margin-left: 0; padding: 1rem; }
-  .pros-cons { grid-template-columns: 1fr; }
-}
-</style>
+<link rel="stylesheet" href="../course.css">
 </head>
+
 <body>
 
-<h1>7.2 階梯函數（Step Functions）</h1>
-<div class="subtitle">ISLP p.300 · 難度 ★★☆☆☆ · 第 7 章：超越線性</div>
-<div class="tag-row">
-  <span class="tag">非線性建模</span>
-  <span class="tag">分段常數</span>
-  <span class="tag">指示變數</span>
-  <span class="tag">虛擬變數</span>
-  <span class="tag">binning</span>
+<header>
+  <h1>7.2 階梯函數（Step Functions）</h1>
+  <div class="meta">
+    <span>📖 ISLP §7.2</span>
+    <span>📄 p.300</span>
+    <span class="difficulty">★★☆☆☆</span>
+    <span>⏱️ 約 20 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">非線性建模</span>
+    <span class="tag">分段常數</span>
+    <span class="tag">指示變數</span>
+    <span class="tag">虛擬變數</span>
+    <span class="tag">binning</span>
+  </div>
+</header>
+<div class="section-nav">
+  <a href="7.1_polynomial_regression.html">← §7.1 多項式迴歸</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.3_basis_functions.html">§7.3 基底函數 →</a>
 </div>
 
 <h2>📚 理論基礎</h2>
 
-<div class="theorem-box">
+<div class="callout">
 <div class="label">核心概念</div>
 <p>多項式迴歸對 <em>X</em> 的整個取值範圍施加了<strong>全域性</strong>結構（一條曲線通吃）。階梯函數（Step Function）則放棄全域曲線，改為將 <em>X</em> 的範圍「切成好幾段」，每一段內擬合一個<strong>常數</strong>——本質上就是把連續變數轉換成<strong>有序類別變數</strong>（ordered categorical variable）。</p>
 </div>
@@ -137,7 +65,7 @@ y_i = \beta_0 + \beta_1 C_1(x_i) + \beta_2 C_2(x_i) + \cdots + \beta_K C_K(x_i) 
 
 <p><strong>注意：</strong>我們刻意排除了 <em>C</em>₀(<em>X</em>)——它與截距項 β₀ 冗餘（類似於三類別質性變數只需要兩個 dummy）。當 <em>X</em> < c₁ 時，所有 <em>C</em>₁…<em>C<sub>K</sub></em> 都是 0，此時 β₀ 就是該區間的平均回應值。βⱼ 則代表從前一區間「跳」到第 <em>j</em> 個區間時，平均回應的變化量。</p>
 
-<div class="theorem-box">
+<div class="callout">
 <div class="label">生活化理解</div>
 <p>想像你在經營咖啡店，想根據戶外溫度預測銷量。多項式迴歸會畫一條光滑曲線：「溫度每升 1°C 銷量都不同」。但階梯函數的邏輯更簡單：「0-10°C 冷死人沒人出來 → 固定低銷量；10-20°C 舒服 → 中銷量；20-35°C 熱死人 → 冰咖啡爆單」。溫度不是連續變化了，而是分成「冷/涼/熱」三段，每段一個銷量水準。</p>
 </div>
@@ -300,7 +228,7 @@ plt.show()
 </tr>
 </table>
 
-<div class="theorem-box">
+<div class="callout">
 <div class="label">🧠 自我內化：從階梯函數看 Hermes 的模型路由</div>
 <p>階梯函數的設計哲學——<strong>「放棄全域最優，切換成分段最優」</strong>——其實就是 Hermes 的 C-A-F（Context-Action-Feedback）路由器的核心。不同任務類型（程式開發 vs 統計教學 vs 內容生成）各自對應一個「區間」，每個區間指派最適合的子 agent 模型。β₀ 是基礎能力（DeepSeek），β₁ 是程式能力增量（Codex），β₂ 是教學能力增量（專門微調模型）。<strong>不是找一條萬能曲線，而是為每個任務類型定義最佳「階梯」。</strong></p>
 </div>
@@ -314,13 +242,13 @@ plt.show()
   <a href="7.3_basis_functions.html">§7.3 基底函數 →</a>
 </div>
 
-<footer>
-  ISLP §7.2 課程 · 內容基於 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning</em> · 全繁體中文 · <a href="..">學習中心首頁</a>
-</footer>
-
 <script src="../sidebar.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>hljs.highlightAll();</script>
+<footer>
+  <p>📖 內容出自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, Springer.</p>
+  <p><a href="..">← 回到學習中心首頁</a></p>
+</footer>
 </body>
 </html>

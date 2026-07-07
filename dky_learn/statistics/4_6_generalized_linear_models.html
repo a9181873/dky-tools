@@ -2,191 +2,37 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>§4.6 廣義線性模型 — ISLP 統計學習課程</title>
-<style>
-:root {
-  --bg:#0d1117;
-  --bg-elevated: #161b22;
-  --bg-card: #1c2129;
-  --fg: #c9d1d9;
-  --fg-muted: #8b949e;
-  --accent: #58a6ff;
-  --accent-dim: #1f6feb;
-  --green: #3fb950;
-  --orange: #d2991d;
-  --red: #f85149;
-  --border: #30363d;
-  --radius: 8px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif;
-  --mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--fg);
-  line-height: 1.75;
-  font-size: 16px;
-}
-.dky-layout {
-  display: flex;
-  min-height: 100vh;
-}
-main {
-  flex: 1;
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-}
-h1 { font-size: 1.8rem; color: var(--accent); margin: 1.5rem 0 0.5rem; }
-h2 {
-  font-size: 1.35rem; color: var(--accent); margin: 2rem 0 0.75rem;
-  padding-bottom: 0.35rem; border-bottom: 1px solid var(--border);
-}
-h3 { font-size: 1.1rem; color: var(--fg); margin: 1.25rem 0 0.5rem; }
-p { margin: 0.7rem 0; }
-code {
-  background: var(--bg-elevated); color: var(--orange);
-  padding: 0.15rem 0.4rem; border-radius: 4px; font-family: var(--mono); font-size: 0.9em;
-}
-pre {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.2rem;
-  overflow-x: auto;
-  margin: 0.8rem 0;
-  font-size: 0.85rem;
-  line-height: 1.55;
-}
-pre code { background: none; color: var(--fg); padding: 0; }
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-blockquote {
-  border-left: 3px solid var(--accent-dim);
-  padding: 0.5rem 1rem;
-  margin: 0.8rem 0;
-  background: var(--bg-elevated);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  color: var(--fg-muted);
-}
-ul, ol { margin: 0.5rem 0 0.5rem 1.5rem; }
-li { margin: 0.25rem 0; }
 
-.meta-bar {
-  display: flex; flex-wrap: wrap; gap: 0.6rem;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-}
-.tag {
-  display: inline-block;
-  background: var(--accent-dim);
-  color: var(--fg);
-  font-size: 0.78rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 12px;
-  font-weight: 500;
-}
-.stars { color: var(--orange); font-size: 0.9rem; }
-
-.ref-box {
-  background: var(--bg-card);
-  border-left: 4px solid var(--accent-dim);
-  padding: 0.8rem 1.2rem;
-  margin: 1rem 0;
-  border-radius: 0 var(--radius) var(--radius) 0;
-  font-size: 0.9rem;
-}
-.ref-box strong { color: var(--accent); }
-
-.scenario-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 1rem 1.2rem;
-  margin: 1rem 0;
-  border-radius: var(--radius);
-}
-.scenario-box h4 { color: var(--green); margin-bottom: 0.4rem; font-size: 0.95rem; }
-
-.pros-cons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 1rem 0;
-}
-.pros-cons > div {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.8rem 1rem;
-}
-.pros-cons h4 { margin-bottom: 0.4rem; font-size: 0.95rem; }
-.pros-cons .pros h4 { color: var(--green); }
-.pros-cons .cons h4 { color: var(--red); }
-.pros-cons ul { margin-left: 1.2rem; }
-
-.comparison-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  font-size: 0.88rem;
-}
-.comparison-table th {
-  background: var(--bg-elevated);
-  color: var(--accent);
-  text-align: left;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid var(--border);
-}
-.comparison-table td {
-  padding: 0.45rem 0.7rem;
-  border: 1px solid var(--border);
-}
-.comparison-table tr:nth-child(even) td { background: var(--bg-card); }
-
-.key-quote {
-  background: linear-gradient(135deg, var(--accent-dim) 0%, var(--bg-card) 100%);
-  border: 1px solid var(--accent-dim);
-  border-radius: var(--radius);
-  padding: 1.2rem 1.5rem;
-  margin: 2rem 0;
-  font-size: 1.05rem;
-  font-style: italic;
-  text-align: center;
-  color: var(--fg);
-}
-
-.math-block { overflow-x: auto; padding: 0.3rem 0; }
-
-@media (max-width: 768px) {
-  .dky-layout { flex-direction: column; }
-  main { padding: 1rem; }
-  .pros-cons { grid-template-columns: 1fr; }
-  h1 { font-size: 1.4rem; }
-}
-</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+
+<link rel="stylesheet" href="../course.css">
 </head>
+
 <body>
-<div class="dky-layout">
-<main>
 
-<h1>§4.6 廣義線性模型（Generalized Linear Models）</h1>
-
-<div class="meta-bar">
-  <span class="stars">★★★☆☆</span>
-  <span class="tag">廣義線性模型</span>
-  <span class="tag">GLM</span>
-  <span class="tag">卜瓦松迴歸</span>
-  <span class="tag">計數資料</span>
-  <span class="tag">連結函數</span>
-  <span style="color:var(--fg-muted);font-size:0.85rem;">課本 pp. 167–172</span>
+<header>
+  <h1>4.6 廣義線性模型（Generalized Linear Models）</h1>
+  <div class="meta">
+    <span>📖 ISLP §4.6</span>
+    <span>📄 pp. 179–185</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 20 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">GLM</span>
+    <span class="tag">Poisson</span>
+    <span class="tag">連結函數</span>
+  </div>
+</header>
+<div class="section-nav">
+  <a href="04_classification_methods_comparison.html">← 4.5 分類方法比較</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="04_7_lab_classification_methods.html">4.7 Lab: 分類方法 →</a>
 </div>
 
-<!-- ============================================================ -->
 <h2>📖 前言：當 Y 不是數字也不是類別</h2>
 
 <p>
@@ -681,5 +527,9 @@ ISLP §4.6 Generalized Linear Models · 課本 pp. 167–172 ·
 <script>hljs.highlightAll();</script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="../sidebar.js"></script>
+<footer>
+  <p>📖 內容出自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, Springer.</p>
+  <p><a href="..">← 回到學習中心首頁</a></p>
+</footer>
 </body>
 </html>

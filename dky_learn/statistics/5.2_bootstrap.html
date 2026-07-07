@@ -2,31 +2,38 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>§5.2 Bootstrap 自助抽樣法 — ISLP 統計學習課程</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent2);margin:2rem 0 1rem;font-size:1.4rem;border-left:3px solid var(--accent2);padding-left:.8rem}h3{color:var(--fg);margin:1.2rem 0 .6rem}code{background:var(--code-bg);padding:.15rem .4rem;border-radius:4px;font-size:.9rem;color:var(--accent)}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow-x:auto;margin:1rem 0;font-size:.85rem;line-height:1.5}pre code{background:none;padding:0;color:var(--fg)}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1rem 0}.ref-box{background:var(--card);border-left:4px solid var(--warn);border-radius:0 8px 8px 0;padding:1rem;margin:1rem 0;font-size:.9rem;color:#8b949e}.key-concept{background:var(--card);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;padding:1rem;margin:1rem 0}.formula-block{margin:1.5rem 0;padding:1rem;background:var(--code-bg);border-radius:8px;overflow-x:auto}.formula-label{font-size:.85rem;color:#8b949e;margin-top:.4rem;text-align:center}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{padding:.6rem;text-align:left;border:1px solid var(--border)}th{background:var(--card);font-weight:600}tr:nth-child(even){background:rgba(255,255,255,.02)}.pros{color:var(--accent2)}.cons{color:var(--danger)}.quote{border-left:3px solid var(--warn);padding:.5rem 1rem;margin:1rem 0;color:#8b949e;font-style:italic}footer{text-align:center;margin-top:3rem;padding:1rem;border-top:1px solid var(--border);color:#8b949e;font-size:.8rem}a{color:var(--accent)}@media(max-width:640px){body{padding:1rem .8rem;max-width:100%}header h1{font-size:1.4rem}h2{font-size:1.1rem}}</style>
+
+
+<link rel="stylesheet" href="../course.css">
 </head>
+
 <body>
 
 <header>
-  <h1>§5.2 Bootstrap 自助抽樣法</h1>
+  <h1>5.2 Bootstrap（Bootstrap）</h1>
   <div class="meta">
     <span>📖 ISLP §5.2</span>
-    <span>📄 pp. 204–210</span>
-    <span class="difficulty">⭐⭐</span>
-    <span>⏱️ 約 25 分鐘</span>
+    <span>📄 pp. 208–214</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 20 分鐘</span>
   </div>
   <div class="tags">
     <span class="tag">Bootstrap</span>
-    <span class="tag">Resampling</span>
-    <span class="tag">標準誤差</span>
-    <span class="tag">信賴區間</span>
-    <span class="tag">Portfolio</span>
+    <span class="tag">重抽樣</span>
+    <span class="tag">標準誤</span>
   </div>
 </header>
+<div class="section-nav">
+  <a href="5.1_cross_validation.html">← 5.1 交叉驗證</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="05_lab_cross_validation_bootstrap.html">5.3 Lab: CV & Bootstrap →</a>
+</div>
 
 <h2>📚 理論核心</h2>
 
@@ -200,7 +207,8 @@ Bootstrap 的核心精神——「從既有經驗中重複抽樣來量化不確�
 </div>
 
 <footer>
-  <p>📖 <a href="index.html">ISLP 統計學習課程</a> | DKY 學習中心 · learn.dky.tw</p>
+  <p>📖 內容出自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, Springer.</p>
+  <p><a href="..">← 回到學習中心首頁</a></p>
 </footer>
 <script src="../sidebar.js"></script>
 <script>if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");</script>

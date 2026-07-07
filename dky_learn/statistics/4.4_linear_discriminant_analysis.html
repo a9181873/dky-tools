@@ -2,35 +2,38 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>第 4 章：分類 — 4.4 線性判別分析 (LDA)</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>document.addEventListener('DOMContentLoaded',()=>{hljs.highlightAll()})</script>
-<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);font-size:.75rem;padding:.2rem .7rem;border-radius:1rem}h2{font-size:1.3rem;color:var(--accent);margin:2rem 0 .8rem;border-left:3px solid var(--accent);padding-left:.7rem}h3{font-size:1rem;color:var(--accent2);margin:1.2rem 0 .5rem}p{margin:.5rem 0}code{background:var(--code-bg);color:var(--accent2);padding:.1rem .4rem;border-radius:3px;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.85rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:1rem;overflow-x:auto;margin:.8rem 0}.ref-box{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:1rem;margin:1rem 0;font-size:.9rem}.ref-box .label{color:var(--warn);font-weight:700}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:.8rem 0}table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.88rem}th,td{border:1px solid var(--border);padding:.5rem .8rem;text-align:left}th{background:var(--code-bg);color:var(--accent);font-weight:600}blockquote{border-left:3px solid var(--accent);margin:.8rem 0;padding:.3rem 1rem;color:var(--fg);background:var(--card);border-radius:0 6px 6px 0}ul,ol{margin:.5rem 0 .5rem 1.4rem}li{margin:.2rem 0}.math-block{overflow-x:auto;margin:.8rem 0}.pro-con{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:.8rem 0}.pro,.con{padding:1rem;border-radius:6px}.pro{background:#0a2f1a;border:1px solid var(--accent2)}.con{background:#2f0a0a;border:1px solid var(--danger)}.pro h4{color:var(--accent2)}.con h4{color:var(--danger)}a{color:var(--accent)}a:hover{opacity:.8}footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.8rem;color:#8b949e;text-align:center}@media(max-width:768px){body{padding:1rem}h1{font-size:1.5rem}.pro-con{grid-template-columns:1fr}}</style>
+
+
+<link rel="stylesheet" href="../course.css">
 </head>
+
 <body>
 
 <header>
-  <h1>4.4 線性判別分析：從貝氏定理到分類邊界</h1>
+  <h1>4.4 線性判別分析（Linear Discriminant Analysis）</h1>
   <div class="meta">
     <span>📖 ISLP §4.4</span>
-    <span>📄 pp. 145–154</span>
-    <span class="difficulty">⭐⭐⭐ 中級</span>
-    <span>⏱️ 約 40 分鐘</span>
+    <span>📄 pp. 151–165</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 30 分鐘</span>
   </div>
   <div class="tags">
     <span class="tag">LDA</span>
-    <span class="tag">Bayes</span>
-    <span class="tag">classification</span>
-    <span class="tag">discriminant</span>
-    <span class="tag">QDA</span>
+    <span class="tag">判別分析</span>
+    <span class="tag">貝氏分類器</span>
   </div>
 </header>
-
-<div class="ref-box">
-  <span class="label">📖 課本引用：</span>James, Witten, Hastie, Tibshirani (2023). <em>An Introduction to Statistical Learning with Applications in Python</em>, §4.4, pp. 145–154.
+<div class="section-nav">
+  <a href="4.3_logistic_regression.html">← 4.3 邏輯回歸</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="04_classification_methods_comparison.html">4.5 分類方法比較 →</a>
 </div>
 
 <h2>💡 核心概念：從「誰比較像」到「機率最高的類別」</h2>
@@ -298,9 +301,8 @@ print(f"解釋變異比: {lda.explained_variance_ratio_}")</code></pre>
 </p>
 
 <footer>
-  <a href="index.html">← 回首頁</a> · 
-  <a href="4.3_logistic_regression.html">← §4.3 邏輯回歸</a> · 
-  <a href="04_classification_methods_comparison.html">§4.5 分類方法比較 →</a>
+  <p>📖 內容出自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, Springer.</p>
+  <p><a href="..">← 回到學習中心首頁</a></p>
 </footer>
 
 <script src="../sidebar.js"></script>

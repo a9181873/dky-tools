@@ -2,65 +2,15 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>統計學習入門 — ISLP 課程</title>
-<style>
-:root {
-  --bg: #0d1117; --surface: #161b22; --border: #30363d;
-  --fg: #c9d1d9; --fg-muted: #8b949e; --heading: #f0f6fc;
-  --accent: #58a6ff; --good: #3fb950; --warn: #d2991d;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-  background: var(--bg); color: var(--fg); line-height: 1.8;
-  margin-left: 240px; padding: 3rem 3rem 4rem; max-width: 960px;
-}
-h1 { font-size: 1.6rem; color: var(--heading); margin-bottom: 0.3rem; }
-.subtitle { color: var(--fg-muted); font-size: 0.85rem; margin-bottom: 2rem; }
-h2 {
-  font-size: 1.1rem; color: var(--accent); margin: 2rem 0 0.6rem;
-  border-left: 3px solid var(--accent); padding-left: 0.7rem;
-}
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
 
-/* Lesson cards */
-.lesson-list { display: grid; gap: 0.6rem; margin: 0.8rem 0; }
-.lesson-card {
-  display: flex; align-items: center; gap: 0.9rem;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 6px; padding: 0.8rem 1.1rem; transition: border-color 0.15s;
-  text-decoration: none; color: var(--fg);
-}
-.lesson-card:hover { border-color: var(--accent); text-decoration: none; }
-.lesson-card .num {
-  font-size: 0.8rem; color: var(--fg-muted); min-width: 3rem; font-weight: 600;
-}
-.lesson-card .info { flex: 1; }
-.lesson-card .info h4 { font-size: 0.9rem; color: var(--heading); margin: 0; }
-.lesson-card .info p { font-size: 0.78rem; color: var(--fg-muted); margin: 0.1rem 0 0; }
-.lesson-card .status {
-  font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 0.7rem;
-  background: #1a2f1a; color: var(--good); white-space: nowrap;
-}
 
-/* Textbook banner */
-.book-banner {
-  display: flex; align-items: center; gap: 1rem;
-  background: linear-gradient(135deg, #1a2332, #162030);
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 1rem 1.4rem; margin-bottom: 1.5rem;
-}
-.book-banner .icon { font-size: 2rem; }
-.book-banner .info { flex: 1; }
-.book-banner .info h3 { font-size: 0.9rem; color: var(--heading); margin: 0; }
-.book-banner .info p { font-size: 0.78rem; color: var(--fg-muted); margin: 0.2rem 0 0; }
-.book-banner a { color: var(--accent); }
+<link rel="stylesheet" href="../course.css">
 
-footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--fg-muted); }
-@media (max-width: 768px) { body { margin-left: 0; padding: 1.2rem; } }
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 </head>
 <body>
 
@@ -316,5 +266,7 @@ footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--bord
 
 <script src="../sidebar.js"></script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
 </body>
 </html>

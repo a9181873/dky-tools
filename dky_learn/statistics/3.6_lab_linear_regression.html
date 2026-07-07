@@ -2,51 +2,40 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>第 3 章：線性迴歸 — 3.6 Lab: Linear Regression</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>hljs.highlightAll();script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<style>
-:root {
-  --bg: #0d1117; --fg: #c9d1d9; --accent: #58a6ff; --border: #30363d;
-  --code-bg: #161b22; --heading: #f0f6fc; --tag-bg: #1f2937;
-  --warn: #d2991d; --good: #3fb950; --bad: #f85149; --info: #58a6ff;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-  background: var(--bg); color: var(--fg); line-height: 1.8;
-  max-width: 880px; margin: 0 auto; padding: 2rem 1.5rem;
-}
-h1 { color: var(--heading); font-size: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
-h2 { color: var(--accent); font-size: 1.5rem; margin: 2rem 0 0.8rem; border-left: 4px solid var(--accent); padding-left: 0.8rem; }
-h3 { color: var(--heading); font-size: 1.2rem; margin: 1.5rem 0 0.6rem; }
-h4 { color: var(--fg); font-size: 1.05rem; margin: 1rem 0 0.5rem; }
-p { margin: 0.8rem 0; }
-a { color: var(--accent); }
-blockquote {
-  border-left: 3px solid var(--warn); background: #1a1a1a;
-  padding: 0.6rem 1rem; margin: 1rem 0; font-size: 0.9rem;
-}
-code { background: var(--code-bg); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9rem; }
-pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; overflow-x: auto; margin: 0.8rem 0; }
-pre code { background: none; padding: 0; }
-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-th { background: var(--tag-bg); color: var(--heading); padding: 0.5rem 0.8rem; text-align: left; font-size: 0.9rem; }
-td { border-bottom: 1px solid var(--border); padding: 0.5rem 0.8rem; font-size: 0.88rem; }
-.tip { background: #1a2f1a; border-left: 3px solid var(--good); padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 4px 4px 0; }
-.warn { background: #2a1f0a; border-left: 3px solid var(--warn); padding: 0.6rem 1rem; margin: 0.8rem 0; border-radius: 0 4px 4px 0; }
-</style>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
+
+<link rel="stylesheet" href="../course.css">
 </head>
+
 <body>
 
-<h1>3.6 Lab: Linear Regression — 線性迴歸實驗室</h1>
-
-<p>本實驗室對應 <strong>ISLP §3.6 Lab: Linear Regression</strong>，將使用 Boston 房價資料集實作完整的線性迴歸分析流程。涵蓋資料探索、簡單線性迴歸、多元線性迴歸、交互作用項、殘差分析等核心概念。</p>
-
-<div class="tip">💡 本章使用 <code>Boston</code> 資料集，包含 506 個波士頓社區的房價資料。所有程式碼完全可執行，使用 Google Colab 即可在瀏覽器中運行。</div>
+<header>
+  <h1>3.6 Lab: 線性迴歸（Lab: Linear Regression）</h1>
+  <div class="meta">
+    <span>📖 ISLP §3.6</span>
+    <span>📄 pp. 109–120</span>
+    <span class="difficulty">★★☆☆☆</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">Python</span>
+    <span class="tag">線性迴歸</span>
+    <span class="tag">sklearn</span>
+    <span class="tag">statsmodels</span>
+  </div>
+</header>
+<div class="section-nav">
+  <a href="3.5_linear_regression_vs_knn.html">← 3.5 線性迴歸 vs KNN</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="04_Generative_Models.html">4.1 分類概述 →</a>
+</div>
 
 <h2>🔧 套件匯入與環境設定</h2>
 
@@ -328,5 +317,9 @@ print("Predictions:", predictions)</code></pre>
 
 <script src="../sidebar.js"></script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+<footer>
+  <p>📖 內容出自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, Springer.</p>
+  <p><a href="..">← 回到學習中心首頁</a></p>
+</footer>
 </body>
 </html>

@@ -2,44 +2,38 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>§4.4 生成模型分類法：LDA、QDA 與 Naive Bayes</title>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<style>
-:root{--bg:#0d1117;--fg:#c9d1d9;--fg-muted:#8b949e;--accent:#58a6ff;--border:#30363d;--tag-bg:#1f2937;--tag-fg:#58a6ff;--code-bg:#161b22;--box-bg:#161b22;--green:#3fb950;--red:#f85149;--warn:#d2991d}
-body{font-family:'Noto Sans TC',-apple-system,sans-serif;max-width:860px;margin:0 auto;padding:24px 20px 60px;color:var(--fg);line-height:1.75;background:var(--bg)}
-h1{font-size:1.8em;color:#f0f6fc;border-bottom:2px solid var(--accent);padding-bottom:8px;margin-bottom:8px}
-h2{font-size:1.3em;color:var(--accent);margin-top:36px;border-left:4px solid var(--accent);padding-left:12px}
-h3{font-size:1.1em;margin-top:28px;color:#f0f6fc}
-.tag{display:inline-block;background:var(--tag-bg);color:var(--tag-fg);padding:2px 10px;border-radius:12px;font-size:.85em;margin:2px}
-.meta{color:var(--fg-muted);font-size:.9em;margin:6px 0 20px}
-.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
-.pros{background:#0d1f17;border:1px solid #1a3a2a;padding:12px 16px;border-radius:8px}
-.cons{background:#1f1515;border:1px solid #3a1a1a;padding:12px 16px;border-radius:8px}
-.pros h4{color:var(--green);margin:0 0 6px}
-.cons h4{color:var(--red);margin:0 0 6px}
-.scenario-box{background:var(--box-bg);border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0;border-radius:0 8px 8px 0}
-.key-quote{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid var(--warn);padding:16px 20px;border-radius:8px;font-size:1.05em;margin:20px 0;text-align:center;font-weight:500}
-pre{margin:0} code{font-size:.9em} pre code{border-radius:8px;padding:16px!important}
-table{border-collapse:collapse;width:100%;margin:12px 0}
-th,td{border:1px solid var(--border);padding:6px 12px;text-align:left;font-size:.92em}
-th{background:#1c2128;color:#f0f6fc}
-.ref{font-size:.85em;color:var(--fg-muted);margin:4px 0}
-.highlight{background:#1a2332;color:#d2991d;padding:2px 4px;border-radius:3px}
-</style>
+
+
+<link rel="stylesheet" href="../course.css">
 </head>
+
 <body>
 
-<h1>§4.4 生成模型分類法</h1>
-<div class="meta">
-  <span class="tag">LDA</span> <span class="tag">QDA</span> <span class="tag">Naive Bayes</span> <span class="tag">貝氏定理</span>
-  <span class="tag">分類</span> · 難度 ★★★★ · 課本 p153–160
-</div>
-
-<div class="key-quote">
-  「與其直接畫一條線把兩類分開，不如先理解每一類『長什麼樣子』，再問新來的比較像誰。」
+<header>
+  <h1>4.4 生成模型：LDA・QDA・Naive Bayes（Generative Models）</h1>
+  <div class="meta">
+    <span>📖 ISLP §4.4–4.5</span>
+    <span>📄 pp. 151–179</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 35 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">LDA</span>
+    <span class="tag">QDA</span>
+    <span class="tag">Naive Bayes</span>
+    <span class="tag">生成模型</span>
+  </div>
+</header>
+<div class="section-nav">
+  <a href="4.3_logistic_regression.html">← 4.3 邏輯回歸</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="04_classification_methods_comparison.html">4.5 分類方法比較 →</a>
 </div>
 
 <h2>核心概念：生成 vs 判別</h2>
@@ -206,5 +200,9 @@ Naive Bayes 的成功說明一個道理：簡化假設（bias ↑）換取穩定
 📚 Hastie, Tibshirani, Friedman (2009) <em>The Elements of Statistical Learning</em>, §4.3.</p>
 
 <script src="../sidebar.js"></script>
+<footer>
+  <p>📖 內容出自 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, Springer.</p>
+  <p><a href="..">← 回到學習中心首頁</a></p>
+</footer>
 </body>
 </html>
