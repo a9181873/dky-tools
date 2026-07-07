@@ -35,7 +35,8 @@
       <a href="/statistics/6.5_lab_regularization.html" class="nav-item done">6.5 Lab: 線性模型選擇與正則化</a>
       <a href="/statistics/7.1_polynomial_regression.html" class="nav-item done">7.1 多項式迴歸</a>
       <a href="/statistics/7.2_step_functions.html" class="nav-item done">7.2 階梯函數</a>
-<a href="/statistics/7.3_basis_functions.html" class="nav-item pending">7.3 基底函數</a>
+<a href="/statistics/7.3_basis_functions.html" class="nav-item done">7.3 基底函數</a>
+<a href="/statistics/7.4_regression_splines.html" class="nav-item pending">7.4 迴歸樣條</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
