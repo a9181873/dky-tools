@@ -1,0 +1,119 @@
+/* === learn.dky.tw 統計課程共用樣式 === */
+/* 最後更新: 2026-07-07 — 所有課程頁統一引用此檔 */
+:root {
+  --bg: #0d1117; --fg: #c9d1d9; --card: #161b22; --border: #30363d;
+  --accent: #58a6ff; --accent2: #3fb950; --warn: #d2991d; --danger: #f85149;
+  --code-bg: #1a1e24; --tag-bg: #1f2a37; --fg-muted: #8b949e; --heading: #f0f6fc;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  line-height: 1.7; max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem;
+}
+header {
+  text-align: center; padding: 2rem 0 1.5rem;
+  border-bottom: 2px solid var(--border); margin-bottom: 2rem;
+}
+header h1 { font-size: 2rem; color: var(--accent); margin-bottom: .5rem; }
+header .meta { font-size: .9rem; color: var(--fg-muted); }
+header .meta span { margin: 0 .5rem; }
+.difficulty { color: var(--warn); font-weight: 700; }
+.tags { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; margin-top: .8rem; }
+.tag {
+  background: var(--tag-bg); color: var(--accent); padding: .2rem .7rem;
+  border-radius: 12px; font-size: .78rem; border: 1px solid var(--border);
+}
+.section-nav {
+  display: flex; justify-content: space-between; margin-bottom: 2rem;
+  padding: .7rem 1rem; background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; font-size: .85rem;
+}
+.section-nav a { color: var(--accent); text-decoration: none; }
+.section-nav a:hover { text-decoration: underline; }
+.section-nav span { color: var(--fg-muted); }
+h2 {
+  color: var(--accent); margin: 2.2rem 0 1rem;
+  padding-bottom: .4rem; border-bottom: 1px solid var(--border); font-size: 1.35rem;
+}
+h3 { color: var(--fg); margin: 1.5rem 0 .7rem; font-size: 1.1rem; }
+h4 { color: var(--heading); margin: 1rem 0 .5rem; font-size: 1rem; }
+p { margin: .8rem 0; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.callout {
+  background: var(--card); border-left: 4px solid var(--accent);
+  padding: 1rem 1.2rem; margin: 1.2rem 0; border-radius: 0 8px 8px 0; font-size: .95rem;
+}
+.callout strong { color: var(--accent); }
+.ref-box {
+  background: var(--card); border: 1px solid var(--border);
+  padding: .8rem 1rem; margin: 1rem 0; border-radius: 8px; font-size: .85rem; color: var(--fg-muted);
+}
+.ref-box em { color: var(--fg); }
+.ref-box strong { color: var(--heading); }
+pre {
+  background: var(--code-bg); border: 1px solid var(--border);
+  border-radius: 8px; overflow-x: auto; margin: 1rem 0; padding: 1rem;
+  font-size: .85rem; line-height: 1.5;
+}
+code { font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace; }
+.scenario-box {
+  background: var(--card); border: 1px solid var(--accent);
+  padding: 1rem 1.2rem; margin: 1.2rem 0; border-radius: 8px;
+}
+.scenario-box h4 { color: var(--accent); margin-bottom: .5rem; }
+.scenario-box::before {
+  content: "🎯 應用場景"; display: block; color: var(--warn);
+  font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .5rem;
+}
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0; }
+.pros-cons > div {
+  background: var(--card); border: 1px solid var(--border); padding: 1rem; border-radius: 8px;
+}
+.pros-cons h4 { margin-bottom: .5rem; font-size: .9rem; }
+.pros-cons .pros h4 { color: var(--accent2); }
+.pros-cons .cons h4 { color: var(--danger); }
+.pros-cons ul, .pros ul, .cons ul { list-style: none; font-size: .88rem; padding-left: 0; }
+.pros-cons .pros ul li::before, .pros ul li::before { content: "✅ "; color: var(--accent2); }
+.pros-cons .cons ul li::before, .cons ul li::before { content: "❌ "; color: var(--danger); }
+.pros li, .cons li { margin: .25rem 0; }
+.comparison-table {
+  width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: .85rem;
+}
+.comparison-table th {
+  background: var(--card); color: var(--accent); padding: .6rem .8rem;
+  text-align: left; border: 1px solid var(--border); white-space: nowrap;
+}
+.comparison-table td { padding: .5rem .8rem; border: 1px solid var(--border); }
+.comparison-table tr:nth-child(even) { background: #0f1419; }
+.key-quote {
+  margin: 2rem 0; padding: 1.5rem 2rem; background: var(--card);
+  border-left: 4px solid var(--warn); border-radius: 8px;
+  font-size: 1.05rem; font-style: italic; text-align: center;
+}
+.key-quote::before { content: "「"; color: var(--accent); font-size: 2rem; vertical-align: -.7rem; }
+.key-quote::after { content: "」"; color: var(--accent); font-size: 2rem; vertical-align: -.7rem; }
+.hermes-insight {
+  background: var(--card); border: 2px solid var(--warn);
+  padding: 1.2rem; margin: 1.5rem 0; border-radius: 8px;
+}
+.hermes-insight::before {
+  content: "🤖 系統設計啟發"; display: block; color: var(--warn);
+  font-size: .8rem; text-transform: uppercase; margin-bottom: .5rem; font-weight: 700;
+}
+footer {
+  margin-top: 3rem; padding: 1.5rem 0; border-top: 1px solid var(--border);
+  text-align: center; font-size: .8rem; color: var(--fg-muted);
+}
+footer a { color: var(--accent); text-decoration: none; }
+.colab-badge {
+  display: inline-block; background: #1a3a2a; color: var(--accent2);
+  font-size: .7rem; padding: .15rem .55rem; border-radius: .7rem;
+  vertical-align: middle; margin-left: .3rem;
+}
+@media (max-width: 768px) {
+  body { padding: 1rem; }
+  header h1 { font-size: 1.5rem; }
+  .pros-cons { grid-template-columns: 1fr; }
+}
