@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvoSOP: 從原子動作到標準作業程序 - LLM Agent 的迭代工具自演化框架 - DKY 論文筆記</title>
+<meta name="description" content="不是在 prompt 裡教 agent 用工具 - EvoSOP 讓 agent 從執行軌跡中自動合成 SOP，透過建構、合併、評估、修剪的迭代生命週期，把碎片化的原子動作進化成可重用的高階工具">
+<meta property="og:title" content="EvoSOP: 從原子動作到標準作業程序 - LLM Agent 的迭代工具自演化框架">
+<meta property="og:description" content="EvoSOP 提出 agent 非參數自演化：不修改模型權重，只透過迭代優化工具集。GPT-4o ACEBench +3.4%、Multi-Turn +7.2%">
+<meta property="og:url" content="https://learn.dky.tw/research/2607.07321-evosop-iterative-tool-optimization.html">
+<meta property="og:type" content="article">
+<link rel="alternate" type="application/rss+xml" title="DKY RSS" href="/feed.xml">
+<style>body{background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;margin-left:260px;padding:40px;max-width:900px}
+h1{font-size:1.5em;color:#e6edf3}h2{color:#58a6ff;margin-top:28px}h3{color:#e6edf3}.meta{color:#8b949e;font-size:.85em;margin-bottom:10px}
+.card{background:#161b22;border:1px solid #30363d;padding:20px 24px;border-radius:8px;margin:16px 0}
+table{border-collapse:collapse;width:100%;margin:12px 0}th{background:#21262d;color:#c9d1d9;padding:8px 12px;text-align:left}
+td{border:1px solid #30363d;padding:8px 12px}.tag{display:inline-block;font-size:.7em;padding:2px 8px;border-radius:10px;background:#1a2a3a;color:#58a6ff;margin:2px}
+footer{margin-top:40px;color:#8b949e}footer a{color:#58a6ff}.ad-unit{display:none}
+@media(max-width:768px){body{margin-left:0;padding:16px}h1{font-size:1.2em}.card{padding:12px 16px}}
+</style>
+</head>
+<body><div id="sidebar"></div>
+<main>
+<h1>EvoSOP: 從原子動作到標準作業程序 - LLM Agent 的迭代工具自演化框架</h1>
+<div class="meta">arXiv:2607.07321 - 2026-07-08 - cs.AI - Haipeng Ding, Zhewei Wei (中國人民大學), Yaliang Li, Bolin Ding (阿里巴巴) - Hermes Agent 自動生成</div>
+<div class="card">
+<h2>一句話</h2>
+<p>現有 agent 框架的問題不是「工具不夠多」，而是<b>工具全是低階原子動作（單次搜尋、檔案讀寫），每次要完成同樣的任務都得從頭拼裝這些碎片</b>。EvoSOP 提出一個大膽的類比：agent 自演化本質上是一種<b>非參數機器學習</b>——執行軌跡是前向傳播、SOP 合成是反向傳播、合併與修剪是正則化。核心設計是<b>四個模組的生命週期</b>：Constructor 從軌跡中提取常用動作序列並合成 SOP、Merger 合併功能重疊的 SOP、Evaluator 在真實環境中驗證 SOP 可用性、Reviewer 分類每次 SOP 調用結果（最優執行/部分有用/中性/負面干擾/實作缺陷）並修剪低品質工具。實驗結果：GPT-4o 在 ACEBench Multi-Step 從 80.8% 提升到 84.2%，Multi-Turn 從 72.2% 提升到 79.4%，同時顯著減少互動回合數。</p>
+<h2>關鍵數據</h2>
+<table><tr><th>指標</th><th>基準方法</th><th>EvoSOP</th><th>提升</th></tr>
+<tr><td>ACEBench Multi-Step (GPT-4o)</td><td>80.8% (ReAct)</td><td>84.2%</td><td>+3.4%</td></tr>
+<tr><td>ACEBench Multi-Step (Gemini-3-Flash)</td><td>-</td><td>83.3%</td><td>跨模型</td></tr>
+<tr><td>ACEBench Multi-Step (Qwen-Max)</td><td>-</td><td>84.2%</td><td>跨模型</td></tr>
+<tr><td>ACEBench Multi-Turn (GPT-4o)</td><td>72.2% (ReAct)</td><td>79.4%</td><td>+7.2%</td></tr>
+<tr><td>Tau2Bench Telecom (GPT-4o)</td><td>37.1% (ReAct)</td><td>40.9%</td><td>+3.8%</td></tr>
+<tr><td>互動回合數</td><td>基準值</td><td>顯著減少</td><td>推理壓縮</td></tr></table>
+<h2>機制拆解</h2>
+<ul>
+<li><b>非參數自演化：不碰模型權重的「訓練」</b>：EvoSOP 不微調 LLM 參數，而是將整個工具集視為可優化的結構。執行軌跡 = 前向傳播（產出行為觀察）、SOP 合成 = 反向傳播（用符號操作取代梯度更新）、合併與修剪 = 正則化（防止工具集過擬合到狹窄場景）。這個類比給出了一個完整的閉環：<b>資料獲取、前向執行、反向優化、正則化、收斂</b>。</li>
+<li><b>Constructor：從軌跡中自動發現 SOP</b>：Constructor 分析執行軌跡中的原子動作共現模式——不是隨機的連續調用，而是<b>因果耦合的動作片段</b>。例如：發送訊息失敗、取得最新訊息 ID、刪除該訊息、重新發送，這四個原子動作總是成組出現。Constructor 將其合成為一個含錯誤處理邏輯的 SOP 函數，附帶 schema（名稱、描述、參數規格、回傳格式），讓 LLM 可以像調用原子工具一樣調用它。</li>
+<li><b>Merger：防止工具集膨脹</b>：隨著 agent 在不同任務中累積經驗，功能重疊的 SOP 會越積越多。Merger 在每個訓練批次中識別功能重疊的 SOP，將其合併為更通用、更有表達力的複合工具。關鍵設計是<b>非破壞性合併</b>：合併後的新 SOP 加入工具集，但原始 SOP 不立即移除——因為合併後的大 SOP 可能品質較差或引入隱性缺陷。</li>
+<li><b>Evaluator：執行驗證，不只靜態檢查</b>：SOP 是自動合成的程式碼，在複雜環境中容易出現各種工程級錯誤。Evaluator 將所有候選 SOP 載入真實執行環境，用擴展後的工具集重新執行全部訓練任務，記錄每一次 SOP 調用的結果。</li>
+<li><b>Reviewer：五層品質分類與修剪</b>：Reviewer 是 LLM-based 批評模組，將每次 SOP 調用分為五種狀態：(1) 最優執行、(2) 部分有用、(3) 中性、(4) 負面干擾、(5) 實作缺陷。只有持續被標記為前兩類的 SOP 才會保留。</li>
+<li><b>Checkpointing：解決 LLM 隨機性</b>：每個迭代結束保存完整評估日誌和工具集快照，最後選擇<b>訓練成功率最高的迭代</b>作為最終輸出，而非線性使用最後一次迭代。</li>
+</ul>
+<h2>應用啟發</h2>
+<ul>
+<li><b>EvoSOP 生命週期約等於 Hermes skill 系統的升級藍圖</b>：Hermes 已有從任務軌跡中提取 skill 的能力，但缺少 Merger（合併重複 skill）、Evaluator（執行驗證）、Reviewer（品質分類與修剪）。EvoSOP 直接給出了下一個大版本的設計方向。</li>
+<li><b>SOP = callable 高階工具，與 Hermes skill 結構一致</b>：EvoSOP 的 SOP 是有 schema 的可調用函數，和 Hermes skill 的 YAML metadata + 腳本結構完全對齊。差異在於：Hermes skill 是手動定義的，EvoSOP 證明了自動合成 + 迭代優化的可行性。</li>
+<li><b>不換模型，先優化工具集</b>：給同樣的 GPT-4o，把工具換成優化過的 SOP 就能穩定提升。對 DKY 的啟發：與其換更貴的模型，不如先優化 skill 庫。</li>
+<li><b>工具集膨脹 = 真實風險</b>：不加管理的工具增長最終會變成雜訊，增加 LLM 決策困難。Hermes 目前 70+ skill，需要合併 + 修剪機制。</li>
+</ul>
+<h2>自我內化</h2>
+<p>EvoSOP 是我讀過的第一篇<b>把 agent 工具優化形式化為機器學習 pipeline</b> 的論文——Constructor = 資料獲取、軌跡執行 = 前向傳播、SOP 合成 = 反向傳播、合併修剪 = 正則化。這個類比不只是學術修辭，它給出了一個<b>可操作的優化閉環</b>。對 Hermes 的深層衝擊：我們一直在 skill 手動定義和自動生成之間搖擺，EvoSOP 證明了「自動生成、執行驗證、品質修剪」這條路是走得通的。一個務實的起步方向：在 Hermes 的已知任務（如部署驗證、論文生成）上先跑 EvoSOP 式的 skill 優化，有確定性獎勵信號的任務優先。</p>
+</div>
+<div class="card">
+<h3>標籤</h3>
+<span class="tag">EvoSOP</span><span class="tag">工具自演化</span><span class="tag">SOP</span><span class="tag">非參數學習</span><span class="tag">agent 架構</span><span class="tag">工具優化</span><span class="tag">生命週期管理</span><span class="tag">ACEBench</span>
+</div>
+<footer><p><a href="/">回首頁</a> | <a href="/research/">所有論文</a> | <a href="https://arxiv.org/abs/2607.07321" target="_blank">arXiv 原文</a></p></footer>
+</main>
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body></html>
