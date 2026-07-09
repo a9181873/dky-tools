@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7.4 迴歸樣條 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>7.4 迴歸樣條</h1>
+  <div class="meta">
+    <span>📖 ISLP §7.4</span>
+    <span>📄 pp. 295–300</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">迴歸樣條</span>
+    <span class="tag">分段多項式</span>
+    <span class="tag">截斷冪基底</span>
+    <span class="tag">自然樣條</span>
+    <span class="tag">節點選擇</span>
+    <span class="tag">非線性建模</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="7.3_basis_functions.html">← 7.3 基底函數</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.5_smoothing_splines.html">7.5 平滑樣條 →</a>
+</div>
+
+<!-- ============================================================ -->
+<h2>核心概念</h2>
+
+<p>回想一下我們用多項式迴歸建模的經驗：一條 15 次多項式雖然很有彈性，但在邊界會「發瘋」──像一根綁住兩端的橡皮筋，中間晃得很厲害。有沒有辦法<strong>只在特定區間增加彈性</strong>，其他地方保持穩定？答案就是<strong>迴歸樣條（Regression Splines）</strong>。</p>
+
+<p>迴歸樣條的核心思想是一個生活化的比喻：<strong>分段畫線，但在接點處黏在一起</strong>。想像你把一張紙撕成幾段，每段獨立畫一條曲線，然後用膠水在撕裂點（節點）上把相鄰的曲線平滑地接起來——這就是樣條。</p>
+
+<div class="callout"><strong>📌 一句話總結：</strong>迴歸樣條 = 分段多項式 + 連續性約束。把複雜的全局函數拆成多段簡單的多項式，在節點處強制平滑連接，兼具局部彈性與全局穩定性。</div>
+
+<div class="ref-box">課本 pp. 295–300，ISLP §7.4。核心文獻：de Boor (1978) <em>A Practical Guide to Splines</em>；Hastie, Tibshirani & Friedman (2009) <em>ESL</em> Ch.5。</div>
+
+<!-- ============================================================ -->
+<h2>7.4.1 分段多項式</h2>
+
+<p>在 §7.2 我們用階梯函數把 X 軸切成幾個 bin，每個 bin 內擬合一個常數。現在升級：<strong>每個 bin 內擬合一條多項式</strong>。</p>
+
+<p>具體做法：在 X 軸上選定 <strong>K 個節點（knots）</strong>，例如 age=50。X 軸被切成 K+1 個區間。在每個區間內，各自擬合一條獨立的 d 次多項式。</p>
+
+<p>以分段三次多項式（piecewise cubic）為例，每個區間需要估計 4 個參數（\(\beta_0, \beta_1, \beta_2, \beta_3\)）。如果有 1 個節點，總共有 2 個區間 × 4 個參數 = <strong>8 個自由度</strong>。</p>
+
+<div class="callout"><strong>⚠️ 問題來了：</strong>如果每個區間完全獨立擬合，在節點處會出現「斷層」——函數值突然跳躍（如課本 Figure 7.3 左上圖）。這種不連續的曲線明顯不合理——人的薪資不會在 50 歲生日當天突然暴跌。</div>
+
+<!-- ============================================================ -->
+<h2>7.4.2 約束與樣條</h2>
+
+<p>為了解決斷層問題，我們逐步加上約束（constraints），每次約束會「吃掉」一個自由度：</p>
+
+<table class="comparison-table">
+<tr><th>約束層級</th><th>描述</th><th>自由度 (1 knot, cubic)</th></tr>
+<tr><td>無約束</td><td>各區間獨立三次多項式</td><td>2×4 = <strong>8</strong></td></tr>
+<tr><td>連續性</td><td>函數值在節點處相等（不可有跳躍）</td><td>8−1 = <strong>7</strong></td></tr>
+<tr><td>+ 一階導數連續</td><td>加上斜率連續（不可有尖角）</td><td>7−1 = <strong>6</strong></td></tr>
+<tr><td>+ 二階導數連續</td><td>加上曲率連續 = <strong>三次樣條 (cubic spline)</strong></td><td>6−1 = <strong>5</strong></td></tr>
+</table>
+
+<div class="formula">
+\[
+\text{三次樣條自由度} = 4 + K \quad\text{（K 個內部節點）}
+\]
+<div class="formula-label">公式 (7.9) 推廣</div>
+</div>
+
+<p>課本 Figure 7.3 用四張圖完美展示這個演化過程：從左上（完全不連續，8 df）→ 右上（強制連續，7 df）→ 左下（三次樣條，5 df，肉眼都看不出接縫）→ 右下（線性樣條，2 df）。</p>
+
+<div class="callout"><strong>🔍 三次樣條為何最受歡迎？</strong>因為人類肉眼無法偵測三次樣條在節點處的不連續性（只有第三階導數不連續）。就像高品質的瓷磚拼貼——接縫存在，但光滑到看不出來。</div>
+
+<p><strong>線性樣條（linear spline）</strong>是 d=1 的特例：每個區間擬合直線，只在節點處強制連續。自由度 = 2 + K（每個區間 2 個參數，K 個約束）。雖然簡單，但在實際應用中常作為基線比較。</p>
+
+<!-- ============================================================ -->
+<h2>7.4.3 樣條的基底表示法</h2>
+
+<p>上面說的「分段擬合 + 加約束」聽起來有點複雜——到底要怎麼用 OLS 來實作？關鍵在<strong>基底函數（basis function）</strong>的巧妙設計。</p>
+
+<div class="formula">
+\[
+y_i = \beta_0 + \beta_1 b_1(x_i) + \beta_2 b_2(x_i) + \cdots + \beta_{K+3} b_{K+3}(x_i) + \epsilon_i
+\]
+<div class="formula-label">樣條的線性基底表示（公式 7.9）</div>
+</div>
+
+<p>最直觀的基底是<strong>截斷冪基底（truncated power basis）</strong>：先從三次多項式的基礎基底 \(x, x^2, x^3\) 開始，然後每個節點加一個「開關」函數，只在超過節點時啟動：</p>
+
+<div class="formula">
+\[
+h(x, \xi) = (x - \xi)^3_{+} = 
+\begin{cases}
+(x - \xi)^3 & \text{if } x > \xi \\[4pt]
+0 & \text{otherwise}
+\end{cases}
+\]
+<div class="formula-label">截斷冪基底函數（公式 7.10）</div>
+</div>
+
+<p>這個設計的精妙之處：加上 \(\beta_4 h(x, \xi)\) 這一項後，只會在 \(\xi\) 處造成<strong>第三階導數的不連續</strong>，函數本身以及一階、二階導數都保持連續——自動滿足了三次樣條的所有約束！</p>
+
+<p>因此，擬合一個有 K 個節點的三次樣條，就等於用 OLS 對 K+4 個預測變數（\(X, X^2, X^3, h(X,\xi_1), \dots, h(X,\xi_K)\)）做線性迴歸。<strong>樣條看起來很複雜，實作上就是線性迴歸！</strong></p>
+
+<div class="callout"><strong>💡 Hermes 自我內化：</strong>截斷冪基底的「開關」設計就是一種 <strong>Feature Flag</strong> 模式——只在特定條件下才啟用某個功能。在 Hermes 的架構中，這對應到子 agent 的條件啟動：不把所有能力常駐載入，而是根據任務類型動態掛載對應的 skill/worker。就像樣條只在需要彈性的區間啟動額外的基底函數，Hermes 只在需要特定能力時才 spawn 子 agent。條件觸發 = 按需啟動 = 節省資源。</div>
+
+<!-- ============================================================ -->
+<h2>7.4.4 選擇節點的數量和位置</h2>
+
+<p>節點放哪裡、放幾個？這和 §5.1 的模型選擇問題如出一轍。</p>
+
+<p><strong>位置：</strong>直覺上應該在有劇烈變化的區域放更多節點。實務上最常見的做法是<strong>按分位數均勻放置</strong>——指定自由度 df，讓軟體自動在 df−1 個分位數位置上放置內部節點。</p>
+
+<p><strong>數量：</strong>用交叉驗證（CV）來選。課本 Figure 7.6 展示了用 10-fold CV 選擇自然三次樣條和三次樣條自由度在 Wage 資料上的結果：</p>
+
+<div class="callout"><strong>📊 課本結論（Figure 7.6）：</strong>1 df（等於線性迴歸）不夠；但自由度超過 3–4 後，CV 誤差就趨於平坦了。自然三次樣條約 3 df、三次樣條約 4 df 就是甜蜜點。</div>
+
+<!-- ============================================================ -->
+<h2>7.4.5 自然三次樣條</h2>
+
+<p>三次樣條在邊界（X 很小或很大時）有一個問題：<strong>變異數很大，信賴區間會爆炸</strong>（見課本 Figure 7.4）。想像你在資料稀疏的邊界區域硬要彎曲——沒有足夠資料支撐時，彎曲就變成亂猜。</p>
+
+<p><strong>自然三次樣條（natural cubic spline）</strong>的解法：在邊界區域（小於最小節點、大於最大節點）強制函數變成<strong>線性</strong>。這兩個額外約束讓邊界估計更穩定，信賴區間顯著變窄。</p>
+
+<div class="formula">
+\[
+\text{自然三次樣條自由度} = K \quad\text{（K 個內部節點，含截距則為 K）}
+\]
+<div class="formula-label">比一般三次樣條少 4 個 df（兩個邊界各兩個線性約束）</div>
+</div>
+
+<p>實務上，自然三次樣條幾乎是預設選擇——邊界穩定性勝過那一點點額外的彈性損失。</p>
+
+<!-- ============================================================ -->
+<h2>7.4.6 樣條 vs 多項式迴歸</h2>
+
+<p>課本 Figure 7.7 做了一個漂亮的對照：15 df 的自然三次樣條 vs 15 次多項式，都在 Wage 資料上擬合。結果：</p>
+
+<div class="callout"><strong>多項式在邊界發瘋，樣條保持鎮定。</strong>15 次多項式在兩端劇烈擺盪，而自然三次樣條維持合理的趨勢。根本原因：多項式透過<strong>提高次數</strong>來增加彈性（全局影響），樣條透過<strong>增加節點</strong>來增加彈性（局部影響）。</div>
+
+<table class="comparison-table">
+<tr><th>特性</th><th>多項式迴歸</th><th>迴歸樣條</th></tr>
+<tr><td>彈性來源</td><td>提高多項式次數（X¹⁵）</td><td>增加節點數（保持三次）</td></tr>
+<tr><td>影響範圍</td><td>全局——一處改動影響整條曲線</td><td>局部——只在節點附近產生變化</td></tr>
+<tr><td>邊界行為</td><td>高次多項式在邊界極不穩定</td><td>可控（自然樣條在邊界強制線性）</td></tr>
+<tr><td>自由度</td><td>次數 d → d+1 df（含截距）</td><td>K 節點 → 4+K df（三次樣條）</td></tr>
+<tr><td>計算複雜度</td><td>低（僅需 X 的冪次）</td><td>低（OLS on 轉換後預測變數）</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>Python 實作：在 Wage 資料上擬合樣條</h2>
+
+<p>以下的程式碼展示如何使用 <code>patsy</code> 的 <code>bs()</code> 和 <code>cr()</code> 函數在 Wage 資料上擬合三次樣條和自然三次樣條。</p>
+
+<pre><code class="language-python"># 7.4 三次樣條與自然三次樣條 — 模型擬合
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import SplineTransformer
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import make_pipeline
+from ISLP import load_data
+
+Wage = load_data('Wage')
+age = Wage['age'].values.reshape(-1, 1)
+wage = Wage['wage'].values
+
+# 三次樣條：Cubic spline with 3 interior knots = 7 df (3 + 4 basis)
+spline_cs = SplineTransformer(n_knots=3, degree=3, extrapolation='continue')
+model_cs = make_pipeline(spline_cs, LinearRegression()).fit(age, wage)
+pred_cs = model_cs.predict(np.linspace(18, 80, 200).reshape(-1, 1))
+
+# 自然三次樣條：sklearn 不直接支援 Natural Spline
+# 改用較少 knots 的 cubic spline 近似(4 df = 1 interior knot)
+spline_ns = SplineTransformer(n_knots=2, degree=3, extrapolation='linear')
+model_ns = make_pipeline(spline_ns, LinearRegression()).fit(age, wage)
+pred_ns = model_ns.predict(np.linspace(18, 80, 200).reshape(-1, 1))
+
+print('Cubic Spline (3 knots=7 df): R2=%.4f' % model_cs.score(age, wage))
+print('Cubic Spline (2 knots=6 df): R2=%.4f' % model_ns.score(age, wage))
+print('Fewer knots = less flexible but more stable at boundaries (Fig 7.4)')
+
+# 繪圖
+age_grid = np.linspace(18, 80, 200)
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.scatter(age, wage, s=0.5, alpha=0.3, color='#8b949e')
+ax.plot(age_grid, pred_cs, color='#58a6ff', lw=2, label='Cubic Spline (3 knots)')
+ax.plot(age_grid, pred_ns, color='#3fb950', lw=2, label='Minimal Spline (2 knots)')
+ax.set_xlabel('Age'); ax.set_ylabel('Wage')
+ax.set_title('Cubic Spline on Wage Data (sklearn)')
+ax.legend(); plt.tight_layout(); plt.show()
+</code></pre>
+
+<pre><code class="language-python"># 用 CV 選擇樣條節點數
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+from sklearn.preprocessing import SplineTransformer
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import cross_val_score
+from ISLP import load_data
+
+Wage = load_data('Wage')
+age = Wage['age'].values.reshape(-1, 1)
+wage = Wage['wage'].values
+
+# 嘗試不同節點數 (n_knots: 2-6 → df: 6-10 for cubic)
+knots_range = range(2, 7)
+cv_results = []
+
+for nk in knots_range:
+    spline = SplineTransformer(n_knots=nk, degree=3, extrapolation='linear')
+    X = spline.fit_transform(age)
+    mse = -cross_val_score(LinearRegression(), X, wage,
+                           cv=10, scoring='neg_mean_squared_error').mean()
+    cv_results.append((nk, round(mse, 1)))
+
+print('Cubic Spline CV MSE by n_knots (cubic degree=3):')
+for nk, mse in cv_results:
+    print(f'  n_knots={nk} (df~{nk+4}): MSE={mse}')
+
+best = min(cv_results, key=lambda x: x[1])
+print(f'Best: n_knots={best[0]} (df~{best[0]+4}), CV MSE={best[1]}')
+print('課本 Figure 7.6: MSE flattens quickly after df=3-4')
+</code></pre>
+
+<!-- ============================================================ -->
+<h2>應用場景</h2>
+
+<div class="scenario-box">
+<h4>🏥 醫療：生長曲線建模</h4>
+<p>兒童身高隨年齡的變化在不同發育階段差異極大（嬰兒期快速成長 → 穩定期 → 青春期衝刺 → 趨緩）。在每個階段放入節點的三次樣條，比全局多項式更能準確捕捉各階段的生長速率變化。WHO 的生長標準曲線本質上就是一種平滑樣條。</p>
+</div>
+
+<div class="scenario-box">
+<h4>📈 金融：殖利率曲線（Yield Curve）</h4>
+<p>不同到期日的債券殖利率形成一條曲線。短期（1 年內）變化劇烈、中期平緩、長期（20–30 年）再次變化。在 1 年、5 年、10 年處設節點的三次樣條，是業界建構殖利率曲線的標準工具（如 Nelson-Siegel 模型就是一種參數化的樣條）。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🌡️ 氣候科學：溫度趨勢分析</h4>
+<p>全球平均溫度在 20 世紀初平穩、1970 年代後加速上升。在 1970 年放一個節點的線性樣條，可以同時捕捉「之前緩慢暖化」和「之後快速暖化」兩個階段，避免單一趨勢線平滑掉關鍵的轉折點。</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>優缺點對照</h2>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ 優點</h4>
+<ul>
+<li><strong>局部彈性</strong>：只在節點附近增加彎曲，不影響全局</li>
+<li><strong>邊界穩定</strong>（自然樣條）：邊界強制線性，避免極端預測</li>
+<li><strong>計算高效</strong>：就是 OLS，不需迭代優化</li>
+<li><strong>參數線性</strong>：係數有標準誤差、p-value，可做統計推論</li>
+<li><strong>不依賴函數形式假設</strong>：比多項式更靈活，比 GAM 簡單</li>
+</ul>
+</div>
+<div class="cons">
+<h4>❌ 缺點</h4>
+<ul>
+<li><strong>節點選擇主觀</strong>：雖然可用 CV，但節點位置仍有任意性</li>
+<li><strong>自由度不明顯</strong>：K 個節點 ≠ K df，容易混淆</li>
+<li><strong>高維詛咒</strong>：當預測變數很多時，放置多維節點格點會指數成長</li>
+<li><strong>外推危險</strong>：邊界外的預測沒有任何保障（甚至線性外推也可能不合理）</li>
+<li><strong>解釋性下降</strong>：基底函數的係數不像多項式係數那樣直觀</li>
+</ul>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<h2>類似技術比較</h2>
+
+<table class="comparison-table">
+<tr><th>方法</th><th>彈性控制</th><th>自由度</th><th>邊界行為</th><th>適用情境</th></tr>
+<tr><td>多項式迴歸</td><td>次數 d</td><td>d+1</td><td>高次發散</td><td>簡單趨勢、低次數</td></tr>
+<tr><td>階梯函數 (§7.2)</td><td>區間數 K</td><td>K</td><td>常數延伸</td><td>離散化分析、分組比較</td></tr>
+<tr><td>三次樣條</td><td>節點數 K</td><td>4+K</td><td>三次外推不穩定</td><td>需要邊界內靈活擬合</td></tr>
+<tr><td>自然三次樣條</td><td>節點數 K</td><td>K</td><td>線性外推，穩定</td><td>實務預設選擇</td></tr>
+<tr><td>平滑樣條 (§7.5)</td><td>懲罰參數 λ</td><td>等效 df</td><td>線性邊界</td><td>自動平滑、不需手選節點</td></tr>
+<tr><td>局部迴歸 (§7.6)</td><td>跨度 (span)</td><td>靈活</td><td>最近鄰延伸</td><td>極局部模式</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>實務建議</h2>
+
+<div class="callout"><strong>🎯 綜合建議：</strong>在日常資料分析中，自然三次樣條幾乎是「不用動腦」的好選擇——指定 df=4 或 df=5，讓軟體自動在分位數放置節點，就能獲得一條美觀且合理的平滑曲線。除非有明確的領域知識指定節點位置（如政策變化的時間點），否則均勻分位數就是最佳預設。</div>
+
+<!-- ============================================================ -->
+<div class="key-quote">
+「樣條教會我們一件反直覺的事：<strong>限制就是力量</strong>。強制平滑的約束看似剝奪了自由度，實際上防止了過度擬合，反而讓預測更可靠。」
+<span class="author">— 巴圖魯 的 ISLP 教學筆記</span>
+</div>
+
+<div class="section-nav">
+  <a href="7.3_basis_functions.html">← 7.3 基底函數</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.5_smoothing_splines.html">7.5 平滑樣條 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 7 章：Moving Beyond Linearity · §7.4 迴歸樣條</p>
+  <p>Generated: 2026-07-09 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
