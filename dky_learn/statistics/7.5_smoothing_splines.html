@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7.5 平滑樣條 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>7.5 平滑樣條</h1>
+  <div class="meta">
+    <span>📖 ISLP §7.5</span>
+    <span>📄 pp. 309–310</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">平滑樣條</span>
+    <span class="tag">懲罰最小平方法</span>
+    <span class="tag">有效自由度</span>
+    <span class="tag">LOOCV</span>
+    <span class="tag">偏差-變異權衡</span>
+    <span class="tag">非線性建模</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="7.4_regression_splines.html">← 7.4 迴歸樣條</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.6_local_regression.html">7.6 局部迴歸 →</a>
+</div>
+
+<h2>核心精神</h2>
+
+<p>「樣條函數」的前幾節——多項式迴歸、階梯函數、基底函數、迴歸樣條——都有個共同煩惱：<strong>節點（knot）的位置和數量要怎麼選？</strong> 這不只是技術問題，更是一個「人為決定」的偏誤來源。你放 3 個節點和放 5 個節點，得出的曲線完全不同。</p>
+
+<p><strong>平滑樣條（smoothing spline）直接繞過這個問題</strong>：它在<strong>每一個訓練資料點上都放一個節點</strong>，然後用一個懲罰項（penalty）來控制曲線不能太「扭」。節點數量從「你要決定的參數」變成「不用決定的給定值」，取而代之的是單一超參數 λ 來控制平滑程度。</p>
+
+<div class="callout">
+  <strong>一句話總結：</strong>平滑樣條 = 每個點都是節點的自然三次樣條 + λ 控制扭動程度的正則化版本。
+</div>
+
+<h2>7.5.1 平滑樣條的構造</h2>
+
+<p>想像你在畫一條穿過資料點的曲線。你希望這條線：</p>
+<ol style="padding-left:1.5rem;margin:.8rem 0">
+  <li><strong>貼近資料</strong>：殘差平方和（RSS）要小</li>
+  <li><strong>夠平滑</strong>：不要扭來扭去像心電圖</li>
+</ol>
+
+<p>這兩個目標是矛盾的——貼近資料通常需要扭，平滑通常偏離資料。平滑樣條的解決方案是把它們寫成一個<strong>帶懲罰的最小平方問題</strong>：</p>
+
+<div class="formula">
+\[
+\underset{g}{\operatorname{minimize}} \sum_{i=1}^{n}\bigl(y_i - g(x_i)\bigr)^2
+\;+\; \lambda \int g''(t)^2\,dt
+\]
+<div class="formula-label">（7.11）平滑樣條的目標函數</div>
+</div>
+
+<p>兩項的意義：</p>
+<ul style="padding-left:1.5rem;margin:.8rem 0">
+  <li><strong>第一項 Σ(yᵢ − g(xᵢ))²</strong>：損失函數，要求 g 擬合資料。這就是普通的 RSS。</li>
+  <li><strong>第二項 λ∫g''(t)² dt</strong>：懲罰項，要求 g 平滑。g''(t) 是二階導數，衡量曲線在 t 處的「彎曲程度」。對整個定義域積分，就是在計算「整條線的總彎曲量」。</li>
+</ul>
+
+<p>λ 是 <strong>平滑參數（smoothing parameter）</strong>，控制兩者的權衡：</p>
+<ul style="padding-left:1.5rem;margin:.8rem 0">
+  <li><strong>λ = 0</strong>：懲罰項無作用，g 可以自由穿越每一個資料點（完全內插，極度扭動）</li>
+  <li><strong>λ → ∞</strong>：懲罰項主宰一切，g''(t) 必須趨近於零 → g 變成一條直線（OLS）</li>
+  <li><strong>λ 取中間值</strong>：得到一條「適度貼近資料但保持平滑」的曲線</li>
+</ul>
+
+<div class="ref-box">
+  <strong>James, Witten, Hastie &amp; Tibshirani (2023)</strong> <em>An Introduction to Statistical Learning with Python</em>, §7.5, pp. 309–310. 平滑樣條的原始定義與 LOOCV 計算公式。<br><br>
+  <strong>Reinsch (1967)</strong> <em>Smoothing by Spline Functions</em>, Numerische Mathematik 10:177–183. 平滑樣條的經典演算法（Reinsch algorithm），至今仍是許多套件的底層實作基礎。<br><br>
+  <strong>Wahba (1990)</strong> <em>Spline Models for Observational Data</em>, SIAM. 對平滑樣條的統計理論做了最完整的數學推導，包括有效自由度的嚴格定義。
+</div>
+
+<div class="scenario-box">
+  <h4>📊 應用場景：心律監測器的去雜訊</h4>
+  <p>心電圖（ECG）訊號充滿高頻雜訊，但你不能用移動平均（會模糊真正的 QRS 波峰）。平滑樣條的 λ 可以在「保留醫學診斷所需的波形細節」和「濾除測量雜訊」之間精確調整。λ 用交叉驗證自動選擇，醫師不需要手調。</p>
+</div>
+
+<p>令人驚豔的數學結論是：<strong>最小化 (7.11) 的最優解 g(x) 恰好是一個自然三次樣條，節點在每一個唯一的 xᵢ 上</strong>——而且它在兩端極值節點之外的區域是線性的！</p>
+
+<p>但它<strong>不是</strong>你拿 §7.4.3 的基底函數方法直接套到 n 個節點上得出的那個自然三次樣條。它是那個樣條的<strong>收縮版本（shrunken version）</strong>——λ 控制了收縮的程度。</p>
+
+<h2>7.5.2 選擇平滑參數 λ</h2>
+
+<h3>有效自由度</h3>
+
+<p>乍看之下，n 個資料點就有 n 個節點 → n 個參數 → n 個自由度？那不就嚴重過擬合了嗎？</p>
+
+<p>答案在於<strong>有效自由度（effective degrees of freedom）</strong>。雖然平滑樣條有 n 個名義參數，但 λ 的懲罰把它們<strong>緊緊約束住了</strong>，實際的「彈性」遠小於 n。</p>
+
+<p>用矩陣語言來說明。平滑樣條的擬合值可以寫成：</p>
+
+<div class="formula">
+\[
+\hat{\mathbf{g}}_\lambda = \mathbf{S}_\lambda \,\mathbf{y}
+\]
+<div class="formula-label">（7.12）平滑矩陣（smoother matrix）</div>
+</div>
+
+<p>其中 <strong>S<sub>λ</sub></strong> 是一個 n × n 的矩陣（有明確的計算公式，但很技術性，一般套件幫你處理）。有效自由度就是這個矩陣的<strong>跡（trace）</strong>：</p>
+
+<div class="formula">
+\[
+df_\lambda = \sum_{i=1}^{n} \{\mathbf{S}_\lambda\}_{ii}
+\]
+<div class="formula-label">（7.13）有效自由度 = 平滑矩陣對角線元素之和</div>
+</div>
+
+<p>當 λ 從 0 增加到 ∞，df<sub>λ</sub> 從 n 下降到 2（一條直線有 2 個自由度：截距和斜率）。</p>
+
+<div class="callout">
+  <strong>直覺：</strong>你可以把 S<sub>λ</sub> 的對角線元素 {S<sub>λ</sub>}<sub>ii</sub> 想像成「第 i 個點對自己預測值的影響力」。不受約束時每個點 ≈ 1 → df = n。懲罰越大，每個點的影響力被鄰近點稀釋 → df 下降。
+</div>
+
+<h3>用 LOOCV 選 λ</h3>
+
+<p>迴歸樣條要選節點數，平滑樣條要選 λ。自然的答案又是交叉驗證。但這裡有一個<strong>驚人的計算捷徑</strong>：</p>
+
+<div class="formula">
+\[
+\text{RSS}_{cv}(\lambda) = \sum_{i=1}^{n}\Bigl(y_i - \hat{g}_\lambda^{(-i)}(x_i)\Bigr)^2
+= \sum_{i=1}^{n} \left[\frac{y_i - \hat{g}_\lambda(x_i)}{1 - \{\mathbf{S}_\lambda\}_{ii}}\right]^2
+\]
+<div class="formula-label">（7.14）平滑樣條的 LOOCV 公式</div>
+</div>
+
+<p>這個公式的威力：你<strong>只需要擬合一次</strong>（用全部 n 筆資料），就能算出 n 次留一交叉驗證的誤差。不需要真的跑 n 次擬合。這跟第五章線性迴歸的 LOOCV 公式（5.2）結構完全一樣——只差在 S<sub>λ</sub> 取代了 hat matrix H。</p>
+
+<div class="scenario-box">
+  <h4>📈 應用場景：薪資 vs. 年齡的非線性效應</h4>
+  <p>用 Wage 資料集來看平滑樣條的實際效果。固定 df = 16（紅色）和使用 LOOCV 自動選擇 λ → df = 6.8（藍色）的兩條平滑樣條幾乎重疊——這說明對於這個資料集，16 和 6.8 自由度的擬合差異不大。但 LOOCV 自動選的模型更簡潔（有效的參數更少），且不會過擬合。</p>
+</div>
+
+<h2>Python 實作</h2>
+
+<pre><code class="language-python"># §7.5 平滑樣條：用 5-fold CV 選擇平滑參數（示範用小樣本）
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from scipy.interpolate import UnivariateSpline
+from sklearn.model_selection import KFold
+
+# 載入 Wage 資料，取子集加速示範
+try:
+    from ISLP import load_data
+    wage = load_data('Wage')
+except Exception:
+    wage = pd.read_csv(DATA_PATH + 'Wage.csv')
+
+# 只用 age 在 [20, 60] 的資料，取 200 筆做示範
+mask = (wage['age'] >= 20) & (wage['age'] <= 60)
+wage_sub = wage[mask].sample(n=200, random_state=1)
+X = wage_sub['age'].values.astype(float)
+y = wage_sub['wage'].values.astype(float)
+
+# --- 5-fold CV 選擇最佳平滑參數 s ---
+# UnivariateSpline 的 s 控制平滑強度：s=0 完全內插，s 越大越平滑
+s_candidates = np.logspace(-1, 3, 12)
+cv_scores = []
+kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+for s_val in s_candidates:
+    fold_errors = []
+    for train_idx, val_idx in kf.split(X):
+        X_tr, y_tr = X[train_idx], y[train_idx]
+        X_val, y_val = X[val_idx], y[val_idx]
+        # UnivariateSpline requires strictly increasing x
+        sort_i = np.argsort(X_tr)
+        spl = UnivariateSpline(X_tr[sort_i], y_tr[sort_i], s=s_val)
+        preds = spl(X_val)
+        fold_errors.append(np.mean((y_val - preds) ** 2))
+    cv_scores.append(np.mean(fold_errors))
+
+best_s = s_candidates[np.argmin(cv_scores)]
+print(f"Best smoothing parameter s: {best_s:.1f}")
+print(f"CV MSE at best s: {min(cv_scores):.1f}")
+
+# --- 擬合三種平滑參數的平滑樣條 ---
+sort_idx = np.argsort(X)
+X_s, y_s = X[sort_idx], y[sort_idx]
+x_grid = np.linspace(X.min(), X.max(), 200)
+
+spl_loose = UnivariateSpline(X_s, y_s, s=best_s * 0.02)   # λ≈0
+spl_best  = UnivariateSpline(X_s, y_s, s=best_s)          # CV 選出的
+spl_tight = UnivariateSpline(X_s, y_s, s=best_s * 50)     # λ 大 → 趨近直線
+
+fig, ax = plt.subplots(figsize=(9, 4.5))
+ax.scatter(X, y, s=8, alpha=0.4, color='gray', label='Data')
+ax.plot(x_grid, spl_loose(x_grid), 'r-', lw=2, alpha=0.7, label='s small (wiggly)')
+ax.plot(x_grid, spl_best(x_grid), 'b-', lw=2.5, label=f's={best_s:.0f} (CV optimal)')
+ax.plot(x_grid, spl_tight(x_grid), 'g--', lw=2, label='s large (near-linear)')
+ax.set_xlabel('Age'); ax.set_ylabel('Wage (k$)')
+ax.set_title('Smoothing Spline: Effect of s (1/s ∝ λ)')
+ax.legend(fontsize=9)
+plt.tight_layout()
+plt.show()
+
+print(f"\nCV 選出的 s={best_s:.0f} 在貼近資料和平滑之間取得平衡。")
+print(f"s 很小時曲線貼近每個點（高變異），s 很大時趨近直線（高偏差）。")</code></pre>
+
+<pre><code class="language-python"># 視覺化：λ 對平滑程度的影響
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from scipy.interpolate import UnivariateSpline
+
+# 生成示範資料：sin 曲線 + 雜訊
+np.random.seed(42)
+n_sample = 80
+x_demo = np.sort(np.random.uniform(0, 10, n_sample))
+y_true = np.sin(x_demo) + 0.3 * x_demo
+y_demo = y_true + np.random.normal(0, 0.3, n_sample)
+
+# 三個不同的平滑參數
+s_values = [0, 1.0, 50.0]
+labels = ['λ≈0 (完全內插)', 'λ 適中 (平滑擬合)', 'λ→∞ (趨近直線)']
+colors = ['#f85149', '#3fb950', '#58a6ff']
+styles = ['-', '-', '-']
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+for ax, s, label, color in zip(axes, s_values, labels, colors):
+    spl = UnivariateSpline(x_demo, y_demo, s=s)
+    x_grid = np.linspace(0, 10, 200)
+    ax.scatter(x_demo, y_demo, s=12, alpha=0.5, color='gray')
+    ax.plot(x_grid, spl(x_grid), color=color, linewidth=2)
+    ax.plot(x_grid, y_true[:len(x_grid)] if len(y_true)==len(x_grid) else np.sin(x_grid) + 0.3*x_grid,
+            'k--', alpha=0.3, linewidth=1, label='True f(x)' if ax == axes[0] else '')
+    ax.set_title(label, fontsize=11)
+    ax.set_xlabel('x'); ax.set_ylabel('y')
+
+plt.suptitle('Smoothing Spline: Effect of λ on Flexibility', fontsize=13)
+plt.tight_layout()
+plt.show()
+print("左：λ=0，完全信任每個資料點，完美內插（過擬合）")
+print("中：λ 適中，追隨趨勢但保持平滑（偏差-變異平衡）")
+print("右：λ 大，接近全域直線擬合（欠擬合）")</code></pre>
+
+<h2>平滑樣條 vs. 迴歸樣條</h2>
+
+<table class="comparison-table">
+  <tr>
+    <th>特性</th>
+    <th>迴歸樣條（§7.4）</th>
+    <th>平滑樣條（§7.5）</th>
+  </tr>
+  <tr>
+    <td>節點選擇</td>
+    <td>人為指定數量與位置</td>
+    <td>自動：每個 xᵢ 放一個</td>
+  </tr>
+  <tr>
+    <td>複雜度控制</td>
+    <td>增加/減少節點數</td>
+    <td>調整 λ（懲罰強度）</td>
+  </tr>
+  <tr>
+    <td>自由度</td>
+    <td>離散（加上節點就增加 df）</td>
+    <td>連續（df<sub>λ</sub> 可以取任何值）</td>
+  </tr>
+  <tr>
+    <td>超參數調整</td>
+    <td>CV 選節點數（離散搜尋）</td>
+    <td>CV 選 λ（連續搜尋）</td>
+  </tr>
+  <tr>
+    <td>計算特性</td>
+    <td>擬合快，但需試多組節點</td>
+    <td>單次擬合較慢（n×n 矩陣），但 LOOCV 有捷徑</td>
+  </tr>
+  <tr>
+    <td>邊界行為</td>
+    <td>需選自然樣條來約束邊界</td>
+    <td>自動為自然樣條（邊界外線性）</td>
+  </tr>
+</table>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 優點</h4>
+    <ul>
+      <li><strong>不用選節點</strong>：最大的實際優勢——少一個要調的超參數</li>
+      <li><strong>LOOCV 超高效</strong>：公式 (7.14) 只需一次擬合就能算完全部 CV 誤差</li>
+      <li><strong>連續自由度</strong>：df<sub>λ</sub> 在 [2, n] 之間連續變化，比離散節點選擇更精細</li>
+      <li><strong>自動邊界控制</strong>：解自然就是自然三次樣條，邊界外自動線性</li>
+      <li><strong>理論優雅</strong>：懲罰最小平方法框架，與脊迴歸、LASSO 一脈相承</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 缺點</h4>
+    <ul>
+      <li><strong>計算成本</strong>：n 很大時 S<sub>λ</sub> 是 n×n 矩陣，運算量 O(n³)</li>
+      <li><strong>λ 的解釋性差</strong>：不像節點數那麼直覺——「df=6.8」比「λ=0.0037」好溝通</li>
+      <li><strong>不適合非均勻分佈</strong>：x 值極度不均時，每個點一個節點會浪費自由度</li>
+      <li><strong>單變數限定</strong>：平滑樣條自然延伸到多元較困難（§7.7 的 GAM 用加法模型解決）</li>
+    </ul>
+  </div>
+</div>
+
+<h2>Hermes 系統設計啟發：懲罰性自由</h2>
+
+<div class="callout">
+  <strong>自我內化：</strong>平滑樣條的核心設計哲學——「賦予最大彈性，再用懲罰約束」——直接啟發了 Hermes 的子 agent 管理策略。給每個子 agent 完整的工具權限（n 個節點），但用明確的規則與監控（λ）來防止它們偏離目標。就像 λ 將有效自由度從 n 降到 6.8，好的 agent 設計不是限制能力，而是用「後果約束」來控制實際行為。
+</div>
+
+<p>具體來說：</p>
+<ul style="padding-left:1.5rem;margin:.8rem 0">
+  <li><strong>S<sub>λ</sub> 矩陣 = agent 的行為影響力</strong>：每個對角線元素代表該 agent 的決策對最終輸出的實際影響。好的協調機制會自然地讓某些 agent 的影響力趨近於零（如同 df<sub>λ</sub> 隨 λ 增加而下降）。</li>
+  <li><strong>LOOCV 捷徑 = 不重跑即可驗證</strong>：就像 (7.14) 用一次擬合模擬 n 次 CV，Hermes 的 critic 系統應設計為「一次執行，多層驗證」，而非為每個驗證項目重啟整個 pipeline。</li>
+  <li><strong>λ 連續 vs. 節點離散 = 連續控制優於開關式決策</strong>：代理的自主任務權限不應是「開/關」，而應是連續的信任分數——對應於平滑樣條中 df 從 n 連續降到 2。</li>
+</ul>
+
+<div class="key-quote">
+  平滑樣條教我們：自由不是二元的。最好的系統不是「給不給權限」，而是「給全部權限，再用懲罰機制讓行為收斂到合理範圍」。
+  <span class="author">— ISLP §7.5 內化；設計原則應用於 Hermes 子 agent 治理</span>
+</div>
+
+<div class="section-nav">
+  <a href="7.4_regression_splines.html">← 7.4 迴歸樣條</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.6_local_regression.html">7.6 局部迴歸 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 7 章：Moving Beyond Linearity · §7.5 平滑樣條</p>
+  <p>Generated: 2026-07-11 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
