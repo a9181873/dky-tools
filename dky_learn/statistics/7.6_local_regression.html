@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>§7.6 局部迴歸 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>§7.6 局部迴歸</h1>
+  <div class="meta">
+    <span>📖 ISLP §7.6</span>
+    <span>📄 pp. 303–305</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 20 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">局部迴歸</span>
+    <span class="tag">記憶式方法</span>
+    <span class="tag">加權最小平方法</span>
+    <span class="tag">span 參數</span>
+    <span class="tag">非線性建模</span>
+    <span class="tag">核函數</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="7.5_smoothing_splines.html">← §7.5 平滑樣條</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.7_generalized_additive_models.html">§7.7 廣義可加模型 →</a>
+</div>
+
+<!-- ==================== 核心概念 ==================== -->
+
+<h2>核心概念：近鄰的智慧</h2>
+
+<p>
+想像你在一個陌生的城市，想知道附近一間餐廳好不好吃。你不會去問整個城市的人——你只會問<strong>住在餐廳附近的人</strong>，而且鄰居的意見比遠方路人的意見<strong>更值得參考</strong>。這就是局部迴歸（Local Regression）的核心精神：在做預測時，<strong>只參考目標點附近的資料</strong>，離得越近的資料點權重越大。
+</p>
+
+<div class="callout">
+  <strong>局部迴歸（Local Regression）</strong>是一種非線性函數擬合方法：對於每個目標點 \(x_0\)，只使用最接近的 \(k\) 筆訓練資料來計算該點的擬合值 \(\hat{f}(x_0)\)。與其擬合一條全體適用的曲線，局部迴歸「見招拆招」——每個點都用最相關的局部鄰居單獨計算。
+</div>
+
+<!-- ==================== 演算法 ==================== -->
+
+<h2>演算法 7.1：局部迴歸的四步驟</h2>
+
+<p>課本對局部迴歸給出了清晰的操作步驟。以下是演算法 7.1 的完整描述：</p>
+
+<div class="ref-box">
+  <strong>Algorithm 7.1 Local Regression At \(X = x_0\)</strong> — ISLP pp. 304–305
+</div>
+
+<h3>步驟 1：蒐集鄰居</h3>
+<p>
+選定比例 \(s = k/n\)，找出訓練集中<strong>最接近 \(x_0\) 的 \(k\) 個點</strong>。只有這 \(k\) 個點會參與計算，其餘的 \(n-k\) 個點權重為零。
+</p>
+
+<h3>步驟 2：賦予權重</h3>
+<p>
+對每個鄰居 \(x_i\) 賦予權重 \(K_{i0} = K(x_i, x_0)\)：離 \(x_0\) 越近的點權重越高，最遠的鄰居權重為零。這形成一個鐘形權重分布（如課本 Figure 7.9 中的黃色鐘形疊加層）。
+</p>
+
+<h3>步驟 3：加權最小平方法</h3>
+<p>
+用步驟 2 的權重 \(K_{i0}\) 對鄰居做<strong>加權線性迴歸</strong>，最小化：
+
+<div class="formula">
+\[
+\sum_{i=1}^{n} K_{i0} \, (y_i - \beta_0 - \beta_1 x_i)^2
+\]
+<div class="formula-label">方程式 (7.14)：局部加權最小平方法</div>
+</div>
+
+注意：雖然求和寫的是 \(i=1\) 到 \(n\)，但實際上只有 \(k\) 個鄰居有非零權重。
+</p>
+
+<h3>步驟 4：取擬合值</h3>
+<p>
+在 \(x_0\) 處的預測值就是加權迴歸在 \(x_0\) 的擬合值：
+\[
+\hat{f}(x_0) = \hat{\beta}_0 + \hat{\beta}_1 x_0
+\]
+</p>
+
+<div class="callout">
+  <strong>記憶式方法</strong>：局部迴歸被稱為「記憶式程序（memory-based procedure）」，因為每次要預測一個新點 \(x_0\)，就必須重新執行整組步驟 1–4。這與 K-最近鄰（KNN）類似的特性——沒有真正的「訓練階段」，所有的訓練資料在每次預測時都派得上用場。
+</div>
+
+<!-- ==================== Span 參數 ==================== -->
+
+<h2>關鍵參數：Span s</h2>
+
+<p>
+局部迴歸有三個設計選擇：權重函數 \(K\) 的形式、迴歸階數（常數 / 線性 / 二次），以及 <strong>span \(s\)</strong>——用來計算每個 \(x_0\) 擬合值的<strong>鄰居比例</strong>。課本強調：<strong>span 是三者中最關鍵的參數</strong>。
+</p>
+
+<h3>Span 的比喻：望遠鏡的視野</h3>
+<p>
+把局部迴歸想像成用望遠鏡觀察一座山的地形：
+</p>
+<ul>
+<li><strong>小 span（廣角鏡）</strong>：只看腳下幾步路的範圍，地形細節清晰，但看不到整體——曲線非常「抖動」（wiggly），對局部雜訊敏感。</li>
+<li><strong>大 span（望遠）</strong>：一次看整座山，得到平滑的大局觀，但可能錯過重要的局部特徵——極端情況下變成全域線性迴歸。</li>
+</ul>
+
+<div class="formula">
+\[
+s = \frac{k}{n} \quad \text{其中 } k \text{ 是每個目標點使用的鄰居數量}
+\]
+<div class="formula-label">Span 的定義：使用的訓練資料比例</div>
+</div>
+
+<h3>課本實例：Wage 資料</h3>
+<p>
+課本 Figure 7.10 展示了用不同 span 值對 ISLP Wage 資料做局部線性迴歸的結果：
+</p>
+<ul>
+<li><strong>s = 0.7</strong> → 使用 70% 的點，產出<span style="color:var(--accent2)">平滑</span>的擬合（等效自由度 5.3）</li>
+<li><strong>s = 0.2</strong> → 使用 20% 的點，產出<span style="color:var(--warn)">抖動</span>的擬合（等效自由度 16.4）</li>
+</ul>
+
+<div class="ref-box">
+  📚 James, Witten, Hastie, Tibshirani (2023). An Introduction to Statistical Learning with Python. Springer. §7.6, pp. 303–305, Figure 7.10.
+</div>
+
+<!-- ==================== Python 實作 ==================== -->
+
+<h2>Python 實作：Wage 資料的局部迴歸</h2>
+
+<p>以下展示用兩種不同 span 值對 Wage 資料做局部線性迴歸，重現課本 Figure 7.10 的核心概念。</p>
+
+<pre><code class="language-python"># §7.6 局部迴歸：Wage 資料示範
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from ISLP import load_data
+
+# 載入 Wage 資料
+wage = load_data('Wage')
+age = wage['age'].values
+wage_vals = wage['wage'].values
+
+# --- 局部線性迴歸函數 ---
+def local_linear(x, y, x_grid, span):
+    """對每個 x_grid 上的點做局部線性迴歸。
+    x, y: 訓練資料
+    x_grid: 要預測的點（排序後）
+    span: 使用的鄰居比例 (0~1)
+    """
+    n = len(x)
+    k = int(n * span)
+    k = max(k, 2)  # 至少 2 點才能擬合線性
+    y_hat = np.zeros(len(x_grid))
+
+    for j, x0 in enumerate(x_grid):
+        # Step 1: 找 k 個最近鄰居
+        dist = np.abs(x - x0)
+        neighbors = np.argpartition(dist, k)[:k]
+
+        x_nbr = x[neighbors]
+        y_nbr = y[neighbors]
+        d_max = np.max(np.abs(x_nbr - x0))
+
+        # Step 2: tri-cube 權重（課本常用核函數）
+        u = np.abs(x_nbr - x0) / d_max
+        u[u > 1] = 1
+        w = (1 - u**3)**3  # tri-cube weight
+
+        # Step 3: 加權最小平方法
+        X_w = np.column_stack([np.ones(len(x_nbr)), x_nbr])
+        W = np.diag(w)
+        beta = np.linalg.lstsq(X_w.T @ W @ X_w, X_w.T @ W @ y_nbr, rcond=None)[0]
+
+        # Step 4: 取 x0 的擬合值
+        y_hat[j] = beta[0] + beta[1] * x0
+
+    return y_hat
+
+# 對 age 排序後的網格做預測
+age_grid = np.linspace(age.min(), age.max(), 200)
+y_fit_07 = local_linear(age, wage_vals, age_grid, span=0.7)
+y_fit_02 = local_linear(age, wage_vals, age_grid, span=0.2)
+
+# 繪圖
+fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+
+for ax, y_fit, span, color in zip(
+    axes, [y_fit_07, y_fit_02], [0.7, 0.2],
+    ['#3fb950', '#d2991d']
+):
+    ax.scatter(age, wage_vals, s=6, alpha=0.3, color='#8b949e', label='data')
+    ax.plot(age_grid, y_fit, color=color, linewidth=2.5, label=f'span={span}')
+    ax.set_xlabel('Age', fontsize=11)
+    ax.set_ylabel('Wage (k$)', fontsize=11)
+    ax.set_title(f'Local Linear Regression · span = {span}', fontsize=12, color=color)
+    ax.legend(fontsize=9)
+    ax.set_facecolor('#0d1117')
+    ax.tick_params(colors='#8b949e')
+    for spine in ax.spines.values():
+        spine.set_color('#30363d')
+
+plt.tight_layout()
+plt.savefig('/tmp/local_regression_wage.png', dpi=120, facecolor='#0d1117', bbox_inches='tight')
+plt.show()
+
+print(f"Span 0.7: {len(age)*0.7:.0f} 鄰居/點")
+print(f"Span 0.2: {len(age)*0.2:.0f} 鄰居/點")
+</code></pre>
+
+<!-- ==================== 理論深入 ==================== -->
+
+<h2>理論深入：局部迴歸與其他方法的連結</h2>
+
+<h3>局部迴歸 vs 平滑樣條</h3>
+
+<table class="comparison-table">
+  <tr>
+    <th>面向</th>
+    <th>局部迴歸 (§7.6)</th>
+    <th>平滑樣條 (§7.5)</th>
+  </tr>
+  <tr>
+    <td>核心機制</td>
+    <td>對每個 \(x_0\) 近鄰做加權迴歸</td>
+    <td>每個點都是節點 + λ 懲罰控制粗糙度</td>
+  </tr>
+  <tr>
+    <td>參數控制</td>
+    <td>span \(s\)（鄰居比例）</td>
+    <td>λ 平滑參數（懲罰力度）</td>
+  </tr>
+  <tr>
+    <td>自由度大小</td>
+    <td>\(s\) 越小 → 越靈活（高 df）</td>
+    <td>λ 越小 → 越靈活（高 df）</td>
+  </tr>
+  <tr>
+    <td>計算成本</td>
+    <td>每個預測點需重新擬合，適合個別查詢</td>
+    <td>一次性全域最佳化，適合密集預測</td>
+  </tr>
+  <tr>
+    <td>CV 選參數</td>
+    <td>CV 選 \(s\)</td>
+    <td>LOOCV 選 λ</td>
+  </tr>
+  <tr>
+    <td>高維度表現</td>
+    <td>p > 3~4 時急劇退化</td>
+    <td>可擴展為薄板樣條（thin-plate spline）</td>
+  </tr>
+  <tr>
+    <td>記憶需求</td>
+    <td>高（記憶式方法）</td>
+    <td>中等</td>
+  </tr>
+</table>
+
+<h3>局部迴歸 vs KNN 迴歸</h3>
+<p>
+兩者都是「看鄰居臉色」的非參數方法，但有本質差異：
+</p>
+<ul>
+<li><strong>KNN</strong>：對 k 個鄰居<strong>平均</strong> \(y_i\) 值（或對分類取多數票），不對距離加權（除非手動加權）。</li>
+<li><strong>局部迴歸</strong>：對鄰居做<strong>加權線性迴歸</strong>，能捕捉局部線性趨勢而不只是常數平均。</li>
+</ul>
+
+<p>打個比方：KNN 像「直接抄鄰居答案的平均」，局部迴歸像「觀察鄰居的變化規律，推測自己該落在趨勢線上的哪個點」。</p>
+
+<!-- ==================== 應用場景 ==================== -->
+
+<h2>應用場景</h2>
+
+<div class="scenario-box">
+<h4>🏠 不動產估價</h4>
+<p>一棟房子的價值，最相關的不是全城均價，而是<strong>同社區最近成交的類似物件</strong>。局部迴歸自然地做到：對每棟估價物件動態選擇最接近的成交案例做加權回歸，距離越近的案例權重越高。span \(s\) 決定「社區」有多大——s=0.1 只看同一條街，s=0.5 擴及整個行政區。</p>
+</div>
+
+<div class="scenario-box">
+<h4>📈 股市技術分析（LOESS 平滑）</h4>
+<p>金融分析師常用 LOESS（Locally Estimated Scatterplot Smoothing，局部迴歸的統計名稱）來平滑股價走勢。相比簡單移動平均（所有點等權重），局部迴歸對<strong>最近的交易日賦予更高權重</strong>，而且能自動適應局部波動的劇烈程度。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🧬 基因表達時間序列</h4>
+<p>基因表達數據通常是稀疏且雜訊大的時間序列。局部迴歸在每個時間點只參考附近的測量值來擬合趨勢，避免全域多項式對遠處不相關資料點的過度依賴。Varying coefficient models 更可以讓某些共變量的效應隨時間平滑變化。</p>
+</div>
+
+<!-- ==================== 優缺點 ==================== -->
+
+<h2>優缺點對照</h2>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 優點</h4>
+    <ul>
+      <li><strong>極度靈活</strong>：不對函數形式做全域假設，局部可以是線性、常數或二次</li>
+      <li><strong>直覺可控</strong>：span \(s\) 一個參數直接控制平滑度，不像樣條要選節點位置</li>
+      <li><strong>自適應加權</strong>：每個點的權重自然按距離衰減，不需手動分段</li>
+      <li><strong>邊界處理較好</strong>：不像某些樣條在邊界處出現奇怪行為</li>
+      <li><strong>高解釋性</strong>：預測值直接來自鄰居的加權迴歸，可以解釋為「這附近資料告訴我該是多少」</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 缺點</h4>
+    <ul>
+      <li><strong>計算昂貴</strong>：每個預測點都要重新找鄰居、設權重、解迴歸——O(n × m) 成本</li>
+      <li><strong>維度詛咒</strong>：p > 3~4 時幾乎沒有「鄰居」可言，效果差到不行</li>
+      <li><strong>記憶式方法</strong>：需保留所有訓練資料，不適合部署到邊緣裝置</li>
+      <li><strong>Span 選擇靠經驗</strong>：雖然可以用 CV，但 span 不像 λ 有漂亮的理論框架</li>
+      <li><strong>不連續性風險</strong>：鄰居集合在邊界處可能突然改變，造成微小跳躍</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== 推廣與限制 ==================== -->
+
+<h2>推廣與限制</h2>
+
+<h3>變係數模型（Varying Coefficient Models）</h3>
+<p>
+局部迴歸可以巧妙地推廣到多變量場景：讓某些變數<strong>全域線性</strong>但某些變數<strong>局部變動</strong>。例如時間序列模型中，可以讓截距項隨時間局部變化，但其他共變量的係數保持全域：
+\[
+Y = \beta_0(t) + \beta_1 X_1 + \beta_2 X_2 + \cdots + \epsilon
+\]
+其中 \(\beta_0(t)\) 是時間 \(t\) 的局部迴歸函數。這種設計在<strong>自適應學習率</strong>和<strong>概念漂移（concept drift）</strong>場景中特別有用。
+</p>
+
+<h3>二維局部迴歸</h3>
+<p>
+局部迴歸可以自然地擴展到兩個變數 \(X_1, X_2\)：用<strong>二維歐氏距離</strong>定義鄰域，對每個目標點 \((x_{10}, x_{20})\) 做雙變量加權迴歸。地理空間資料（經緯度 × 房價）是典型應用。
+</p>
+
+<div class="callout">
+  <strong>維度天花板</strong>：雖然理論上可以推到任意 p 維，但 p &gt; 3 或 4 時，高維空間中「鄰近」的概念失去意義——幾乎所有點之間的距離都差不多。這就是<strong>維度詛咒（Curse of Dimensionality）</strong>，也是局部迴歸和 KNN 共同的天敵。
+</div>
+
+<!-- ==================== Hermes 啟發 ==================== -->
+
+<h2>自我內化：對 AI Agent 系統設計的啟發</h2>
+
+<p>
+局部迴歸的「近鄰權重衰減」機制，其實是 AI agent 系統中一個極具啟發性的設計模式：
+</p>
+
+<div class="callout">
+  <strong>Context Window 的時間局部性</strong>：就像局部迴歸對靠近 \(x_0\) 的點賦予高權重、遠點賦予低權重，AI agent 在處理長對話時也應該對<strong>近期訊息賦予更高的重要性</strong>。這不是一個新的想法——但局部迴歸提供了數學上嚴謹的加權框架：不應該硬截斷（等權滑動窗口），也不應該全域等權（耗盡 context window），而應該用<strong>隨距離衰減的核函數</strong>來加權歷史訊息。
+</p>
+
+<p>實際應用場景：當 agent 需要從 50 輪歷史中決定哪些訊息對當前任務最相關時，可以用「輪次距離」做 tri-cube 加權，讓最近的上下文自然獲得更高的注意力，但又不完全丟棄較遠的資訊。</p>
+
+<!-- ==================== 金句 ==================== -->
+
+<div class="key-quote">
+  全域模型告訴你「平均而言世界長怎樣」，局部模型告訴你「你站的地方長怎樣」——在一個不平均的世界裡，後者往往更重要。
+  <span class="author">—— §7.6 局部迴歸 · 核心精神</span>
+</div>
+
+<div class="section-nav">
+  <a href="7.5_smoothing_splines.html">← §7.5 平滑樣條</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.7_generalized_additive_models.html">§7.7 廣義可加模型 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 7 章：超越線性 · §7.6 局部迴歸</p>
+  <p>Generated: 2026-07-13 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

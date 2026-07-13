@@ -38,6 +38,7 @@
 <a href="/statistics/7.3_basis_functions.html" class="nav-item done">7.3 基底函數</a>
 <a href="/statistics/7.4_regression_splines.html" class="nav-item done">7.4 迴歸樣條</a>
 <a href="/statistics/7.5_smoothing_splines.html" class="nav-item done">7.5 平滑樣條</a>
+<a href="/statistics/7.6_local_regression.html" class="nav-item done">7.6 局部迴歸</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
