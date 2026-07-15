@@ -39,6 +39,8 @@
 <a href="/statistics/7.4_regression_splines.html" class="nav-item done">7.4 迴歸樣條</a>
 <a href="/statistics/7.5_smoothing_splines.html" class="nav-item done">7.5 平滑樣條</a>
 <a href="/statistics/7.6_local_regression.html" class="nav-item done">7.6 局部迴歸</a>
+<a href="/statistics/7.7_generalized_additive_models.html" class="nav-item done">7.7 廣義加法模型</a>
+<span class="nav-item pending">7.8 Lab: 非線性建模</span>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7.7 廣義加法模型 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>7.7 廣義加法模型</h1>
+  <div class="meta">
+    <span>📖 ISLP §7.7</span>
+    <span>📄 pp. 305–308</span>
+    <span class="difficulty">難度：★★★★☆</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">廣義加法模型</span>
+    <span class="tag">GAM</span>
+    <span class="tag">非線性建模</span>
+    <span class="tag">加性模型</span>
+    <span class="tag">反向擬合</span>
+    <span class="tag">可解釋 ML</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="7.6_local_regression.html">← 7.6 局部迴歸</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.8_lab_nonlinear.html">7.8 Lab: 非線性建模 →</a>
+</div>
+
+<h2>動機：線性迴歸不夠用時，怎麼辦？</h2>
+
+<div class="callout">
+  <strong>核心問題：</strong>前面章節教了如何用一個非線性函數 \(f(X)\) 來預測 \(Y\)（多項式、樣條、局部迴歸）。但真實世界通常有多個自變數——年資、年齡、學歷同時影響薪資。如何讓<strong>每個變數</strong>都享有非線性彈性，又保持模型的<strong>可解釋性</strong>？
+</div>
+
+<p>想像你是一位人力資源分析師：薪資會隨年資非線性增長（初期快、後期趨緩），年齡對薪資是倒 U 型（中年最高），而學歷是離散的類別變數。線性迴歸把三者都當成直線關係，顯然不夠準確。但若要用一個巨大的非線性模型一次捕捉所有變數的交互作用，模型會複雜到無法解釋。</p>
+
+<p><strong>廣義加法模型（Generalized Additive Model, GAM）</strong>正是為這個困境而生：它讓每個變數各自擬合一條非線性函數，再<strong>加起來</strong>。既能捕捉非線性關係，又保持「每個變數的貢獻可獨立解讀」的優雅特性。</p>
+
+<h2>7.7.1 迴歸問題的 GAM</h2>
+
+<div class="ref-box">
+  James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §7.7, pp. 305–308. 另可參閱 Hastie & Tibshirani (1990) <em>Generalized Additive Models</em>（GAM 原始專著）。
+</div>
+
+<h3>從線性到非線性的自然延伸</h3>
+
+<p>複習一下多元線性迴歸：</p>
+
+<div class="formula">
+  \(y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_p x_{ip} + \epsilon_i\)
+</div>
+
+<p>這假設每個變數 \(X_j\) 與 \(Y\) 是<strong>線性</strong>關係。GAM 把這條公式做一個優雅的改造：把每個線性項 \(\beta_j x_{ij}\) 換成一個<strong>非線性函數</strong> \(f_j(x_{ij})\)：</p>
+
+<div class="formula">
+  \(y_i = \beta_0 + \sum_{j=1}^{p} f_j(x_{ij}) + \epsilon_i = \beta_0 + f_1(x_{i1}) + f_2(x_{i2}) + \cdots + f_p(x_{ip}) + \epsilon_i\)
+  <div class="formula-label">公式 7.15：GAM 迴歸模型</div>
+</div>
+
+<p><strong>加性（additive）</strong>指的是每個 \(f_j\) 只依賴一個 \(X_j\)，然後把貢獻「加總」。這點跟線性迴歸相同，但 \(f_j\) 可以是任何平滑函數——自然樣條、平滑樣條、局部迴歸、多項式都可以。</p>
+
+<div class="callout">
+  <strong>生活化比喻：</strong>把薪資想像成一道菜的味道。線性迴歸是「每種食材各放固定克數」；GAM 則是「每種食材先用最適合的烹調方式處理，再把味道疊加」。你可以用大火快炒年資（樣條）、用小火慢燉年齡（平滑函數）、用刀工處理學歷（類別啞變數），最後合成一道完整的料理。
+</div>
+
+<h3>薪資資料範例</h3>
+
+<p>課本使用 <code>Wage</code> 資料集，以三個變數預測薪資：</p>
+
+<ul>
+  <li><strong>year</strong>（年）— 連續變數：薪資隨通膨微幅上升</li>
+  <li><strong>age</strong>（年齡）— 連續變數：中年薪資最高，年輕和年長者較低</li>
+  <li><strong>education</strong>（學歷）— 類別變數（&lt;HS, HS, &lt;Coll, Coll, &gt;Coll）：學歷越高薪資越高</li>
+</ul>
+
+<div class="formula">
+  \(\text{wage} = \beta_0 + f_1(\text{year}) + f_2(\text{age}) + f_3(\text{education}) + \epsilon\)
+  <div class="formula-label">公式 7.16：薪資 GAM 模型</div>
+</div>
+
+<p>課本的擬合結果如 Figure 7.11 所示：\(f_1\) 和 \(f_2\) 用自然樣條（4 和 5 個自由度）、\(f_3\) 用啞變數。所有變數的效應可以獨立解讀——這就是 GAM 最大的魅力：<strong>可解釋的非線性模型</strong>。</p>
+
+<h3>Python 實作：用 SplineTransformer 建構 GAM</h3>
+
+<p>以下用 <code>sklearn</code> 重現 GAM 的核心概念——把多個樣條基底和啞變數合併成一個大設計矩陣，再跑 OLS：</p>
+
+<pre><code class="language-python">"""GAM 迴歸 — Wage 資料集"""
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from sklearn.preprocessing import SplineTransformer, OneHotEncoder
+from sklearn.linear_model import LinearRegression
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
+# 載入資料
+wage = load_data('Wage')
+X = wage[['year', 'age', 'education']]
+y = wage['wage']
+
+# 定義各變數的轉換方式：year→樣條，age→樣條，education→啞變數
+preprocessor = ColumnTransformer([
+    ('year_spline', SplineTransformer(n_knots=3, degree=3), ['year']),
+    ('age_spline',  SplineTransformer(n_knots=4, degree=3), ['age']),
+    ('edu_dummy',   OneHotEncoder(drop='first'), ['education'])
+])
+
+model = Pipeline([
+    ('transform', preprocessor),
+    ('reg', LinearRegression())
+])
+model.fit(X, y)
+print(f"R² = {model.score(X, y):.4f}")
+print(f"截距 = {model.named_steps['reg'].intercept_:.2f}")
+
+# 繪製各變數的偏效應（概念示範）
+fig, axes = plt.subplots(1, 3, figsize=(14, 4))
+# year 效應
+years = np.linspace(wage['year'].min(), wage['year'].max(), 100)
+X_year = pd.DataFrame({'year': years, 'age': wage['age'].mean(),
+                        'education': wage['education'].mode()[0]})
+pred_year = model.predict(X_year)
+axes[0].plot(years, pred_year, linewidth=2)
+axes[0].set_title('f₁(year) 效應'); axes[0].set_xlabel('year')
+axes[0].set_ylabel('partial effect')
+
+# age 效應
+ages = np.linspace(wage['age'].min(), wage['age'].max(), 100)
+X_age = pd.DataFrame({'year': wage['year'].mean(), 'age': ages,
+                       'education': wage['education'].mode()[0]})
+pred_age = model.predict(X_age)
+axes[1].plot(ages, pred_age, linewidth=2, color='#3fb950')
+axes[1].set_title('f₂(age) 效應'); axes[1].set_xlabel('age')
+
+# education 效應
+edu_levels = wage['education'].unique()
+edu_preds = []
+for edu in edu_levels:
+    X_edu = pd.DataFrame({'year': wage['year'].mean(), 'age': wage['age'].mean(),
+                           'education': [edu]})
+    edu_preds.append(model.predict(X_edu)[0])
+axes[2].bar(range(len(edu_levels)), edu_preds, color='#d2991d')
+axes[2].set_title('f₃(education) 效應')
+axes[2].set_xticks(range(len(edu_levels)))
+axes[2].set_xticklabels(edu_levels, rotation=30)
+
+plt.tight_layout(); plt.show()
+print("三個偏效應圖：year 微幅上升 / age 倒U型 / education 階梯遞增")
+</code></pre>
+
+<h3>平滑樣條 GAM 與反向擬合（Backfitting）</h3>
+
+<p>自然樣條 GAM 可以直接用最小平方法（整個模型就是一個大的線性迴歸）。但如果要用<strong>平滑樣條</strong>，就沒這麼簡單——平滑樣條本身有懲罰項，不能用 OLS 一步到位。解法是課本介紹的<strong>反向擬合演算法（backfitting）</strong>：</p>
+
+<div class="callout">
+  <strong>反向擬合的核心思路：</strong>每次只更新一個 \(f_j\)，把其他變數的貢獻先扣掉，剩下的殘差拿去擬合該變數的非線性函數。重複到收斂。
+  <br><br>
+  例如要更新 \(f_3\)（學歷）：<br>
+  ① 計算偏殘差：\(r_i = y_i - f_1(\text{year}_i) - f_2(\text{age}_i)\)<br>
+  ② 用學歷對 \(r_i\) 做非線性迴歸 → 得到新的 \(f_3\)<br>
+  ③ 輪流對 \(f_1, f_2, \ldots\) 重複，直到所有 \(f_j\) 穩定
+</div>
+
+<p>Python 中有專屬的 <code>pygam</code> 套件可以處理平滑樣條 GAM，使用 P-spline 並自動選擇平滑參數。課本 Figure 7.12 顯示：平滑樣條 GAM 和自然樣條 GAM 的結果非常相似——在實務中，兩種基底選擇的差異通常不大。</p>
+
+<h2>7.7.2 分類問題的 GAM</h2>
+
+<div class="ref-box">
+  Hastie & Tibshirani (1990); Wood (2017) <em>Generalized Additive Models: An Introduction with R</em>, 2nd ed.
+</div>
+
+<h3>從 Logistic 迴歸到 Logistic GAM</h3>
+
+<p>回顧邏輯迴歸的核心公式：</p>
+
+<div class="formula">
+  \(\log\left(\frac{p(X)}{1-p(X)}\right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_p X_p\)
+  <div class="formula-label">公式 7.17：Logistic 迴歸（線性 log-odds）</div>
+</div>
+
+<p>同樣的改造：把線性項換成非線性函數：</p>
+
+<div class="formula">
+  \(\log\left(\frac{p(X)}{1-p(X)}\right) = \beta_0 + f_1(X_1) + f_2(X_2) + \cdots + f_p(X_p)\)
+  <div class="formula-label">公式 7.18：Logistic GAM</div>
+</div>
+
+<p>這等於是在說：「log-odds 是各變數非線性貢獻的總和」。分類 GAM 也可以透過反向擬合來擬合——每次更新一個 \(f_j\) 時，用加權最小平方法處理邏輯迴歸的局部二次近似。</p>
+
+<h3>Python 實作：Logistic GAM</h3>
+
+<pre><code class="language-python">"""Logistic GAM — Wage 資料集的高薪分類（示範）"""
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from sklearn.preprocessing import SplineTransformer, OneHotEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split
+
+# 載入資料，建立二元分類：薪資 > 100K 為「高薪」
+wage = load_data('Wage')
+X = wage[['year', 'age', 'education']]
+y = (wage['wage'] > 100).astype(int)  # 二元分類標籤
+print(f"高薪比例: {y.mean():.2%}  (n={len(y)})")
+
+# 分割資料
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Logistic GAM：樣條 + 啞變數 → LogisticRegression
+preprocessor = ColumnTransformer([
+    ('year_spline', SplineTransformer(n_knots=2, degree=3), ['year']),
+    ('age_spline',  SplineTransformer(n_knots=3, degree=3), ['age']),
+    ('edu_dummy',   OneHotEncoder(drop='first'), ['education'])
+])
+
+model = Pipeline([
+    ('transform', preprocessor),
+    ('logit', LogisticRegression(max_iter=5000, C=1e8))  # C 很大 = 幾乎無正則化
+])
+model.fit(X_tr, y_tr)
+print(f"訓練準確率 = {model.score(X_tr, y_tr):.3f}")
+print(f"測試準確率 = {model.score(X_te, y_te):.3f}")
+
+# 繪製 age 對 log-odds 的偏效應
+ages = np.linspace(wage['age'].min(), wage['age'].max(), 100)
+X_plot = pd.DataFrame({'year': wage['year'].mean(),
+                        'age': ages,
+                        'education': wage['education'].mode()[0]})
+log_odds = model.decision_function(X_plot)
+probs = 1 / (1 + np.exp(-log_odds))
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+ax1.plot(ages, log_odds, 'b-', linewidth=2)
+ax1.set_title('Log-Odds vs Age'); ax1.set_xlabel('Age')
+ax1.set_ylabel('log-odds(high wage)'); ax1.axhline(0, color='gray', ls='--')
+ax2.plot(ages, probs, 'g-', linewidth=2)
+ax2.set_title('Probability vs Age'); ax2.set_xlabel('Age')
+ax2.set_ylabel('P(high wage)'); ax2.axhline(0.5, color='gray', ls='--')
+plt.tight_layout(); plt.show()
+print("非線性 log-odds 效應：中年機率最高，年齡兩端下降")
+</code></pre>
+
+<div class="scenario-box">
+  <h4>🩺 應用場景：疾病風險評估</h4>
+  <p>Logistic GAM 非常適合醫療風險預測。例如預測心臟病風險時，年齡的效應可能是 S 型（年輕時幾乎無風險、中年後急升、高齡趨緩），BMI 可能是 J 型（過輕和過重都增風險），血壓可能是單調遞增。GAM 讓每個生理指標都有自己的非線性形狀，同時醫生可以清楚解讀「控制其他因素後，這個指標如何影響風險」。這比黑箱模型（如神經網路）更適合臨床決策。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>📈 應用場景：行銷轉換率建模</h4>
+  <p>在數位行銷中，轉換率（點擊→購買）受多個因素影響：用戶在網站停留時間（對數型：前 30 秒資訊量最大）、過去購買次數（邊際遞減）、電子報開信率（閾值效應）。Logistic GAM 可以同時捕捉這些非線性模式，且行銷團隊能逐個變數解讀貢獻——這對制定策略至關重要。</p>
+</div>
+
+<h2>GAM 的優缺點</h2>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 優點</h4>
+    <ul>
+      <li><strong>自動捕捉非線性</strong>：不需手動嘗試各種變數轉換（log、平方根…），GAM 自動擬合每個變數的最佳形狀</li>
+      <li><strong>預測更準確</strong>：比起強制線性的迴歸模型，非線性擬合通常能提升預測表現</li>
+      <li><strong>可解釋性不犧牲</strong>：每個 \(f_j\) 可獨立繪圖和解讀——「在其他變數固定不變下，\(X_j\) 對 \(Y\) 的邊際效應」</li>
+      <li><strong>平滑度可量化</strong>：每個 \(f_j\) 的自由度直接反映非線性程度，方便溝通和比較</li>
+      <li><strong>靈活的基底選擇</strong>：樣條、局部迴歸、多項式可以混搭使用</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 限制</h4>
+    <ul>
+      <li><strong>加性假設</strong>：預設不考慮變數間的交互作用。若真實世界中 \(X_1\) 的效應依賴 \(X_2\) 的值，純加性模型會漏掉</li>
+      <li><strong>手動補交互作用</strong>：雖可加入 \(X_j \times X_k\) 或二維平滑 \(f_{jk}(X_j, X_k)\)，但會增加複雜度</li>
+      <li><strong>維度限制</strong>：在非常大量變數的場景中，全加性模型的自由度可能過高</li>
+      <li><strong>反向擬合的成本</strong>：平滑樣條 GAM 的擬合需要迭代，大資料集時計算成本較高</li>
+    </ul>
+  </div>
+</div>
+
+<h2>與相近方法的比較</h2>
+
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>方法</th>
+      <th>非線性</th>
+      <th>可解釋性</th>
+      <th>交互作用</th>
+      <th>適用場景</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>多元線性迴歸</strong></td>
+      <td>❌ 強制線性</td>
+      <td>⭐⭐⭐⭐⭐</td>
+      <td>可手動加</td>
+      <td>已知關係接近線性時</td>
+    </tr>
+    <tr>
+      <td><strong>多項式迴歸</strong></td>
+      <td>✅ 整體多項式</td>
+      <td>⭐⭐⭐</td>
+      <td>可手動加</td>
+      <td>單一變數、無分段行為</td>
+    </tr>
+    <tr>
+      <td><strong>GAM</strong></td>
+      <td>✅ 逐變數非線性</td>
+      <td>⭐⭐⭐⭐</td>
+      <td>可手動加</td>
+      <td>多變數、需獨立解讀</td>
+    </tr>
+    <tr>
+      <td><strong>隨機森林 / Boosting</strong></td>
+      <td>✅ 完全非參數</td>
+      <td>⭐⭐</td>
+      <td>自動捕捉</td>
+      <td>純預測優先、不需解釋</td>
+    </tr>
+    <tr>
+      <td><strong>神經網路</strong></td>
+      <td>✅ 任意複雜度</td>
+      <td>⭐</td>
+      <td>自動捕捉</td>
+      <td>極大資料、黑箱可接受</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>GAM 的定位：</strong>它是線性模型和完全非參數方法之間的<strong>黃金折衷</strong>。保有線性模型的可解釋性（每個變數獨立貢獻），同時享有非線性的擬合彈性。教科書說得好：「如果線性模型是腳踏車、隨機森林是跑車，那 GAM 就是 SUV——夠靈活但不會失控。」
+</div>
+
+<div class="key-quote">
+  GAM 讓我們不必在「準確但黑箱」和「透明但僵硬」之間二選一。每個變數按照自己最自然的方式進入模型，然後疊加起來——這就是統計建模的「各司其職，和而不同」。
+  <span class="author">— 改寫自 §7.7 的核心精神</span>
+</div>
+
+<h2>對 Hermes 系統設計的啟發</h2>
+
+<div class="callout">
+  <strong>GAM 的加性分解 → agent 架構的模組化設計：</strong>GAM 最大的設計洞見在於「把一個複雜的非線性問題，拆解成多個各自獨立的非線性子問題，再加總」。這正好對應到 agent 系統的模組化設計：不要試圖讓單一 agent 包辦所有任務的非線性複雜度，而是讓每個子 agent 專注於自己的領域（程式審查、系統部署、內容撰寫），各自用最適合的方式處理（有的用 regex、有的用 LLM、有的用 shell），然後由主 agent 做「加總」——協調和整合結果。這就是 GAM 教我們的系統架構原則。
+</div>
+
+<div class="section-nav">
+  <a href="7.6_local_regression.html">← 7.6 局部迴歸</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="7.8_lab_nonlinear.html">7.8 Lab: 非線性建模 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 7 章：Moving Beyond Linearity · §7.7 廣義加法模型</p>
+  <p>Generated: 2026-07-15 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
