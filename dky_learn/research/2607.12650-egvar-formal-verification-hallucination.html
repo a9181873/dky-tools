@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EG-VAR: 用 Lean 4 形式驗證消滅 LLM Agent 幻覺 — learn.dky.tw</title>
+<meta name="description" content="EG-VAR 用 Lean 4 kernel 做工具調用的形式 sidecar，120/120 TableBench + 100% source-faithful，ICML 2026 TAIGR">
+<meta property="og:title" content="EG-VAR: 用 Lean 4 形式驗證消滅 LLM Agent 幻覺">
+<meta property="og:description" content="Lean 4 kernel 作為唯一 Verified 鑄幣廠，mkVerified 規則保證所有輸出可追溯至實證工具調用">
+<meta property="og:type" content="article">
+<style>
+:root{--bg:#0d1117;--text:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d;--code-bg:#1a2332;--tag-bg:#1a2a3a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;max-width:900px;margin:0 auto;padding:2rem 1.5rem}
+h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem}
+.meta{font-size:.85rem;color:var(--orange);margin-bottom:1.5rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin:1rem 0}
+.card h2{color:var(--accent);font-size:1.1rem;margin-bottom:.8rem;border-bottom:1px solid var(--border);padding-bottom:.4rem}
+p{margin:.5rem 0}
+a{color:var(--accent)}
+ol,ul{margin:.5rem 0 .5rem 1.5rem;line-height:1.8}
+ol li,ul li{margin-bottom:.3rem}
+code{background:var(--code-bg);padding:.15rem .4rem;border-radius:4px;font-size:.9em}
+.mb{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin:1rem 0}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem;text-align:center}
+.mc h4{color:var(--accent);margin:0 0 .4rem;font-size:.9rem}
+.mc p{margin:0;font-size:.85rem;color:var(--green)}
+footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.85rem;color:var(--text);opacity:.7}
+@media(max-width:768px){.mb{grid-template-columns:1fr}body{padding:1rem}}
+</style>
+</head>
+<body><div id="sidebar"></div>
+<main>
+<h1>EG-VAR: 用 Lean 4 形式驗證消滅 LLM Agent 幻覺</h1>
+<div class="meta">arXiv:2607.12650 — 2026-07-14 — cs.LG / cs.AI — Junyu Ren — ICML 2026 TAIGR Workshop</div>
+
+<div class="card">
+<h2>一句話核心結論</h2>
+<p>LLM 拿到工具不代表推論就可信——現有 agent 的「實證推理」既不保證輸出真的來自工具證據，也不保證演繹鏈經得起形式檢查。EG-VAR 把 <b>Lean 4 proof assistant</b> 做成 agent 的形式 sidecar：Lean kernel 是唯一能鑄造「Verified」標籤的實體，所有驗證過的輸出結構性地追溯至一個工具調用（定理 3.1），且推理鏈的每一步都經 kernel type-check（定理 3.2）。120/120 TableBench，反事實壓力測試保持 100% source-faithful。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>TableBench</h4><p>120/120（100%）vs 基線 95%</p></div>
+<div class="mc"><h4>反事實測試</h4><p>100% source-faithful vs 80-90%</p></div>
+<div class="mc"><h4>形式化誤差</h4><p>Sonnet 3.3% / Opus 1.7%</p></div>
+</div>
+
+<div class="card">
+<h2>核心架構：四層信任堆疊 + 信任帳本</h2>
+<p>EG-VAR 不是要取代 LLM——而是給 LLM agent 加一個 <b>形式治理層</b>。四層架構：</p>
+<ol>
+<li><b>L0 來源層：</b>原始資料——CSV、API 回應、資料庫查詢結果。不可信的原始位元。</li>
+<li><b>L1 儲存層：</b>將表格資料結構化存入 Lean 型別系統，每一格都有型別標記。</li>
+<li><b>L2 工具證明層：</b>工具執行後回傳的是帶證據封條的 Lean term，例如 <code>CellValue "Tokyo" 37400000</code>。</li>
+<li><b>L3 宣告層：</b>每條宣告要嘛附上 Lean proof term（kernel 檢查通過 → Verified），要嘛誠實說 Abstain（附可重播審計軌跡）。</li>
+</ol>
+<p><b>信任帳本（Trust Ledger）：</b>每個推論步驟的三元組（來源範圍、證據邊界、證明義務）被記錄在案。第三方可獨立重播整個推理鏈。</p>
+</div>
+
+<div class="card">
+<h2>兩條安全定理</h2>
+<p><b>定理 3.1（無憑空輸出）：</b>任何被標記為 Verified 的宣告，其 proof term 的所有觀察節點必須對應到存在的工具調用記錄。不能宣稱「數據顯示 X」但從未查過數據。</p>
+<p><b>定理 3.2（無演繹錯誤）：</b>所有推理步驟都是 Lean 4 kernel type-check 通過的有效推導。不會有邏輯跳躍或隱含假設。</p>
+<p>兩定理的關鍵：<b>mkVerified 規則</b>是唯一能鑄造「Verified」標籤的入口，要求 (a) proof term (b) kernel type-check (c) 所有 observation-leaf 有對應工具調用，三樣同時成立。</p>
+</div>
+
+<div class="card">
+<h2>實驗設計：三層漸進式評估</h2>
+<p><b>Tier 1（Gold-goal）：</b>TableBench 120 題，人工 Lean proof term。EG-VAR 120/120；same-tool 114/120（錯的 6 題全是幻覺）。</p>
+<p><b>Tier 1.5（反事實壓力）：</b>故意給錯誤來源資料。EG-VAR 100% source-faithful；same-tool 80-90%（模型用參數記憶「修正」來源）。</p>
+<p><b>Tier 2（LLM 形式化器）：</b>讓 Sonnet/Opus 自己轉 Lean proof term。Sonnet 誤差 3.3%，Opus 1.7%。97-98% 可自動形式化並通過 kernel 驗證。</p>
+</div>
+
+<div class="card">
+<h2>對 DKY Agent 的啟發</h2>
+<ul>
+<li><b>網頁爬取驗證：</b>任何「根據 XX 網站…」的宣稱，必須附 URL + HTTP 狀態 + 內容 hash。</li>
+<li><b>工具調用審計：</b>每次 tool call 結果注入 context 前，確認來源、時間、參數。</li>
+<li><b>Abstain 優於瞎猜：</b>誠實說「我不知道」+ 審計軌跡，比吐出看似合理的數字有價值得多。</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>限制</h2>
+<ul>
+<li>目前只處理結構化表格數據，未擴展到自由文本或非結構化 API 回應</li>
+<li>形式化需要人工撰寫 per-source lift，無法全自動</li>
+<li>LLM 形式化器的 1.7-3.3% 語義誤差在高風險場景仍不可接受</li>
+<li>單作者論文，樣本量有限（120 題 TableBench 子集）</li>
+</ul>
+</div>
+
+<footer>
+<p>論文原文: <a href="https://arxiv.org/abs/2607.12650" target="_blank">arXiv:2607.12650</a> | ICML 2026 TAIGR Workshop</p>
+<p>DKY Research | learn.dky.tw | 2026-07-15</p>
+</footer>
+</main>
+<script src="../sidebar.js"></script>
+</body>
+</html>
