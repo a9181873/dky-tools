@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MemCon: 將記憶變成可控流程 — 用強化學習讓 Agent 自己決定何時讀寫忘 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.25rem;margin:2rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.05rem;margin:1.5rem 0 .6rem}p{margin:.8rem 0}ul,ol{margin:.6rem 0 .6rem 1.5rem}li{margin:.3rem 0}code{background:#1f2a37;color:var(--accent);padding:.15rem .4rem;border-radius:4px;font-size:.88em}pre{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:1rem;overflow-x:auto;font-size:.85em;line-height:1.6}table{width:100%;border-collapse:collapse;margin:1rem 0}th{background:#1f2a37;color:var(--accent);padding:.5rem .8rem;text-align:left;border:1px solid var(--border)}td{padding:.4rem .8rem;border:1px solid var(--border)}blockquote{border-left:3px solid var(--accent);padding-left:1rem;margin:1rem 0;color:#8b949e}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.5rem;margin:1rem 0}.highlight{background:#1f2a37;border-left:3px solid var(--warn);padding:.8rem 1rem;border-radius:4px;margin:1rem 0}@media(max-width:768px){body{padding:1rem}.card{padding:.8rem 1rem}header h1{font-size:1.3rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>MemCon: 將記憶變成可控流程 — 用強化學習讓 Agent 自己決定何時讀寫忘</h1>
+  <p class="meta">arXiv:2607.13591 — 2026-07-15 — cs.CL / cs.AI — Eric Hanchen Jiang et al. (14 authors, UCLA) — Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">記憶管理</span><span class="tag">Reinforcement Learning</span><span class="tag">MDP</span>
+    <span class="tag">Contextual Bandit</span><span class="tag">UCB</span><span class="tag">Agent</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+
+<div class="card">
+<p>現有 LLM agent 的記憶系統幾乎都用<b>手寫的固定啟發式規則</b>來決定何時讀取、寫入、遺忘——這在任務初期記憶稀疏時合理，但面對重複目標、卡關或長期任務流時就完全不夠。MemCon 把記憶操作建模成 <b>Markov Decision Process (MDP)</b>，用輕量級 <b>tabular contextual bandit + UCB 探索</b>在幾十個任務內學會最佳策略，<b>不需要預訓練、不需要額外 LLM call</b>。跨 6 個 benchmark、3 個 agent 框架、3 個 LLM 後端，任務成功率最高 +15.2 個百分點、token 消耗減少 5-20%。</p>
+</div>
+
+<h2>核心洞察：為什麼固定規則不夠？</h2>
+
+<p>MemCon 論證了記憶行為必須是 <b>context-dependent</b> 的四個場景：</p>
+
+<ol>
+<li><b>任務初期：</b>記憶庫是空的，最小化檢索（retrieve nothing）比盲目檢索更有效——省 token 又不會引入雜訊。</li>
+<li><b>重複目標型任務：</b>若當前目標與之前成功過的任務相似，直接重複計畫（plan reuse）比做 nearest-neighbor 檢索更有效。</li>
+<li><b>卡關時：</b>agent 卡住時，用替代查詢重新檢索（re-retrieval with alternative queries）比死守原策略好。</li>
+<li><b>長期任務流：</b>記憶庫持續膨脹，必須週期性 consolidate 和 prune 才能維持有用性。</li>
+</ol>
+
+<p>這些行為模式無法用單一靜態規則涵蓋——<b>最優策略本身就是任務結構的函數</b>。</p>
+
+<h2>技術架構：MDP + Contextual Bandit</h2>
+
+<p>MemCon 的核心設計分三層：</p>
+
+<ul>
+<li><b>狀態空間（State）：</b>從當前任務上下文擷取的特徵向量——任務類型、目前步驟數、記憶庫大小、最近成功/失敗模式等。這些特徵是 hand-crafted 的輕量級描述子，無需 LLM 介入。</li>
+<li><b>動作空間（Action）：</b>五類記憶操作——retrieve（檢索相關記憶）、inject（注入提煉後的計畫）、re-retrieve（換查詢重檢索）、consolidate（壓縮合併記憶）、forget（刪除過時記憶）。每步 agent 選一個動作。</li>
+<li><b>獎勵信號（Reward）：</b>任務完成後的二元成功/失敗信號。不需要細粒度 reward shaping，只需要最終結果——這讓 MemCon 可以搭配任何 agent 框架。</li>
+</ul>
+
+<p><b>學習演算法：tabular contextual bandit + UCB exploration。</b>每對（上下文特徵, 動作）維護一個 Q-value 估計和訪問次數 N。UCB 公式為 Q(s,a) + c * sqrt(ln(N_total) / N(s,a))。當某動作的 N 小時，UCB bonus 大，鼓勵探索；N 增大後 bonus 衰減，趨向 exploit。</p>
+
+<p>之所以用 tabular 而非 neural network：(1) 動作空間小（5 個），不需要 NN 的表達力；(2) tabular 收斂極快（幾十個任務）；(3) 可解釋——每個 (s,a) 的 Q-value 可以直接檢視。</p>
+
+<h2>實驗結果：六個 Benchmark 全面驗證</h2>
+
+<p>MemCon 在三個維度做了全面消融：</p>
+
+<p><b>跨 benchmark：</b>6 個 agent benchmark（WebArena、Mind2Web、GAIA、AgentBench、OSWorld、SWE-bench lite），MemCon 在 5/6 上超越最佳 baseline，平均 +8.3 個百分點。</p>
+
+<p><b>跨 agent 框架：</b>AutoGen、CrewAI、LangGraph 三種框架，MemCon 作為 wrapper 後端無關，全部有效。</p>
+
+<p><b>跨 LLM 後端：</b>GPT-4o、Claude Sonnet、Gemini 1.5 Pro。最強組合（MemCon + GPT-4o）達到單一 benchmark 最高 +15.2 pts。</p>
+
+<p><b>消融實驗關鍵發現：</b>單獨移除 forget 動作導致長期任務流效能急劇下降（記憶庫膨脹後檢索品質崩潰）；單獨移除 consolidate 讓 plan reuse 失去效果（記憶碎片化後找不到可重用的計畫）。</p>
+
+<h2>對 DKY / Hermes 的啟發</h2>
+
+<p>MemCon 的設計哲學與 Hermes 高度共鳴，有三個直接應用方向：</p>
+
+<ul>
+<li><b>memory 操作的 MDP 化：</b>Hermes 目前 fact_store 的讀寫是 prompt 驅動的（agent 自己決定何時查 fact_store）。MemCon 證明把這個決策外化為一個 bandit policy 能顯著提升效率。不需要 NN，一個 tabular Q-table 就夠。</li>
+<li><b>forget 的重要性被低估：</b>Hermes 的 sleep consolidation 目前主要做合併和壓縮，但 MemCon 顯示主動 forget（而非被動等記憶滿才清）對長期效能至關重要。建議在下次 sleep consolidation 中增加 forget 決策維度。</li>
+<li><b>後端無關的 wrapper 模式：</b>MemCon 不修改現有記憶實作，只是在外面包一層 adaptive policy。這個模式可以直接套用到 Hermes 的 fact_store——不需要改 fact_store 的內部結構，只要在讀寫操作前插入 policy decision。</li>
+</ul>
+
+<h2>限制</h2>
+
+<ul>
+<li>目前只支援二元成功/失敗 reward，對部分成功的任務無法給出細粒度學習信號</li>
+<li>手寫狀態特徵需要 domain knowledge，換一個全新任務領域可能需要重新設計特徵</li>
+<li>tabular bandit 的狀態空間有限（~100 個離散狀態），當任務多樣性極高時可能不夠用</li>
+<li>動作空間目前是全域的——所有記憶用同一套 policy。未來可能需要 per-memory-item 的精細控制</li>
+</ul>
+
+</body>
+</html>
