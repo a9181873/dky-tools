@@ -169,6 +169,15 @@ h2 { font-size: 1.1em; color: var(--accent); margin: 28px 0 10px; border-bottom:
 <h2>🧠 模型架構 / 記憶機制</h2>
 
 <div class="paper-card">
+  <h3><a href="2607.13591-memcon-adaptive-memory-management.html">MemCon: 將記憶變成可控流程 — 用 MDP + Contextual Bandit 讓 Agent 自己決定何時讀寫忘</a></h3>
+  <div class="authors">Eric Hanchen Jiang et al. (14 authors) - UCLA - 2026-07-15 - arXiv:2607.13591</div>
+  <div class="oneliner">記憶操作建模為 MDP，tabular contextual bandit + UCB 線上學習，0 額外 LLM call。跨 6 benchmark +3 framework +3 LLM，成功率最高 +15.2 pts，token 節省 5-20%。</div>
+  <div style="margin-top:6px;">
+    <span class="tag">MemCon</span><span class="tag">MDP</span><span class="tag">Bandit</span><span class="tag">UCB</span><span class="tag">記憶管理</span><span class="tag">Token 節省</span>
+  </div>
+</div>
+
+<div class="paper-card">
   <h3><a href="2607.08716-proactive-memory-agent.html">Remember When It Matters: Proactive Memory Agent for Long-Horizon Agents</a></h3>
   <div class="authors">Yifan Wu, Zhuokai Zhao et al. - Meta AI - 2026-07-09 - arXiv:2607.08716</div>
   <div class="oneliner">behavioral state decay: independent memory agent + 3-tier bank + two-phase intervention. Selective silence beats always-on injection. Sonnet 4.5 +8.3pp, Opus 4.6 +2.4pp.</div>
