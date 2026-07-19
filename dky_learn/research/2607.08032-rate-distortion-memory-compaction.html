@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>該留什麼、該忘什麼：Rate-Distortion 統一 LLM 記憶壓縮 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);margin:2rem 0 1rem;font-size:1.25rem;border-bottom:1px solid var(--border);padding-bottom:.5rem}h3{color:var(--accent2);margin:1.5rem 0 .8rem;font-size:1.1rem}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.5rem;margin:1rem 0}ol,ul{margin:.8rem 0 .8rem 1.5rem;line-height:1.8}li{margin:.3rem 0}b,strong{color:#e6edf3}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}code{background:#1a2332;color:var(--accent2);padding:.15rem .4rem;border-radius:4px;font-size:.9rem}pre{background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:1rem;overflow-x:auto;margin:1rem 0}pre code{background:none;padding:0}blockquote{border-left:3px solid var(--accent);margin:1rem 0;padding:.5rem 1rem;color:#8b949e;background:#0d1117;border-radius:0 6px 6px 0}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid var(--border);padding:.6rem .8rem;text-align:left}th{background:#1a2332;color:var(--accent)}.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin:1rem 0}.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}.mc h4{color:var(--accent2);margin:0 0 .4rem;font-size:.95rem}.mc p{margin:0;font-size:.85rem}@media(max-width:768px){body{padding:1rem}.mb{grid-template-columns:1fr}header h1{font-size:1.3rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>該留什麼、該忘什麼：Rate-Distortion 統一 LLM 記憶壓縮四層架構</h1>
+  <p class="meta">arXiv:2607.08032 — 2026-07-09 — cs.LG — Ashwin Gerard Colaco, Nada Lahjouji (UC Irvine) — Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">記憶壓縮</span><span class="tag">Rate-Distortion</span><span class="tag">KV Cache</span>
+    <span class="tag">Survey</span><span class="tag">資訊理論</span><span class="tag">Agent Memory</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+<div class="card">
+<p>KV cache 刪除、prompt 壓縮、架構狀態限縮、agent 記憶合併——<b>四個幾乎互不引用的獨立研究社群</b>，實際上在解決同一個數學問題：<b>rate-distortion 權衡</b>（用多少記憶換多少任務準確度）。UC Irvine 的 Colaco 和 Lahjouji 用單一資訊理論公式統一了 ~70 種方法，提出七軸分類法，並發現兩個跨層共通失敗模式：(1) 全部用<b>注意力分數或時間新近度</b>決定保留什麼，在查詢到來前就不可逆地丟棄關鍵資訊；(2) agent 反覆壓縮記憶的<b>誤差累積效應幾乎無人量測</b>。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>涵蓋方法</h4><p>~70 種，橫跨 KV cache、prompt、架構、agent 四層</p></div>
+<div class="mc"><h4>分類維度</h4><p>7 軸（粒度、生命週期、失真度、查詢適應性、可學習性、機制、儲存）</p></div>
+<div class="mc"><h4>通用下限（Eq. 2）</h4><p>P_e &ge; (H(Y|Q)-B-1)/log|Y|：預算低於任務資訊量時，任何方法都無法避免錯誤</p></div>
+<div class="mc"><h4>設計原則</h4><p>5 個（可逆性、查詢條件化、任務適應預算、重複壓縮量測、統一基準）</p></div>
+</div>
+
+<h2>核心洞察：四個社群在解決同一個問題</h2>
+<div class="card">
+<p>論文開篇就指出一個荒謬的現狀：</p>
+<ol>
+<li><b>KV cache 社群：</b>用注意力分數決定刪除哪些 token（H2O、SnapKV、StreamingLLM），或用 2-bit 量化壓縮每 token 的位元數（KIVI、KVQuant）</li>
+<li><b>Prompt 壓縮社群：</b>用 LLM 摘要或學習 gist token 替換長上下文（LLMLingua、Gist、ICAE）</li>
+<li><b>架構設計社群：</b>把記憶綁死在固定大小的 recurrent state（Mamba、RWKV、Titans、Infini-attention）</li>
+<li><b>Agent 記憶社群：</b>在任務間 consolidate、summarize、forget（MemGPT、Mem0、RAPTOR、MemoryBank）</li>
+</ol>
+<p>這四個社群<b>幾乎不互相引用</b>，各自有自己的 benchmark 和成功指標。但論文用一個公式證明它們全是同一個問題的變體：<b>所有方法都是從歷史 H 壓縮出 Z（滿足預算 B），然後用 Z 回答查詢 Q</b>。</p>
+</div>
+
+<h2>統一形式化：Rate-Distortion 目標與 Fano 下限</h2>
+<div class="card">
+<p>論文的數學貢獻是一個層級無關的壓縮公式：min E[L(U(C(H), Q), Y)] s.t. rate(Z) &le; B。從這個目標匯出 <b>Fano 下限</b>：當壓縮預算 B 低於任務資訊量 I*(Q) 時，<b>所有方法——無論架構——都必須犯錯</b>。這代表：</p>
+<ul>
+<li>精確檢索任務（multi-hop QA）壓縮得差 → 因為答案需要很多位元</li>
+<li>摘要任務壓縮得好 → 因為答案的熵很低</li>
+<li><b>查詢未知前就壓縮（query-agnostic）</b>必須支付額外的查詢熵 H(Q) 的代價</li>
+</ul>
+</div>
+
+<h2>七軸分類法</h2>
+<div class="card">
+<ol>
+<li><b>粒度：</b>bit → token → block → hidden dim → NL span → soft token → recurrent state → semantic item</li>
+<li><b>生命週期：</b>預訓練 → prefill → decode → serving → within-task → between-task → offline</li>
+<li><b>失真度：</b>無損 → 近似無損 → 均勻失真 → 多層（精確層+壓縮層）</li>
+<li><b>查詢適應性：</b>query-agnostic vs query-conditioned vs task-aware</li>
+<li><b>可學習性：</b>啟發式 → adapter → 從頭訓練 → RL policy → LLM 控制器</li>
+<li><b>機制：</b>刪除 → 選擇性檢索 → 合併 → 量化 → 低秩 → 摘要 → 編碼 → recurrent write-forget</li>
+<li><b>儲存：</b>GPU KV → host/SSD → 參數 → 外部儲存 → 知識圖譜 → dense vector</li>
+</ol>
+</div>
+
+<h2>兩個跨層共通失敗模式</h2>
+<div class="card">
+<p><b>模式 1：注意力 + 新近度偏見。</b>所有層級用注意力大小或時間新近度決定保留什麼——在查詢到來前不可逆地丟棄關鍵資訊。</p>
+<p><b>模式 2：重複壓縮的誤差累積。</b>單次壓縮被精心量測，但 agent 反覆 consolidate 的累積誤差<b>幾乎無人量測</b>。</p>
+</div>
+
+<h2>推論 ↔ Agent 記憶橋接</h2>
+<div class="card">
+<ul>
+<li><b>SnapKV</b> 觀察 attention 決定保留 → agent 觀察任務上下文決定查詢</li>
+<li><b>Quest</b> 保留全部+查詢時選擇性讀取 → agent 保留原始對話+語義檢索（<b>保留可逆性！</b>）</li>
+<li><b>GEAR</b> 低精度基底+高精度殘差 → agent 摘要層+原始記憶庫雙層架構</li>
+</ul>
+</div>
+
+<h2>五個設計原則</h2>
+<div class="card">
+<ol>
+<li><b>可逆性優先：</b>保留原文+選擇性檢索 優於 驅逐/摘要</li>
+<li><b>查詢條件化：</b>看到查詢再決定保留什麼，差距 = 查詢分布的熵</li>
+<li><b>任務適應預算：</b>精確檢索需高預算，摘要可用低預算</li>
+<li><b>量測重複壓縮：</b>agent 反覆 consolidate 的累積誤差需被 benchmark 覆蓋</li>
+<li><b>統一基準：</b>所有層級方法放在同一預算軸比較</li>
+</ol>
+</div>
+
+<h2>對 Hermes 的啟發</h2>
+<div class="card">
+<ul>
+<li><b>睡眠固化違反原則 1+2：</b>查詢前做 lossy 摘要/合併註定在某些查詢失敗。改進：保留原始記憶+索引，查詢時動態選擇 fidelity 層級</li>
+<li><b>重複壓縮誤差未量測：</b>每週 sleep consolidation 的誤差累積應加入追蹤</li>
+<li><b>Quest 模式可套用到 fact_store：</b>不預先壓縮，查詢時動態選擇記憶子集</li>
+</ul>
+</div>
+
+<h2>限制</h2>
+<div class="card">
+<ul>
+<li>作為 survey 不提出新壓縮演算法，而是統一現有方法的分類框架</li>
+<li>Fano 下限只給出資訊理論極限值</li>
+<li>COMPACT-Bench 仍處提案階段</li>
+<li>跨層機制移植的實作驗證有限</li>
+</ul>
+</div>
+
+</body>
+</html>
