@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8.1 決策樹基礎 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>8.1 決策樹基礎</h1>
+  <div class="meta">
+    <span>📖 ISLP §8.1</span>
+    <span>📄 pp. 331–342</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 35 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">決策樹</span>
+    <span class="tag">CART</span>
+    <span class="tag">回歸樹</span>
+    <span class="tag">分類樹</span>
+    <span class="tag">Cost Complexity Pruning</span>
+    <span class="tag">Gini Index</span>
+    <span class="tag">Entropy</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="7.8_lab_nonlinear_modeling.html">← 7.8 Lab: 非線性建模</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="8.2_bagging_random_forests_boosting.html">8.2 Bagging・隨機森林・Boosting →</a>
+</div>
+
+<h2>🌳 決策樹：用問題來做預測</h2>
+
+<p>
+想像你在玩一個「20 個問題」的遊戲——透過一連串「是／否」問題縮小範圍，最終猜出答案。決策樹正是用同樣的邏輯來做預測：它把預測空間反覆切成小方塊，每切一刀就是一個問題（例如「年資 &lt; 4.5 年？」），最終落在同一區塊的資料就給出相同的預測值。
+</p>
+
+<div class="callout">
+  <strong>核心概念：</strong>決策樹是一種將預測空間<strong>分層切割（stratification）</strong>的方法——把複雜的非線性關係，用一系列簡單的「若...則...」規則來逼近。它既可以處理迴歸（預測連續值），也可以處理分類（預測類別）。
+</div>
+
+<div class="ref-box">
+  James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning</em>, §8.1, pp.331–342. Springer.
+</div>
+
+<h2>📐 8.1.1 回歸樹（Regression Trees）</h2>
+
+<h3>直觀理解：棒球薪資預測</h3>
+
+<p>
+課本以 <strong>Hitters</strong> 資料集為例：用 <em>Years</em>（大聯盟年資）和 <em>Hits</em>（去年安打數）來預測球員薪資。一棵簡單的回歸樹長這樣：
+</p>
+
+<div class="figure-container">
+<pre style="text-align:left;font-family:monospace;background:var(--card);color:var(--fg)">
+            Years &lt; 4.5
+           /          \
+     $165,174      Hits &lt; 117.5
+                   /           \
+             $402,834        $845,346
+</pre>
+<div class="figure-caption">圖 8.1 簡化版：Hitters 回歸樹。三個葉節點對應三種球員群體。</div>
+</div>
+
+<p>
+這棵樹把球員分成三個區域：
+</p>
+<ul style="padding-left:2rem;margin:1rem 0">
+  <li><strong>R₁</strong>：年資 &lt; 4.5 年 → 預測薪資 $165,174</li>
+  <li><strong>R₂</strong>：年資 ≥ 4.5 且安打 &lt; 117.5 → 預測薪資 $402,834</li>
+  <li><strong>R₃</strong>：年資 ≥ 4.5 且安打 ≥ 117.5 → 預測薪資 $845,346</li>
+</ul>
+
+<div class="callout">
+  <strong>直覺解讀：</strong>年資是最重要的因素；資深球員中，安打數才開始有顯著影響。這比線性迴歸的「每多一年加 $X、每多一安加 $Y」更容易向非技術人員解釋。
+</div>
+
+<h3>遞迴二元分割（Recursive Binary Splitting）</h3>
+
+<p>
+建立回歸樹的目標是：把預測空間切成 <em>J</em> 個不重疊的矩形區域 R₁, R₂, …, Rⱼ，使得每個區域內的觀測值盡可能相似。數學上就是最小化 <strong>RSS（殘差平方和）</strong>：
+</p>
+
+<div class="formula">
+\[
+\sum_{j=1}^{J} \sum_{i \in R_j} (y_i - \hat{y}_{R_j})^2
+\]
+<div class="formula-label">公式 8.1：回歸樹的 RSS 目標函數</div>
+</div>
+
+<p>
+其中 \(\hat{y}_{R_j}\) 是第 <em>j</em> 個區域內所有訓練觀測值的 <strong>平均值</strong>。
+</p>
+
+<p>
+但問題來了：要考慮所有可能的切割方式，計算量太大。因此採用<strong>遞迴二元分割</strong>——一個貪婪（greedy）策略：
+</p>
+
+<div class="callout">
+  <strong>貪婪策略（Greedy）：</strong>每一步只考慮當前最佳的一刀，不回頭考慮「這刀雖然現在不好，但後面會有好刀」的情況。就像下圍棋只看一步——雖然不是全局最優，但計算上可行。
+</div>
+
+<p>
+對於每個預測變數 <em>Xⱼ</em> 和每個可能的切割點 <em>s</em>，定義兩個半平面：
+</p>
+
+<div class="formula">
+\[
+R_1(j, s) = \{X \mid X_j < s\}, \quad R_2(j, s) = \{X \mid X_j \geq s\}
+\]
+<div class="formula-label">公式 8.2：遞迴分割的兩個半平面</div>
+</div>
+
+<p>
+然後選擇使兩區域 RSS 之和最小的 (<em>j</em>, <em>s</em>)：
+</p>
+
+<div class="formula">
+\[
+\sum_{i: x_i \in R_1(j,s)} (y_i - \hat{y}_{R_1})^2 \;+\; \sum_{i: x_i \in R_2(j,s)} (y_i - \hat{y}_{R_2})^2
+\]
+<div class="formula-label">公式 8.3：尋找最佳切割點</div>
+</div>
+
+<p>
+重複此過程：每次選擇一個現有區域，一刀切下去，直到滿足停止條件（如每個區域少於 5 筆資料）。
+</p>
+
+<h3>🌿 樹的修剪（Tree Pruning）</h3>
+
+<p>
+如果讓樹一直長下去，它會完美記憶訓練資料——也就是<strong>過度擬合</strong>。解法是：先讓樹長到最大（T₀），再用「成本複雜度修剪」（cost complexity pruning）把它修小。
+</p>
+
+<div class="formula">
+\[
+\sum_{m=1}^{|T|} \sum_{i: x_i \in R_m} (y_i - \hat{y}_{R_m})^2 \;+\; \alpha\,|T|
+\]
+<div class="formula-label">公式 8.4：成本複雜度修剪準則</div>
+</div>
+
+<p>
+這裡 <strong>|T|</strong> 是終端節點數，<strong>α</strong> 是調節參數：
+</p>
+<ul style="padding-left:2rem;margin:1rem 0">
+  <li>α = 0 → 不修剪，T = T₀（最大樹）</li>
+  <li>α → ∞ → 修剪到只剩根節點</li>
+  <li>α 用交叉驗證來選擇最優值</li>
+</ul>
+
+<div class="callout">
+  <strong>與 Lasso 的類比：</strong>α 的角色就像 Lasso 迴歸中的 λ——都是透過懲罰複雜度來控制 bias-variance trade-off。但 Lasso 懲罰的是係數大小，決策樹懲罰的是葉節點數量。
+</div>
+
+<div class="ref-box">
+  <strong>Algorithm 8.1</strong>（課本 p.337）：建立回歸樹的完整步驟 — (1) 遞迴二元分割長出大樹；(2) 成本複雜度修剪得出子樹序列；(3) K-fold CV 選 α；(4) 回傳最優子樹。
+</div>
+
+<h2>🏷️ 8.1.2 分類樹（Classification Trees）</h2>
+
+<p>
+分類樹的結構和回歸樹一樣，差別在於：
+</p>
+<ul style="padding-left:2rem;margin:1rem 0">
+  <li><strong>預測值：</strong>不是平均值，而是區域內<strong>最常見的類別</strong></li>
+  <li><strong>切割準則：</strong>不能用 RSS，改用衡量「節點純度」的指標</li>
+</ul>
+
+<h3>三種節點純度指標</h3>
+
+<table class="comparison-table">
+  <tr><th>指標</th><th>公式</th><th>特性</th></tr>
+  <tr>
+    <td><strong>分類錯誤率</strong></td>
+    <td>\(E = 1 - \max_k(\hat{p}_{mk})\)</td>
+    <td>直觀但對樹的生長不夠敏感；適合用於修剪後的評估</td>
+  </tr>
+  <tr>
+    <td><strong>Gini 指數</strong></td>
+    <td>\(G = \sum_{k=1}^{K} \hat{p}_{mk}(1 - \hat{p}_{mk})\)</td>
+    <td>衡量總變異；值越小節點越純。sklearn 預設使用</td>
+  </tr>
+  <tr>
+    <td><strong>熵（Entropy）</strong></td>
+    <td>\(D = -\sum_{k=1}^{K} \hat{p}_{mk} \log \hat{p}_{mk}\)</td>
+    <td>資訊理論概念；數值上與 Gini 很接近</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>Gini vs Entropy：</strong>兩者在實務上幾乎總是選出相同的切割。Gini 略快（不用算 log），是 sklearn 的預設；Entropy 在資訊理論上更優雅。重點是<strong>兩個都比分類錯誤率更敏感</strong>——分類錯誤率太「遲鈍」，可能看不出某些有價值切割的訊號。
+</div>
+
+<p>
+課本以 <strong>Heart</strong> 資料集為例（303 位胸痛病人，預測是否患有心臟病），交叉驗證選出一個六葉節點的分類樹。樹中的切割變數包括 Thal（鉈壓力測試）、Ca（鈣含量）、MaxHR（最大心率）等。
+</p>
+
+<h2>🐍 Python 實作</h2>
+
+<h3>回歸樹：Hitters 薪資預測</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.tree import DecisionTreeRegressor, plot_tree
+from ISLP import load_data
+
+# 載入 Hitters 資料
+hitters = load_data('Hitters')
+hitters = hitters.dropna(subset=['Salary'])
+hitters['logSalary'] = np.log(hitters['Salary'])
+
+# 用 Years 和 Hits 建立回歸樹（對應課本圖 8.1）
+X = hitters[['Years', 'Hits']].values
+y = hitters['logSalary'].values
+
+# 限制最大葉節點數為 3（對應課本的 3 區域樹）
+tree3 = DecisionTreeRegressor(max_leaf_nodes=3, random_state=42)
+tree3.fit(X, y)
+
+print(f"R^2 (training): {tree3.score(X, y):.3f}")
+print(f"樹的深度: {tree3.get_depth()}, 葉節點數: {tree3.get_n_leaves()}")
+
+# 可視化
+plt.figure(figsize=(10, 5))
+plot_tree(tree3, feature_names=['Years', 'Hits'], filled=True,
+          rounded=True, fontsize=9)
+plt.title('Hitters 回歸樹 (max_leaf_nodes=3)')
+plt.tight_layout()
+plt.savefig('/tmp/hitters_regression_tree.png', dpi=100)
+plt.show()
+</code></pre>
+
+<h3>成本複雜度修剪示範</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import cross_val_score, train_test_split
+from ISLP import load_data
+
+# 載入 Hitters，使用全部數值特徵
+hitters = load_data('Hitters')
+hitters = hitters.dropna(subset=['Salary'])
+hitters['logSalary'] = np.log(hitters['Salary'])
+
+features = ['AtBat', 'Hits', 'HmRun', 'Runs', 'RBI',
+            'Walks', 'Years', 'CAtBat', 'CHits', 'CHmRun',
+            'CRuns', 'CRBI', 'CWalks', 'PutOuts', 'Assists', 'Errors']
+X = hitters[features].values
+y = hitters['logSalary'].values
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.5, random_state=1)
+
+# 長出大樹
+big_tree = DecisionTreeRegressor(random_state=42)
+big_tree.fit(X_train, y_train)
+print(f"大樹葉節點數: {big_tree.get_n_leaves()}")
+
+# 取得 cost complexity pruning path
+path = big_tree.cost_complexity_pruning_path(X_train, y_train)
+ccp_alphas = path.ccp_alphas[:-1]
+
+# 用 cross-validation 找最佳 alpha
+cv_scores = []
+for alpha in ccp_alphas:
+    tree = DecisionTreeRegressor(ccp_alpha=alpha, random_state=42)
+    scores = cross_val_score(tree, X_train, y_train, cv=5,
+                             scoring='neg_mean_squared_error')
+    cv_scores.append(-scores.mean())
+
+best_alpha = ccp_alphas[np.argmin(cv_scores)]
+print(f"最佳 alpha: {best_alpha:.6f}")
+
+# 用最佳 alpha 訓練最終樹
+final_tree = DecisionTreeRegressor(ccp_alpha=best_alpha, random_state=42)
+final_tree.fit(X_train, y_train)
+print(f"修剪後葉節點數: {final_tree.get_n_leaves()}")
+test_mse = np.mean((y_test - final_tree.predict(X_test))**2)
+print(f"Test MSE: {test_mse:.4f}")
+
+# 繪圖
+plt.figure(figsize=(10, 5))
+plt.plot(ccp_alphas, cv_scores, 'b-o', markersize=4, label='CV MSE')
+vline = plt.axvline(best_alpha, color='red', linestyle='--',
+                     label=f'Best alpha={best_alpha:.4f}')
+plt.xlabel('alpha (cost complexity parameter)')
+plt.ylabel('Cross-validated MSE')
+plt.title('Cost Complexity Pruning: CV Error vs alpha')
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('/tmp/pruning_cv.png', dpi=100)
+plt.show()
+</code></pre>
+
+<h3>分類樹：Heart 心臟病預測</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.model_selection import cross_val_score, GridSearchCV
+from ISLP import load_data
+
+# 載入 Heart 資料（從 statlearning.com 下載的 CSV）
+heart = pd.read_csv(DATA_PATH + 'Heart.csv')
+
+# 準備特徵和目標
+X_df = pd.get_dummies(heart.drop('AHD', axis=1), drop_first=True)
+X = X_df.values
+y = (heart['AHD'] == 'Yes').astype(int).values
+
+# 用 CV 選擇最佳葉節點數
+param_grid = {'max_leaf_nodes': range(2, 21)}
+grid = GridSearchCV(
+    DecisionTreeClassifier(random_state=42),
+    param_grid, cv=5, scoring='accuracy'
+)
+grid.fit(X, y)
+
+print(f"最佳葉節點數: {grid.best_params_['max_leaf_nodes']}")
+print(f"CV 準確率: {grid.best_score_:.3f}")
+print(f"訓練準確率: {grid.score(X, y):.3f}")
+
+# 可視化最佳分類樹
+best_tree = DecisionTreeClassifier(
+    max_leaf_nodes=grid.best_params_['max_leaf_nodes'],
+    random_state=42
+)
+best_tree.fit(X, y)
+
+plt.figure(figsize=(14, 7))
+plot_tree(best_tree, feature_names=X_df.columns,
+          class_names=['No HD', 'HD'], filled=True, rounded=True, fontsize=7)
+plt.title(f'Heart 分類樹 (max_leaf_nodes={grid.best_params_["max_leaf_nodes"]})')
+plt.tight_layout()
+plt.savefig('/tmp/heart_classification_tree.png', dpi=100)
+plt.show()
+
+# 比較 Gini vs Entropy
+for criterion in ['gini', 'entropy']:
+    clf = DecisionTreeClassifier(criterion=criterion, random_state=42)
+    scores = cross_val_score(clf, X, y, cv=5, scoring='accuracy')
+    print(f"{criterion}: CV accuracy = {scores.mean():.3f} "
+          f"(+/- {scores.std():.3f})")
+</code></pre>
+
+<h2>💼 應用場景</h2>
+
+<div class="scenario-box">
+  <h4>🏥 醫療診斷輔助</h4>
+  <p>決策樹是最受醫生歡迎的 ML 模型——因為它可以畫出來。一棵心臟病風險決策樹可以印在一張紙上，醫生按圖索驥：先看 thal 測試結果 → 再看最大心率 → 再看膽固醇...，最終得出風險評估。這種透明性在醫療領域至關重要。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>💳 信用審核</h4>
+  <p>銀行審核貸款時，決策樹可以提供明確的審核路徑：「收入 &lt; 3 萬 → 負債比 &gt; 40% → 拒絕」。比起黑箱深度學習模型，決策樹可以給客戶一個清楚的拒絕理由，符合金融監管對「可解釋性」的要求。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>📊 客戶分群</h4>
+  <p>行銷團隊用決策樹將客戶分群：「年消費 &gt; 5000 且最近購買天數 &lt; 30 → VIP 客戶」。行銷人員不需要懂統計，看樹狀圖就能理解客戶分類邏輯。</p>
+</div>
+
+<h2>⚖️ 優缺點對照</h2>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 優點</h4>
+    <ul>
+      <li><strong>高度可解釋</strong>——可以直接畫成樹狀圖展示</li>
+      <li><strong>不需要特徵標準化</strong>——樹的切割只關心相對順序</li>
+      <li><strong>自動處理非線性關係</strong>——不需手動加入多項式項</li>
+      <li><strong>天然處理混合型資料</strong>——連續和類別變數可以共存</li>
+      <li><strong>對離群值穩健</strong>——切割點基於排序，不受極端值影響</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺點</h4>
+    <ul>
+      <li><strong>預測準確度較低</strong>——單棵樹通常不如其他監督學習方法</li>
+      <li><strong>高變異性</strong>——資料的小變化可能導致完全不同的樹結構</li>
+      <li><strong>容易過度擬合</strong>——不加限制的樹可以完美記憶訓練資料</li>
+      <li><strong>貪婪策略非全局最優</strong>——每次只看一步，可能錯過更好的全域結構</li>
+      <li><strong>不擅長線性關係</strong>——用階梯狀逼近斜線，效率不如線性迴歸</li>
+    </ul>
+  </div>
+</div>
+
+<h2>🔄 類似方法比較</h2>
+
+<table class="comparison-table">
+  <tr>
+    <th>方法</th><th>預測方式</th><th>可解釋性</th><th>非線性</th><th>典型場景</th>
+  </tr>
+  <tr>
+    <td><strong>線性迴歸</strong></td>
+    <td>全域線性函數</td>
+    <td>⭐⭐⭐⭐⭐</td>
+    <td>❌ 需手動加多項式</td>
+    <td>有理論支持的線性關係</td>
+  </tr>
+  <tr>
+    <td><strong>KNN</strong></td>
+    <td>局部鄰近平均</td>
+    <td>⭐⭐</td>
+    <td>✅ 自然非線性</td>
+    <td>樣本少、邊界不規則</td>
+  </tr>
+  <tr>
+    <td><strong>決策樹</strong></td>
+    <td>分段常數</td>
+    <td>⭐⭐⭐⭐</td>
+    <td>✅ 階梯狀逼近</td>
+    <td>需要解釋的場景</td>
+  </tr>
+  <tr>
+    <td><strong>GAM（廣義加法模型）</strong></td>
+    <td>平滑函數之和</td>
+    <td>⭐⭐⭐⭐</td>
+    <td>✅ 平滑非線性</td>
+    <td>可加性成立的複雜關係</td>
+  </tr>
+  <tr>
+    <td><strong>SVM with RBF kernel</strong></td>
+    <td>最大邊界超平面</td>
+    <td>⭐</td>
+    <td>✅ 高度非線性</td>
+    <td>高準確度要求</td>
+  </tr>
+</table>
+
+<h2>🧠 自我內化：從決策樹看 AI 代理架構</h2>
+
+<div class="callout">
+  <strong>對 Hermes 架構的啟發：</strong>決策樹的「遞迴分割 → 修剪 → 集成」三階段，正好映射到 AI 代理系統的設計挑戰：<br><br>
+  🔹 <strong>遞迴分割 ≈ 任務分解：</strong>就像決策樹把預測空間切成小區域，複雜任務也需要被分解成可管理的小步驟。但「貪婪策略」的陷阱提醒我們：只看一步的任務分解（每次都做看似最優的子任務）未必得到全局最優解。<br><br>
+  🔹 <strong>修剪 ≈ 簡化：</strong>一個有 500 個子步驟的任務計畫就像沒修剪的決策樹——看似完美覆蓋所有情況，實則過度擬合。Ponytail 紀律（YAGNI、最少檔案數）正是代理系統的 cost complexity pruning。<br><br>
+  🔹 <strong>集成 ≈ 多代理協作：</strong>單棵決策樹準確度不高，但本章後續的 Bagging / Random Forest / Boosting（多棵樹投票）將準確度提升數倍。對應到代理系統：單一 agent 的判斷有限，多 agent 協作（delegate_task + critic）才是提升可靠度的關鍵。
+</div>
+
+<h2>🔑 今日關鍵句</h2>
+
+<div class="key-quote">
+  決策樹的威力不在於一棵完美的樹，而在於把複雜決策拆成一系列簡單問題——這正是所有可解釋 AI 的起手式。
+  <span class="author">— ISLP §8.1 教學摘要</span>
+</div>
+
+<div class="section-nav">
+  <a href="7.8_lab_nonlinear_modeling.html">← 7.8 Lab: 非線性建模</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="8.2_bagging_random_forests_boosting.html">8.2 Bagging・隨機森林・Boosting →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 8 章：樹狀方法 · §8.1 決策樹基礎</p>
+  <p>Generated: 2026-07-19 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
