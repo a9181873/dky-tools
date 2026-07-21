@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic 設計原則 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 3 課繁體中文版：以人為本的 AI Agent 設計原則，涵蓋空間、時間、核心三個維度">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 3 課 / 共 18 課</p>
+<h1>Agentic 設計原則：如何設計好的 AI Agent</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-02-frameworks/">← 第 2 課</a>
+<a href="../ai-agents-04-tool-use/">第 4 課 →</a>
+</nav>
+
+<h2>為什麼需要設計原則？</h2>
+<div class="verdict">
+一句話：<strong>生成式 AI 的「模糊性」是特性而非 Bug。好的設計原則幫你在不確定性中找到方向，打造以人為本的 Agent 系統。</strong>
+</div>
+
+<p>對工程師來說，生成式 AI 的非確定性常讓人不知從何下手。微軟提出了一套<strong>以人為本的 UX 設計原則</strong>，不是死板的架構規範，而是團隊定義和打造 Agent 體驗的起點。</p>
+
+<p>一個好的 Agent 應該做到：</p>
+<ul>
+<li><strong>擴展人類能力</strong>——腦力激盪、問題解決、自動化</li>
+<li><strong>填補知識缺口</strong>——快速掌握新領域、翻譯、摘要</li>
+<li><strong>促進協作</strong>——以我們習慣的方式與他人合作</li>
+<li><strong>讓我們變得更好</strong>——生活教練、情緒調節、建立韌性</li>
+</ul>
+
+<h2>三大 Agentic 設計原則</h2>
+
+<p>設計原則分為三個維度：<strong>空間（Space）、時間（Time）、核心（Core）</strong>。</p>
+
+<h3>一、Agent 空間設計（Space）</h3>
+<p>Agent 運作的環境——實體世界與數位世界中的設計考量。</p>
+
+<table>
+<tr><th>原則</th><th>繁體中文說明</th></tr>
+<tr>
+<td><strong>連結而非取代<br>(Connecting, not collapsing)</strong></td>
+<td>Agent 的使命是串聯人、事件與可操作的知識，促進協作與連結。Agent 讓人們更靠近彼此，不是用來取代或貶低人的。</td>
+</tr>
+<tr>
+<td><strong>易於存取，偶爾隱形<br>(Easily accessible yet occasionally invisible)</strong></td>
+<td>Agent 大部分時間在背景運作，只在相關且合適時才推播提醒。支援多模態輸入/輸出（聲音、語音、文字），能在前景與背景、主動與被動之間無縫切換。即使隱形運作，其背景路徑和與其他 Agent 的協作仍對使用者透明且可控。</td>
+</tr>
+</table>
+
+<h3>二、Agent 時間設計（Time）</h3>
+<p>Agent 如何跨時間運作——過去、現在、未來。</p>
+
+<table>
+<tr><th>時間軸</th><th>原則</th><th>繁體中文說明</th></tr>
+<tr>
+<td><strong>過去 (Past)</strong></td>
+<td>回顧歷史，包含狀態與脈絡</td>
+<td>不只記錄事件，而是分析更豐富的歷史資料來提供更相關的結果。主動從過去事件中建立連結，反思記憶來應對當前情境。</td>
+</tr>
+<tr>
+<td><strong>現在 (Now)</strong></td>
+<td>引導勝於通知<br>(Nudging more than notifying)</td>
+<td>不只發送靜態通知。Agent 能簡化流程或動態生成提示，在對的時機引導使用者注意力。根據環境脈絡、社會文化變化、使用者意圖來傳遞資訊。互動可以漸進式地複雜化，長期賦能使用者。</td>
+</tr>
+<tr>
+<td><strong>未來 (Future)</strong></td>
+<td>適應與進化<br>(Adapting and evolving)</td>
+<td>適應各種裝置、平台和模態。適應使用者行為和無障礙需求，可自由客製化。透過持續的使用者互動不斷進化。</td>
+</tr>
+</table>
+
+<h3>三、Agent 核心設計（Core）</h3>
+<p>Agent 設計中最關鍵的元素。</p>
+
+<table>
+<tr><th>原則</th><th>繁體中文說明</th></tr>
+<tr>
+<td><strong>擁抱不確定性，但建立信任<br>(Embrace uncertainty but establish trust)</strong></td>
+<td>某種程度的 Agent 不確定性是預期中的——這是 Agent 設計的關鍵元素。信任和透明度是 Agent 設計的基礎層。人類始終掌控 Agent 何時開/關，且 Agent 狀態隨時清晰可見。</td>
+</tr>
+</table>
+
+<h2>落實設計原則的三大指南</h2>
+
+<div class="card">
+<h3>1. 透明度（Transparency）</h3>
+<ul>
+<li>告知使用者有 AI 參與</li>
+<li>說明 AI 如何運作（包含過往行為）</li>
+<li>提供回饋和修改系統的管道</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>2. 可控性（Control）</h3>
+<ul>
+<li>讓使用者自訂偏好、個人化設定</li>
+<li>掌控系統及其屬性（包含「遺忘」的能力——刪除資料）</li>
+</ul>
+</div>
+
+<div class="card">
+<h3>3. 一致性（Consistency）</h3>
+<ul>
+<li>跨裝置、跨端點的一致多模態體驗</li>
+<li>使用熟悉的 UI/UX 元素（例如麥克風圖示代表語音）</li>
+<li>降低認知負擔：簡潔回應、視覺輔助、「了解更多」連結</li>
+</ul>
+</div>
+
+<h2>實戰演練：用這些原則設計旅遊 Agent</h2>
+
+<p>假設你要設計一個旅遊 Agent，以下是套用設計原則的方式：</p>
+
+<table>
+<tr><th>指南</th><th>實際做法</th></tr>
+<tr>
+<td><strong>透明度</strong></td>
+<td>讓使用者知道這是 AI 驅動的 Agent。提供基本使用說明（歡迎訊息、範例提示詞）。在產品頁面清楚標示。顯示使用者過往的提問記錄。明確提供回饋方式（讚/倒讚、回饋按鈕）。清楚說明使用限制和主題範圍。</td>
+</tr>
+<tr>
+<td><strong>可控性</strong></td>
+<td>讓使用者能修改 System Prompt 來自訂 Agent 行為。選擇 Agent 的回應詳細程度、寫作風格、以及不該觸及的話題。允許檢視和刪除相關檔案、資料、提示詞和過往對話。</td>
+</tr>
+<tr>
+<td><strong>一致性</strong></td>
+<td>使用標準且可辨識的圖示：分享提示詞、上傳檔案/照片、標記人員。使用迴紋針圖示代表檔案上傳，圖片圖示代表圖形上傳。</td>
+</tr>
+</table>
+
+<h2>範例程式碼</h2>
+<ul>
+<li>Python：<a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/03-agentic-design-patterns/code_samples/03-python-agent-framework.ipynb">Agent Framework</a></li>
+<li>.NET：<a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.md">Agent Framework</a></li>
+</ul>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>三大設計維度</strong>：空間（連結、可及性）、時間（過去回顧/現在引導/未來進化）、核心（信任+不確定性）</li>
+<li><strong>三大實作指南</strong>：透明度、可控性、一致性——這是所有 Agent 系統的基礎</li>
+<li><strong>不確定性是特性</strong>：不要試圖消除它，而是用透明度和信任來管理它</li>
+<li><strong>以人為本</strong>：Agent 擴展人的能力，不是取代人；人始終握有最終控制權</li>
+<li><strong>設計原則是起點</strong>：不是死板的架構規範，而是幫助團隊思考和討論的框架</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/03-agentic-design-patterns">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/m9lM8qqoOEA">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 (69.7k ⭐)</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord 社群</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-02-frameworks/">← 第 2 課</a>
+<a href="../ai-agents-04-tool-use/">第 4 課 →</a>
+</nav>
+</main>
+</body>
+</html>
