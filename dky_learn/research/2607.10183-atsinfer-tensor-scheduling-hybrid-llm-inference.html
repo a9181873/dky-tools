@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATSInfer: 張量級 hybrid CPU-GPU 排程, 讓消費級裝置跑 LLM 快 3.3 倍 - DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.2rem;margin:2rem 0 .8rem;border-bottom:1px solid var(--border);padding-bottom:.4rem}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.5rem;margin:1rem 0}ul,ol{margin:1rem 0 1rem 1.5rem;line-height:1.8}li{margin-bottom:.4rem}b{color:#fff}code{background:#1f2a37;color:var(--accent2);padding:1px 6px;border-radius:3px;font-size:.88em}@media(max-width:768px){body{padding:1rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>ATSInfer: 張量級 Hybrid CPU-GPU 排程, 讓消費級裝置跑 LLM 快 3.3 倍</h1>
+  <p class="meta">arXiv:2607.10183 - 2026-07-14 - cs.DC / cs.AI / cs.LG - Yangyijian Liu, Hongyi Ye, Mingyang Li, Wu-Jun Li (南京大學) - Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">ATSInfer</span><span class="tag">hybrid inference</span><span class="tag">tensor scheduling</span>
+    <span class="tag">llama.cpp</span><span class="tag">GPU offloading</span><span class="tag">消費級裝置</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+
+<div class="card">
+<p>現有 hybrid CPU-GPU 推論系統用 <b>layer 級或 expert 級</b> 的粗粒度 offloading，忽略同一層內不同 tensor 的運算強度差異巨大，且排程策略不隨裝置當下的 CPU/GPU/PCIe 負載動態調整。ATSInfer 首創 <b>tensor 粒度</b> offloading，結合 <b>靜態張量放置 (knapsack DP)</b> + <b>負載感知動態傳輸 (online DP)</b> + <b>非同步 CPU-GPU 協調</b>，在消費級 GPU (RTX 3060/4060/4090) 上 decode 吞吐量最高 <b>+229% (3.29x)</b>、prefill 吞吐量最高 <b>+94% (1.94x)</b>、GPU 利用率提升約 <b>70%</b>。實作僅約 15,000 行 C++，擴充 llama.cpp，同時支援 dense 與 MoE 模型。</p>
+</div>
+
+<h2>核心洞察: 粗粒度 offloading 的兩個致命缺陷</h2>
+
+<p>ATSInfer 從實證出發，揭示了現有系統的兩個系統性瓶頸:</p>
+
+<ol>
+<li><b>Intra-layer 張量異質性被忽略:</b>同一層 Transformer 內的 Q/K/V/O projection、FFN up/gate/down、attention output 等張量的運算強度和 GPU 加速比差異懸殊。傳統 layer 級 offloading 要嘛全搬 (VRAM 不夠) 要嘛全不搬 (浪費 GPU)，完全錯失 selective promotion 的機會。</li>
+<li><b>消費級裝置的負載是動態的:</b>筆電/桌機同時跑瀏覽器、IDE、媒體播放，CPU/GPU 資源持續變動。更關鍵的是 <b>thermal throttling</b> -- 長時間高負載後處理器降頻，CPU 執行時間飆升。固定排程策略對此完全無能為力。</li>
+</ol>
+
+<p>這兩個缺陷的疊加效果: 粗粒度 + 靜態策略 = CPU 長期成為瓶頸、GPU 大量閒置、PCIe 頻寬未被充分利用。</p>
+
+<h2>技術架構: 三層協同設計</h2>
+
+<p>ATSInfer 在 llama.cpp 上新增約 15,000 行 C++，分三層:</p>
+
+<ul>
+<li><b>(1) 非同步 CPU-GPU 協調層:</b>精心設計三區記憶體佈局 -- GPU resident region (靜態放置的常駐張量)、CPU pinned-memory storage (無法常駐 GPU 的張量，用 mapped + pinned 加速傳輸)、GPU temporary buffers (按 tensor 生命週期復用的暫存區)。在此之上建立雙 stream 管線: <b>compute stream</b> (序列化運算 + activation 傳輸，跑在 GPU SM 上) + <b>transfer stream</b> (非同步權重搬移，跑在 Copy Engine 上)。關鍵設計是 activation 傳輸用 Zero-Copy kernel (SM 驅動) 而權重傳輸用 Copy Engine -- 避免小 activation 被大 weight 傳輸阻塞。</li>
+<li><b>(2) 靜態張量放置 (Knapsack DP):</b>定義 <b>empirical performance density</b> k_i = t_i / s_i (單位記憶體的執行成本)。對每個 tensor 在 CPU 和 GPU 上分別量測實際執行時間，計算 GPU 加速效益 r_i = t_i^c - t_i^g。將放置問題建模為 knapsack-style 優化，用 dynamic programming 求解，複雜度 O(nM)，MB 粒度量化後可在數秒內完成。</li>
+<li><b>(3) 負載感知動態傳輸 (Online DP):</b>每輪 prefill/decode 前，從 runtime measurements 刷新 CPU 速度、GPU 速度、傳輸頻寬、重疊機會的估計值。對 CPU-resident tensor 評估「臨時提升到 GPU 執行」的淨效益 -- 只有當 weight 傳輸能被前面的計算完全遮蓋時才觸發。MoE decode 時只傳 activated experts 的權重，大幅縮小傳輸量。</li>
+</ul>
+
+<p>這三層的協同效應: 靜態放置確保高價值 tensor 始終在 GPU, 動態傳輸在 CPU 瓶頸時把額外工作卸到 GPU, 非同步管線讓傳輸與計算最大化重疊。</p>
+
+<h2>實驗結果: 三個消費級 GPU 跨模型驗證</h2>
+
+<p>ATSInfer 在 RTX 3060 (6GB)、RTX 4060 (8GB)、RTX 4090 (24GB) 上測試 dense (Qwen3-14B、Llama-4-Scout-17B) 和 MoE (Qwen3-30B-A3B、DeepSeek-V3-Lite) 模型:</p>
+
+<ul>
+<li><b>Decode 吞吐:</b>RTX 3060 上 Qwen3-14B 達 <b>3.29x</b> (最大增益來自小 VRAM 場景 -- GPU 記憶體越緊，精細放置的價值越大); RTX 4090 上仍有 <b>1.4-1.8x</b>。</li>
+<li><b>Prefill 吞吐:</b>最高 <b>1.94x</b> (prefill 是 compute-bound，GPU 本身已很快，增益主要來自減少 CPU 端的序列化瓶頸)。</li>
+<li><b>GPU 利用率:</b>decode 期間從 llama.cpp 的 ~18% 提升到 ~31% (RTX 3060)，相對提升約 70%。</li>
+<li><b>PCIe 頻寬使用:</b>更有效地利用可用頻寬，避免 llama.cpp 常見的「GPU 閒置等權重」或「PCIe 閒置等 GPU」的蹺蹺板效應。</li>
+<li><b>消融實驗:</b>單獨移除動態傳輸 (只用靜態放置) -> decode 吞吐下降 15-25%; 單獨移除非同步管線 (同步傳輸) -> 下降 20-30%。兩者疊加效果大於各自獨立效果之和。</li>
+</ul>
+
+<h2>對 DKY / Hermes 的啟發</h2>
+
+<p>ATSInfer 雖是系統 infra 論文，但三個設計決策對 DKY 的推論部署有直接參考價值:</p>
+
+<ul>
+<li><b>實證驅動的資源配置:</b>ATSInfer 不依賴理論 FLOP 分析，而是直接量測每個 tensor 在目標硬體上的實際執行時間 (empirical performance density)。這個方法論可以直接套用到 DKY 環境 -- 在 ARM 伺服器上部署模型前，先 profile 各運算元的實際延遲而非看 spec sheet。</li>
+<li><b>消費級 GPU 仍大有可為:</b>RTX 3060 (6GB VRAM) 透過 tensor 級排程能跑到 3.29x decode 吞吐量，說明瓶頸不在硬體而在排程。DKY 若有本地推論需求 (隱私敏感場景)，不必追最新硬體。</li>
+<li><b>llama.cpp 生態的擴充性:</b>ATSInfer 僅 15,000 行 C++ 就實現了顯著提升，且作為 llama.cpp 的擴充 (非 fork)，可隨上游更新。這對 Hermes 的工具選擇策略有啟發: 優先選生態活躍的基底 (llama.cpp)，在其上做針對性優化。</li>
+</ul>
+
+<h2>限制</h2>
+
+<ul>
+<li>目前僅支援 NVIDIA GPU (CUDA)，不支援 Apple Silicon (MPS) 或 AMD (ROCm)，雖然架構設計是後端無關的</li>
+<li>靜態放置的 profiling 階段需要幾分鐘，換模型或換硬體時須重新執行</li>
+<li>動態傳輸的 online DP 雖為 O(n^2)，但在超大模型 (>100B) 上可能成為 per-step 延遲瓶頸</li>
+<li>未考慮多 request 並行場景 -- 消費級裝置的 batch size 通常為 1，但若未來 local agent 需要並行工具呼叫則需擴充</li>
+<li>量化模型的 tensor 粒度行為可能與 FP16 不同，論文未單獨評估 INT4/INT8 場景</li>
+</ul>
+
+</body>
+</html>
