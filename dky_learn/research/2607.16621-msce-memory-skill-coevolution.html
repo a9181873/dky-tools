@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSCE: 從記憶到技能 — 三層記憶治理讓 Agent 自主結晶可調用技能 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:#fff;font-size:1.3rem;margin:2rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}h3{color:var(--accent);font-size:1.1rem;margin:1.5rem 0 .8rem}p{margin:.8rem 0}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.5rem;margin:1.2rem 0}ul,ol{margin:1rem 0 1rem 1.5rem;line-height:1.8}li{margin:.3rem 0}b{color:#fff}code{font-family:'SF Mono','Fira Code',monospace;background:#1a1f2e;padding:.15rem .4rem;border-radius:4px;font-size:.9em}@media(max-width:768px){body{padding:1rem}h1{font-size:1.3rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>MSCE: 從記憶到技能 — 三層記憶治理讓 Agent 自主結晶可調用技能</h1>
+  <p class="meta">arXiv:2607.16621 — 2026-07-18 — cs.CL — Bo Tang, Yang Zhang et al. (11 authors, MemTensor / USTC / PolyU) — 投稿 EMNLP 2026 — Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">記憶管理</span><span class="tag">技能結晶</span><span class="tag">Agent</span>
+    <span class="tag">自我進化</span><span class="tag">LLM</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+
+<div class="card">
+<p>現有 LLM agent 的記憶系統把過往軌跡當作<b>被動上下文</b>檢索出來再讓 agent 推理一次，而非轉化為<b>可執行的能力</b>。MSCE 提出<b>三層記憶—技能共進化框架</b>：L1 軌跡記憶保存可審計的步驟證據，L2 策略記憶從跨任務軌跡歸納出可復用的程序模式，L3 環境認知記憶抽象出環境結構與約束。只有<b>證據鏈完整、預期收益為正、且近期證據穩定</b>的 L2 策略才會被「結晶」為可調用技能。搭配<b>反思加權價值回填</b>（用步驟級自我反思的品質來分配終端獎勵），MSCE 在 EvoAgentBench 五領域<b>全面最佳</b>，軟體工程 +15.39pp，跨域遷移 +3.93pp，終身進化最高 +17pp。全部<b>不需訓練基礎模型</b>。</p>
+</div>
+
+<h2>核心洞察：記憶不該只被讀，該被升級為技能</h2>
+
+<p>MSCE 指出了一個關鍵的設計缺陷：現有記憶系統的基本運作模式是<b>「檢索 → 注入上下文 → 讓 LLM 再推理一次」</b>。這導致三個問題：</p>
+
+<ol>
+<li><b>重複推理浪費 token：</b>每次遇到類似情境，都要把整段歷史軌跡塞進 context window 讓 LLM 重新思考，而非直接執行已知有效的步驟。</li>
+<li><b>記憶與行動脫節：</b>記憶庫裡堆滿了原始互動記錄，但這些記錄沒有被結構化為「觸發條件 → 程序步驟 → 驗證規則」的可執行格式。</li>
+<li><b>缺乏品質治理：</b>失敗的探索、盲目的嘗試、環境特定的雜訊全部混在一起，沒有機制區分哪些記憶值得保留、哪些該淘汰。</li>
+</ol>
+
+<p>MSCE 的答案是：<b>在記憶和技能之間插入一個治理層</b>。記憶不直接變成技能，而是先經過三層抽象，只有通過證據、收益、穩定性三道閘門的策略才會被結晶。</p>
+
+<h2>技術架構：三層記憶 + 技能結晶 + 雙信號價值回填</h2>
+
+<h3>三層記憶架構</h3>
+
+<ul>
+<li><b>L1 軌跡記憶（Trace Memory）：</b>每步交互儲存 (狀態, 動作, 觀察, 自我反思, 步驟價值)。這是<b>證據層</b>——所有上層記憶和技能必須保留對 L1 證據的連結，確保可追溯、可審計。為控制儲存成本，L1 不保存完整原始輸出，而是歸一化後的摘要。</li>
+<li><b>L2 策略記憶（Policy Memory）：</b>從跨任務的 L1 軌跡中歸納出重複出現的程序模式。每個 L2 策略包含：觸發條件 phi、自然語言程序 pi、驗證/降級規則 kappa、適用邊界 B、以及支援的 L1 證據集。新策略在至少有 n_min 個不同任務的證據支持時才被歸納。</li>
+<li><b>L3 環境認知記憶（Environmental Cognition）：</b>抽象出環境的<b>宣告性知識</b>——實體與結構事實、因果規律、環境約束。與 L2 的「如何解決」不同，L3 描述「環境如何組織」。例如：Alpine 容器使用 musl libc 而非 glibc（這是 L3 事實）；安裝系統依賴的正確指令是 apk add（這是 L2 程序）。</li>
+</ul>
+
+<h3>技能結晶三道閘門</h3>
+
+<p>L2 策略不等於技能。結晶為可調用技能需要通過三道檢查：</p>
+
+<ul>
+<li><b>閘門一：證據鏈完整。</b>來源 L2 策略必須保留支援的 L1 證據連結。</li>
+<li><b>閘門二：預期收益為正。</b>啟發式增益 G = 有用軌跡均值 - 無用軌跡均值，必須超過門檻 theta_G。</li>
+<li><b>閘門三：近期穩定。</b>最近的證據必須契合當前的觸發條件、程序和邊界，而非觸發大幅度改寫。</li>
+</ul>
+
+<p>通過閘門的策略進入結晶流程：從正例證據歸納共同程序，從反例證據約束邊界，最終產出包含<b>證據錨點、決策指引（偏好/反模式）、可靠性估計</b>的可調用技能。每個草稿技能還要通過確定性驗證器檢查：schema 完整性、證據來源真實性、工具白名單合規、覆蓋率測試。</p>
+
+<h3>反思加權價值回填（Reflection-Weighted Value Backfilling）</h3>
+
+<p>長週期任務的核心難題：終端獎勵（成功/失敗）是稀疏的，無法直接告訴 agent 哪一步做對了。MSCE 的解法：</p>
+
+<p style="margin:0.8rem 0;text-align:center;font-family:monospace;background:#1a1f2e;padding:0.8rem;border-radius:6px">
+V(t) = alpha_t x R + (1 - alpha_t) x gamma x V(t+1)
+</p>
+
+<p>其中 alpha_t 是<b>反思權重</b>——由自我反思的品質決定。如果某步的反思具體、因果明確、可轉移，alpha 就高，該步獲得較多終端獎勵分配。反之，空洞的反思 alpha 趨近於零，價值主要從後續步驟繼承。這個設計讓記憶建構偏向<b>全域成功且局部可解釋</b>的步驟。</p>
+
+<h2>實驗結果：五領域全面碾壓，消融揭露階層架構是關鍵</h2>
+
+<p><b>EvoAgentBench 主結果：</b>MSCE 在全部五個領域達到最佳或並列最佳。與各領域最強 baseline 相比：</p>
+
+<ul>
+<li><b>資訊檢索（IR）：</b>26.15% vs 16.92%（SkillFlow-Evolve），+9.23pp，成本持平</li>
+<li><b>數學推理（Math）：</b>47.00% vs 43.00%（EverOS），+4.00pp，成本從 1745→1141 chars 大降</li>
+<li><b>軟體工程（SE）：</b>53.85% vs 38.46%（多個 baseline），+15.39pp</li>
+<li><b>程式實作（Code）：</b>61.54%（與 EvoSkill 並列），成本從 3.9→2.0 turns 砍半</li>
+<li><b>知識工作（KW）：</b>53.45% vs 48.28%，+5.17pp</li>
+</ul>
+
+<p><b>LoCoMo 長期對話記憶：</b>Overall 61.23（最佳）、F1 49.89（最佳），單跳/多跳/時間推理三項全部第一。三層記憶架構在需要跨越多輪對話追溯事實的場景優勢顯著。</p>
+
+<p><b>跨域遷移：</b>在一個領域進化出的記憶和技能遷移到另一領域仍有效——平均 +3.93pp，六對遷移路徑全部正向。這證明 MSCE 學習的是<b>可轉移的問題解決結構</b>，而非領域特定的模板。</p>
+
+<p><b>終身進化（Lifelong Evolution）：</b>隨著累積經驗從 p0 增長到 p100，Math +17pp、SE +15.39pp、IR +13.84pp。成本在 p25 短暫上升後持續下降到低於 p0。典型的「愈用愈聰明」曲線。</p>
+
+<p><b>消融實驗五大發現：</b></p>
+
+<ul>
+<li><b>Flat Memory（最致命）：</b>取消三層架構後 IR -15.38pp、Math -16pp、SE -19.23pp、Code 成本從 2.0→5.3 turns。</li>
+<li><b>w/o L3 環境認知：</b>Math 成本飆升 28%（1141→1461 chars），缺少環境結構知識導致更多盲目探索。</li>
+<li><b>w/o 價值校準：</b>移除價值過濾後各領域均有下降，SE -3.85pp。</li>
+<li><b>w/o 反思加權：</b>將反思權重設為均勻後 Math -7pp、SE -7.7pp，證明反思品質加權對價值分配至關重要。</li>
+<li><b>w/o 技能結晶：</b>僅保留記憶不結晶技能，成本全面暴漲（Math +37%、SE +44%），成功率也下降。</li>
+</ul>
+
+<h2>對 DKY / Hermes 的啟發</h2>
+
+<p>MSCE 跟 Hermes 現有架構有驚人的對應關係，三個直接啟發：</p>
+
+<ul>
+<li><b>三層記憶 vs Hermes 的 session / fact_store / skill：</b>MSCE 的 L1 對應 session traces、L2 對應 fact_store 中的程序性記憶、L3 對應環境配置知識。目前 Hermes 這三層混在一起，MSCE 證明了<b>分層治理的顯著效益</b>——Flat Memory 的 15-19pp 劣化是最直接的證據。</li>
+<li><b>技能結晶閘門可升級 sleep consolidation：</b>Hermes 目前被動建立 skill，沒有「證據鏈完整、預期收益為正、穩定性」三道閘門。MSCE 的 gate-based promotion 可作為升級方向。</li>
+<li><b>反思加權價值回填補足回饋 loop：</b>Hermes 沒有從任務成功/失敗回傳價值信號的機制。MSCE 的雙信號架構提供輕量方案：不需 RL 訓練，任務結束後跑一次 value backfilling 即可更新記憶權重。</li>
+</ul>
+
+<h2>限制</h2>
+
+<ul>
+<li>目前依賴 LLM（GPT-4o）做 L2 策略歸納和 L3 環境認知抽象提示，這些輔助 prompt 的成本未在主要實驗中單獨報告</li>
+<li>技能結晶的增益函數 G 是啟發式的，不是因果效果估計，可能在複雜環境中誤判</li>
+<li>L3 環境認知的抽象品質高度依賴 prompt 設計</li>
+<li>目前僅在模擬 benchmark 上驗證，尚未在真實部署環境中測試</li>
+<li>跨域遷移測試僅 6 對路徑，域間差異較大時效果未知</li>
+</ul>
+
+</body>
+</html>
