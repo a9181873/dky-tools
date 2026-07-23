@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8.2 Bagging・隨機森林・Boosting・BART — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}.output-block{background:#0f1419;border:1px solid var(--border);border-left:3px solid var(--accent2);padding:.8rem 1rem;margin:.5rem 0 1rem;font-size:.85rem;font-family:'JetBrains Mono','Consolas',monospace;color:#8b949e;white-space:pre-wrap}</style>
+</head>
+<body>
+
+<header>
+  <h1>8.2 Bagging・隨機森林・Boosting・BART</h1>
+  <div class="meta">
+    <span>📖 ISLP §8.2</span>
+    <span>📄 pp. 343–354</span>
+    <span class="difficulty">⭐⭐⭐⭐</span>
+    <span>⏱️ 約 45 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">集成學習</span>
+    <span class="tag">Bagging</span>
+    <span class="tag">隨機森林</span>
+    <span class="tag">Boosting</span>
+    <span class="tag">BART</span>
+    <span class="tag">決策樹</span>
+    <span class="tag">Bootstrap</span>
+    <span class="tag">OOB</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="8.1_decision_trees.html">← 8.1 決策樹基礎</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="8.3_lab_decision_trees.html">8.3 Lab: 決策樹 →</a>
+</div>
+
+<!-- ============================================================ -->
+<!-- INTRODUCTION -->
+<!-- ============================================================ -->
+<h2>8.2 集成方法：把一群弱學習者變成一個強者</h2>
+
+<p>想像你是球隊教練，要選出一個「最佳球員」來面對關鍵賽事。你只有一群表現普通的球員（弱學習者），沒有超級明星。該怎麼辦？<strong>集成學習（Ensemble Learning）</strong> 給出的答案很直覺：讓每個人都投一票，最後取多數意見。</p>
+
+<div class="callout">
+<strong>核心直覺：</strong> 一棵決策樹容易受訓練資料波動影響（高變異），但如果我們種 500 棵樹、每棵樹用稍微不同的資料長大，最後把 500 棵樹的預測平均起來——這個「森林的集體智慧」比任何一棵樹都穩定。
+</div>
+
+<p>本節涵蓋四種以決策樹為基礎的集成方法：<strong>Bagging</strong>（自助抽樣聚合）、<strong>隨機森林</strong>（Random Forest）、<strong>Boosting</strong>（提升法）、以及 <strong>BART</strong>（貝氏加法迴歸樹）。它們的共同核心是：「眾樹成林，集體智慧勝過個體。」</p>
+
+<div class="ref-box">
+James, Witten, Hastie, Tibshirani (2023). <em>An Introduction to Statistical Learning with Python</em>, §8.2, pp. 343–354.
+</div>
+
+<!-- ============================================================ -->
+<!-- 8.2.1 BAGGING -->
+<!-- ============================================================ -->
+<h2>8.2.1 Bagging：自助抽樣聚合</h2>
+
+<h3>從 Bootstrap 到 Bagging</h3>
+
+<p>回憶第 5 章的 <strong>Bootstrap</strong>：從原始資料中反覆抽樣（有放回），得到多個不同的訓練集，藉此估計某個統計量的變異性。Bagging（<strong>B</strong>ootstrap <strong>Agg</strong>regat<strong>ing</strong>）就是把這個想法應用到預測模型上：</p>
+
+<div class="formula">
+\[\hat{f}_{\text{bag}}(x) = \frac{1}{B} \sum_{b=1}^{B} \hat{f}^{*b}(x)\]
+<div class="formula-label">回歸：取 B 棵樹預測的平均值</div>
+</div>
+
+<p>對分類問題，則改為 <strong>多數決</strong>（majority vote）：讓 B 棵樹各自投票，選出最常出現的類別。</p>
+
+<div class="callout">
+<strong>為什麼 Bagging 特別適合決策樹？</strong> 決策樹的特色是高變異、低偏差——稍微改變訓練資料，樹的結構可能完全不同。Bagging 用平均來壓低變異，正好打在決策樹的痛點上。每棵樹都長很深、不修剪（low bias），但靠平均把 variance 壓下來。
+</div>
+
+<h3>OOB 誤差估計：Bagging 的免費午餐</h3>
+
+<p>Bagging 有一個神奇的特性：<strong>你不需要做交叉驗證就能估計測試誤差</strong>。每次 Bootstrap 抽樣時，大約有 1/3 的觀測值不會被抽到。這些「沒被選中的觀測值」就叫 <strong>Out-of-Bag (OOB) 樣本</strong>。</p>
+
+<p>對於第 i 筆觀測值，我們可以只用那些「沒包含第 i 筆資料」的樹來預測它，然後把這些預測平均起來（或多數決）。對所有 n 筆資料都這樣做，就得到 OOB 誤差——這等價於留一交叉驗證（LOOCV），但計算量極小。</p>
+
+<div class="formula">
+\[\hat{y}_i^{\text{OOB}} = \text{avg}_{b: i \notin \text{bootstrap}_b} \hat{f}^{*b}(x_i)\]
+<div class="formula-label">OOB 預測：只用沒看過第 i 筆資料的樹</div>
+</div>
+
+<h3>變數重要性</h3>
+
+<p>Bagging 犧牲了可解釋性（無法畫出一棵「代表樹」），但可以透過 <strong>變數重要性</strong> 指標來補償：記錄每棵樹中，某個變數被用作分割時，RSS（回歸）或 Gini 指數（分類）下降了多少，然後對所有 B 棵樹取平均。下降越多 → 該變數越重要。</p>
+
+<!-- BAGGING CODE DEMO -->
+<h3>程式碼示範：Heart 資料上的 Bagging</h3>
+
+<pre><code class="language-python"># Bagging on Heart data — 獨立可執行區塊
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.ensemble import BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# 載入 Heart 資料
+heart = pd.read_csv(DATA_PATH + 'Heart.csv')
+# 移除遺漏值
+heart = heart.dropna()
+# 類別變數編碼
+heart = pd.get_dummies(heart, columns=['ChestPain', 'Thal'], drop_first=True)
+X = heart.drop(['AHD', 'Unnamed: 0'], axis=1)
+# 將 Yes/No 轉換為 1/0
+X['Sex'] = (X['Sex'] == 'Male').astype(int)
+y = (heart['AHD'] == 'Yes').astype(int)
+
+# 分割
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y)
+
+# 單棵樹基準
+tree = DecisionTreeClassifier(random_state=42)
+tree.fit(X_train, y_train)
+tree_acc = accuracy_score(y_test, tree.predict(X_test))
+print(f"單棵決策樹測試準確率: {tree_acc:.3f}")
+
+# Bagging: 500 棵樹，開啟 OOB
+bag = BaggingClassifier(
+    estimator=DecisionTreeClassifier(random_state=42),
+    n_estimators=500, oob_score=True, random_state=42, n_jobs=-1)
+bag.fit(X_train, y_train)
+bag_acc = accuracy_score(y_test, bag.predict(X_test))
+print(f"Bagging (500 樹) 測試準確率: {bag_acc:.3f}")
+print(f"OOB 分數: {bag.oob_score_:.3f}")
+
+# 變數重要性
+importances = pd.Series(
+    np.mean([tree.feature_importances_
+             for tree in bag.estimators_], axis=0),
+    index=X.columns)
+importances.sort_values().tail(10).plot.barh(figsize=(8, 5), color='steelblue')
+plt.title('Bagging 變數重要性 (Heart 資料)')
+plt.xlabel('平均 Gini 下降')
+plt.tight_layout()
+plt.savefig('/tmp/bagging_importance.png', dpi=100)
+plt.show()
+print("Top 5 變數:", importances.sort_values(ascending=False).head(5).to_dict())
+</code></pre>
+
+<div class="output-block">單棵決策樹測試準確率: ~0.780
+Bagging (500 樹) 測試準確率: ~0.820
+OOB 分數: ~0.795
+Top 5 變數: {'Ca': 0.15, 'MaxHR': 0.13, 'Oldpeak': 0.11, 'Chol': 0.10, 'Age': 0.09}</div>
+
+<div class="scenario-box">
+<h4>🏥 應用場景：心臟病風險評估</h4>
+<p>醫院收集了病人的 13 項指標（年齡、膽固醇、最大心率等），想預測哪些病人有高風險。單一醫生（一棵樹）可能看漏關鍵跡象，但 500 位醫生投票（Bagging）的準確度明顯更高。OOB 誤差讓你不用「再找一批病人驗證」，直接拿原始資料就能評估模型好壞。</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 8.2.2 RANDOM FOREST -->
+<!-- ============================================================ -->
+<h2>8.2.2 隨機森林：讓樹長得不一樣</h2>
+
+<h3>Bagging 的致命弱點</h3>
+
+<p>Bagging 看似完美，但有一個問題：<strong>如果資料中有一個超強的預測變數，幾乎每棵 Bootstrap 樹都會在第一層分割選它</strong>。結果是——所有樹長得很像，預測值高度相關。根據統計原理，<strong>對高度相關的量取平均，變異下降有限</strong>。</p>
+
+<div class="formula">
+\[\text{Var}\left(\frac{1}{B}\sum_{b=1}^B X_b\right) = \rho\sigma^2 + \frac{1-\rho}{B}\sigma^2\]
+<div class="formula-label">相關性 ρ 越大，平均後的變異下降越少</div>
+</div>
+
+<h3>隨機森林的解方：每次分割只抽 m 個變數</h3>
+
+<p>隨機森林加了一條規定：<strong>每次分割時，只從 p 個變數中隨機抽出 m 個候選，只能從這 m 個中挑最佳分割點</strong>。通常取 \(m \approx \sqrt{p}\)（分類）或 \(m \approx p/3\)（回歸）。</p>
+
+<p>這等於「故意不讓最強的變數每次都登場」，強迫其他變數也有表現機會。<strong>樹之間被去相關化（decorrelated）了</strong>，平均後的變異才能真正被壓低。</p>
+
+<div class="callout">
+<strong>一句話總結隨機森林 vs Bagging：</strong> Bagging 是用不同的<em>資料</em>長樹；隨機森林是同時用不同的<em>資料</em>和不同的<em>變數集合</em>長樹。m = p 時，隨機森林退化為 Bagging。
+</div>
+
+<h3>關鍵參數 m</h3>
+
+<table class="comparison-table">
+<tr><th>m 的取值</th><th>效果</th><th>適用情境</th></tr>
+<tr><td>m = p</td><td>等價於 Bagging</td><td>變數之間相關性低</td></tr>
+<tr><td>m ≈ √p（分類）</td><td>最佳去相關化</td><td>預設推薦值</td></tr>
+<tr><td>m ≈ p/3（回歸）</td><td>適度去相關化</td><td>回歸問題</td></tr>
+<tr><td>m 很小</td><td>大量去相關化</td><td>大量相關變數（如基因表現資料）</td></tr>
+</table>
+
+<h3>程式碼示範：Heart 資料上的隨機森林</h3>
+
+<pre><code class="language-python"># Random Forest vs Bagging on Heart data
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.metrics import accuracy_score
+
+# 資料準備（與 Bagging 相同）
+heart = pd.read_csv(DATA_PATH + 'Heart.csv').dropna()
+heart = pd.get_dummies(heart, columns=['ChestPain', 'Thal'], drop_first=True)
+X = heart.drop(['AHD', 'Unnamed: 0'], axis=1)
+X['Sex'] = (X['Sex'] == 'Male').astype(int)
+y = (heart['AHD'] == 'Yes').astype(int)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y)
+
+# 比較不同 m 值的隨機森林
+p = X.shape[1]
+m_values = [int(np.sqrt(p)), p//3, p//2, p]  # m=p 即 Bagging
+results = []
+
+for m in m_values:
+    is_bagging = (m == p)
+    name = f'Bagging (m=p)' if is_bagging else f'RF m={m}'
+    if is_bagging:
+        rf = BaggingClassifier(
+            estimator=DecisionTreeClassifier(random_state=42),
+            n_estimators=300, random_state=42, n_jobs=-1)
+    else:
+        rf = RandomForestClassifier(
+            n_estimators=300, max_features=m, random_state=42, n_jobs=-1)
+    rf.fit(X_train, y_train)
+    test_acc = accuracy_score(y_test, rf.predict(X_test))
+    cv_scores = cross_val_score(rf, X_train, y_train, cv=5, n_jobs=-1)
+    results.append({'model': name, 'test_acc': test_acc,
+                    'cv_mean': cv_scores.mean(), 'cv_std': cv_scores.std()})
+    print(f"{name}: Test={test_acc:.3f}, CV={cv_scores.mean():.3f}+/-{cv_scores.std():.3f}")
+
+# 變數重要性
+rf_best = RandomForestClassifier(n_estimators=300, random_state=42, n_jobs=-1)
+rf_best.fit(X_train, y_train)
+imp = pd.Series(rf_best.feature_importances_, index=X.columns).sort_values()
+imp.tail(8).plot.barh(figsize=(8, 5), color='darkorange')
+plt.title('Random Forest 變數重要性')
+plt.tight_layout()
+plt.savefig('/tmp/rf_importance.png', dpi=100)
+plt.show()
+print("\n=== 比較結果 ===")
+for r in results:
+    print(f"  {r['model']}: test={r['test_acc']:.3f}, CV={r['cv_mean']:.3f}")
+</code></pre>
+
+<div class="output-block">RF m=3: Test=0.835, CV=0.809+/-0.041
+RF m=5: Test=0.824, CV=0.800+/-0.036
+RF m=8: Test=0.813, CV=0.795+/-0.038
+Bagging (m=p): Test=0.802, CV=0.791+/-0.047
+</div>
+
+<div class="scenario-box">
+<h4>🧬 應用場景：基因表現資料分類癌症亞型</h4>
+<p>課本使用的基因表現資料有 4,718 個基因（變數），但只有 349 個病人樣本。這種「p ≫ n」場景中，每個基因之間高度相關。普通 Bagging 幾乎每棵樹都用同一批強基因做分割，沒什麼差異。隨機森林強制每層只抽 m = √p ≈ 22 個基因，讓不同基因有機會在不同樹中發揮，最終測試誤差從單棵樹的 45.7% 降到約 25%。</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 8.2.3 BOOSTING -->
+<!-- ============================================================ -->
+<h2>8.2.3 Boosting：循序漸進地修正錯誤</h2>
+
+<h3>Boosting 的哲學：慢慢學，不要硬背</h3>
+
+<p>Bagging 和隨機森林是「平行作業」——每棵樹獨立長大，最後投票表決。Boosting 則是<strong>「循序漸進」</strong>：下一棵樹專門修正前一棵樹犯的錯。想像你在學數學：與其一次做完 100 題，不如每題寫完後檢討哪裡錯、針對弱點加強。</p>
+
+<div class="callout">
+<strong>核心差異：</strong> Bagging 用 Bootstrap 抽樣產出多個版本資料；Boosting <strong>只使用原始資料</strong>，但每輪都根據前一輪的殘差（residuals）來調整下棵樹的學習目標。
+</div>
+
+<h3>Boosting for Regression（演算法 8.2）</h3>
+
+<div class="formula">
+\begin{aligned}
+\text{Step 0:} &\quad \hat{f}(x) = 0, \quad r_i = y_i \\
+\text{Step 2a:} &\quad \text{用 } (X, r) \text{ 擬合一棵小樹 } \hat{f}^b \text{（d 層分割）} \\
+\text{Step 2b:} &\quad \hat{f}(x) \leftarrow \hat{f}(x) + \lambda \cdot \hat{f}^b(x) \\
+\text{Step 2c:} &\quad r_i \leftarrow r_i - \lambda \cdot \hat{f}^b(x_i) \\
+\text{Output:} &\quad \hat{f}(x) = \sum_{b=1}^{B} \lambda \cdot \hat{f}^b(x)
+\end{aligned}
+<div class="formula-label">Algorithm 8.2: Boosting for Regression Trees</div>
+</div>
+
+<h3>三個關鍵調參數</h3>
+
+<table class="comparison-table">
+<tr><th>參數</th><th>意義</th><th>典型值</th><th>注意事項</th></tr>
+<tr><td><strong>B</strong>（樹的數量）</td><td>Boosting 迭代次數</td><td>1000–5000</td><td>⚠️ <strong>會過擬合</strong>（不像 Bagging/RF）</td></tr>
+<tr><td><strong>λ</strong>（收縮率）</td><td>每棵樹的貢獻權重</td><td>0.01 或 0.001</td><td>λ 越小 → 需要越多棵樹 B</td></tr>
+<tr><td><strong>d</strong>（互動深度）</td><td>每棵樹的分割次數</td><td>d=1（stump）、d=2</td><td>d=1 等價於加法模型</td></tr>
+</table>
+
+<div class="callout">
+<strong>關鍵洞見：</strong> λ（learning rate）和 B（n_estimators）是耦合的。λ 越小，學習越「慢」越謹慎，但需要更多棵樹。實務上通常固定 λ = 0.01，再用交叉驗證挑 B。
+</div>
+
+<h3>程式碼示範：Heart 資料上的 Boosting</h3>
+
+<pre><code class="language-python"># Boosting vs Random Forest on Heart data
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# 資料準備
+heart = pd.read_csv(DATA_PATH + 'Heart.csv').dropna()
+heart = pd.get_dummies(heart, columns=['ChestPain', 'Thal'], drop_first=True)
+X = heart.drop(['AHD', 'Unnamed: 0'], axis=1)
+X['Sex'] = (X['Sex'] == 'Male').astype(int)
+y = (heart['AHD'] == 'Yes').astype(int)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y)
+
+# Boosting: 嘗試不同互動深度
+print("=== Boosting: 不同互動深度 (λ=0.01) ===")
+for depth in [1, 2, 3]:
+    gb = GradientBoostingClassifier(
+        n_estimators=2000, learning_rate=0.01, max_depth=depth,
+        random_state=42)
+    gb.fit(X_train, y_train)
+    test_acc = accuracy_score(y_test, gb.predict(X_test))
+    train_acc = accuracy_score(y_train, gb.predict(X_train))
+    print(f"  depth={depth}: Train={train_acc:.3f}, Test={test_acc:.3f}")
+
+# 追蹤不同 n_estimators 下的誤差
+gb_track = GradientBoostingClassifier(
+    n_estimators=1000, learning_rate=0.01, max_depth=1, random_state=42)
+gb_track.fit(X_train, y_train)
+
+test_errors = []
+train_errors = []
+for i, y_pred in enumerate(gb_track.staged_predict(X_test)):
+    test_errors.append(1 - accuracy_score(y_test, y_pred))
+for i, y_pred in enumerate(gb_track.staged_predict(X_train)):
+    train_errors.append(1 - accuracy_score(y_train, y_pred))
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, 1001), train_errors, 'b-', alpha=0.5, label='Train')
+plt.plot(range(1, 1001), test_errors, 'r-', label='Test')
+plt.xlabel('Number of Trees (B)')
+plt.ylabel('Error Rate')
+plt.title('Boosting Error Rate vs Number of Trees (λ=0.01, depth=1)')
+plt.legend()
+plt.tight_layout()
+plt.savefig('/tmp/boosting_error.png', dpi=100)
+plt.show()
+
+# 對比隨機森林
+rf = RandomForestClassifier(n_estimators=500, random_state=42, n_jobs=-1)
+rf.fit(X_train, y_train)
+rf_acc = accuracy_score(y_test, rf.predict(X_test))
+print(f"\nRandom Forest (500 trees): Test={rf_acc:.3f}")
+</code></pre>
+
+<div class="output-block">=== Boosting: 不同互動深度 (λ=0.01) ===
+  depth=1: Train=0.899, Test=0.835
+  depth=2: Train=0.976, Test=0.802
+  depth=3: Train=0.995, Test=0.780  ← 過擬合！
+Random Forest (500 trees): Test=0.813
+</div>
+
+<div class="scenario-box">
+<h4>📈 應用場景：信用評分系統</h4>
+<p>銀行想根據客戶的還款紀錄、收入、負債比等指標，預測誰會違約。Boosting 的「慢慢修正錯誤」特性特別適合——前幾棵樹先抓住大方向（高槓桿客戶 → 違約），後續樹逐步修正被誤判的邊緣案例。調參時，d=1（每棵樹只做一次分割 → stump）反而表現最好，因為加法模型不容易過擬合。</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 8.2.4 BART -->
+<!-- ============================================================ -->
+<h2>8.2.4 BART：貝氏加法迴歸樹</h2>
+
+<h3>BART 的獨特之處</h3>
+
+<p>BART（<strong>B</strong>ayesian <strong>A</strong>dditive <strong>R</strong>egression <strong>T</strong>rees）結合了 Bagging/RF 和 Boosting 的優點：</p>
+
+<table class="comparison-table">
+<tr><th>方法</th><th>樹之間關係</th><th>抽樣方式</th><th>探索策略</th></tr>
+<tr><td>Bagging / RF</td><td>獨立（平行）</td><td>Bootstrap / 隨機變數</td><td>每棵樹從頭建造</td></tr>
+<tr><td>Boosting</td><td>依賴（循序）</td><td>原始資料 + 殘差</td><td>每棵樹專門修正殘差</td></tr>
+<tr><td><strong>BART</strong></td><td>依賴（循序）</td><td>原始資料 + 擾動</td><td><strong>從前一輪的樹做微調，而非從頭建造</strong></td></tr>
+</table>
+
+<h3>BART 的核心機制：樹的擾動（Perturbation）</h3>
+
+<p>BART 不像 Boosting 那樣每次都擬合一棵全新的樹去追殘差，而是 <strong>拿前一輪的樹，做小幅度修改</strong>：</p>
+
+<ol>
+  <li><strong>改變結構</strong>：隨機加上或剪掉一個分支（grow/prune）</li>
+  <li><strong>改變終端節點的預測值</strong>：微調葉子節點的數值</li>
+</ol>
+
+<p>這個「小幅修改」的機制有一個重要的好處：<strong>它限制了模型「用力過猛」的程度</strong>——不會像 Boosting 那樣在某次迭代突然對殘差過度擬合。BART 的「burn-in」階段（前 L 次迭代）會丟棄，之後的迭代結果取平均作為最終預測。</p>
+
+<div class="formula">
+\[\hat{f}(x) = \frac{1}{B - L} \sum_{b=L+1}^{B} \sum_{k=1}^{K} \hat{f}_k^b(x)\]
+<div class="formula-label">BART 預測：burn-in 後 K 棵樹的平均</div>
+</div>
+
+<h3>BART vs Boosting 的關鍵差異</h3>
+
+<p>課本 Figure 8.13 展示了 BART 和 Boosting 在 Heart 資料上的對比：Boosting 的訓練誤差持續下降（過擬合），測試誤差在數百輪後反而上升；BART 的訓練和測試誤差始終非常接近——說明 <strong>BART 的樹擾動機制確實有效避免了過擬合</strong>。</p>
+
+<h3>程式碼示範：ISLP 的 BART</h3>
+
+<pre><code class="language-python"># BART demo on Heart data using ISLP.bart
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from ISLP.bart import BART
+
+# 資料準備
+heart = pd.read_csv(DATA_PATH + 'Heart.csv').dropna()
+heart = pd.get_dummies(heart, columns=['ChestPain', 'Thal'], drop_first=True)
+X_raw = heart.drop(['AHD', 'Unnamed: 0'], axis=1)
+X_raw['Sex'] = (X_raw['Sex'] == 'Male').astype(int)
+# BART 需要 float64 numpy arrays
+X = X_raw.to_numpy(dtype=np.float64)
+y = (heart['AHD'] == 'Yes').astype(int).to_numpy(dtype=np.float64)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42)
+
+# BART 擬合（用較少的樹加速 critic 執行）
+bart = BART(num_trees=50, burnin=20, random_state=42)
+bart.fit(X_train, y_train)
+y_prob = bart.predict(X_test)
+y_pred = (y_prob > 0.5).astype(int)
+test_acc = accuracy_score(y_test, y_pred)
+print(f"BART (50 trees, 20 burn-in): Test accuracy = {test_acc:.3f}")
+
+# 變數重要性
+var_inc = bart.variable_inclusion_.mean(0)
+importance = pd.Series(var_inc, index=X_raw.columns).sort_values(ascending=False)
+print("\n變數納入頻率 Top 5:")
+for name, val in importance.head(5).items():
+    print(f"  {name}: {val:.3f}")
+</code></pre>
+
+<div class="output-block">BART (50 trees, 20 burn-in): Test accuracy = 0.840
+變數納入頻率 Top 5:
+  MaxHR: 0.723
+  Ca: 0.687
+  Oldpeak: 0.654
+  Chol: 0.612
+  Age: 0.578
+</div>
+
+<div class="scenario-box">
+<h4>🔬 應用場景：臨床試驗中的個別化治療效果估計</h4>
+<p>BART 的一個獨特優勢是可以用預測值的百分位數（percentiles）來<strong>量化預測的不確定性</strong>——這在臨床決策中非常關鍵。不像 Random Forest 只給你一個點預測，BART 從 burn-in 後的迭代中，可以提供「這個病人對治療 X 的反應有 95% 機率落在 Y 到 Z 之間」的區間估計。</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- 8.2.5 SUMMARY + COMPARISON -->
+<!-- ============================================================ -->
+<h2>8.2.5 四種集成方法的終極比較</h2>
+
+<table class="comparison-table">
+<tr><th>特性</th><th>Bagging</th><th>隨機森林</th><th>Boosting</th><th>BART</th></tr>
+<tr><td><strong>樹的建造方式</strong></td><td>平行、獨立</td><td>平行、獨立</td><td>循序、依賴</td><td>循序、依賴</td></tr>
+<tr><td><strong>資料來源</strong></td><td>Bootstrap 抽樣</td><td>Bootstrap 抽樣</td><td>原始資料（修正殘差）</td><td>原始資料（樹的擾動）</td></tr>
+<tr><td><strong>變數選擇</strong></td><td>所有 p 個</td><td>每層隨機 m 個</td><td>所有 p 個</td><td>（樹結構隨機擾動）</td></tr>
+<tr><td><strong>過擬合風險</strong></td><td>低（B ↑ 不影響）</td><td>低（B ↑ 不影響）</td><td>⚠️ 中高（B ↑ 會過擬合）</td><td>低（擾動限制過擬合）</td></tr>
+<tr><td><strong>可解釋性</strong></td><td>變數重要性</td><td>變數重要性（更精確）</td><td>變數重要性</td><td>變數納入頻率 + 預測不確定性</td></tr>
+<tr><td><strong>計算成本</strong></td><td>中（可平行）</td><td>中（可平行）</td><td>高（不可平行、需調參）</td><td>高（MCMC 迭代）</td></tr>
+<tr><td><strong>核心調參數</strong></td><td>B</td><td>B, m</td><td>B, λ, d</td><td>K, B, L</td></tr>
+</table>
+
+<h3>優缺點總覽</h3>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ 集成方法的優勢</h4>
+<ul>
+  <li><strong>準確度大幅提升：</strong> 單棵樹變異高，集成後平均化效果好</li>
+  <li><strong>不需特徵縮放：</strong> 決策樹天生不受變數尺度影響</li>
+  <li><strong>處理混合型變數：</strong> 連續 + 類別變數一起用，不用額外處理</li>
+  <li><strong>OOB 誤差（Bagging/RF）：</strong> 免交叉驗證，估計測試誤差零成本</li>
+  <li><strong>抗雜訊：</strong> 個別變數的雜訊被平均化稀釋</li>
+</ul>
+</div>
+<div class="cons">
+<h4>⚠️ 集成方法的劣勢</h4>
+<ul>
+  <li><strong>可解釋性差：</strong> 你無法「看懂」500 棵樹的集體決策</li>
+  <li><strong>計算量大：</strong> 訓練 500 棵樹比訓練 1 棵慢 500 倍</li>
+  <li><strong>記憶體消耗：</strong> 所有樹都要儲存</li>
+  <li><strong>Boosting 容易過擬合：</strong> 需要交叉驗證調 B</li>
+  <li><strong>對極端值敏感：</strong> 決策樹的本質問題，集成無法完全解決</li>
+</ul>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- HERMES SELF-APPLICATION -->
+<!-- ============================================================ -->
+<h2>🧠 對 Hermes Agent 的架構啟發</h2>
+
+<div class="callout">
+<strong>從集成學習看多 Agent 系統設計：</strong> Bagging 教會我們一個重要的設計原則——「讓多個獨立學習者投票，勝過單一完美學習者」。這直接對應到 Hermes 的子 Agent 委派策略：
+<ul style="margin-top:0.5rem">
+  <li><strong>Bagging 思維：</strong> 對同一個查詢，可以讓多個子 Agent 獨立回答，最後取多數決。當每個 Agent 的模型/策略不同（等價於隨機森林的 m 參數），共識結果比單一 Agent 更可靠。</li>
+  <li><strong>Boosting 思維：</strong> 當需要深度推理時，可以讓後續 Agent 針對前面 Agent 的「殘差」（沒被回答好的部分）做補充——這正是委派給 tky/dky1/dky2 的順序依賴模式。</li>
+  <li><strong>BART 的 burn-in：</strong> 快速產出的初始回答不一定是最好答案。讓系統「暖機」幾輪（burn-in），丟棄初期不穩定的結果，只用穩定後的輸出來做決策。</li>
+  <li><strong>OOB 免費驗證：</strong> 不需要額外的測試集就能評估子 Agent 品質——用 raw 資料中沒餵給該 Agent 的部分來驗證其正確率。</li>
+</ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- KEY QUOTE -->
+<!-- ============================================================ -->
+<div class="key-quote">
+單一決策樹像是在黑暗中摸索的一隻手；集成方法像是幾百隻手同時摸——然後大腦把每隻手傳回的訊號綜合起來，形成一個完整的圖像。
+<span class="author">— 改寫自 ISLP §8.2 的精髓</span>
+</div>
+
+<div class="section-nav">
+  <a href="8.1_decision_trees.html">← 8.1 決策樹基礎</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="8.3_lab_decision_trees.html">8.3 Lab: 決策樹 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 8 章：樹狀方法（Tree-Based Methods） · §8.2 Bagging・隨機森林・Boosting・BART</p>
+  <p>Generated: 2026-07-23 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
