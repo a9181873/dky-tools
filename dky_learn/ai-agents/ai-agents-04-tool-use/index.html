@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工具使用設計模式 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 4 課繁體中文版：Tool Use 設計模式 — 讓 AI Agent 透過 Function Calling 與外部工具互動，完成複雜任務">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 4 課 / 共 18 課</p>
+<h1>工具使用設計模式 (Tool Use Design Pattern)</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-03-patterns/">&#8592; 第 3 課</a>
+<a href="../ai-agents-05-rag/">第 5 課 &#8594;</a>
+</nav>
+
+<h2>為什麼工具這麼重要？</h2>
+<div class="verdict">
+一句話：<strong>工具讓 AI Agent 不再只是「說話」，而是真正「做事」——透過 Function Calling，LLM 可以查詢資料庫、呼叫 API、執行程式碼，大幅擴展能力邊界。</strong>
+</div>
+
+<p>如果 LLM 只能根據訓練資料回答，它的能力就被鎖在模型內部。加上工具後，Agent 可以即時查詢股票價格、更新 CRM、操作檔案系統——從「語言模型」變成真正的「行動引擎」。本課深入探討 <strong>Tool Use 設計模式</strong>：如何讓 AI Agent 選擇並使用外部工具來達成目標。</p>
+
+<h2>學習目標</h2>
+<ul>
+<li>定義 Tool Use 設計模式及其目的</li>
+<li>辨識適合使用此模式的場景</li>
+<li>理解實作所需的關鍵元件</li>
+<li>認識建構可信賴 Agent 時的安全考量</li>
+</ul>
+
+<h2>什麼是 Tool Use 設計模式？</h2>
+
+<p><strong>Tool Use 設計模式</strong>的核心是賦予 LLM 與外部工具互動的能力。工具是 Agent 可執行的程式碼——可以是一個簡單的函數（如計算機），也可以是第三方服務的 API 呼叫（如股價查詢、天氣預報）。在 AI Agent 的脈絡中，工具是由 Agent 根據<strong>模型生成的 Function Call</strong>來執行的。</p>
+
+<h2>適用場景</h2>
+
+<p>AI Agent 可以運用工具完成複雜任務、擷取資訊或做出決策。Tool Use 模式常用於需要與外部系統動態互動的情境：</p>
+
+<table>
+<tr><th>場景</th><th>說明</th><th>範例</th></tr>
+<tr>
+<td><strong>動態資訊擷取</strong></td>
+<td>查詢外部 API 或資料庫取得即時資料</td>
+<td>查詢 SQLite 資料庫做分析、抓取股價或天氣</td>
+</tr>
+<tr>
+<td><strong>程式碼執行與解譯</strong></td>
+<td>執行程式碼解決數學問題、產生報表或模擬</td>
+<td>讓 Agent 跑 Python 解數學方程式</td>
+</tr>
+<tr>
+<td><strong>工作流程自動化</strong></td>
+<td>整合排程器、郵件服務、資料管線</td>
+<td>自動化每日報表產出並寄送郵件</td>
+</tr>
+<tr>
+<td><strong>客服支援</strong></td>
+<td>與 CRM、工單系統、知識庫互動</td>
+<td>查詢客戶訂單狀態、自動建立工單</td>
+</tr>
+<tr>
+<td><strong>內容生成與編輯</strong></td>
+<td>使用文法檢查、摘要、安全評估工具</td>
+<td>寫完文章後自動檢查錯字與敏感內容</td>
+</tr>
+</table>
+
+<h2>實作 Tool Use 的關鍵元件</h2>
+
+<p>以下元件共同構成 Tool Use 設計模式的基礎：</p>
+
+<table>
+<tr><th>元件</th><th>說明</th></tr>
+<tr><td><strong>函數/工具 Schema</strong></td><td>所有可用工具的詳細定義，包含函數名稱、用途、必要參數和預期輸出。讓 LLM 理解有哪些工具可用，以及如何構造有效的呼叫請求。</td></tr>
+<tr><td><strong>函數執行邏輯</strong></td><td>管理工具何時被呼叫、如何被呼叫。可能包含規劃模組、路由機制或條件流程，動態決定工具使用方式。</td></tr>
+<tr><td><strong>訊息處理系統</strong></td><td>管理使用者輸入、LLM 回應、工具呼叫和工具輸出之間的對話流程。</td></tr>
+<tr><td><strong>工具整合框架</strong></td><td>將 Agent 連接到各種工具的基礎設施，無論是簡單函數還是複雜的外部服務。</td></tr>
+<tr><td><strong>錯誤處理與驗證</strong></td><td>處理工具執行失敗、驗證參數、管理非預期回應的機制。</td></tr>
+<tr><td><strong>狀態管理</strong></td><td>追蹤對話脈絡、先前的工具互動記錄和持久性資料，確保多回合互動的一致性。</td></tr>
+</table>
+
+<h2>深入 Function / Tool Calling</h2>
+
+<p>Function Calling 是讓 LLM 與工具互動的主要方式。你可能常看到「Function」和「Tool」交替使用——因為「函數（可重用的程式碼區塊）」就是 Agent 用來執行任務的「工具」。流程如下：</p>
+
+<ol>
+<li>將包含所有可用函數描述的 <strong>Schema</strong> 傳送給 LLM</li>
+<li>LLM 根據使用者請求，從 Schema 中<strong>選擇最合適的函數</strong>，回傳函數名稱與參數</li>
+<li>程式<strong>執行被選中的函數</strong>，取得結果</li>
+<li>將結果<strong>回傳給 LLM</strong>，LLM 用此資訊回覆使用者</li>
+</ol>
+
+<h3>實作 Function Calling 的三要素</h3>
+
+<div class="card">
+<ol>
+<li><strong>支援 Function Calling 的 LLM 模型</strong>——非所有模型都支援，需確認（Azure OpenAI 支援）</li>
+<li><strong>包含函數描述的 Schema</strong>——JSON 格式，定義函數名稱、用途和參數</li>
+<li><strong>每個函數的實作程式碼</strong>——真正執行任務的邏輯</li>
+</ol>
+</div>
+
+<h3>範例：查詢城市當前時間</h3>
+
+<p>步驟一：初始化支援 Function Calling 的 LLM 客戶端（Azure OpenAI Responses API）</p>
+
+<pre><code>from openai import OpenAI
+
+client = OpenAI(
+    base_url=f"{os.environ['AZURE_OPENAI_ENDPOINT'].rstrip('/')}/openai/v1/",
+    api_key=os.environ["AZURE_OPENAI_API_KEY"],
+)
+deployment_name = os.environ["AZURE_OPENAI_DEPLOYMENT"]</code></pre>
+
+<p>步驟二：建立函數 Schema 並傳送給 LLM</p>
+
+<pre><code># 定義工具 Schema（Responses API 扁平格式）
+tools = [
+    {
+        "type": "function",
+        "name": "get_current_time",
+        "description": "查詢指定城市的當前時間",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string",
+                    "description": "城市名稱，例如 San Francisco",
+                },
+            },
+            "required": ["location"],
+        },
+    }
+]
+
+messages = [{"role": "user", "content": "舊金山現在幾點？"}]
+
+# 第一次 API 呼叫：要求模型使用工具
+response = client.responses.create(
+    model=deployment_name,
+    input=messages,
+    tools=tools,
+    tool_choice="auto",
+    store=False,
+)
+
+messages += response.output
+
+# 模型回傳的是一個 Function Call，不是最終答案！
+# [ResponseFunctionToolCall(
+#   arguments='{"location":"San Francisco"}',
+#   call_id='call_pOsKdUlqvdyttYB67MOj434b',
+#   name='get_current_time',
+#   type='function_call'
+# )]</code></pre>
+
+<p>步驟三：實作函數邏輯並執行</p>
+
+<pre><code>def get_current_time(location):
+    """查詢指定城市的當前時間"""
+    location_lower = location.lower()
+    for key, timezone in TIMEZONE_DATA.items():
+        if key in location_lower:
+            current_time = datetime.now(ZoneInfo(timezone)).strftime("%I:%M %p")
+            return json.dumps({"location": location, "current_time": current_time})
+    return json.dumps({"location": location, "current_time": "unknown"})
+
+# 處理 Tool Call
+tool_calls = [item for item in response.output if item.type == "function_call"]
+if tool_calls:
+    for tool_call in tool_calls:
+        if tool_call.name == "get_current_time":
+            function_args = json.loads(tool_call.arguments)
+            time_response = get_current_time(location=function_args.get("location"))
+            messages.append({
+                "type": "function_call_output",
+                "call_id": tool_call.call_id,
+                "output": time_response,
+            })
+
+# 第二次 API 呼叫：取得最終回覆
+final_response = client.responses.create(
+    model=deployment_name,
+    input=messages,
+    tools=tools,
+    store=False,
+)
+print(final_response.output_text)
+# → 舊金山現在是上午 09:24。</code></pre>
+
+<div class="hermes-insight">
+<p><strong>關鍵理解：</strong>Function Calling 是「兩段式」流程——LLM 第一次只回傳<strong>要呼叫哪個函數 + 什麼參數</strong>，你的程式碼實際執行函數後，再把結果送回 LLM，LLM 才生成最終的自然語言回覆。這不是單次請求能完成的。</p>
+</div>
+
+<h2>使用 Agentic 框架實作 Tool Use</h2>
+
+<p>雖然可以從頭實作 Function Calling，但如<a href="../ai-agents-02-frameworks/">第 2 課</a>所介紹，Agentic 框架提供了預建的構件來簡化開發。</p>
+
+<h3>Microsoft Agent Framework</h3>
+
+<p><a href="https://learn.microsoft.com/azure/ai-services/agents/overview">Microsoft Agent Framework</a> 是開源的 AI Agent 框架，直接使用 Python <code>@tool</code> 裝飾器就能定義工具，框架會自動處理模型與程式碼之間的來回通訊：</p>
+
+<pre><code>import os
+from agent_framework import tool
+from agent_framework.foundry import FoundryChatClient
+from azure.identity import AzureCliCredential
+
+@tool(approval_mode="never_require")
+def get_current_time(location: str) -> str:
+    """查詢指定城市的當前時間"""
+    ...  # 實作邏輯
+
+# 建立客戶端
+provider = FoundryChatClient(
+    project_endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+    model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"],
+    credential=AzureCliCredential(),
+)
+
+# 一行建立 Agent 並執行
+agent = provider.as_agent(
+    name="TimeAgent",
+    instructions="使用可用工具回答問題。",
+    tools=get_current_time
+)
+response = await agent.run("現在幾點了？")</code></pre>
+
+<div class="card">
+<h3>使用 @tool 裝飾器的優勢</h3>
+<ul>
+<li><strong>自動序列化</strong>：框架自動將函數和參數轉換為 Schema 傳給 LLM</li>
+<li><strong>自動 Tool Call 處理</strong>：不需手動解析 Function Call、呼叫工具、處理回應</li>
+<li><strong>程式碼簡潔</strong>：一行定義工具，一行建立 Agent，大幅減少樣板程式碼</li>
+</ul>
+</div>
+
+<h3>Microsoft Foundry Agent Service</h3>
+
+<p><a href="https://learn.microsoft.com/azure/ai-services/agents/overview">Microsoft Foundry Agent Service</a> 是較新的全託管 Agent 框架，專為企業應用設計，不需管理底層運算和儲存資源。相較於直接使用 LLM API，它提供以下優勢：</p>
+
+<table>
+<tr><th>優勢</th><th>說明</th></tr>
+<tr><td><strong>自動工具呼叫</strong></td><td>不需手動解析 Tool Call、呼叫工具、處理回應——全部在伺服器端完成</td></tr>
+<tr><td><strong>安全託管資料</strong></td><td>不需自行管理對話狀態，使用 Thread 儲存所有需要的資訊</td></tr>
+<tr><td><strong>開箱即用的工具</strong></td><td>內建 Bing、Azure AI Search、Azure Functions 等工具可直接使用</td></tr>
+</table>
+
+<h3>Foundry Agent Service 內建工具分類</h3>
+
+<table>
+<tr><th>類別</th><th>工具</th><th>用途</th></tr>
+<tr><td rowspan="3"><strong>知識工具<br>(Knowledge Tools)</strong></td>
+<td>Bing Search 接地</td>
+<td>以 Bing 搜尋結果為 LLM 提供即時資訊</td></tr>
+<tr><td>File Search</td>
+<td>在檔案中搜尋相關內容</td></tr>
+<tr><td>Azure AI Search</td>
+<td>在 Azure AI Search 索引中查詢</td></tr>
+<tr><td rowspan="4"><strong>行動工具<br>(Action Tools)</strong></td>
+<td>Function Calling</td>
+<td>呼叫自定義函數</td></tr>
+<tr><td>Code Interpreter</td>
+<td>執行程式碼（Python）進行資料分析</td></tr>
+<tr><td>OpenAPI 定義工具</td>
+<td>透過 OpenAPI 規格整合第三方 API</td></tr>
+<tr><td>Azure Functions</td>
+<td>呼叫 Azure Functions 無伺服器函數</td></tr>
+</table>
+
+<h3>實戰範例：Contoso 銷售資料分析 Agent</h3>
+
+<p>假設你是 Contoso 的銷售專員，想建立一個對話式 Agent 來回答銷售資料相關問題。以下使用 Foundry Agent Service 的程式碼展示如何結合自定義函數和內建 Code Interpreter：</p>
+
+<pre><code>import os
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential
+from fetch_sales_data_functions import fetch_sales_data_using_sqlite_query
+from azure.ai.projects.models import ToolSet, FunctionTool, CodeInterpreterTool
+
+project_client = AIProjectClient.from_connection_string(
+    credential=DefaultAzureCredential(),
+    conn_str=os.environ["PROJECT_CONNECTION_STRING"],
+)
+
+# 初始化工具集
+toolset = ToolSet()
+
+# 加入自定義函數工具
+fetch_data_function = FunctionTool(fetch_sales_data_using_sqlite_query)
+toolset.add(fetch_data_function)
+
+# 加入內建 Code Interpreter 工具
+code_interpreter = CodeInterpreterTool()
+toolset.add(code_interpreter)
+
+# 建立 Agent——LLM 會自動根據使用者請求選擇合適的工具
+agent = project_client.agents.create_agent(
+    model="gpt-5-mini",
+    name="my-agent",
+    instructions="You are helpful agent",
+    toolset=toolset
+)</code></pre>
+
+<div class="hermes-insight">
+<p><strong>關鍵設計決策：</strong>Toolset 的概念讓 Agent 同時擁有「自定義函數」和「內建工具」。LLM 會根據請求內容自動選擇——問 SQL 查詢就用 <code>fetch_sales_data_using_sqlite_query</code>，需要資料分析就用 Code Interpreter。你不需要手寫路由邏輯。</p>
+</div>
+
+<h2>安全性考量</h2>
+
+<div class="warn">
+<h3>⚠️ 常見安全疑慮：SQL Injection</h3>
+<p>LLM 動態生成的 SQL 可能帶來 SQL Injection 或惡意操作（如 DROP TABLE）的風險。這些顧慮是合理的，但可透過以下方式有效緩解：</p>
+</div>
+
+<table>
+<tr><th>防護措施</th><th>具體做法</th></tr>
+<tr>
+<td><strong>唯讀權限</strong></td>
+<td>對大多數資料庫，將應用程式設定為唯讀（SELECT）角色。PostgreSQL 或 Azure SQL 可指派 read-only role。</td>
+</tr>
+<tr>
+<td><strong>安全執行環境</strong></td>
+<td>在企業場景中，資料通常從營運系統萃取轉換到唯讀資料倉儲，確保資料安全且效能最佳化。</td>
+</tr>
+<tr>
+<td><strong>友善的 Schema</strong></td>
+<td>設計對 LLM 友善的資料結構，簡化查詢複雜度，降低錯誤 SQL 的可能性。</td>
+</tr>
+</table>
+
+<div class="card">
+<h3>✅ 安全最佳實踐</h3>
+<ul>
+<li><strong>資料庫層級防護</strong>：永遠在資料庫層設定存取權限，不要依賴應用程式層的過濾</li>
+<li><strong>只讀優先</strong>：除非必要，Agent 不應有寫入權限</li>
+<li><strong>審計日誌</strong>：記錄所有 Agent 執行的 SQL 查詢，便於事後追查</li>
+</ul>
+</div>
+
+<h2>範例程式碼</h2>
+<ul>
+<li>Python：<a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/04-tool-use/code_samples/04-python-agent-framework.ipynb">Agent Framework</a></li>
+<li>.NET：<a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/04-tool-use/code_samples/04-dotnet-agent-framework.md">Agent Framework</a></li>
+</ul>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>Tool Use = Function Calling 核心機制</strong>：LLM 選函數 → 程式執行 → 結果回傳 LLM → 自然語言回覆</li>
+<li><strong>六大關鍵元件</strong>：Tool Schema、執行邏輯、訊息處理、整合框架、錯誤處理、狀態管理</li>
+<li><strong>框架簡化一切</strong>：Microsoft Agent Framework 的 <code>@tool</code> 裝飾器、Foundry Agent Service 的 Toolset，大幅降低實作複雜度</li>
+<li><strong>安全性不可忽視</strong>：永遠在資料庫層設定唯讀權限，不要信任 LLM 生成的 SQL</li>
+<li><strong>Toolset 是思維升級</strong>：不要把每個工具分開管——讓 LLM 自己從 Toolset 中選擇最合適的工具</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/04-tool-use">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/vieRiPRx-gI">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 (69.7k ⭐)</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord 社群</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-03-patterns/">&#8592; 第 3 課</a>
+<a href="../ai-agents-05-rag/">第 5 課 &#8594;</a>
+</nav>
+</main>
+</body>
+</html>
