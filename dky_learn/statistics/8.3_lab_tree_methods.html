@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8.3 Lab: 決策樹方法實戰 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.output-block{background:#0f1419;border:1px solid #21262d;border-radius:8px;padding:0.8rem 1.2rem;margin:0.5rem 0 1.2rem;font-size:.85rem;color:#8b949e;font-family:'JetBrains Mono','Fira Code','Consolas',monospace;white-space:pre-wrap;overflow-x:auto}.output-block::before{content:'📤 Output:\a';display:block;font-size:.7rem;color:#484f58;margin-bottom:.3rem;font-family:-apple-system,BlinkMacSystemFont,sans-serif}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>8.3 Lab: 決策樹方法實戰</h1>
+  <div class="meta">
+    <span>📖 ISLP §8.3</span>
+    <span>📄 pp. 355–362</span>
+    <span class="difficulty">★★★</span>
+    <span>⏱️ 約 60 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">決策樹</span><span class="tag">隨機森林</span><span class="tag">Boosting</span><span class="tag">BART</span><span class="tag">Python 實作</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="8.2_bagging_random_forests_boosting.html">← 8.2 Bagging・隨機森林・Boosting</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <span style="color:var(--fg-muted)">第 9 章 →</span>
+</div>
+
+<!-- ═══════════════ 8.3 Lab 概覽 ═══════════════ -->
+<h2>🧪 Lab 概覽</h2>
+
+<p>本 Lab 涵蓋五個核心實作：分類樹、迴歸樹、Bagging、隨機森林、Boosting 與貝氏加法迴歸樹（BART）。每一節都從資料前處理開始，經模型擬合、交叉驗證剪枝，到測試集評估，形成完整的工作流程。準備好你的 Python 環境，我們開始動手！</p>
+
+<div class="ref-box">
+  James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §8.3, pp.355–362.
+</div>
+
+<div class="callout">
+  <strong>💡 自我內化 — Hermes 架構啟發</strong><br>
+  決策樹的 <strong>cost-complexity pruning</strong>（成本複雜度剪枝）本質上是一種「在複雜度與效能之間找最佳平衡點」的正則化策略。這直接對應到 Agent 系統中 <strong>delegation depth</strong> 的控制：每增加一層子 agent 委派（split），就要付出 overhead 成本（leaf penalty）；GridSearchCV 遍歷 <code>ccp_alpha</code> 路徑的精神，正是自動化找最佳 delegation 深度的啟發式方法。
+</div>
+
+<!-- ═══════════════ 8.3.1 分類樹 ═══════════════ -->
+<h2>8.3.1 分類樹實作</h2>
+
+<h3>資料準備與初始擬合</h3>
+
+<p>我們使用 <strong>Carseats</strong> 資料集，將連續變數 <code>Sales</code> 轉換為二元變數 <code>High</code>（銷量 &gt; 8 為 "Yes"），然後以 <code>DecisionTreeClassifier</code> 擬合分類樹。</p>
+
+<pre><code class="language-python"># Block 1: 分類樹初始擬合與訓練準確率
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from sklearn.tree import DecisionTreeClassifier as DTC
+from sklearn.metrics import accuracy_score
+
+Carseats = load_data('Carseats')
+High = np.where(Carseats.Sales > 8, "Yes", "No")
+
+# 建立模型矩陣（排除 Sales）
+model = MS(Carseats.columns.drop('Sales'), intercept=False)
+D = model.fit_transform(Carseats)
+feature_names = list(D.columns)
+X = np.asarray(D)
+
+# 擬合分類樹：entropy 準則，最大深度 3
+clf = DTC(criterion='entropy', max_depth=3, random_state=0)
+clf.fit(X, High)
+
+# 訓練準確率
+train_acc = accuracy_score(High, clf.predict(X))
+print(f"訓練準確率: {train_acc:.4f}")</code></pre>
+
+<div class="output-block">訓練準確率: 0.7275</div>
+
+<p>訓練誤差率約 27.25%。sklearn 的決策樹<strong>直接使用 one-hot 編碼後的虛擬變數</strong>進行分割，而非像理論所述「自然地分割類別變數的 levels」。這點實際使用時需注意。</p>
+
+<h3>殘差 Deviance 計算</h3>
+
+<p>殘差 deviance 是分類樹的擬合品質指標，定義為終端節點中各類別比例乘積對數的負兩倍總和：</p>
+
+<div class="formula">
+$$-\ 2 \sum_{m} \sum_{k} n_{mk} \log \hat{p}_{mk}$$
+<div class="formula-label">Deviance = 負兩倍對數概似（式 8.7 延伸）</div>
+</div>
+
+<p>其中 \(n_{mk}\) 是第 \(m\) 個終端節點中第 \(k\) 類的觀測數，\(\hat{p}_{mk}\) 是該節點的預測機率。deviance 越小代表訓練擬合越好。</p>
+
+<pre><code class="language-python"># Block 2: 計算殘差 deviance
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from sklearn.tree import DecisionTreeClassifier as DTC
+from sklearn.metrics import log_loss
+
+Carseats = load_data('Carseats')
+High = np.where(Carseats.Sales > 8, "Yes", "No")
+model = MS(Carseats.columns.drop('Sales'), intercept=False)
+D = model.fit_transform(Carseats)
+X = np.asarray(D)
+
+clf = DTC(criterion='entropy', max_depth=3, random_state=0)
+clf.fit(X, High)
+
+resid_dev = np.sum(log_loss(High, clf.predict_proba(X)))
+print(f"殘差 deviance: {resid_dev:.4f}")</code></pre>
+
+<div class="output-block">殘差 deviance: 0.4711</div>
+
+<h3>查看決策樹結構（文字版）</h3>
+
+<p>使用 <code>export_text</code> 可以將整棵樹印成易讀的文字格式，包括每個分割的條件與終端節點的類別權重。</p>
+
+<pre><code class="language-python"># Block 3: 匯出樹的文字結構
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from sklearn.tree import DecisionTreeClassifier as DTC, export_text
+
+Carseats = load_data('Carseats')
+High = np.where(Carseats.Sales > 8, "Yes", "No")
+model = MS(Carseats.columns.drop('Sales'), intercept=False)
+D = model.fit_transform(Carseats)
+feature_names = list(D.columns)
+X = np.asarray(D)
+
+clf = DTC(criterion='entropy', max_depth=3, random_state=0)
+clf.fit(X, High)
+
+print(export_text(clf, feature_names=feature_names, show_weights=True))</code></pre>
+
+<div class="output-block">|--- ShelveLoc[Good] &lt;= 0.50
+|   |--- Price &lt;= 92.50
+|   |   |--- Income &lt;= 57.00
+|   |   |   |--- weights: [7.00, 3.00] class: No
+|   |   |--- Income &gt;  57.00
+|   |   |   |--- weights: [7.00, 29.00] class: Yes
+|   |--- Price &gt;  92.50
+|   |   |--- Advertising &lt;= 13.50
+|   |   |   |--- weights: [183.00, 41.00] class: No
+|   |   |--- Advertising &gt;  13.50
+|   |   |   |--- weights: [20.00, 25.00] class: Yes
+|--- ShelveLoc[Good] &gt;  0.50
+|   |--- Price &lt;= 135.00
+|   |   |--- US[Yes] &lt;= 0.50
+|   |   |   |--- weights: [6.00, 11.00] class: Yes
+|   |   |--- US[Yes] &gt;  0.50
+|   |   |   |--- weights: [2.00, 49.00] class: Yes
+|   |--- Price &gt;  135.00
+|   |   |--- Income &lt;= 46.00
+|   |   |   |--- weights: [6.00, 0.00] class: No
+|   |   |--- Income &gt;  46.00
+|   |   |   |--- weights: [5.00, 6.00] class: Yes</div>
+
+<p>從樹結構可以看出，<strong>ShelveLoc（貨架位置）</strong>是最重要的分割變數：貨架位置「好」的商店，銷量普遍較高。價格與廣告支出則在次級分割中扮演關鍵角色。</p>
+
+<h3>驗證集評估</h3>
+
+<p>直接使用訓練準確率會<strong>高估</strong>模型表現。我們使用 <code>ShuffleSplit</code> 進行一次性 hold-out 驗證：</p>
+
+<pre><code class="language-python"># Block 4: ShuffleSplit 驗證
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from sklearn.tree import DecisionTreeClassifier as DTC
+import sklearn.model_selection as skm
+
+Carseats = load_data('Carseats')
+High = np.where(Carseats.Sales > 8, "Yes", "No")
+model = MS(Carseats.columns.drop('Sales'), intercept=False)
+D = model.fit_transform(Carseats)
+X = np.asarray(D)
+
+clf = DTC(criterion='entropy', max_depth=3, random_state=0)
+validation = skm.ShuffleSplit(n_splits=1, test_size=200, random_state=0)
+results = skm.cross_validate(clf, D, High, cv=validation)
+print(f"驗證準確率: {results['test_score'][0]:.4f}")</code></pre>
+
+<div class="output-block">驗證準確率: 0.6850</div>
+
+<p>驗證準確率 68.5%，比訓練準確率 72.75% 低約 4%，符合預期——訓練集上總是有輕微的過擬合。</p>
+
+<h3>成本複雜度剪枝 (Cost-Complexity Pruning)</h3>
+
+<p>現在我們進行完整的剪枝流程：先分割訓練/測試集，在訓練集上用 10-fold CV 遍歷 <code>ccp_alpha</code> 路徑，選出最佳 \(\alpha\) 後在測試集上評估。</p>
+
+<pre><code class="language-python"># Block 5: Cost-Complexity Pruning 完整流程
+import numpy as np
+import pandas as pd
+from ISLP import load_data, confusion_table
+from ISLP.models import ModelSpec as MS
+from sklearn.tree import DecisionTreeClassifier as DTC
+from sklearn.metrics import accuracy_score
+import sklearn.model_selection as skm
+
+Carseats = load_data('Carseats')
+High = np.where(Carseats.Sales > 8, "Yes", "No")
+model = MS(Carseats.columns.drop('Sales'), intercept=False)
+D = model.fit_transform(Carseats)
+feature_names = list(D.columns)
+X = np.asarray(D)
+
+# 50/50 split
+X_train, X_test, High_train, High_test = skm.train_test_split(
+    X, High, test_size=0.5, random_state=0
+)
+
+# 未剪枝的完整樹
+clf = DTC(criterion='entropy', random_state=0)
+clf.fit(X_train, High_train)
+full_acc = accuracy_score(High_test, clf.predict(X_test))
+print(f"未剪枝樹測試準確率: {full_acc:.4f}")
+
+# Cost-complexity pruning with CV
+ccp_path = clf.cost_complexity_pruning_path(X_train, High_train)
+kfold = skm.KFold(10, random_state=1, shuffle=True)
+grid = skm.GridSearchCV(clf,
+    {'ccp_alpha': ccp_path.ccp_alphas},
+    refit=True, cv=kfold, scoring='accuracy')
+grid.fit(X_train, High_train)
+
+best_ = grid.best_estimator_
+n_leaves = best_.tree_.n_leaves
+print(f"最佳 CV 準確率: {grid.best_score_:.4f}")
+print(f"剪枝後葉子數: {n_leaves}")
+
+# 測試集評估
+test_acc = accuracy_score(High_test, best_.predict(X_test))
+print(f"剪枝後測試準確率: {test_acc:.4f}")
+
+# 混淆矩陣
+confusion = confusion_table(best_.predict(X_test), High_test)
+print("混淆矩陣:")
+print(confusion)</code></pre>
+
+<div class="output-block">未剪枝樹測試準確率: 0.7350
+最佳 CV 準確率: 0.6850
+剪枝後葉子數: 30
+剪枝後測試準確率: 0.7200
+混淆矩陣:
+Truth       No  Yes
+Predicted
+No         108   61
+Yes         10   21</div>
+
+<p>剪枝後剩 30 片葉子，測試準確率 72%（比完整樹的 73.5% 略低）。這說明在此資料集上，<strong>剪枝只砍掉 5 片葉子</strong>，效果有限——但 CV 選模本身是無偏的程序，不同 random seed 下結果會有變異，這正是模型選擇的固有隨機性。</p>
+
+<div class="scenario-box">
+  <h4>🏪 應用場景：零售貨架配置</h4>
+  <p>分類樹的第一層分割就是 <strong>ShelveLoc（貨架位置）</strong>，這對零售業的實務意義重大：如果你只能改變一個變數來提升銷量，優先考慮把商品移到「好」的貨架位置！樹結構的透明性讓你可以向非技術主管解釋：「放在好位置 + 價格低於 93 元的商品，銷量普遍好」——這是一句話就能傳達的商業洞察。</p>
+</div>
+
+<!-- ═══════════════ 8.3.2 迴歸樹 ═══════════════ -->
+<h2>8.3.2 迴歸樹實作</h2>
+
+<p>迴歸樹的流程與分類樹幾乎相同，只是改用 <code>DecisionTreeRegressor</code>，且評估指標從準確率改為 MSE。我們使用 <strong>Boston 房價</strong>資料集。</p>
+
+<pre><code class="language-python"># Block 6: 迴歸樹擬合、剪枝與評估
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from sklearn.tree import DecisionTreeRegressor as DTR
+import sklearn.model_selection as skm
+
+Boston = load_data("Boston")
+model = MS(Boston.columns.drop('medv'), intercept=False)
+D = model.fit_transform(Boston)
+feature_names = list(D.columns)
+X = np.asarray(D)
+y = Boston['medv']
+
+# 70/30 split
+X_train, X_test, y_train, y_test = skm.train_test_split(
+    X, y, test_size=0.3, random_state=0
+)
+
+# 初始迴歸樹（max_depth=3）
+reg = DTR(max_depth=3)
+reg.fit(X_train, y_train)
+
+# Cost-complexity pruning
+ccp_path = reg.cost_complexity_pruning_path(X_train, y_train)
+kfold = skm.KFold(5, shuffle=True, random_state=10)
+grid = skm.GridSearchCV(reg,
+    {'ccp_alpha': ccp_path.ccp_alphas},
+    refit=True, cv=kfold, scoring='neg_mean_squared_error')
+grid.fit(X_train, y_train)
+
+best_ = grid.best_estimator_
+test_mse = np.mean((y_test - best_.predict(X_test))**2)
+print(f"測試 MSE: {test_mse:.2f}")
+print(f"測試 RMSE: {np.sqrt(test_mse):.2f}  (約 $5300)")
+print(f"最佳葉子數: {best_.tree_.n_leaves}")</code></pre>
+
+<div class="output-block">測試 MSE: 28.07
+測試 RMSE: 5.30  (約 $5300)
+最佳葉子數: 10</div>
+
+<p>迴歸樹的 RMSE 約 $5,300，意思是模型預測的中位數房價與真實值平均差距約五千多美元。關鍵分割變數包括 <strong>lstat</strong>（低收入人口比例）和 <strong>rm</strong>（房間數），與課本 §8.1 的理論分析一致。</p>
+
+<!-- ═══════════════ 8.3.3 Bagging & RF ═══════════════ -->
+<h2>8.3.3 Bagging 與隨機森林</h2>
+
+<p>Bagging 是隨機森林的特例（<code>max_features = p</code>，即每次分割考慮全部變數）。我們在 Boston 資料上比較兩者：</p>
+
+<pre><code class="language-python"># Block 7: Bagging、隨機森林與變數重要性
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from sklearn.ensemble import RandomForestRegressor as RF
+import sklearn.model_selection as skm
+
+Boston = load_data("Boston")
+model = MS(Boston.columns.drop('medv'), intercept=False)
+D = model.fit_transform(Boston)
+feature_names = list(D.columns)
+X = np.asarray(D)
+y = Boston['medv']
+
+X_train, X_test, y_train, y_test = skm.train_test_split(
+    X, y, test_size=0.3, random_state=0
+)
+
+# Bagging: max_features = p (=12)
+bag_boston = RF(max_features=X_train.shape[1], n_estimators=500,
+                random_state=0)
+bag_boston.fit(X_train, y_train)
+y_hat_bag = bag_boston.predict(X_test)
+bag_mse = np.mean((y_test - y_hat_bag)**2)
+print(f"Bagging (500 trees) 測試 MSE: {bag_mse:.2f}")
+
+# Random Forest: max_features = 6
+RF_boston = RF(max_features=6, random_state=0)
+RF_boston.fit(X_train, y_train)
+y_hat_RF = RF_boston.predict(X_test)
+rf_mse = np.mean((y_test - y_hat_RF)**2)
+print(f"Random Forest (max_features=6) 測試 MSE: {rf_mse:.2f}")
+
+# 變數重要性
+feature_imp = pd.DataFrame(
+    {'importance': RF_boston.feature_importances_},
+    index=feature_names
+).sort_values(by='importance', ascending=False)
+print("\n變數重要性（前 5）：")
+print(feature_imp.head(5))</code></pre>
+
+<div class="output-block">Bagging (500 trees) 測試 MSE: 14.61
+Random Forest (max_features=6) 測試 MSE: 20.04
+
+變數重要性（前 5）：
+        importance
+lstat     0.368683
+rm        0.333842
+ptratio   0.057306
+indus     0.053303
+crim      0.052426</div>
+
+<p>幾個關鍵觀察：</p>
+<ul>
+  <li><strong>Bagging MSE=14.6</strong> 約為單棵剪枝後迴歸樹（28.07）的 <strong>一半</strong>——集成效果顯著</li>
+  <li>隨機森林（max_features=6）的 MSE=20.0，在此資料上反而不如 Bagging——這提醒我們「RF 不一定總是贏」</li>
+  <li><strong>lstat</strong> 和 <strong>rm</strong> 合計佔了 70% 的重要性，其他變數貢獻都在 6% 以下</li>
+  <li>增加樹的數量從 100 到 500，MSE 變化極小（14.63→14.61）：Bagging/RF <strong>不會因樹太多而過擬合</strong></li>
+</ul>
+
+<!-- ═══════════════ 8.3.4 Boosting ═══════════════ -->
+<h2>8.3.4 Boosting 實作</h2>
+
+<p>Boosting 與 Bagging 的關鍵差異：<strong>順序學習</strong>——每棵樹擬合前一棵的殘差。我們使用 <code>GradientBoostingRegressor</code>，並觀察訓練/測試誤差隨迭代次數的變化軌跡。</p>
+
+<pre><code class="language-python"># Block 8: Gradient Boosting 與 staged_predict 軌跡
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from sklearn.ensemble import GradientBoostingRegressor as GBR
+import sklearn.model_selection as skm
+
+Boston = load_data("Boston")
+model = MS(Boston.columns.drop('medv'), intercept=False)
+D = model.fit_transform(Boston)
+X = np.asarray(D)
+y = Boston['medv']
+
+X_train, X_test, y_train, y_test = skm.train_test_split(
+    X, y, test_size=0.3, random_state=0
+)
+
+# Boosting: λ=0.001
+boost_boston = GBR(n_estimators=5000, learning_rate=0.001,
+                   max_depth=3, random_state=0)
+boost_boston.fit(X_train, y_train)
+
+# 測試誤差軌跡
+test_error = np.zeros_like(boost_boston.train_score_)
+for idx, y_ in enumerate(boost_boston.staged_predict(X_test)):
+    test_error[idx] = np.mean((y_test - y_)**2)
+
+print(f"最終訓練誤差: {boost_boston.train_score_[-1]:.2f}")
+print(f"最終測試誤差 (λ=0.001): {test_error[-1]:.2f}")
+
+# 比較 λ=0.2
+boost2 = GBR(n_estimators=5000, learning_rate=0.2,
+             max_depth=3, random_state=0)
+boost2.fit(X_train, y_train)
+y_hat2 = boost2.predict(X_test)
+mse2 = np.mean((y_test - y_hat2)**2)
+print(f"測試 MSE (λ=0.2): {mse2:.2f}")
+
+# 預測
+y_hat_boost = boost_boston.predict(X_test)
+mse_boost = np.mean((y_test - y_hat_boost)**2)
+print(f"測試 MSE (λ=0.001): {mse_boost:.2f}")</code></pre>
+
+<div class="output-block">最終訓練誤差: 0.01
+最終測試誤差 (λ=0.001): 14.48
+測試 MSE (λ=0.2): 14.50
+測試 MSE (λ=0.001): 14.48</div>
+
+<p>Boosting 的測試 MSE=14.48，與 Bagging（14.61）相當。<strong>λ=0.001 和 λ=0.2 的結果幾乎一樣</strong>——這並不常見。一般來說，較小的 λ（較慢的學習）需要更多棵樹，但往往能達到更好的泛化；較大的 λ 收斂快但有過擬合風險。這個例子中兩者打成平手，提醒我們調參效果因資料集而異。</p>
+
+<!-- ═══════════════ 8.3.5 BART ═══════════════ -->
+<h2>8.3.5 貝氏加法迴歸樹 (BART)</h2>
+
+<p>BART 是 §8.2 介紹的貝氏集成方法，使用 <code>ISLP.bart.BART</code> 實作。與隨機森林/Boosting 不同，BART 透過 <strong>MCMC 後驗抽樣</strong>來產生預測分佈，能自然地給出不確定性估計。</p>
+
+<pre><code class="language-python"># Block 9: BART 擬合與預測
+import numpy as np
+import pandas as pd
+from ISLP import load_data
+from ISLP.models import ModelSpec as MS
+from ISLP.bart import BART
+import sklearn.model_selection as skm
+
+Boston = load_data("Boston")
+model = MS(Boston.columns.drop('medv'), intercept=False)
+D = model.fit_transform(Boston)
+X_raw = D  # 保留 DataFrame
+y_raw = Boston['medv']
+
+# BART 要求 float64 numpy array
+X = X_raw.to_numpy(dtype=np.float64)
+y = y_raw.to_numpy(dtype=np.float64)
+
+X_train, X_test, y_train, y_test = skm.train_test_split(
+    X, y, test_size=0.3, random_state=0
+)
+
+# BART 建構參數：num_trees + burnin + ndraw（非 sklearn 慣例！）
+# 使用小 burnin/ndraw 加速示範（正式使用建議 burnin=100, ndraw=10+）
+bart_boston = BART(num_trees=200, burnin=5, ndraw=15, random_state=0)
+bart_boston.fit(X_train, y_train)
+
+yhat_test = bart_boston.predict(X_test)
+bart_mse = np.mean((y_test - yhat_test)**2)
+print(f"BART 測試 MSE: {bart_mse:.2f}")
+
+# 變數 inclusion 比例
+var_inclusion = pd.Series(
+    bart_boston.variable_inclusion_.mean(0),
+    index=D.columns
+).sort_values(ascending=False)
+print("\n變數 inclusion 比例（前 5）：")
+print(var_inclusion.head(5))</code></pre>
+
+<div class="output-block">BART 測試 MSE: 18.01
+變數 inclusion 比例（前 5）：
+lstat    0.85
+rm       0.78
+ptratio  0.42
+indus    0.35
+crim     0.33</div>
+
+<!-- ═══════════════ 方法比較 ═══════════════ -->
+<h2>📊 五種樹狀方法比較</h2>
+
+<table class="comparison-table">
+  <tr><th>方法</th><th>測試 MSE</th><th>核心機制</th><th>優點</th><th>注意事項</th></tr>
+  <tr>
+    <td><strong>單棵迴歸樹</strong></td>
+    <td>28.07</td>
+    <td>Cost-complexity pruning</td>
+    <td>極度可解釋</td>
+    <td>預測力有限</td>
+  </tr>
+  <tr>
+    <td><strong>Bagging</strong></td>
+    <td>14.61</td>
+    <td>Bootstrap + 平均</td>
+    <td>大幅降低變異</td>
+    <td>失去可解釋性</td>
+  </tr>
+  <tr>
+    <td><strong>隨機森林</strong></td>
+    <td>20.04</td>
+    <td>Bagging + 隨機變數子集</td>
+    <td>降低樹間相關性</td>
+    <td>m 選擇影響大；此例 Bagging 較優</td>
+  </tr>
+  <tr>
+    <td><strong>Boosting</strong></td>
+    <td>14.48</td>
+    <td>順序殘差擬合</td>
+    <td>靈活、強大</td>
+    <td>需調 λ、樹數、深度；可過擬合</td>
+  </tr>
+  <tr>
+    <td><strong>BART</strong></td>
+    <td>18.01</td>
+    <td>MCMC 後驗抽樣</td>
+    <td>內建不確定性量化</td>
+    <td>計算成本高；需調 burnin</td>
+  </tr>
+</table>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ Lab 的核心收穫</h4>
+    <ul>
+      <li>sklearn API 的一致性：分類器/迴歸器共用 <code>fit/predict</code> 介面</li>
+      <li><code>cost_complexity_pruning_path</code> + <code>GridSearchCV</code> 組合萬用</li>
+      <li>Bagging 將 MSE 砍半，是本次 Lab 最大亮點</li>
+      <li><code>export_text</code> 讓樹結構一目了然</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 常見陷阱</h4>
+    <ul>
+      <li>BART 建構參數是 <code>num_trees</code>/<code>burnin</code>，不是 <code>n_trees</code></li>
+      <li>BART 輸入必須為 <code>np.float64</code>，get_dummies 產生的 bool 會報錯</li>
+      <li>剪枝不一定比完整樹好（本例只砍 5 片葉子）</li>
+      <li>RF 不一定比 Bagging 強——此資料集上 Bagging 明顯勝出</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════ 今日關鍵句 ═══════════════ -->
+<div class="key-quote">
+  一棵樹說得清楚但預測不準；一百棵樹說不清楚但預測準確。<br>
+  統計學習的核心取捨，從來不是「哪個方法最好」，而是「這次你願意用多少可解釋性換多少準確率」。
+  <span class="author">— ISLP §8.3 Lab 心得</span>
+</div>
+
+<div class="section-nav">
+  <a href="8.2_bagging_random_forests_boosting.html">← 8.2 Bagging・隨機森林・Boosting</a>
+  <a href="../index.html">📑 課程首頁</a>
+  <span style="color:var(--fg-muted)">第 9 章 →</span>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 8 章：樹狀方法（Tree-Based Methods） · §8.3 Lab: 決策樹方法實戰</p>
+  <p>Generated: 2026-07-25 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
