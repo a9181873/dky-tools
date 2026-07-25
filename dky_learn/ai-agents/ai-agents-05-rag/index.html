@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic RAG — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 5 課繁體中文版：Agentic RAG — 讓 LLM 自主規劃、迭代檢索、自我修正的下一代 RAG 架構">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 5 課 / 共 18 課</p>
+<h1>Agentic RAG：自主檢索增強生成</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-04-tool-use/">&#8592; 第 4 課</a>
+<a href="../ai-agents-06-trustworthy/">第 6 課 &#8594;</a>
+</nav>
+
+<h2>什麼是 Agentic RAG？</h2>
+<div class="verdict">
+一句話：<strong>Agentic RAG 讓 LLM 不再是「檢索→回答」的一步到位，而是像一位研究員：反覆查詢、評估結果、修正方向、整合工具，直到找到滿意的答案。</strong>
+</div>
+
+<p>傳統 RAG（Retrieval-Augmented Generation）走的是「檢索文件 → 丟給 LLM → 產生答案」的單向流程。Agentic RAG 打破這個模式——LLM <strong>自主規劃下一步</strong>，根據檢索品質動態調整策略：查得不好就改查法、資訊不夠就換工具、答案有疑慮就自我修正。整個過程是 <strong>LLM 呼叫 → 工具使用 → LLM 再呼叫 → …</strong> 的迭代迴圈，而不是預先寫死的路徑。</p>
+
+<h2>學習目標</h2>
+<ul>
+<li>理解 Agentic RAG 的核心概念——LLM 自主規劃檢索策略</li>
+<li>掌握迭代式「製作-檢查」迴圈的工作機制</li>
+<li>認識 Agentic RAG 如何自主擁有推理過程</li>
+<li>了解工具整合、記憶管理和自我修正機制</li>
+<li>辨識 Agentic RAG 的邊界與限制</li>
+<li>認識治理、透明度和信任的重要性</li>
+</ul>
+
+<h2>傳統 RAG vs Agentic RAG</h2>
+
+<table>
+<tr><th>維度</th><th>傳統 RAG</th><th>Agentic RAG</th></tr>
+<tr>
+<td><strong>流程模式</strong></td>
+<td>單向：檢索 → 閱讀 → 生成</td>
+<td>迭代迴圈：LLM 呼叫 ⇄ 工具使用 ⇄ 評估 ⇄ 修正</td>
+</tr>
+<tr>
+<td><strong>推理路徑</strong></td>
+<td>人類預先定義（Prompt Chain）</td>
+<td>LLM 根據資訊品質自主決定</td>
+</tr>
+<tr>
+<td><strong>查詢失敗處理</strong></td>
+<td>回傳低品質答案或空結果</td>
+<td>自動改寫查詢、切換檢索方式、嘗試其他資料源</td>
+</tr>
+<tr>
+<td><strong>工具使用</strong></td>
+<td>通常只用向量搜尋</td>
+<td>向量搜尋 + SQL 查詢 + API 呼叫 + Bing 搜尋等多工具整合</td>
+</tr>
+<tr>
+<td><strong>自我修正</strong></td>
+<td>無</td>
+<td>內建：重查、診斷工具、請求人類介入</td>
+</tr>
+</table>
+
+<h2>核心機制：自主推理過程</h2>
+
+<p>讓系統真正「Agentic」的關鍵差異，在於它<strong>自主擁有推理過程</strong>（Owning the Reasoning Process）。傳統 RAG 需要人類預先定義「先查 A → 再查 B → 最後整合」的路徑，但 Agentic 系統會在內部自己決定怎麼做。</p>
+
+<div class="card">
+<h3>範例：請 Agent 制定產品上市策略</h3>
+<p>Agent 不是照著預設腳本跑，而是自主決定：</p>
+<ol>
+<li>用 Bing 搜尋取得當前市場趨勢報告</li>
+<li>用 Azure AI Search 找出競爭者資料</li>
+<li>用 Azure SQL 比對歷史內部銷售數據</li>
+<li>透過 Azure OpenAI 整合所有發現，產出一份完整策略</li>
+<li>自我評估策略是否有缺口，有的話再觸發新一輪檢索</li>
+</ol>
+<p><strong>這五個步驟——精煉查詢、選擇來源、反覆迭代直到滿意——全部由模型自主決定，不是人類預先寫好的。</strong></p>
+</div>
+
+<h2>迭代迴圈、工具整合與記憶</h2>
+
+<table>
+<tr><th>階段</th><th>說明</th></tr>
+<tr>
+<td><strong>1. 初始呼叫</strong></td>
+<td>使用者目標（Prompt）送入 LLM</td>
+</tr>
+<tr>
+<td><strong>2. 工具調用</strong></td>
+<td>LLM 發現資訊不足，自主選擇工具：向量搜尋（Azure AI Search）、SQL 查詢、API 呼叫等</td>
+</tr>
+<tr>
+<td><strong>3. 評估與精煉</strong></td>
+<td>審視回傳資料後，判斷是否足夠。不夠 → 改寫查詢、換工具或調整策略</td>
+</tr>
+<tr>
+<td><strong>4. 重複直到滿意</strong></td>
+<td>迴圈持續，直到 LLM 認定有足夠清晰度和證據來產出最終答案</td>
+</tr>
+<tr>
+<td><strong>5. 記憶與狀態</strong></td>
+<td>系統跨步驟維持狀態和記憶，記住先前嘗試及其結果，避免重複迴圈，做出更明智的決策</td>
+</tr>
+</table>
+
+<div class="hermes-insight">
+<p><strong>關鍵理解：</strong>Agentic RAG 的本質就是「LLM 呼叫 → 工具使用 → LLM 再呼叫」的簡單迴圈。不需要過度複雜的編排框架——一個相對簡單的迴圈就能產出精密且有據可循的輸出。</p>
+</div>
+
+<h2>自我修正機制</h2>
+
+<p>Agentic RAG 的自主性也包含強大的自我修正能力。當系統遇到瓶頸——例如檢索到不相關的文件、SQL 查詢格式錯誤——它可以：</p>
+
+<table>
+<tr><th>機制</th><th>行為</th></tr>
+<tr>
+<td><strong>迭代重查</strong></td>
+<td>不回傳低價值答案，而是嘗試新的搜尋策略、改寫資料庫查詢、或查找替代資料集</td>
+</tr>
+<tr>
+<td><strong>診斷工具</strong></td>
+<td>呼叫額外的除錯函數，驗證推理步驟或確認檢索資料的正確性。Azure AI Tracing 等工具可實現強大的可觀測性</td>
+</tr>
+<tr>
+<td><strong>人類介入備援</strong></td>
+<td>在高風險或反覆失敗的情境下，模型會標記不確定性並請求人類指導。人類提供修正回饋後，模型會記住教訓繼續前進</td>
+</tr>
+</table>
+
+<h2>Agentic 的邊界</h2>
+
+<div class="warn">
+<h3>⚠️ Agentic RAG ≠ AGI（通用人工智慧）</h3>
+<p>Agentic RAG 的自主能力僅限於人類開發者提供的工具、資料源和政策範圍內。它不能發明新工具，也不能跨出已設定的領域邊界。</p>
+</div>
+
+<table>
+<tr><th>限制</th><th>說明</th></tr>
+<tr>
+<td><strong>領域限定自主</strong></td>
+<td>聚焦在已知領域內達成使用者定義的目標，透過查詢改寫或工具選擇來改善結果</td>
+</tr>
+<tr>
+<td><strong>依賴基礎設施</strong></td>
+<td>能力上限取決於開發者整合的工具和資料。沒有人的介入，無法超越這些邊界</td>
+</tr>
+<tr>
+<td><strong>尊重護欄</strong></td>
+<td>倫理指南、合規規則和商業政策仍然是最高原則。Agent 的自由永遠被安全措施和監督機制所約束</td>
+</tr>
+</table>
+
+<h2>適用場景</h2>
+
+<table>
+<tr><th>場景</th><th>說明</th></tr>
+<tr>
+<td><strong>正確性優先環境</strong></td>
+<td>合規檢查、法規分析、法律研究——Agent 可反覆驗證事實、查閱多個來源、改寫查詢，直到產出經過徹底審查的答案</td>
+</tr>
+<tr>
+<td><strong>複雜資料庫互動</strong></td>
+<td>面對結構化資料時，查詢可能常失敗或需要調整——Agent 可自主用 Azure SQL 或 Microsoft Fabric OneLake 精煉查詢</td>
+</tr>
+<tr>
+<td><strong>長時間工作流程</strong></td>
+<td>隨新資訊浮現而演進的長對話——Agentic RAG 可持續納入新資料，隨對問題空間的理解加深而改變策略</td>
+</tr>
+</table>
+
+<h2>治理、透明度與信任</h2>
+
+<p>當系統在推理上越來越自主，治理和透明度至關重要：</p>
+
+<table>
+<tr><th>面向</th><th>做法</th></tr>
+<tr>
+<td><strong>可解釋推理</strong></td>
+<td>模型提供稽核軌跡：發出了哪些查詢、查閱了哪些來源、走了哪些推理步驟。Azure AI Content Safety 和 Azure AI Tracing / GenAIOps 幫助維持透明度</td>
+</tr>
+<tr>
+<td><strong>偏差控制</strong></td>
+<td>開發者可以調整檢索策略確保資料源平衡且具代表性，並定期審計輸出以偵測偏差</td>
+</tr>
+<tr>
+<td><strong>人類監督</strong></td>
+<td>對敏感任務，人類審查仍然不可或缺。Agentic RAG 不取代人類判斷——它透過提供更徹底審查過的選項來增強人類決策</td>
+</tr>
+</table>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>Agentic RAG = 迭代式檢索</strong>：不是一步到位的「檢索→回答」，而是 LLM 自主規劃、反覆查詢、評估修正的迴圈</li>
+<li><strong>自主推理是核心</strong>：系統不是執行預設腳本，而是根據檢索到的資訊品質動態決定下一步</li>
+<li><strong>簡單迴圈產出複雜行為</strong>：「LLM 呼叫 → 工具使用 → LLM 再呼叫」的簡單模式就能產出精密結果</li>
+<li><strong>自我修正內建其中</strong>：查不到就改查法、格式錯就改寫、高風險就請求人類介入</li>
+<li><strong>邊界明確</strong>：Agentic RAG 不是 AGI——它的自主性限於開發者提供的工具、資料和護欄之內</li>
+<li><strong>治理不可少</strong>：可解釋推理、偏差控制和人類監督是負責任部署的三大支柱</li>
+</ol>
+
+<h2>延伸資源</h2>
+<ul>
+<li><a href="https://learn.microsoft.com/training/modules/use-own-data-azure-openai">Implement RAG with Azure OpenAI Service — Microsoft Learn</a></li>
+<li><a href="https://learn.microsoft.com/azure/ai-studio/concepts/evaluation-approach-gen-ai">Evaluation of generative AI applications — Microsoft Foundry</a></li>
+<li><a href="https://weaviate.io/blog/what-is-agentic-rag">What is Agentic RAG — Weaviate</a></li>
+<li><a href="https://ragaboutit.com/agentic-rag-a-complete-guide-to-agent-based-retrieval-augmented-generation/">Agentic RAG: A Complete Guide — RAG About It</a></li>
+<li><a href="https://huggingface.co/learn/cookbook/agent_rag">Agentic RAG Cookbook — Hugging Face</a></li>
+<li><a href="https://youtu.be/aQ4yQXeB1Ss">Adding Agentic Layers to RAG (影片)</a></li>
+<li><a href="https://www.youtube.com/watch?v=zeAyuLc_f3Q">The Future of Knowledge Assistants: Jerry Liu (影片)</a></li>
+<li><a href="https://www.youtube.com/watch?v=AOSjiXP1jmQ">How to Build Agentic RAG Systems (影片)</a></li>
+</ul>
+
+<h3>學術論文</h3>
+<ul>
+<li><a href="https://arxiv.org/abs/2303.17651">Self-Refine: Iterative Refinement with Self-Feedback</a></li>
+<li><a href="https://arxiv.org/abs/2303.11366">Reflexion: Language Agents with Verbal Reinforcement Learning</a></li>
+<li><a href="https://arxiv.org/abs/2305.11738">CRITIC: Large Language Models Can Self-Correct with Tool-Interactive Critiquing</a></li>
+<li><a href="https://arxiv.org/abs/2501.09136">Agentic Retrieval-Augmented Generation: A Survey on Agentic RAG</a></li>
+</ul>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/05-agentic-rag">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/WcjAARvdL7I">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 (69.7k ⭐)</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord 社群</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-04-tool-use/">&#8592; 第 4 課</a>
+<a href="../ai-agents-06-trustworthy/">第 6 課 &#8594;</a>
+</nav>
+</main>
+</body>
+</html>
