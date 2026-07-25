@@ -45,7 +45,7 @@
       <div class="section-title" style="margin-top:0.8rem">📖 第 8 章：樹狀方法（Tree-Based Methods）<span class="coming">即將推出</span></div>
       <a href="/statistics/8.1_decision_trees.html" class="nav-item done">8.1 決策樹基礎</a>
       <a href="/statistics/8.2_bagging_random_forests_boosting.html" class="nav-item done">8.2 Bagging・隨機森林・Boosting</a>
-      <span class="nav-item future">8.3 Lab: 決策樹</span>
+      <a href="/statistics/8.3_lab_tree_methods.html" class="nav-item done">8.3 Lab: 決策樹</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
