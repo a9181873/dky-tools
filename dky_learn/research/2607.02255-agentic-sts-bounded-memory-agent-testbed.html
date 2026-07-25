@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>記憶邊界合約：AgenticSTS 五層型別檢索 — DKY 論文筆記</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.2rem;margin:1.8rem 0 .6rem}h3{color:var(--fg);font-size:1rem;margin:1.2rem 0 .5rem}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.5rem;margin:1rem 0;line-height:1.8}p,li{margin:.5rem 0}ol,ul{margin:.5rem 0 .5rem 1.5rem;line-height:1.8}b{color:#fff}code{background:#1a2332;padding:.15rem .4rem;border-radius:4px;font-size:.85em;color:var(--accent2)}.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;margin:1rem 0}.mc{background:#1a2332;border:1px solid var(--border);border-radius:8px;padding:1rem}.mc h4{color:var(--accent2);margin:0 0 0.4rem;font-size:0.95rem}.mc p{margin:0;font-size:0.85rem;color:var(--fg)}@media(max-width:768px){.mb{grid-template-columns:1fr}body{padding:1rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>記憶邊界合約：AgenticSTS 五層型別檢索幫長程 Agent 的記憶做可消融體檢</h1>
+  <p class="meta">arXiv:2607.02255 — 2026-07-02 — Xiangchen Cheng et al. (Alaya Lab / SJTU / Nankai / USTC) — Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">AgenticSTS</span><span class="tag">記憶合約</span><span class="tag">型別檢索</span>
+    <span class="tag">消融實驗</span><span class="tag">長程 Agent</span><span class="tag">技能庫</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+<div class="card">
+<p>長程 Agent 的記憶不是一個存文字的地方——<b>它是「每個未來的決策允許看到什麼」的合約</b>。最常見的合約是把過去的觀察、工具調用、反思全部 append 到下一輪 prompt——這讓 context 隨決策數線性膨脹，且<b>任何單一記憶成分的效果都無法隔離量測</b>。Alaya Lab 等團隊提出另一種合約：<b>每決策從五層型別切片重新組裝 prompt</b>（L1 固定協定→L2 狀態 schema→L3 規則檢索→L4 情節摘要→L5 觸發策略技能），不 append 任何原始跨決策抄本。Context 穩定有界，且每一層都可以獨立開關做消融實驗。在 Slay the Spire 2（前沿 LLM 0 勝、人類 16% 的難度）上，五層合約的最大觀察差異落在<b>啟用 L5 觸發策略技能</b>：無技能 3/10 勝 → 有技能 6/10 勝（方向性，Fisher exact p≈0.37）。釋出 298 完整軌跡 + 條件標籤 + SHA 凍結記憶快照的可重現測試床。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>測試場域</h4><p>Slay the Spire 2：封閉規則、文字可讀、數百決策/run。前沿 LLM 0 勝 vs 人類 16% → 難但不飽和</p></div>
+<div class="mc"><h4>記憶合約</h4><p>五層型別檢索（L1 協定/L2 Schema/L3 規則/L4 情節/L5 技能），無原始抄本 append，context 穩定有界</p></div>
+<div class="mc"><h4>主要發現</h4><p>L5 技能層：無 scaffold 3/10 → 含技能 6/10（方向性）；L4 情節層在 A0 飽和（有無 L4 皆 6/10）</p></div>
+<div class="mc"><h4>釋出資產</h4><p>298 軌跡 + SHA 凍結記憶快照 + 條件標籤 + Wilson/bootstrap 分析腳本，可獨立重算所有結果</p></div>
+</div>
+
+<h2>核心洞察：記憶是合約，不是倉庫</h2>
+<div class="card">
+<p>論文開篇就重新定義了長程 Agent 的記憶問題：</p>
+<ol>
+<li><b>現狀：</b>ReAct/Reflexion 類 agent 把觀察、工具調用、反思全部 append 到下一輪 prompt。這讓資訊容易取得，但也讓 context 變成一個雜亂混合物——任何單一記憶成分的效果都無法隔離</li>
+<li><b>替代方案：</b>每決策從五層型別切片重新組裝 prompt。資訊要存活到下一決策必須先寫入 bounded store。這把記憶從「歷史能塞多少」轉換為「選擇了哪些型別證據」</li>
+<li><b>合約的核心差異：</b>不是 prompt 大小，而是記憶層的 <b>可消融性（ablatability）</b>——你可以獨立地關掉某層，觀察行為改變</li>
+<li><b>Context 成長的審計：</b>論文做了 token 審計：bounded contract 下 prompt 大小穩定；對照的 append-transcript 假想情境可能 O(c²) 成長</li>
+</ol>
+</div>
+
+<h2>五層型別檢索架構（L1-L5）</h2>
+<div class="card">
+<p>Agent 從不 append 原始對話抄本。每層的角色、可變性和實驗中的角色不同：</p>
+<ol>
+<li><b>L1 操作協定：</b>不可變的角色和協定模板——固定不變，所有條件共用</li>
+<li><b>L2 狀態型別 prompt：</b>不可變的 schema——戰鬥、組牌、地圖、事件、休息等狀態各有對應模板 + 合法動作格式</li>
+<li><b>L3 遊戲知識：</b>可枚舉的規則資料——卡片、遺物、敵人、事件。可依 patch 更新</li>
+<li><b>L4 情節記憶：</b>run 後摘要（角色 × 難度 × 章節 × 敵人類型）——案例式召回</li>
+<li><b>L5 技能庫：</b>觸發式策略指南——從日誌蒸餾出的通用場景策略，最重要的消融變數</li>
+</ol>
+<p>L5 技能有兩種填充方式：人工撰寫種子庫（Mode A）和模板填充自動生成（Mode B），兩者在 A0 上都達到 6/10 勝率點估計——證明<b>技能層的存在性效應大於技能內容的來源</b>。</p>
+</div>
+
+<h2>固定 A0 消融矩陣：五條件拆解</h2>
+<div class="card">
+<ul>
+<li><b>baseline-strict（無 scaffold）：</b>3/10 勝（Wilson 95% CI [10.8%, 60.3%]），分數 70.4</li>
+<li><b>prompt-only（完整 prompt，無 L4/L5）：</b>4/10 勝（[17.0%, 69.1%]），分數 69.6</li>
+<li><b>mode-a（手寫 L5 種子庫）：</b>6/10 勝（[31.3%, 83.2%]），分數 85.5</li>
+<li><b>mode-b（模板填充 L5）：</b>6/10 勝，分數 83.3</li>
+<li><b>full-frozen（L4 情節 + L5 技能）：</b>6/10 勝，分數 82.1</li>
+</ul>
+<p>∆L5 = +2/10，∆L4 = 0（分數差 CI [−21.7, +14.9]）。<b>在 A0 上，情節記憶（L4）已飽和；策略技能（L5）是觀察到差異最大的記憶層。</b>Fisher exact p≈0.37 代表方向性證據。</p>
+</div>
+
+<h2>跨骨幹遷移：技能庫的 backbone 敏感性</h2>
+<div class="card">
+<ul>
+<li><b>Qwen 3.6-27B：</b>baseline → full-frozen 分數從 14.6 升至 26.9（+84.5%），但勝場仍是 0/5</li>
+<li><b>DeepSeek V4 Pro：</b>分數反而從 41.3 降至 33.8（−18.1%），勝場 0/5</li>
+<li><b>Gemini 3.1 Pro（原生）：</b>3/10 → 6/10，分數 70.4 → 82.1（+16.6%）</li>
+</ul>
+<p><b>教訓：</b>技能庫的遷移性不是理所當然的——它是一個可量測的經驗屬性，不是一個前提假設。</p>
+</div>
+
+<h2>自動爬升模式：技能層讓 Agent 挑戰 A6-A8</h2>
+<div class="card">
+<p>有 run 後寫入記憶的條件爬到 A6-A8，而無 run 後記憶的條件停在 A2-A4。L4 在 A0 已飽和，但在高難度需要跨 run 學習時變得重要。</p>
+</div>
+
+<h2>四層寫入閘門：技能不是隨便加的</h2>
+<div class="card">
+<ol>
+<li><b>前置 A/B 檢查：</b>B=3 resample，需嚴格 2/3 以上且零有害案例</li>
+<li><b>Cosine 相似度：</b>過濾重複候選</li>
+<li><b>Jaccard 相似度：</b>token 級去重</li>
+<li><b>LLM 法官：</b>語意級評估新技能是否真正帶來新資訊</li>
+</ol>
+<p>大部分候選在此過程中被拒絕或合併——<b>寫入難度遠高於檢索難度</b>。</p>
+</div>
+
+<h2>對 Hermes 的啟發</h2>
+<div class="card">
+<ul>
+<li><b>技能 vs 情節的分離可直接採用：</b>Hermes 的 skill library（類似 L5）和 fact_store（類似 L4）已有雛形。建議引入消融測試量化每層貢獻</li>
+<li><b>情節記憶在低難度飽和的現象值得警惕：</b>短對話任務看不出 fact_store 的價值，但長程多 session 才是主場</li>
+<li><b>「類型化檢索」優於「原始抄本 append」：</b>每決策從型別切片重組，而非從歷史累積</li>
+<li><b>四層寫入閘門可直接借鏡：</b>sleep consolidation 引入 Cosine+Jaccard+LLM 法官三層閘門，降低重複/低品質固化</li>
+</ul>
+</div>
+
+<h2>限制</h2>
+<div class="card">
+<ul>
+<li>固定 A0 的 N=10/cell 樣本量有限，L5 的 +2/10 是方向性（p≈0.37）</li>
+<li>與 accumulate-transcript 合約的匹配對照實驗是 future work</li>
+<li>技能庫是 backbone-sensitive，不是泛用外掛</li>
+<li>Slay the Spire 2 遊戲測試床的結論不一定適用於非遊戲 agent 任務</li>
+</ul>
+</div>
+
+</body>
+</html>
