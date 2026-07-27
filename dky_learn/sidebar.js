@@ -42,10 +42,13 @@
 <a href="/statistics/7.7_generalized_additive_models.html" class="nav-item done">7.7 廣義加法模型</a>
 <a href="/statistics/7.8_lab_nonlinear_modeling.html" class="nav-item done">7.8 Lab: 非線性建模</a>
 
-      <div class="section-title" style="margin-top:0.8rem">📖 第 8 章：樹狀方法（Tree-Based Methods）<span class="coming">即將推出</span></div>
+      <div class="section-title" style="margin-top:0.8rem">📖 第 8 章：樹狀方法（Tree-Based Methods）</div>
       <a href="/statistics/8.1_decision_trees.html" class="nav-item done">8.1 決策樹基礎</a>
       <a href="/statistics/8.2_bagging_random_forests_boosting.html" class="nav-item done">8.2 Bagging・隨機森林・Boosting</a>
       <a href="/statistics/8.3_lab_tree_methods.html" class="nav-item done">8.3 Lab: 決策樹</a>
+
+      <div class="section-title" style="margin-top:1.2rem">📖 第 9 章：支援向量機（SVM）</div>
+      <a href="/statistics/9.1_maximal_margin_classifier.html" class="nav-item done">9.1 最大邊界分類器</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 

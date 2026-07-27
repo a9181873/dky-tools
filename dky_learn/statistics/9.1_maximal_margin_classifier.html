@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9.1 最大邊界分類器 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>9.1 最大邊界分類器</h1>
+  <div class="meta">
+    <span>📖 ISLP §9.1</span>
+    <span>📄 pp. 369–372</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">SVM</span>
+    <span class="tag">超平面</span>
+    <span class="tag">最大邊界</span>
+    <span class="tag">支援向量</span>
+    <span class="tag">線性分類器</span>
+    <span class="tag">凸優化</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="../statistics/8.3_lab_tree_methods.html">← 8.3 Lab: 決策樹</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="../statistics/9.2_support_vector_classifiers.html">9.2 支援向量分類器 →</a>
+</div>
+
+<!-- ========== CONTENT ========== -->
+
+<h2>🏔️ 超平面：高維空間中的「切蛋糕」</h2>
+
+<p>想像你在一個二維平面上，有藍色和紫色的點各一群。你要用一條<strong>直線</strong>把它們完美分開——這條線就是超平面的二維版本。在三維空間中，超平面是一個平面；在更高維度，它就是一個 \(p-1\) 維的平坦子空間。</p>
+
+<div class="callout">
+  <strong>超平面的數學定義：</strong><br>
+  在 \(p\) 維空間中，一個超平面由方程式 \(\beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_p X_p = 0\) 所定義。<br>
+  任何滿足此等式的點 \(X = (X_1, X_2, \ldots, X_p)\) 都落在超平面上。
+</div>
+
+<p>超平面將空間一分為二：一側的點滿足 \(\beta_0 + \beta_1 X_1 + \cdots + \beta_p X_p > 0\)，另一側滿足 \(< 0\)。這就是線性決策邊界的本質。超平面的斜率由 \(\beta_1, \ldots, \beta_p\) 決定，而截距 \(\beta_0\) 則控制它偏離原點的距離。</p>
+
+<div class="ref-box">
+  ISLP §9.1.1 (p.369)：超平面是將空間一分為二的基本幾何構造，是理解 SVM 所有後續概念的基石。對應課本 Figure 9.1。
+</div>
+
+<h2>✂️ 分離超平面：完美的二分法</h2>
+
+<p>如果一個超平面能將訓練資料的兩個類別<strong>完全且正確</strong>分到兩側，我們稱它為「分離超平面（separating hyperplane）」。這就像用一條線把紅豆和綠豆完全分開——一顆都不出錯。</p>
+
+<div class="formula">
+\[
+\begin{cases}
+\beta_0 + \beta_1 x_{i1} + \cdots + \beta_p x_{ip} > 0 & \text{if } y_i = 1 \\[6pt]
+\beta_0 + \beta_1 x_{i1} + \cdots + \beta_p x_{ip} < 0 & \text{if } y_i = -1
+\end{cases}
+\]
+<div class="formula-label">(9.6)–(9.7) 分離條件</div>
+</div>
+
+<p>更精簡的寫法：將兩邊合併，得到單一條件：</p>
+
+<div class="formula">
+\[
+y_i(\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_p x_{ip}) > 0 \quad \forall i
+\]
+<div class="formula-label">(9.8) 統一分離條件</div>
+</div>
+
+<p>一旦有了分離超平面，分類就非常簡單：對於新測試點 \(x^*\)，計算 \(f(x^*) = \beta_0 + \beta_1 x^*_1 + \cdots + \beta_p x^*_p\)。若 \(f(x^*) > 0\) 則歸為類別 1，若 \(f(x^*) < 0\) 則歸為類別 −1。函數值 \(f(x^*)\) 的大小還反映了分類的<strong>信心程度</strong>——數值離零越遠，表示點離邊界越遠，分類越可靠。</p>
+
+<div class="scenario-box">
+  <h4>🎯 應用場景：垃圾郵件過濾</h4>
+  <p>假設你根據郵件的特徵（關鍵字頻率、寄件人信譽、連結數量）訓練了一個分離超平面。當新郵件到達時，\(f(x^*)\) 的值告訴你：它落在邊界左側還是右側，而且數值大小反映了「這封郵件<em>多麼像</em>垃圾郵件」的信心程度。接近 0 的郵件最難判——可能需要人工審查。</p>
+</div>
+
+<h2>📏 最大邊界分類器：不只分開，還要<em>離遠一點</em></h2>
+
+<p>問題來了：如果資料是可分離的，那存在<strong>無限多個</strong>分離超平面！任何一個好的分離線都可以稍微平移或旋轉，仍然完美分離兩類（課本 Figure 9.2 左圖展示了三條這樣的線）。我們該選哪一條？</p>
+
+<div class="callout">
+  <strong>直覺答案：選最寬的那條！</strong><br>
+  最大邊界超平面（maximal margin hyperplane）就是那個「離最近的點最遠」的分離超平面。這就像在兩個陣營之間建一道牆——牆的位置要讓雙方的前哨兵（最近的點）離牆的距離相等，且這個距離要盡量大。
+</div>
+
+<p>關鍵術語：</p>
+<ul style="margin:1rem 0 1rem 2rem; line-height:2">
+  <li><strong>邊界（margin）</strong>：從超平面到最近訓練觀測點的垂直距離。</li>
+  <li><strong>支援向量（support vectors）</strong>：那些恰好落在邊界上的點——它們「支撐」著整個超平面。如果這些點移動了，超平面也會隨之改變；但其他點移動了則不會影響（前提是不跨越邊界）。</li>
+</ul>
+
+<p>課本 Figure 9.3 展示了這個概念：實線是最大邊界超平面，虛線標出了邊界的寬度，而箭頭指向三個支援向量（兩個藍點和一個紫點）。</p>
+
+<div class="ref-box">
+  ISLP §9.1.3 (pp.370–371)：最大邊界分類器是「最自然」的選擇——在無限多個可能中挑出邊界最大的。這個想法很直覺：訓練集上邊界大，測試集上也傾向有較大邊界，分類表現更好。
+</div>
+
+<h2>🔧 最大邊界分類器的建構：約束優化問題</h2>
+
+<p>要正式定義最大邊界超平面，我們需要解決一個優化問題。令 \(M\) 代表邊界寬度，我們希望最大化 \(M\)，同時確保所有點都在正確的一側且距離至少為 \(M\)：</p>
+
+<div class="formula">
+\[
+\begin{aligned}
+\underset{\beta_0,\beta_1,\ldots,\beta_p,M}{\text{maximize}} \quad & M \\[6pt]
+\text{subject to} \quad & \sum_{j=1}^{p} \beta_j^2 = 1, \\[6pt]
+& y_i(\beta_0 + \beta_1 x_{i1} + \cdots + \beta_p x_{ip}) \geq M \quad \forall i
+\end{aligned}
+\]
+<div class="formula-label">(9.9)–(9.11) 最大邊界優化問題</div>
+</div>
+
+<p>讓我們拆解這個看似複雜的公式：</p>
+
+<ol style="margin:1rem 0 1rem 2rem; line-height:2">
+  <li><strong>約束 \(\sum \beta_j^2 = 1\)</strong>：這是一個「縮放標準化」。無論我們如何放大或縮小 \(\beta\) 值，超平面本身不變（因為 \(k\beta_0 + k\beta_1 X_1 + \cdots = 0\) 定義同一條線）。加上這個約束後，\(y_i(\beta_0 + \beta_1 x_{i1} + \cdots)\) 剛好等於點 \(i\) 到超平面的垂直距離。</li>
+  <li><strong>約束 \(y_i(\ldots) \geq M\)</strong>：確保每個點都在正確的一側，且至少有 \(M\) 的距離（即落在邊界外或邊界上）。</li>
+  <li><strong>目標 \(\max M\)</strong>：讓邊界盡量大——這就是「最大邊界」的由來。</li>
+</ol>
+
+<p>這是一個<strong>凸優化問題</strong>（二次規劃），可以高效求解。雖然推導過程超出本書範圍，但理解這三個元素的意義就足夠了。</p>
+
+<div class="callout">
+  <strong>🎓 自學提示：Hermes 系統設計啟發</strong><br>
+  最大邊界分類器的核心思想——「不只要對，還要有餘裕（margin）」——對 AI 代理系統設計有深刻啟發。每當子 agent 執行任務時，不僅要「正確執行」，還應該留有<strong>決策邊界</strong>：當分類信心低於某個閾值時，自動升級給主 agent 處理。這對應了 SVM 中 \(f(x^*)\) 接近 0 的尷尬地帶——那些不確定的決策，最好交給上層處理。
+</div>
+
+<h2>❌ 不可分離的情況：現實世界的殘酷</h2>
+
+<p>最大邊界分類器有一個致命的限制：<strong>資料必須完美可線性分離</strong>。如果兩個類別的點有重疊，或存在離群值跨越邊界，就根本不存在任何分離超平面，也就沒有最大邊界分類器。</p>
+
+<p>課本毫不留情地點出：在大多數真實場景中，不存在完美分離。這為下一節（§9.2 支援向量分類器）鋪路——我們需要一個能<strong>容忍部分分類錯誤</strong>的軟邊界版本。這就是 SVM 演化的關鍵轉折。</p>
+
+<h2>🐍 Python 實戰：最大邊界分類器</h2>
+
+<p>以下用 sklearn 的線性 SVM（硬邊界模式 \(C \to \infty\)）示範最大邊界分類器的概念，並標出支援向量。</p>
+
+<pre><code class="language-python"># 9.1 最大邊界分類器 — Python Demo
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+
+# 生成可完美分離的二維資料
+np.random.seed(42)
+n = 40
+# 類別 1：以 (2, 2) 為中心
+X1 = np.random.randn(n, 2) + np.array([2, 2])
+y1 = np.ones(n)
+# 類別 -1：以 (-2, -2) 為中心
+X2 = np.random.randn(n, 2) + np.array([-2, -2])
+y2 = -np.ones(n)
+
+X = np.vstack([X1, X2])
+y = np.hstack([y1, y2])
+
+# 用 sklearn SVC：設定 C 極大 → 近似硬邊界（無錯誤容忍）
+from sklearn.svm import SVC
+
+svm_hard = SVC(kernel='linear', C=1e10)
+svm_hard.fit(X, y)
+
+# 提取超平面參數
+w = svm_hard.coef_[0]
+b = svm_hard.intercept_[0]
+print(f"超平面：{w[0]:.3f} * X1 + {w[1]:.3f} * X2 + {b:.3f} = 0")
+print(f"支援向量數量：{len(svm_hard.support_)}")
+
+# 可視化
+fig, ax = plt.subplots(figsize=(8, 6))
+# 繪製資料點
+ax.scatter(X1[:, 0], X1[:, 1], c='#58a6ff', edgecolors='k', s=60, label='Class +1')
+ax.scatter(X2[:, 0], X2[:, 1], c='#f85149', edgecolors='k', s=60, label='Class -1')
+# 標示支援向量
+ax.scatter(X[svm_hard.support_, 0], X[svm_hard.support_, 1],
+           s=200, facecolors='none', edgecolors='#3fb950', linewidths=2,
+           label=f'Support Vectors ({len(svm_hard.support_)})')
+
+# 繪製決策邊界和邊界線
+xx = np.linspace(X[:, 0].min() - 1, X[:, 0].max() + 1, 100)
+yy = -(w[0] * xx + b) / w[1]
+margin = 1 / np.sqrt(np.sum(w ** 2))
+yy_down = yy - np.sqrt(1 + (w[0] / w[1]) ** 2) * margin
+yy_up = yy + np.sqrt(1 + (w[0] / w[1]) ** 2) * margin
+
+ax.plot(xx, yy, 'k-', linewidth=2, label='Decision Boundary')
+ax.plot(xx, yy_down, 'k--', linewidth=1, alpha=0.7, label='Margin')
+ax.plot(xx, yy_up, 'k--', linewidth=1, alpha=0.7)
+
+ax.set_xlabel('X1', fontsize=12)
+ax.set_ylabel('X2', fontsize=12)
+ax.set_title(f'Maximal Margin Classifier\nMargin Width = {2*margin:.3f}', fontsize=14)
+ax.legend(loc='best')
+ax.set_aspect('equal')
+plt.tight_layout()
+plt.savefig('/tmp/islp_9_1_maximal_margin.png', dpi=120, bbox_inches='tight')
+plt.show()
+print("圖表已儲存至 /tmp/islp_9_1_maximal_margin.png")</code></pre>
+
+<h2>⚖️ 優缺點對照</h2>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 優點</h4>
+    <ul>
+      <li><strong>概念直覺</strong>：選「最寬」的分離線，一聽就懂</li>
+      <li><strong>稀疏解</strong>：決策只依賴少數支援向量，非全部訓練資料</li>
+      <li><strong>理論保證</strong>：基於凸優化，收斂到全域最佳解</li>
+      <li><strong>分類信心</strong>：\(f(x^*)\) 的大小直接反映信心程度</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 缺點</h4>
+    <ul>
+      <li><strong>完美分離要求</strong>：資料必須線性可分，否則直接失敗</li>
+      <li><strong>對離群值敏感</strong>：單一極端點可能大幅扭曲邊界</li>
+      <li><strong>高維過擬合</strong>：\(p\) 大時容易找到「假的」分離面</li>
+      <li><strong>僅限兩類</strong>：無法直接處理多類別問題（需後續擴展）</li>
+    </ul>
+  </div>
+</div>
+
+<h2>📊 與其他分類方法比較</h2>
+
+<table class="comparison-table">
+  <tr>
+    <th>方法</th>
+    <th>邊界類型</th>
+    <th>對離群值</th>
+    <th>機率輸出</th>
+    <th>適用情境</th>
+  </tr>
+  <tr>
+    <td><strong>最大邊界分類器</strong></td>
+    <td>硬邊界（完美分離）</td>
+    <td>極敏感</td>
+    <td>❌</td>
+    <td>完美線性可分、低雜訊</td>
+  </tr>
+  <tr>
+    <td>邏輯回歸（§4.3）</td>
+    <td>柔性機率邊界</td>
+    <td>較穩健</td>
+    <td>✅</td>
+    <td>需機率輸出、類別重疊可接受</td>
+  </tr>
+  <tr>
+    <td>LDA（§4.4）</td>
+    <td>線性判別</td>
+    <td>中等</td>
+    <td>✅ (後驗)</td>
+    <td>各類別近似常態分布</td>
+  </tr>
+  <tr>
+    <td>KNN（§3.5）</td>
+    <td>非線性、非參數</td>
+    <td>穩健</td>
+    <td>✅ (比例)</td>
+    <td>無需假設資料分布</td>
+  </tr>
+</table>
+
+<div class="scenario-box">
+  <h4>🏥 應用場景：罕見疾病篩檢</h4>
+  <p>在疾病篩檢中，我們常用兩個生物標記（如血壓與膽固醇）來區分患者與健康者。最大邊界分類器的<strong>邊界寬度</strong>對應篩檢的「安全餘裕」——寬邊界意味著正常值和異常值之間的差距很大，偽陽性率低。但如果資料有雜訊（如輕症患者數值與正常人重疊），硬邊界方法就完全無法使用，這正是 §9.2 要解決的問題。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>📱 應用場景：手機解鎖的臉部辨識</h4>
+  <p>Face ID 系統將你的臉部特徵向量與儲存的模板進行比對。本質上，它在高維特徵空間中建立一個分離超平面來區分「本人」和「非本人」。<strong>邊界寬度</strong>（margin）對應安全性——寬邊界意味著相似的非本人（如雙胞胎）也無法誤觸解鎖。然而實際系統中使用的是軟邊界版本（支援向量分類器，§9.2），因為臉部表情、光線變化會產生雜訊，無法完美分離。</p>
+</div>
+
+<h2>🔗 銜接：從硬邊界到軟邊界</h2>
+
+<p>最大邊界分類器的最大弱點——要求完美分離——直接催生了下一節的<strong>支援向量分類器（§9.2）</strong>。核心改進是引入「軟邊界」：允許部分點跨越邊界甚至被錯分，透過成本參數 \(C\) 來權衡邊界寬度與錯誤筆數。這是 SVM 從「理想世界的完美分割」走向「現實世界的穩健分類」的關鍵一步。</p>
+
+<div class="key-quote">
+  最大邊界分類器告訴我們：問題不只是「能不能分開」，而是「分開後還有多少餘裕」。在機器學習中，餘裕就是泛化能力的保障。
+  <span class="author">— 改寫自 ISLP §9.1.5</span>
+</div>
+
+<!-- ========== CONTENT END ========== -->
+
+<div class="section-nav">
+  <a href="../statistics/8.3_lab_tree_methods.html">← 8.3 Lab: 決策樹</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="../statistics/9.2_support_vector_classifiers.html">9.2 支援向量分類器 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 9 章：支援向量機 · §9.1 最大邊界分類器</p>
+  <p>Generated: 2026-07-27 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
