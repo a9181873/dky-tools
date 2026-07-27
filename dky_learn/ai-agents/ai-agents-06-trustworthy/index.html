@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打造可信賴的 AI Agent — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 6 課繁體中文版：安全設計、威脅防護、人在迴圈中與隱私保護">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 6 課 / 共 18 課</p>
+<h1>打造可信賴的 AI Agent</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-05-rag/">← 第 5 課</a>
+<a href="../ai-agents-07-planning/">第 7 課 →</a>
+</nav>
+
+<div class="verdict">
+一句話：<strong>可信賴的 AI Agent 不是靠一句「別亂來」就能達成——它需要系統訊息框架、威脅緩解策略、以及人在迴圈中的回饋機制，三者缺一不可。</strong>
+</div>
+
+<h2>課程簡介</h2>
+<p>本課將涵蓋：</p>
+<ul>
+<li>如何建置與部署安全、有效的 AI Agent</li>
+<li>開發 AI Agent 時的重要資安考量</li>
+<li>如何在開發過程中保護資料與使用者隱私</li>
+</ul>
+
+<h2>學習目標</h2>
+<p>學完本課後，你將能夠：</p>
+<ul>
+<li>辨識並緩解建立 AI Agent 時的風險</li>
+<li>實作安全措施以確保資料與存取權被妥善管理</li>
+<li>建立能維護資料隱私、同時提供優質使用者體驗的 AI Agent</li>
+</ul>
+
+<h2>安全性（Safety）</h2>
+<p>先談安全——這裡的「安全」指 AI Agent 按照設計預期正常運作。做為 Agent 開發者，我們有數種方法與工具來最大化安全性：</p>
+
+<h3>建立系統訊息框架 (System Message Framework)</h3>
+<p>如果你曾用 LLM 建過 AI 應用，你一定知道設計一個健壯的「系統提示（system prompt）」有多重要。這些提示建立了 LLM 與使用者、資料互動的元規則、指令與指引。</p>
+<p>對 AI Agent 而言，系統提示更加重要——因為 Agent 需要高度具體的指示來完成我們設計的任務。</p>
+<p>要建立可擴展的系統提示，可以使用以下四步驟框架：</p>
+
+<div class="card">
+<h3>四步驟框架</h3>
+
+<h4>步驟 1：建立「元系統訊息」(Meta System Message)</h4>
+<p>元提示由一個 LLM 使用，用來為我們建立的 Agent <strong>生成系統提示</strong>。我們把它設計成模板，以便有效率地建立多個 Agent。</p>
+<pre>You are an expert at creating AI agent assistants.
+You will be provided a company name, role, responsibilities and other
+information that you will use to provide a system prompt for.
+To create the system prompt, be descriptive as possible and provide a
+structure that a system using an LLM can better understand the role
+and responsibilities of the AI assistant.</pre>
+
+<h4>步驟 2：建立基礎提示 (Basic Prompt)</h4>
+<p>描述 AI Agent 的角色、任務與責任：</p>
+<pre>You are a travel agent for Contoso Travel that is great at booking
+flights for customers. To help customers you can perform the following
+tasks: lookup available flights, book flights, ask for preferences in
+seating and times for flights, cancel any previously booked flights
+and alert customers on any delays or cancellations of flights.</pre>
+
+<h4>步驟 3：將基礎提示交給 LLM 優化</h4>
+<p>把元系統訊息當作系統提示、基礎提示當作使用者輸入，LLM 會產出一個更完整、結構更清晰的系統提示。</p>
+
+<h4>步驟 4：迭代改善</h4>
+<p>第一次生成的系統提示很少完美。透過修改基礎提示再重跑流程，可以比較不同版本的結果，持續改進。</p>
+</div>
+
+<p><strong>💡 核心概念</strong>：這個框架的價值在於你可以快速為多個 Agent 生成系統提示，並隨著時間迭代優化。不必手寫每一份——讓 LLM 幫你生成，你負責審查與調整。</p>
+
+<h2>理解威脅 (Understanding Threats)</h2>
+<p>要打造可信賴的 AI Agent，必須理解並緩解風險與威脅。以下是五種主要威脅類型：</p>
+
+<table>
+<tr><th>威脅類型</th><th>說明</th><th>緩解策略</th></tr>
+<tr>
+<td><strong>任務與指令竄改</strong></td>
+<td>攻擊者透過提示注入或操縱輸入，試圖改變 AI Agent 的指令或目標</td>
+<td>執行驗證檢查與輸入過濾器，在 Agent 處理前偵測潛在危險提示。限制對話回合數也能有效防範（因為此類攻擊通常需要頻繁互動）</td>
+</tr>
+<tr>
+<td><strong>存取關鍵系統</strong></td>
+<td>若 AI Agent 能存取儲存敏感資料的系統，攻擊者可能破壞 Agent 與這些服務的通訊，直接攻擊或透過 Agent 間接獲取資訊</td>
+<td>AI Agent 應遵循「最小權限原則」——只給完成任務所需的存取權。Agent 與系統間的通訊必須加密，並實作身分驗證與存取控制</td>
+</tr>
+<tr>
+<td><strong>資源與服務超載</strong></td>
+<td>AI Agent 能存取多種工具與服務，攻擊者可利用這點透過 Agent 發送大量請求，導致系統故障或高昂成本</td>
+<td>限制 Agent 對服務的請求數量上限；限制對話回合數與請求數也是有效的防範措施</td>
+</tr>
+<tr>
+<td><strong>知識庫汙染</strong></td>
+<td>這類攻擊不直接針對 Agent，而是針對 Agent 使用的知識庫或其他服務。攻擊者汙染 Agent 將用於完成任務的資料，導致偏頗或非預期的回應</td>
+<td>定期驗證 Agent 工作流程中使用的資料；確保這類資料的存取安全，只有可信任的人員能修改</td>
+</tr>
+<tr>
+<td><strong>連鎖錯誤 (Cascading Errors)</strong></td>
+<td>AI Agent 存取多種工具與服務完成任務。攻擊者引發的錯誤可能導致 Agent 所連接的其他系統接連失敗，使攻擊範圍擴大且難以排查</td>
+<td>讓 Agent 在受限環境中執行（例如 Docker 容器），避免直接攻擊主系統。當特定系統回應錯誤時，建立降級機制與重試邏輯</td>
+</tr>
+</table>
+
+<h2>人在迴圈中 (Human-in-the-Loop)</h2>
+<p>另一個建立可信賴 AI Agent 的有效方法是「人在迴圈中」。這個設計讓使用者在 Agent 執行過程中能提供回饋——使用者本質上成為多 Agent 系統中的一個 Agent，負責批准或終止執行中的流程。</p>
+
+<div class="card">
+<h3>程式碼範例：Microsoft Agent Framework</h3>
+<pre>import os
+from agent_framework.foundry import FoundryChatClient
+from azure.identity import AzureCliCredential
+
+# 建立具備「人在迴圈中」審核機制的提供者
+provider = FoundryChatClient(
+    project_endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+    model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"],
+    credential=AzureCliCredential(),
+)
+
+# 建立 Agent，加入人工審核步驟
+response = provider.create_response(
+    input="Write a 4-line poem about the ocean.",
+    instructions="You are a helpful assistant. Ask for user approval before finalizing.",
+)
+
+# 使用者可以審查並核准回應
+print(response.output_text)
+user_input = input("Do you approve? (APPROVE/REJECT): ")
+if user_input == "APPROVE":
+    print("Response approved.")
+else:
+    print("Response rejected. Revising...")</pre>
+</div>
+
+<p><strong>💡 關鍵思維</strong>：Human-in-the-Loop 不只是安全機制，更是品質保證的一環。讓人在關鍵決策點介入，既能防止災難性錯誤，也能收集回饋持續改善 Agent。</p>
+
+<h2>課程結論</h2>
+<p>打造可信賴的 AI Agent 需要謹慎設計、健全的安全措施與持續迭代。透過實作結構化的元提示系統、理解潛在威脅並應用緩解策略，開發者可以建立既安全又有效的 AI Agent。此外，加入人在迴圈中的設計確保 Agent 維持與使用者需求的一致性，同時最小化風險。隨著 AI 持續演進，對安全、隱私與倫理的積極態度將是培養 AI 系統信任與可靠性的關鍵。</p>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>系統訊息框架</strong>是打造安全 Agent 的基石——用元提示 + 基礎提示 + LLM 迭代四步驟，產出一致且可擴展的系統提示</li>
+<li><strong>五種主要威脅</strong>：指令竄改、關鍵系統存取、資源超載、知識庫汙染、連鎖錯誤——每種都有對應的緩解策略</li>
+<li><strong>最小權限原則</strong>：Agent 只應擁有完成任務所需的「最低限度」存取權，不多不少</li>
+<li><strong>限制與隔離</strong>：限制對話回合數、請求頻率，並在 Docker 等隔離環境執行以降低風險</li>
+<li><strong>人在迴圈中</strong>讓使用者成為最後一道防線——審核、批准或拒絕 Agent 的關鍵操作，平衡自動化與安全</li>
+<li><strong>可信賴的 Agent 不是一次到位</strong>：持續迭代、威脅評估、回饋循環，才能維持長期可靠性</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/06-building-trustworthy-agents">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/iZKkMEGBCUQ">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 GitHub</a></li>
+<li><a href="https://learn.microsoft.com/azure/ai-studio/responsible-use-of-ai-overview">負責任的 AI 概述 (Microsoft Learn)</a></li>
+<li><a href="https://learn.microsoft.com/azure/ai-studio/concepts/evaluation-approach-gen-ai">生成式 AI 模型評估 (Microsoft Learn)</a></li>
+<li><a href="https://learn.microsoft.com/azure/ai-services/openai/concepts/system-message">安全系統訊息 (Azure OpenAI)</a></li>
+<li><a href="https://blogs.microsoft.com/wp-content/uploads/prod/sites/5/2022/06/Microsoft-RAI-Impact-Assessment-Template.pdf">風險評估模板 (Microsoft PDF)</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-05-rag/">← 第 5 課</a>
+<a href="../ai-agents-07-planning/">第 7 課 →</a>
+</nav>
+</main>
+</body>
+</html>
