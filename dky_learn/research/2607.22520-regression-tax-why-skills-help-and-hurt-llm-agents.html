@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>技能的回歸稅：分解為什麼技能幫助與傷害 LLM Agent — DKY 論文筆記</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.2rem;margin:2rem 0 1rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}h3{color:var(--fg);font-size:1.05rem;margin:1.5rem 0 .8rem}h4{color:var(--accent2);font-size:.95rem;margin:1rem 0 .5rem}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.5rem;margin:1rem 0}ol,ul{margin:.8rem 0 .8rem 1.5rem;line-height:1.85}li{margin-bottom:.3rem}strong{color:#fff}b{color:#fff}.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin:1rem 0}.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}.mc h4{color:var(--accent);margin:0 0 .4rem;font-size:.95rem}.mc p{margin:0;font-size:.85rem;color:var(--fg)}@media(max-width:768px){.mb{grid-template-columns:1fr}body{padding:1rem}h1{font-size:1.3rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>技能的回歸稅：分解為什麼技能幫助與傷害 LLM Agent</h1>
+  <p class="meta">arXiv:2607.22520 — 2026-07-24 — Darshan Tank, Baran Nama (Sentient Labs) — Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">回歸稅</span><span class="tag">Agent Skills</span><span class="tag">技能評估</span>
+    <span class="tag">接地置換</span><span class="tag">滲透效應</span><span class="tag">驗證置換</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+<div class="card">
+<p>技能庫的常規評估只看<b>平均任務成功率提升</b>，但這隱藏了一個關鍵成本：<b>技能也會讓已解決的任務崩潰</b>。Sentient Labs 在 5,832 次配對任務執行中，將淨效果分解為增益和迴歸：553 次增益 vs 324 次迴歸——<b>59% 的總增益被迴歸抵銷</b>。最好的技能庫之所以最好，主要是因為<b>迴歸較少，而非增益較多</b>。三種迴歸機制：(1) <b>技能描述滲透</b>——技能僅因存在於 context 中就改變行為；(2) <b>接地置換</b>——程序覆蓋正確的輸入解讀；(3) <b>驗證置換</b>——程序抑制輸出檢查。既有技能過度服務於方法階段，卻在接地與驗證階段失靈。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>實驗規模</h4><p>5,832 次配對執行，OfficeQA-Pro + SpreadsheetBench 雙基準，三模型棧</p></div>
+<div class="mc"><h4>核心發現</h4><p>553 增益 vs 324 迴歸（淨 229）。最好技能庫的差異在迴歸數而非增益數</p></div>
+<div class="mc"><h4>三種迴歸機制</h4><p>描述滲透（17%）、接地置換（73%）、驗證置換（4%）。接地主導 invoked 迴歸</p></div>
+<div class="mc"><h4>回收假性失敗</h4><p>試算表引擎重算回收 226/663 次公式失敗，升幅 +11~+49 pp</p></div>
+</div>
+
+<h2>核心洞察：技能的四種結局</h2>
+<div class="card">
+<p>論文解構了技能評估的根本問題：</p>
+<ol>
+<li><b>傳統做法：</b>比較平均成功率。Δ = +5% 看似不錯，就此結案</li>
+<li><b>被隱藏的真相：</b>同一個 Δ 可以來自「+15 增益、−10 迴歸」或「+5 增益、0 迴歸」——第二個技能庫明顯更可靠</li>
+<li><b>四種結局框架：</b>每任務配對落入四格：增益、迴歸、殘留失敗、保留</li>
+<li><b>反直覺：</b>Claude Code 上三個技能庫增益數幾乎相同（10/11/12），但迴歸數差三倍（2/4/7）。增益最多的 openai 淨效果最差</li>
+</ol>
+</div>
+
+<h2>機制一：技能描述滲透</h2>
+<div class="card">
+<p>技能<b>不需要被調用就能改變 agent 行為</b>。技能描述常駐 system prompt，即使主體從未被讀取。</p>
+<ul>
+<li><b>證據：</b>sonnet-4.6 的 13 次迴歸中 9 次（69%）為滲透——技能 body 從未被調用，答案卻改變了</li>
+<li><b>案例 UID0096：</b>三個獨立技能庫在場且皆未被調用，全部收斂到同一錯誤答案——僅因描述中 "revised" 和 "customs" 關鍵詞改變了 agent 的解讀框架</li>
+<li><b>雙面刃：</b>滲透也會幫忙（84% 的 SpreadsheetBench 增益是無調用式），但也造成 70/243 迴歸</li>
+</ul>
+</div>
+
+<h2>機制二：接地置換</h2>
+<div class="card">
+<p>當技能被調用時最常見的迴歸（73%）：技能程序覆蓋了 agent 對輸入的正確解讀。</p>
+<ul>
+<li><b>案例 UID0025：</b>無技能時 agent 正確讀取數字得 142。加入技能後被導航程序引導到錯誤的數字，回傳 542——接地錯了，不是方法錯了</li>
+<li><b>根因：</b>通用導航技能不含該任務特有的接地資訊（哪個表格、哪個年份）。agent 本來的接地是正確的，技能讓它「相信」了錯誤的接地</li>
+</ul>
+</div>
+
+<h2>機制三：驗證置換</h2>
+<div class="card">
+<p>技能抑制了 agent 本該執行的輸出檢查。方法正確，但缺乏驗證環節。</p>
+<ul>
+<li><b>大規模回收：</b>完整試算表引擎重算 663 次公式失敗——<b>226 次（34%）公式本身正確</b>，僅因 value-only grader 無法評估而被誤判</li>
+<li><b>回收規模：</b>GPT-5.4-mini 棧從 mid-60s 拉到 high-70s（+42~49）</li>
+<li><b>教訓：</b>agent 已寫出正確公式，失敗只在驗證環節——技能完全沒提供驗證指導</li>
+</ul>
+</div>
+
+<h2>殘留失敗診斷：方法不是瓶頸</h2>
+<div class="card">
+<ul>
+<li><b>OfficeQA-Pro：</b>24 個殘留失敗中 23 個仍產出數值——方法執行了，但計算的是<b>錯的數量</b>。接地是真正的瓶頸</li>
+<li><b>SpreadsheetBench：</b>殘留失敗集中在輸出驗證階段。技能教了如何寫公式，沒教如何確認結果正確</li>
+<li><b>技能設計偏差：</b>過度服務於方法階段（最不需要幫助），卻在接地和驗證（主要錯誤來源）供應不足</li>
+</ul>
+</div>
+
+<h2>對 Hermes 的啟發</h2>
+<div class="card">
+<ul>
+<li><b>技能評估必須拆解增益與迴歸：</b>保留校準任務集，每次新增 skill 後重跑並計算 gain/regression 配對</li>
+<li><b>技能描述的隱性成本：</b>每個 skill description 都在汙染 agent 的解讀框架——即使從不被觸發。應精簡 description 至觸發必要詞彙</li>
+<li><b>技能應包含接地與驗證，而非只有方法：</b>強制每 skill 包含 (a) 何時不該使用 和 (b) 如何驗證輸出</li>
+<li><b>「不要做」比「怎麼做」更重要：</b>最安全的 skill 告訴 agent 何時不該干涉</li>
+<li><b>引入執行後驗證層：</b>可回收大量假性失敗——任務看似失敗，可能只是驗證未執行</li>
+</ul>
+</div>
+
+<h2>限制</h2>
+<div class="card">
+<ul>
+<li>每條件僅執行一次，無 seed 複製——部分 flip 可能來自隨機性</li>
+<li>跨庫對比未控制 token 數量，無法排除注意力稀釋效應</li>
+<li>僅 3/18 條件通過 Bonferroni 校正，多數淨效果不顯著</li>
+<li>兩個基準均為辦公室自動化，不一定推廣到其他 agent 任務</li>
+<li>機制分類為單一作者主觀標記</li>
+<li>未測試技能組合交互效應</li>
+</ul>
+</div>
+
+</body>
+</html>
