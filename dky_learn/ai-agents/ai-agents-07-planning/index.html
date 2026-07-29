@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>規劃設計模式 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 7 課繁體中文版：任務分解、結構化輸出、多 Agent 編排與迭代式規劃">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 7 課 / 共 18 課</p>
+<h1>規劃設計模式 (Planning Design)</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-06-trustworthy/">← 第 6 課</a>
+<a href="../ai-agents-08-multi-agent/">第 8 課 →</a>
+</nav>
+
+<div class="verdict">
+一句話：<strong>規劃設計模式讓 AI Agent 不再是「一步到位」的回答機，而是能拆解複雜任務、產生結構化計畫、分配給子 Agent 執行，並根據結果動態調整的策略腦。</strong>
+</div>
+
+<h2>課程簡介</h2>
+<p>本課將涵蓋三項核心能力：</p>
+<ul>
+<li><strong>定義清晰的總體目標</strong>，並將複雜任務拆解為可管理的小任務</li>
+<li><strong>善用結構化輸出</strong>（如 JSON），讓下游 Agent 或服務能可靠解析</li>
+<li><strong>採用事件驅動方法</strong>，處理動態任務與非預期輸入</li>
+</ul>
+
+<h2>學習目標</h2>
+<p>學完本課後，你將能夠：</p>
+<ul>
+<li>為 AI Agent 設定明確的總體目標，確保它清楚知道要達成什麼</li>
+<li>將複雜任務分解為可管理的子任務，並組織成邏輯順序</li>
+<li>為 Agent 配備正確的工具（搜尋、數據分析等），決定何時及如何使用，並處理突發狀況</li>
+<li>評估子任務的結果、衡量效能，並迭代調整行動以改善最終輸出</li>
+</ul>
+
+<h2>定義總體目標與任務分解</h2>
+
+<p>大多數真實世界任務太複雜，無法一步完成。AI Agent 需要一個<strong>精確的目標</strong>來引導它的規劃與行動。</p>
+
+<div class="card">
+<h3>範例目標</h3>
+<pre>"為一個家庭規劃 3 天旅行行程。"</pre>
+<p>雖然聽起來簡單，但仍需要細化。目標越清晰，Agent（以及人類協作者）就越能專注於正確的結果——例如包含航班選項、飯店推薦和活動建議的完整行程。</p>
+</div>
+
+<h3>任務分解 (Task Decomposition)</h3>
+
+<p>大型或複雜的任務在拆分為較小、目標導向的子任務後，會變得更容易管理。</p>
+<p>以前面旅行行程為例，你可以將目標分解為：</p>
+
+<table>
+<tr><th>子任務</th><th>說明</th></tr>
+<tr><td>機票預訂</td><td>搜尋最佳航班優惠</td></tr>
+<tr><td>飯店預訂</td><td>尋找適合家庭的住宿</td></tr>
+<tr><td>租車服務</td><td>安排適合四人家庭的車輛</td></tr>
+<tr><td>個人化</td><td>根據偏好客製化行程</td></tr>
+</table>
+
+<p>每個子任務可以由專屬的 Agent 或程序處理。一個 Agent 專門搜尋最佳航班、另一個專注飯店預訂，然後由一個協調者 Agent 將結果彙整成一份連貫的行程交給使用者。</p>
+
+<p><strong>核心概念</strong>：這種方法允許漸進式增強。例如，你可以隨時新增「美食推薦」或「當地活動建議」的專屬 Agent，逐步豐富行程品質。</p>
+
+<h2>結構化輸出 (Structured Output)</h2>
+
+<p>大型語言模型（LLM）可以生成<strong>結構化輸出</strong>（如 JSON），讓下游 Agent 或服務更容易解析與處理。這在多 Agent 場景中尤其重要——收到規劃輸出後，可以直接根據結構化資料將任務發派給對應的 Agent。</p>
+
+<div class="card">
+<h3>程式碼範例：規劃 Agent + 結構化輸出</h3>
+<pre>from pydantic import BaseModel
+from enum import Enum
+from typing import List, Optional
+import json, os
+from pprint import pprint
+from agent_framework.foundry import FoundryChatClient
+from azure.identity import AzureCliCredential
+
+class AgentEnum(str, Enum):
+    FlightBooking = "flight_booking"
+    HotelBooking = "hotel_booking"
+    CarRental = "car_rental"
+    ActivitiesBooking = "activities_booking"
+    DestinationInfo = "destination_info"
+    DefaultAgent = "default_agent"
+    GroupChatManager = "group_chat_manager"
+
+class TravelSubTask(BaseModel):
+    task_details: str
+    assigned_agent: AgentEnum
+
+class TravelPlan(BaseModel):
+    main_task: str
+    subtasks: List[TravelSubTask]
+    is_greeting: bool
+
+provider = FoundryChatClient(
+    project_endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+    model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"],
+    credential=AzureCliCredential(),
+)
+
+system_prompt = "You are a planner agent. Decide which agents to run..."
+
+user_message = "Create a travel plan for a family of 2 kids from Singapore to Melbourne"
+
+response = client.create_response(input=user_message, instructions=system_prompt)
+response_content = response.output_text
+pprint(json.loads(response_content))</pre>
+</div>
+
+<h3>預期輸出（結構化 JSON）</h3>
+
+<div class="card">
+<pre>{
+    "is_greeting": false,
+    "main_task": "Plan a family trip from Singapore to Melbourne.",
+    "subtasks": [
+        {
+            "assigned_agent": "flight_booking",
+            "task_details": "Book round-trip flights from Singapore to Melbourne."
+        },
+        {
+            "assigned_agent": "hotel_booking",
+            "task_details": "Find family-friendly hotels in Melbourne."
+        },
+        {
+            "assigned_agent": "car_rental",
+            "task_details": "Arrange a car rental suitable for a family of four."
+        },
+        {
+            "assigned_agent": "activities_booking",
+            "task_details": "List family-friendly activities in Melbourne."
+        },
+        {
+            "assigned_agent": "destination_info",
+            "task_details": "Provide information about Melbourne as a destination."
+        }
+    ]
+}</pre>
+</div>
+
+<p><strong>關鍵概念</strong>：有了這個結構化 JSON，協調者 Agent 就可以根據 <code>assigned_agent</code> 欄位，將每個子任務路由到對應的專屬 Agent，然後彙整結果給使用者。</p>
+
+<h2>多 Agent 編排中的規劃者角色</h2>
+
+<p>在一個多 Agent 系統中，<strong>規劃者 Agent (Planner Agent)</strong> 扮演核心的協調角色：</p>
+
+<table>
+<tr><th>步驟</th><th>說明</th></tr>
+<tr><td><strong>1. 接收請求</strong></td><td>收到使用者請求，例如「我需要一個旅行飯店計畫」</td></tr>
+<tr><td><strong>2. 產生結構化計畫</strong></td><td>根據系統提示（含可用 Agent 清單），規劃者生成結構化的旅行計畫</td></tr>
+<tr><td><strong>3. 路由任務</strong></td><td>根據子任務數量：單一任務直接發派給專屬 Agent；多任務則透過群組聊天管理器（Group Chat Manager）協調多 Agent 協作</td></tr>
+<tr><td><strong>4. 彙總結果</strong></td><td>規劃者將結果彙整成清晰易懂的最終輸出</td></tr>
+</table>
+
+<div class="warn">
+<h3>注意</h3>
+<p>以上程式碼範例使用 Microsoft Agent Framework 的 <code>FoundryChatClient</code>，需要 Azure AI Foundry 環境。完整的 Jupyter Notebook 範例可於 <a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/07-planning-design/code_samples">課程程式碼目錄</a> 取得。</p>
+</div>
+
+<h2>迭代式規劃 (Iterative Planning)</h2>
+
+<p>有些任務需要<strong>來回調整或重新規劃</strong>——一個子任務的結果可能影響下一個子任務。例如，Agent 在預訂航班時發現非預期的資料格式，就需要調整策略才能繼續處理飯店預訂。</p>
+
+<p>此外，<strong>使用者回饋</strong>（例如旅客決定想要更早的航班）也可以觸發局部重新規劃。這種動態、迭代的方法確保最終方案符合真實世界限制與不斷變化的使用者偏好。</p>
+
+<div class="card">
+<h3>迭代規劃程式碼概念</h3>
+<pre># 將先前的計畫和使用者歷史傳入 context
+response = client.create_response(
+    input=user_message,
+    instructions=system_prompt,
+    context=f"Previous travel plan - {TravelPlan}",
+)
+# ... 根據新資訊重新規劃，並將任務發派給對應 Agent</pre>
+</div>
+
+<p><strong>更進階的規劃</strong>：Microsoft Research 的 <a href="https://www.microsoft.com/research/articles/magentic-one-a-generalist-multi-agent-system-for-solving-complex-tasks">Magentic One</a> 是一個通用型多 Agent 系統，專門解決複雜任務，在多個具挑戰性的 Agent 基準測試中取得了亮眼成績。在這個實作中，協調者不僅建立任務特定計畫並委派給可用 Agent，還使用<strong>追蹤機制</strong>監控任務進度，必要時進行重新規劃。</p>
+
+<h2>課程結論</h2>
+<p>本課我們看到如何建立一個能<strong>動態選擇可用 Agent</strong> 的規劃者。規劃者的輸出會分解任務並指派 Agent，假設這些 Agent 已具備執行任務所需的函式/工具。除了 Agent 本身，你還可以加入其他模式——如反思（reflection）、摘要（summarizer）、輪詢聊天（round robin chat）——進一步客製化你的系統。</p>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>任務分解是核心</strong>：大型任務拆成子任務，分配給專屬 Agent，模組化讓系統更容易擴展與維護</li>
+<li><strong>結構化輸出是黏合劑</strong>：用 JSON/Pydantic 定義輸出格式，讓 Agent 之間的溝通可靠且可程式化處理</li>
+<li><strong>規劃者 Agent 是編排中樞</strong>：接收請求、產生計畫、路由任務、彙總結果，四步驟完成多 Agent 協作</li>
+<li><strong>迭代式規劃因應變化</strong>：子任務結果影響下一步？使用者改變心意？傳入 context 觸發重新規劃，保持彈性</li>
+<li><strong>Magentic One 是進階參考</strong>：Microsoft Research 的通用多 Agent 系統，內建追蹤機制與動態重新規劃能力</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/07-planning-design">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/kPfJ2BrBCMY">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/07-planning-design/code_samples">範例程式碼 (Jupyter Notebook)</a></li>
+<li><a href="https://www.microsoft.com/research/articles/magentic-one-a-generalist-multi-agent-system-for-solving-complex-tasks">Magentic One — 通用多 Agent 系統</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord 社群</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-06-trustworthy/">← 第 6 課</a>
+<a href="../ai-agents-08-multi-agent/">第 8 課 →</a>
+</nav>
+</main>
+</body>
+</html>
