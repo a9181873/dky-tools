@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniMem - 互補式情節-參數記憶：讓 LLM Agent 在無邊界任務流中自主擴展記憶</title>
+<meta name="description" content="中科院自動化所 x 北大 x 美團 x UCL 提出 UniMem：借鏡人腦互補學習系統理論，用可學習路由 token 自主決策情節緩衝 vs 參數固化。三種骨幹模型平均 +4.0 EM">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d;--red:#f85149}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px;max-width:900px;margin:0 auto}
+h1{font-size:1.6em;color:#fff;margin-bottom:4px}
+h2{font-size:1.2em;color:var(--accent);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+h3{font-size:1em;color:#e6edf3;margin:16px 0 8px}
+.meta{color:var(--muted);font-size:0.85em;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:16px 0}
+.card p,.card li{font-size:0.95em;color:var(--text)}
+.card ul,.card ol{margin:0.8rem 0 0.8rem 1.5rem;line-height:1.8}
+.card b{color:#e6edf3}
+.tag{display:inline-block;font-size:0.75em;padding:2px 8px;border-radius:10px;background:#1a2a3a;color:var(--accent);margin-right:4px}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.9em}
+th{background:var(--card);border:1px solid var(--border);padding:8px;text-align:left;color:var(--accent)}
+td{border:1px solid var(--border);padding:8px;color:var(--text)}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;margin:1rem 0}
+.grid2 .mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.grid2 .mc h4{color:var(--accent);margin:0 0 0.4rem;font-size:0.9rem}
+.grid2 .mc p{margin:0;font-size:0.85rem;color:var(--muted)}
+.footer{text-align:center;color:var(--muted);font-size:0.8rem;margin-top:2rem;border-top:1px solid var(--border);padding-top:1rem}
+.footer a{color:var(--accent)}
+pre{background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:12px;overflow-x:auto;font-size:0.85em}
+code{font-family:'SF Mono',Consolas,monospace;font-size:0.9em;background:#1a2a3a;padding:1px 5px;border-radius:3px}
+@media(max-width:768px){body{padding:20px}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>UniMem - 互補式情節-參數記憶：讓 LLM Agent 像人腦一樣管理記憶</h1>
+<div class="meta">arXiv:2607.26017 - 2026-07-28 - cs.CL - Siyu Xia, Chenheng Zhang et al. (中科院自動化所/北大/美團/UCL)</div>
+<div style="margin-bottom:16px">
+<span class="tag">agent-memory</span><span class="tag">continual-learning</span><span class="tag">parametric-memory</span><span class="tag">episodic-memory</span><span class="tag">CLS-theory</span><span class="tag">routing-tokens</span>
+</div>
+
+<div class="card">
+<h2>一句話核心結論</h2>
+<p>LLM agent 在無邊界任務流中面臨<b>穩定性-可塑性困境</b>：外部檢索記憶靈活但無法內化重複模式，參數記憶高效但依賴明確任務邊界。UniMem 借鏡人腦互補學習系統(CLS)理論，用<b>可學習路由 token</b>作為記憶控制器：新任務存入<b>情節緩衝</b>走檢索增強執行，重複出現的模式經無監督聚類(NCD + HDBSCAN)後<b>固化為參數記憶單元</b>(Procedural KV Memory)。三種骨幹模型(LLaMA-3B/8B、Qwen3-8B)平均 +4.0 EM，SuperGLUE 混合流 LLaMA-3B 達 85.95%。路由 token 準確率在 100 任務規模仍維持 85%+，證明分離路由與執行的設計有效避免了知識糾纏。</p>
+</div>
+
+<div class="grid2">
+<div class="mc"><h4>核心架構</h4><p>路由 token(輕量判別) + 參數記憶塊(Procedural KV Memory)分離設計。新奇哨兵 token 校準後捕獲 OOD 查詢送入情節緩衝走 RAG</p></div>
+<div class="mc"><h4>記憶擴展策略</h4><p>Phase I 初始化路由空間+校準新奇哨兵；Phase II NCD 壓縮距離+HDBSCAN 無監督聚類→品質閘門→固化為新參數記憶單元</p></div>
+<div class="mc"><h4>SNI-100 核心數據</h4><p>LLaMA-3B: 47.56% EM (TokMem 40.54%, LoRA 43.62%); LLaMA-8B: 51.93% EM (LoRA 49.39%); Qwen3-8B: 49.94% EM。平均 +4.0 EM</p></div>
+<div class="mc"><h4>SuperGLUE 混合流</h4><p>LLaMA-1B: 73.89% (LoRA 64.91%); LLaMA-3B: 85.95% (LoRA 77.49%, TOKMEM 78.98%)。COPA 最難任務仍維持 92%</p></div>
+</div>
+
+<div class="card">
+<h2>核心架構：分離路由與執行的自路由記憶</h2>
+<p>UniMem 的核心設計原則是<b>將任務識別(路由)與任務執行(記憶)徹底解耦</b>，解決了先前方法(如 TokMem 用單一 token 同時做識別和記憶)的表達力瓶頸：</p>
+<ol>
+<li><b>路由 token 矩陣 E = [e1,...,eK, e_NOVEL]：</b>每個已知任務對應一個輕量路由 token(僅用於判別)，外加一個新奇哨兵 token(e_NOVEL)捕捉不匹配任何已知任務的查詢</li>
+<li><b>參數記憶單元 u_k = (e_k, P_k)：</b>每個已知任務關聯一個獨立的參數記憶塊 P_k，實作為 Procedural KV Memory -- 可學習的逐層 key-value 對，透過 cross-attention + 可學習閘門 g^(l) 注入 frozen backbone</li>
+<li><b>信心閘門路由規則：</b>只有當 top-1 已知 token 的路由機率同時超過新奇哨兵機率與閾值 tau_route 時，才啟用參數記憶；否則查詢進入情節緩衝走 RAG</li>
+<li><b>解耦優化目標：</b>路由損失 L_route 只更新路由 token(參數記憶塊不啟動)，執行損失 L_exec 只更新被選中的參數記憶塊。兩者梯度不互相干擾</li>
+</ol>
+</div>
+
+<div class="card">
+<h2>記憶擴展生命週期：從情節到參數的兩階段固化</h2>
+<p>UniMem 不需要預設任務數量或手動分配記憶容量，而是透過<b>情節→參數的漸進固化</b>實現按需擴展：</p>
+<ul>
+<li><b>Phase I - 路由空間初始化：</b>用初始已知任務集訓練路由 token + 校準新奇哨兵。哨兵初始化在已知 token 質心附近(加小高斯擾動並歸一化到相同範數)，使其能與已知 token 競爭而非成為離群值</li>
+<li><b>Phase II - 自主任務發現與固化：</b>路由到新奇哨兵的查詢存入情節緩衝；達容量 C 時觸發 NCD 相似度計算 + HDBSCAN 無監督聚類；僅通過品質閘門的聚類才固化為新參數記憶單元</li>
+<li><b>長尾保護：</b>未通過品質閘門的聚類留在情節緩衝中繼續走 RAG -- 避免將雜訊或稀疏任務錯誤固化</li>
+<li><b>關鍵設計：</b>整個過程不需要任務標籤、不需要預設任務數量、不需要手動分配參數預算。記憶容量隨任務流自主增長</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>實驗結果</h2>
+<ul>
+<li><b>LLaMA-3.2-3B / 100 任務：</b>UniMem 47.56% EM vs TokMem 40.54%(+7.02)、LoRA 43.62%(+3.94)</li>
+<li><b>LLaMA-3.1-8B / 100 任務：</b>UniMem 51.93% EM vs LoRA 49.39%(+2.54)、TokMem 44.74%(+7.19)</li>
+<li><b>SuperGLUE 混合流 LLaMA-3B：</b>UniMem 85.95% vs LoRA 77.49%(+8.46)、TOKMEM 78.98%(+6.97)。COPA 仍維持 92%</li>
+<li><b>路由準確率：</b>LLaMA-3.1-8B 在 Test-100 仍維持 85%+ 路由準確率，從未崩潰</li>
+<li><b>消融：</b>移除 KV gate → 效能崩盤(47.22%→31.22% EM)，證明可學習閘門對防止記憶干擾至關重要</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>關鍵數據總覽</h2>
+<table>
+<tr><th>指標</th><th>數值</th><th>對比</th></tr>
+<tr><td>SNI-100 LLaMA-3B EM</td><td>47.56%</td><td>TokMem 40.54% / LoRA 43.62%</td></tr>
+<tr><td>SNI-100 LLaMA-8B EM</td><td>51.93%</td><td>LoRA 49.39% / TokMem 44.74%</td></tr>
+<tr><td>SuperGLUE LLaMA-3B 平均準確率</td><td>85.95%</td><td>LoRA 77.49% / TOKMEM 78.98%</td></tr>
+<tr><td>跨三骨幹平均 EM 提升</td><td>+4.0</td><td>vs 所有 baselines 平均</td></tr>
+<tr><td>Test-100 路由準確率(LLaMA-8B)</td><td>&gt;85%</td><td>100 任務規模無崩潰</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h2>對 Hermes / DKY 的啟發</h2>
+<ul>
+<li><b>Skill 路由應分離識別與執行：</b>Hermes 目前 skill 的 description 同時承擔觸發判斷和內容描述雙重角色。應將判別信號與 skill 內容分開 -- 前者輕量可學習，後者高容量可擴展</li>
+<li><b>引入新奇哨兵機制：</b>校準一個 NO_SKILL 判別器，當 confidence 低於閾值時直接走 baseline reasoning，不強行匹配不合適的 skill</li>
+<li><b>Skill 應有固化生命週期：</b>skill 可以從「觀察到的有效行為模式」中自動浮現 -- 先用 RAG 記錄成功軌跡，當某模式重複足夠多次後固化為正式 skill。與回歸稅(2607.22520)互補：只有經過驗證無害的模式才固化</li>
+<li><b>Procedural KV Memory 的替代：</b>Hermes 無 GPU 環境可將概念降級為「skill-specific system prompt snippet」-- 每個固化 skill 獲得專屬 prompt 前綴，只在路由啟動時注入</li>
+</ul>
+</div>
+
+<div class="footer">
+<p>Hermes Lab 論文筆記 · 原文 <a href="https://arxiv.org/abs/2607.26017">arXiv:2607.26017</a> · CC BY 4.0</p>
+</div>
+</body>
+</html>
