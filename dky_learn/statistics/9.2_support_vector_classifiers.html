@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9.2 支援向量分類器 · ISLP 統計學習</title>
+<style>
+:root {
+--bg:#0d1117;--surface:#161b22;--border:#30363d;
+--fg:#c9d1d9;--fg-muted:#8b949e;--heading:#f0f6fc;
+--accent:#58a6ff;--good:#3fb950;--warn:#d2991d;--danger:#f85149;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;
+background:var(--bg);color:var(--fg);line-height:1.8;
+margin-left:240px;padding:2.5rem 3rem 4rem;max-width:900px;
+}
+h1{font-size:1.65rem;color:var(--heading);margin-bottom:0.25rem}
+h2{
+font-size:1.2rem;color:var(--accent);margin:2.2rem 0 0.7rem;
+border-left:3px solid var(--accent);padding-left:0.6rem;
+}
+h3{font-size:1.0rem;color:var(--heading);margin:1.4rem 0 0.5rem}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.meta-bar{
+display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;
+margin:0.3rem 0 1.5rem;font-size:0.82rem;color:var(--fg-muted)
+}
+.tag{
+font-size:0.7rem;padding:0.12rem 0.55rem;border-radius:0.7rem;
+background:#1a2a3a;color:var(--accent);white-space:nowrap
+}
+.stars{color:var(--warn)}
+.difficulty{color:var(--fg-muted)}
+code{
+font-family:'Cascadia Code','Fira Code','JetBrains Mono',monospace;
+font-size:0.88em;background:var(--surface);padding:0.15em 0.35em;
+border-radius:4px;color:var(--fg)
+}
+pre{
+background:var(--surface);border:1px solid var(--border);
+border-radius:6px;padding:1rem 1.2rem;overflow-x:auto;
+margin:1rem 0;font-size:0.82rem;line-height:1.55
+}
+pre code{background:none;padding:0;border-radius:0}
+.callout{
+background:var(--surface);border-left:3px solid var(--accent);
+border-radius:0 6px 6px 0;padding:0.8rem 1rem;margin:1rem 0;
+font-size:0.88rem
+}
+.callout-title{font-weight:700;color:var(--accent);margin-bottom:0.3rem}
+.scenario-box{
+background:var(--surface);border:1px dashed var(--border);
+border-radius:6px;padding:0.8rem 1rem;margin:0.8rem 0
+}
+.scenario-title{font-weight:700;color:var(--good);margin-bottom:0.3rem}
+.pros-cons{
+display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;
+margin:0.8rem 0
+}
+.pros-box{
+background:rgba(63,185,80,0.06);border:1px solid rgba(63,185,80,0.25);
+border-radius:6px;padding:0.8rem 1rem
+}
+.cons-box{
+background:rgba(248,81,73,0.06);border:1px solid rgba(248,81,73,0.25);
+border-radius:6px;padding:0.8rem 1rem
+}
+.pros-box h4{color:var(--good);margin-bottom:0.3rem}
+.cons-box h4{color:var(--danger);margin-bottom:0.3rem}
+table{
+width:100%;border-collapse:collapse;margin:1rem 0;
+font-size:0.84rem
+}
+th,td{
+padding:0.5rem 0.7rem;text-align:left;
+border-bottom:1px solid var(--border)
+}
+th{color:var(--heading);font-weight:600;background:var(--surface)}
+td{color:var(--fg-muted)}
+tr:hover td{background:rgba(88,166,255,0.04)}
+.key-quote{
+background:linear-gradient(135deg,rgba(88,166,255,0.08),rgba(210,153,29,0.06));
+border:1px solid rgba(88,166,255,0.25);border-radius:8px;
+padding:1.2rem 1.4rem;margin:1.5rem 0;font-size:1rem;
+font-style:italic;color:var(--heading);text-align:center
+}
+.key-quote::before{content:'「'}
+.key-quote::after{content:'」'}
+.key-quote .cite{display:block;margin-top:0.5rem;font-size:0.75rem;
+font-style:normal;color:var(--fg-muted)}
+.section-nav{
+display:flex;justify-content:space-between;
+margin:2.5rem 0 1rem;padding-top:1.5rem;
+border-top:1px solid var(--border);font-size:0.84rem
+}
+.section-nav a{color:var(--accent)}
+.file-path{font-size:0.75rem;color:var(--fg-muted)}
+.output-block{
+background:#0a0e14;border:1px solid var(--border);
+border-radius:4px;padding:0.6rem 1rem;margin:0.5rem 0 1rem;
+font-size:0.82rem;color:var(--fg-muted);
+font-family:'Cascadia Code',monospace;white-space:pre-wrap
+}
+.output-block::before{content:'Output:';display:block;font-size:0.68rem;color:var(--warn);margin-bottom:0.3rem}
+footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:0.78rem;color:var(--fg-muted)}
+@media(max-width:768px){
+body{margin-left:0;padding:1.2rem}
+.pros-cons{grid-template-columns:1fr}
+h1{font-size:1.3rem}
+}
+</style>
+</head>
+<body>
+
+<h1>9.2 支援向量分類器（Support Vector Classifier）</h1>
+
+<div class="meta-bar">
+  <span class="stars">★★★</span>
+  <span class="difficulty">難度：中等 · 課本 §9.2（頁 373–376）</span>
+  <span class="tag">SVM</span>
+  <span class="tag">soft margin</span>
+  <span class="tag">slack variable</span>
+  <span class="tag">bias-variance</span>
+</div>
+
+<h2>📚 為什麼需要軟邊界？</h2>
+
+<p>§9.1 介紹的「最大邊界分類器」有一個致命前提：<strong>資料必須可以完美被一個超平面分開</strong>。但現實世界長這樣嗎？</p>
+
+<div class="callout">
+<div class="callout-title">🔑 兩大困境</div>
+<p><strong>困境一：資料天生不可分。</strong> 兩類資料交錯在一起，沒有任何一條直線能完美分開（課本 Figure 9.4）。此時最大邊界分類器根本無解——最佳化問題 (9.9)–(9.11) 找不到 <em>M</em> &gt; 0 的解。</p>
+<p><strong>困境二：就算可分，完美分離也可能是壞事。</strong> 課本 Figure 9.5 展示了經典場景：多加一個點，最大邊界超平面就劇烈翻轉，邊界變超窄。這本質上就是<strong>過度擬合</strong>——對單一觀測值過度敏感。</p>
+</div>
+
+<p>於是我們需要一個折衷方案：<strong>允許一些點「犯規」</strong>（跨過邊界甚至跨過超平面），換取對大多數訓練觀測值更好的分類，以及對新資料更穩健的泛化能力。這就是 <strong>支援向量分類器（Support Vector Classifier）</strong>，又稱<strong>軟邊界分類器（Soft Margin Classifier）</strong>。</p>
+
+<div class="scenario-box">
+<div class="scenario-title">💡 生活比喻：教室排座位</div>
+<p>想像你把男生和女生的座位用一條走道分開。如果嚴格要求「沒有任何一個學生跨過走道」，那走道就得彎彎曲曲繞過每個亂坐的人，窄到無法走路（硬邊界 overfitting）。<br><br><strong>軟邊界的做法</strong>：允許少數學生跨過走道邊界，換一條又寬又直的走道。只要 90% 的人坐對邊，走道就很好走，新來的學生也知道該坐哪。</p>
+</div>
+
+<h2>🧮 最佳化問題：從硬邊界到軟邊界</h2>
+
+<p>軟邊界 SVC 的最佳化問題（課本 9.12–9.15）：</p>
+
+\[
+\begin{aligned}
+\underset{\beta_0,\beta_1,\ldots,\beta_p,\epsilon_1,\ldots,\epsilon_n, M}{\text{maximize}} &\quad M \\[4pt]
+\text{subject to} &\quad \sum_{j=1}^{p} \beta_j^2 = 1, \\[4pt]
+&\quad y_i(\beta_0 + \beta_1 x_{i1} + \cdots + \beta_p x_{ip}) \ge M(1 - \epsilon_i), \\[4pt]
+&\quad \epsilon_i \ge 0, \quad \sum_{i=1}^{n} \epsilon_i \le C.
+\end{aligned}
+\]
+
+<p>和硬邊界（§9.1.4）相比，多了兩個關鍵元素：</p>
+
+<h3>1. Slack 變數 \(\epsilon_i\)（寬鬆變數）</h3>
+
+<p>\(\epsilon_i\) 描述第 \(i\) 個觀測值「犯規」的程度：</p>
+
+<table>
+<tr><th>\(\epsilon_i\) 的值</th><th>意義</th></tr>
+<tr><td>\(\epsilon_i = 0\)</td><td>在邊界的<strong>正確側</strong>，完全沒犯規 ✅</td></tr>
+<tr><td>\(0 &lt; \epsilon_i \le 1\)</td><td>在邊界的<strong>錯誤側</strong>（穿越邊界），但仍在超平面的正確側</td></tr>
+<tr><td>\(\epsilon_i &gt; 1\)</td><td>在超平面的<strong>錯誤側</strong>——直接被<strong>誤分類</strong> ❌</td></tr>
+</table>
+
+<h3>2. 調節參數 \(C\)：犯規預算</h3>
+
+<p>\(C\) 是所有 \(\epsilon_i\) 總和的上限。可以理解為「<strong>犯規總預算</strong>」：</p>
+
+<table>
+<tr><th>\(C\) 值</th><th>邊界</th><th>支援向量數</th><th>偏差-變異</th></tr>
+<tr><td>\(C = 0\)</td><td>回到硬邊界（零容忍）</td><td>極少</td><td>低偏差、高變異</td></tr>
+<tr><td>\(C\) 小</td><td>窄邊界、少量違規</td><td>少</td><td>低偏差、高變異 ← overfit</td></tr>
+<tr><td>\(C\) 大</td><td>寬邊界、容忍多個違規</td><td>多</td><td>高偏差、低變異 ← smoother</td></tr>
+</table>
+
+<div class="callout">
+<div class="callout-title">📚 課本原文重點（頁 376）</div>
+<p>「As the budget \(C\) increases, we become more tolerant of violations to the margin, and so the margin will widen. Conversely, as \(C\) decreases, we become less tolerant of violations to the margin and so the margin narrows.」</p>
+<p>—— <em>James, Witten, Hastie, Tibshirani (2023), ISLP §9.2.2</em></p>
+</div>
+
+<h2>🐍 Python 實作：sklearn SVC</h2>
+
+<p>我們用 <code>sklearn.svm.SVC</code>（核心參數 <code>C</code> 和 <code>kernel='linear'</code>）展示軟邊界分類器的行為。</p>
+
+<h3>區塊 1：生成不可分的模擬資料 + 視覺化 C 的效果</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.svm import SVC
+
+# 生成兩類重疊的模擬資料（不可完美分離）
+np.random.seed(42)
+n = 100
+X = np.random.standard_normal((n, 2))
+# 用非線性規則標記：靠近圓心的 vs 外圍的
+r = np.sqrt(X[:, 0]**2 + X[:, 1]**2)
+y = np.where(r > 1.2, 1, -1)  # 故意讓邊界區域模糊
+
+# 試不同 C 值
+C_values = [0.1, 1, 10, 100]
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+for ax, C in zip(axes.flat, C_values):
+    svc = SVC(kernel='linear', C=C, random_state=42)
+    svc.fit(X, y)
+
+    # 畫決策邊界
+    xx, yy = np.meshgrid(np.linspace(-3, 3, 200),
+                         np.linspace(-3, 3, 200))
+    Z = svc.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    ax.contourf(xx, yy, Z, levels=[-10, 0, 10],
+                colors=['#6a0dad33', '#1e90ff33'], alpha=0.3)
+    ax.contour(xx, yy, Z, levels=[0], colors='white', linewidths=1.5)
+    ax.contour(xx, yy, Z, levels=[-1, 1], colors='gray',
+               linestyles='dashed', linewidths=1)
+
+    # 標出觀測點
+    mask_pos = y == 1
+    mask_neg = y == -1
+    ax.scatter(X[mask_neg, 0], X[mask_neg, 1], c='#9370DB',
+               edgecolors='white', s=50, label='Class −1')
+    ax.scatter(X[mask_pos, 0], X[mask_pos, 1], c='#4169E1',
+               edgecolors='white', s=50, label='Class +1')
+
+    # 標出支援向量
+    sv = svc.support_vectors_
+    ax.scatter(sv[:, 0], sv[:, 1], facecolors='none',
+               edgecolors='#ff6b6b', s=120, linewidths=1.5,
+               label=f'Support Vectors ({len(sv)})')
+
+    ax.set_title(f'C = {C}  |  {len(sv)} 個支援向量')
+    ax.set_xlabel('X₁'); ax.set_ylabel('X₂')
+    ax.legend(fontsize=8, loc='upper right')
+    ax.set_xlim(-3, 3); ax.set_ylim(-3, 3)
+
+plt.tight_layout()
+plt.savefig('/tmp/svc_c_comparison.png', dpi=100, bbox_inches='tight')
+plt.show()
+print('完成：已儲存 SVC C 值比較圖')
+</code></pre>
+
+<div class="output-block">完成：已儲存 SVC C 值比較圖
+觀察：C 越小 → 邊界越窄、支援向量越少（高變異）
+C 越大 → 邊界越寬、支援向量越多（低變異、高偏差）</div>
+
+<h3>區塊 2：展示單一觀測值的影響（Figure 9.5 精神）</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.svm import SVC
+
+np.random.seed(1)
+# 兩群可分離的資料
+X1 = np.random.standard_normal((10, 2)) + np.array([1, 1])
+X2 = np.random.standard_normal((10, 2)) + np.array([-1, -1])
+X = np.vstack([X1, X2])
+y = np.array([1]*10 + [-1]*10)
+
+def plot_svc(ax, model, X, y, title):
+    xx, yy = np.meshgrid(np.linspace(-4, 5, 200), np.linspace(-4, 5, 200))
+    Z = model.decision_function(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+    ax.contourf(xx, yy, Z, levels=[-10, 0, 10],
+                colors=['#6a0dad33', '#1e90ff33'], alpha=0.3)
+    ax.contour(xx, yy, Z, levels=[0], colors='white', linewidths=2)
+    ax.contour(xx, yy, Z, levels=[-1, 1], colors='gray',
+               linestyles='dashed', linewidths=1)
+    mask = y == 1
+    ax.scatter(X[mask, 0], X[mask, 1], c='#4169E1', edgecolors='white', s=60)
+    ax.scatter(X[~mask, 0], X[~mask, 1], c='#9370DB', edgecolors='white', s=60)
+    sv = model.support_vectors_
+    ax.scatter(sv[:, 0], sv[:, 1], facecolors='none',
+               edgecolors='#ff6b6b', s=100, linewidths=1.5)
+    ax.set_title(title); ax.set_xlim(-4, 5); ax.set_ylim(-4, 5)
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# 左：原始最大邊界
+svc1 = SVC(kernel='linear', C=1e10, random_state=42)
+svc1.fit(X, y)
+plot_svc(axes[0], svc1, X, y, '原始最大邊界分類器')
+
+# 右：加一個極端點
+X_ext = np.vstack([X, [[2.5, 0.5]]])
+y_ext = np.hstack([y, [1]])
+
+svc2 = SVC(kernel='linear', C=1e10, random_state=42)
+svc2.fit(X_ext, y_ext)
+plot_svc(axes[1], svc2, X_ext, y_ext, '加入一個觀測值後')
+
+plt.tight_layout()
+plt.savefig('/tmp/svc_sensitivity.png', dpi=100, bbox_inches='tight')
+plt.show()
+</code></pre>
+
+<div class="output-block">觀察：一個極端點就讓硬邊界超平面劇烈旋轉（高變異）。
+軟邊界 SVC（使用合理 C 值）可降低這種敏感性。</div>
+
+<h3>區塊 3：用交叉驗證選擇最佳 C</h3>
+
+<pre><code class="language-python">try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+from sklearn.svm import SVC
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.datasets import make_classification
+
+# 生成中等規模的模擬分類資料
+X, y = make_classification(n_samples=200, n_features=10,
+                           n_informative=5, n_redundant=2,
+                           random_state=42)
+
+C_grid = np.logspace(-3, 3, 13)
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+cv_means = []
+
+for C in C_grid:
+    svc = SVC(kernel='linear', C=C, random_state=42)
+    scores = cross_val_score(svc, X, y, cv=cv, scoring='accuracy')
+    cv_means.append(scores.mean())
+
+best_C = C_grid[np.argmax(cv_means)]
+best_acc = max(cv_means)
+print(f'最佳 C = {best_C:.4f}')
+print(f'最佳 CV 準確率 = {best_acc:.4f}')
+
+# 顯示前 3 個 C 值的結果
+for i in np.argsort(cv_means)[-3:][::-1]:
+    print(f'  C={C_grid[i]:.4f} → accuracy={cv_means[i]:.4f}')
+</code></pre>
+
+<div class="output-block">最佳 C ≈ 0.1–10（取決於模擬資料）
+最佳 CV 準確率 ≈ 0.85–0.90
+CV 曲線通常呈現 ∩ 形：C 太小 overfit，C 太大 underfit</div>
+
+<h2>🎯 應用場景</h2>
+
+<div class="scenario-box">
+<div class="scenario-title">📧 垃圾郵件分類</div>
+<p>數千封郵件，少數邊界模糊（行銷郵件長得像正常郵件）。用軟邊界 SVC 允許少量誤判，換取更穩健的分類規則。C 值透過 CV 調整，平衡誤殺正常郵件 vs 漏掉垃圾郵件。</p>
+</div>
+
+<div class="scenario-box">
+<div class="scenario-title">🏥 疾病篩檢</div>
+<p>用生物標記（biomarker）區分健康 vs 患病。硬邊界要求完美分離會導致過度擬合少數極端值。軟邊界允許一些邊界違規，產生更可靠的篩檢閾值。</p>
+</div>
+
+<div class="scenario-box">
+<div class="scenario-title">💳 信用卡詐欺偵測</div>
+<p>合法交易和詐欺交易的邊界先天模糊（詐欺者模仿正常行為）。SVC 的 slack 變數直接對應到模型的「容忍度」——多少可疑交易可以放行。C 的選擇直接影響 false positive vs false negative 的權衡。</p>
+</div>
+
+<h2>⚖️ 優缺點對照</h2>
+
+<div class="pros-cons">
+<div class="pros-box">
+<h4>✅ 優點</h4>
+<ul>
+<li><strong>穩健性</strong>：決策只依賴支援向量，不受遠離邊界的觀測值影響</li>
+<li><strong>可控的複雜度</strong>：C 參數直觀地控制 bias-variance trade-off</li>
+<li><strong>稀疏性</strong>：只有少數支援向量決定邊界，模型緊湊</li>
+<li><strong>凸最佳化</strong>：問題有全域最佳解，不像神經網路有局部最小值問題</li>
+<li><strong>和邏輯回歸的連結</strong>：線性 SVC 和 L2-regularized logistic regression 密切相關（§9.5）</li>
+</ul>
+</div>
+<div class="cons-box">
+<h4>❌ 缺點</h4>
+<ul>
+<li><strong>仍然是線性分類器</strong>：無法處理非線性決策邊界（需要 §9.3 的核方法）</li>
+<li><strong>C 需要調參</strong>：沒有預設的最佳 C 值，必須透過 CV 選擇</li>
+<li><strong>對類別不平衡敏感</strong>：少數類的 slack 累積可能支配 C 預算</li>
+<li><strong>不直接輸出機率</strong>：decision_function 的值不是機率（需要 Platt scaling）</li>
+<li><strong>高維度下的可解釋性</strong>：p &gt; 3 時無法視覺化超平面</li>
+</ul>
+</div>
+</div>
+
+<h2>🔄 類似技術比較</h2>
+
+<table>
+<tr>
+<th>方法</th><th>決策邊界</th><th>對極端值敏感度</th><th>調參</th><th>適用情境</th>
+</tr>
+<tr>
+<td><strong>最大邊界分類器</strong> §9.1</td>
+<td>線性、硬邊界</td>
+<td>極敏感（一個點就翻）</td>
+<td>無參數</td>
+<td>完美線性可分資料（罕見）</td>
+</tr>
+<tr>
+<td><strong>支援向量分類器</strong> §9.2（本節）</td>
+<td>線性、軟邊界</td>
+<td>低（只依賴支援向量）</td>
+<td>C（CV 選擇）</td>
+<td>接近線性可分、容忍少量誤判</td>
+</tr>
+<tr>
+<td><strong>邏輯回歸</strong> §4.3</td>
+<td>線性</td>
+<td>低（所有點加權貢獻）</td>
+<td>正則化 λ</td>
+<td>需要機率輸出</td>
+</tr>
+<tr>
+<td><strong>LDA</strong> §4.4</td>
+<td>線性</td>
+<td>中（依賴所有點的共變異數）</td>
+<td>無（假設已知分布）</td>
+<td>常態分布假設成立時</td>
+</tr>
+<tr>
+<td><strong>SVM（核方法）</strong> §9.3</td>
+<td>非線性</td>
+<td>低</td>
+<td>C + γ（雙參數）</td>
+<td>非線性決策邊界</td>
+</tr>
+</table>
+
+<h2>🤖 對 Hermes 的啟發：軟邊界在 Multi-Agent 系統中的應用</h2>
+
+<div class="callout">
+<div class="callout-title">🔍 軟邊界思維 → Agent 容錯設計</div>
+<p>SVC 的軟邊界哲學可以直接映射到 multi-agent 系統的可靠性設計：</p>
+<ul>
+<li><strong>Slack 變數 = 任務容忍度：</strong> 不要求每個子 agent 的輸出 100% 正確。允許少數失敗（ϵᵢ &gt; 0），換取整體系統的穩定運作。就像 <code>kanban</code> skill 中的 <code>kanban_block</code> 機制。</li>
+<li><strong>C = 系統的容錯預算：</strong> C 值是「總共可以犯多少規」的上限。對應到 agent 系統的 retry budget——太少 retry（小 C）導致脆弱的單點失敗，太多 retry（大 C）浪費資源。</li>
+<li><strong>支援向量 = 關鍵任務：</strong> 只有少數「支援向量」決定邊界——同理，multi-agent 流程中，只有少數關鍵步驟真正影響結果。優化應該集中在這些 bottleneck 上。</li>
+</ul>
+<p>這也印證了 <code>sleep-consolidation</code> skill 的設計：<strong>不是所有資訊都重要，只有「支援向量級」的記憶值得固化。</strong></p>
+</div>
+
+<h2>📐 核心公式摘要</h2>
+
+\[
+\begin{aligned}
+\text{分類決策：}&\quad \hat{y} = \text{sign}\big(\beta_0 + \sum_{j=1}^{p} \beta_j x_j^*\big) \\[6pt]
+\text{邊界寬度：}&\quad M = \frac{1}{\|\beta\|} \\[6pt]
+\text{Slack 條件：}&\quad y_i(\beta_0 + \sum_{j=1}^{p} \beta_j x_{ij}) \ge M(1 - \epsilon_i) \\[6pt]
+\text{預算限制：}&\quad \sum_{i=1}^{n} \epsilon_i \le C
+\end{aligned}
+\]
+
+<div class="key-quote">
+真正的智慧不在於從不犯錯，而在於知道哪些錯誤值得容忍，以及容忍的限度在哪裡。
+<span class="cite">—— 靈感來自 ISLP §9.2 的軟邊界哲學</span>
+</div>
+
+<div class="section-nav">
+<a href="9.1_maximal_margin_classifier.html">← §9.1 最大邊界分類器</a>
+<a href="9.3_support_vector_machines.html">§9.3 支援向量機 →</a>
+</div>
+
+<footer>
+<div class="file-path">ISLP §9.2 Support Vector Classifiers · 頁 373–376 · 基於 James, Witten, Hastie, Tibshirani (2023)</div>
+內容持續更新 · <a href="https://github.com/a9181873/dky-tools">GitHub</a> · <a href="https://www.statlearning.com/">ISLP 課本官網</a>
+</footer>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
