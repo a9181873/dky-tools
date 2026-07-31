@@ -50,6 +50,8 @@
       <div class="section-title" style="margin-top:1.2rem">📖 第 9 章：支援向量機（SVM）</div>
       <a href="/statistics/9.1_maximal_margin_classifier.html" class="nav-item done">9.1 最大邊界分類器</a>
       <a href="/statistics/9.2_support_vector_classifiers.html" class="nav-item done">9.2 支援向量分類器</a>
+      <a href="/statistics/9.3_support_vector_machines.html" class="nav-item done">9.3 支援向量機 (SVM)</a>
+      <a href="/statistics/9.4_svm_multiclass.html" class="nav-item pending">9.4 多類別 SVM</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
