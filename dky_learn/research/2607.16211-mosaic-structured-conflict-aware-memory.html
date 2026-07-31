@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOSAIC：結構化衝突感知記憶 — 為何 Agent 記憶需要儲存時驗證 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.2rem;margin:1.8rem 0 0.8rem;border-bottom:1px solid var(--border);padding-bottom:0.4rem}h3{color:var(--accent2);font-size:1.05rem;margin:1.2rem 0 0.5rem}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin-bottom:1rem}ol,ul{margin:0.5rem 0 0.5rem 1.5rem;line-height:1.8}li{margin-bottom:0.3rem}strong,b{color:#fff}code{background:#1f2a37;border-radius:4px;padding:0.2em 0.4em;font-size:0.9em;color:var(--accent2)}.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;margin:1rem 0}.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}.mc h4{color:var(--accent);margin:0 0 0.4rem;font-size:0.95rem}.mc p{margin:0;font-size:0.85rem;color:#8b949e}@media(max-width:768px){.mb{grid-template-columns:1fr}body{padding:1rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>MOSAIC：沉默的錯誤累積——為何 LLM Agent 記憶需要儲存時衝突檢測</h1>
+  <p class="meta">arXiv:2607.16211 — 2026-05-15（更新 2026-07-21）— cs.AI — Zicheng Zhao, Xinyang Guo et al.（華中 AI 技術研究院 / BNU-HKBU / 香港城大）— Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">Agent Memory</span><span class="tag">Conflict Detection</span><span class="tag">Graph</span>
+    <span class="tag">Error Compounding</span><span class="tag">LSH</span><span class="tag">NCS</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+<div class="card">
+<p>現有 LLM agent 記憶系統（Mem0、Zep、A-Mem、MemGPT…）全是 <b>append-only</b>——新資訊直接寫入，不檢查是否與既有記憶衝突。<b>6 個 baseline 的衝突檢測率僅 2%–14%，幾乎等於不檢測。</b>MOSAIC 用三層機制解決：(1) <b>實體類型圖譜</b>（event / persona / relationship）保留關係結構以支援多跳和時序推理；(2) <b>儲存時衝突檢測</b>——新實體寫入前對圖鄰居做 LLM 矛盾檢查，衝突率檢測達 <b>66%（4.7× baseline）</b>；(3) <b>雜湊加速雙路徑檢索</b>——用 locality-sensitive hashing 取代昂貴的 LLM 分類，平均檢索延遲 <b>0.58 秒</b>。LoCoMo 長對話 QA 準確率 <b>89.35%（+27.21pp vs Mem0）</b>，多跳推理從 51%→82%、時序推理從 58%→90%。論文還提出<b>鄰居條件穩定原則（NCS）</b>：節點重要性只需在其圖鄰居變動時重算——從理論上將每次對話的成本從 O(|V|) 降到 O(Δ<sub>max</sub>)。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>LoCoMo 整體準確率</h4><p>89.35%（Mem0 62.14%，+27.21pp）；多跳 81.56%（+30.41pp）；時序 90.34%（+32.21pp）</p></div>
+<div class="mc"><h4>HaluMem-Medium</h4><p>Extraction F1 86.77%（最佳）、QA correctness 73.10%（最佳）、extraction recall 83.94%</p></div>
+<div class="mc"><h4>衝突檢測</h4><p>66% 整體（33/50），baseline 最高 14%。隱含錯誤 72.7% 檢測率 > 顯式 64.1%</p></div>
+<div class="mc"><h4>檢索延遲</h4><p>0.58 秒/查詢（LSH 雜湊加速），HNSW 索引最近 5 鄰居檢索</p></div>
+</div>
+
+<h2>問題：append-only 記憶的錯誤累積（Error Compounding）</h2>
+<div class="card">
+<p>論文用臨床場景做了一個警示意義極強的範例：</p>
+<ol>
+<li>Agent 正確記錄了高血壓 guideline：目標血壓 <b>&lt;130/80 mmHg</b></li>
+<li>後續對話中使用者說「我記得目標是 <b>&lt;160/100</b>」，Agent 直接 append 這筆記錄</li>
+<li>現在記憶庫中有 <b>兩筆互相矛盾的記錄</b>——但沒有任何系統偵測到</li>
+<li>下游用藥建議基於錯誤的 160/100 給出處方→<b>錯誤從記憶層一路傳播到推理層到行動層</b></li>
+</ol>
+<p>這不是 LLM 幻覺——這是<b>記憶系統的結構性缺陷</b>。現有所有生產級記憶系統都只有 retention（確保能記住），<b>沒有 conflict detection</b>。論文的錯誤累積測試用高血壓 guideline 手動注入 50 個事實衝突（數值 14 個、語義 13 個、邏輯 23 個），結果：全部 baseline 幾乎 = 0（2-14%），MOSAIC = 66%。</p>
+</div>
+
+<h2>核心架構：實體類型圖譜 + 鄰居條件穩定</h2>
+<div class="card">
+<p>MOSAIC 把記憶組織為 <b>typed directed graph</b> G=(V,E,τ)：</p>
+<ol>
+<li><b>三種實體類型 τ：</b>event（事件）、persona（個人特質）、relationship（人際關係）。抽取用 LLM pipeline + all-MiniLM-L6-v2 embedding</li>
+<li><b>雙子圖設計：</b>prerequisite subgraph G_P（邏輯依賴——哪個資訊必須先取得才能問下一個）＋ association subgraph G_A（語義關聯，用 Leiden algorithm 做社群偵測）</li>
+<li><b>鄰居條件穩定（NCS, §3.3）：</b>節點重要性分數只需在圖鄰居變動時重算——從 O(|V|) 降到 O(Δ<sub>max</sub>)，且避免全域重新評分的震盪</li>
+<li><b>節點評分公式：</b>Score(v) = α·Ĩ(v) + β·T(v) + γ·C(v)，其中 Ĩ 是正規化重要性、T 是 PageRank 中心性、C 是社群連續性</li>
+</ol>
+</div>
+
+<h2>機制 1：儲存時衝突檢測（Save-Time Conflict Detection）</h2>
+<div class="card">
+<p>與所有現有系統最關鍵的差異——<b>不是事後發現、而是寫入時攔截</b>：</p>
+<ol>
+<li><b>鄰居檢索：</b>新實體寫入前，用 embedding 相似度在既有圖譜中找出 k 個最近鄰居</li>
+<li><b>衝突評估：</b>對每個鄰居，LLM 判斷新實體是否在數值、語義、邏輯上與之矛盾</li>
+<li><b>解決策略：</b>(a) 新證據更權威→更新舊實體；(b) 既有證據更強→拒絕寫入；(c) 兩者難判斷→標記雙方待人工審查</li>
+</ol>
+<p>特別值得注意：<b>隱含錯誤的檢測率（72.7%）高於顯式錯誤（64.1%）</b>——圖鄰居走訪自然地完成了識別隱含矛盾所需的跨節點推理。</p>
+</div>
+
+<h2>機制 2：雜湊加速雙路徑檢索</h2>
+<div class="card">
+<ul>
+<li>快速路徑（LSH）：查詢 embedding → LSH → 常數時間定位到候選社群 → 只在該社群內做精確語義搜尋</li>
+<li>精確路徑（LLM）：當 LSH 信心不足時回退到 LLM 分類。整體精度幾乎不損失（vs 純 LLM），延遲從數秒降到 <b>0.58 秒/查詢</b></li>
+</ul>
+</div>
+
+<h2>機制 3：信心閘門與 Bayesian 信念更新</h2>
+<div class="card">
+<ul>
+<li>信心評分 ρ 基於三因素：直接性（明確陳述 vs 推斷）、一致性（與既有值的吻合度）、具體性（精確值 vs 模糊範圍）</li>
+<li>ρ&lt;0.6 的模糊資訊不寫入長期記憶，改標記「待澄清」</li>
+<li>信念分布用 Bayesian 更新規則 b_{v,k}^{(t+1)} ∝ b_{v,k}^{(t)} × ℓ(o_v|s_k)</li>
+</ul>
+</div>
+
+<h2>實驗結果精華</h2>
+<div class="card">
+<ul>
+<li><b>LoCoMo 1,540 QA：</b>MOSAIC 89.35% vs Mem0 62.14%（+27.21pp）。Single-hop 92.87%、Multi-hop 81.56%、Temporal 90.34%</li>
+<li><b>HaluMem-Medium：</b>Extraction F1 86.77%（最高）、QA correctness 73.10%（最高）。更新 correctness 55.77% 仍落後 MemOS 62.11%</li>
+<li><b>HaluMem-Long：</b>Extraction recall 90.66%、update correctness 83.33%、QA correctness 70.75%——全部領先</li>
+<li><b>衝突檢測：</b>MOSAIC 66% vs baseline 最高 14%。數值 64.3%、語義 69.2%、邏輯 65.2%——三種錯誤類型均勻強勁</li>
+</ul>
+</div>
+
+<h2>兩個理論貢獻</h2>
+<div class="card">
+<ul>
+<li><b>定理 1 - Coverage 次模性：</b>實體覆蓋函數是單調次模的，貪婪策略可達 (1-1/e) 近似最優覆蓋</li>
+<li><b>定理 2 - NCS 收斂性：</b>分數更新最多在 L 輪傳播後收斂（L = 最長有向路徑），每次更新成本 O(Δ<sub>max</sub>)</li>
+</ul>
+</div>
+
+<h2>對 Hermes 的啟發</h2>
+<div class="card">
+<ul>
+<li><b>Fact_store 目前是 append-only：</b>新的 fact 直接寫入不檢查矛盾。MOSAIC 的儲存時衝突檢測可直接套用——寫入前對既有鄰居做 LLM 矛盾檢查</li>
+<li><b>Sleep consolidation 需要 NCS 原則：</b>Hermes 每週固化時全部重算，違反 NCS。改進：只對「鄰居有變動」的記憶節點做 re-consolidation</li>
+<li><b>Leiden 社群偵測可優化記憶檢索：</b>先定位查詢所屬社群、只在該社群內檢索——精度更高延遲更低</li>
+<li><b>信心閘門是最低成本品質提升：</b>ρ&lt;0.6 不寫入長期記憶——幾乎零成本，顯著減少記憶庫雜訊</li>
+</ul>
+</div>
+
+<h2>限制</h2>
+<div class="card">
+<ul>
+<li>衝突檢測僅在單一領域（高血壓 guideline）測試，50 個人工注入錯誤樣本偏小</li>
+<li>34% 未檢出：跨距超出 k-NN 搜尋半徑（~60%）+ 數值錯誤在合理範圍內（~40%）</li>
+<li>HaluMem-Medium 更新 correctness 55.77% 仍落後 MemOS 62.11%</li>
+<li>只測試一種 LLM（qwen3.5-plus），泛化性未驗證</li>
+<li>LoCoMo 僅 10 組對話，開放域問題相對優勢最小</li>
+</ul>
+</div>
+
+</body>
+</html>
