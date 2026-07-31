@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多 Agent 設計模式 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 8 課繁體中文版：多 Agent 系統的適用場景、優勢、建構模塊與實作模式（群組聊天、交接、協作過濾）">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 8 課 / 共 18 課</p>
+<h1>多 Agent 設計模式 (Multi-Agent Design)</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-07-planning/">← 第 7 課</a>
+<a href="../ai-agents-09-metacognition/">第 9 課 →</a>
+</nav>
+
+<div class="verdict">
+一句話：<strong>多 Agent 是一種讓多個 AI Agent 分工協作、各自專精、共同完成複雜目標的設計模式——當單一 Agent 開始變得太複雜、太笨重、太難維護時，就是拆分的時候。</strong>
+</div>
+
+<h2>課程簡介</h2>
+<p>一旦你開始處理涉及多個 Agent 的專案，你就必須思考多 Agent 設計模式。但什麼時候該切換到多 Agent？又有哪些優勢？本課將回答：</p>
+<ul>
+<li>哪些場景適合使用多 Agent？</li>
+<li>相較於讓單一 Agent 做所有事，多 Agent 有什麼優勢？</li>
+<li>實作多 Agent 設計模式的建構模塊有哪些？</li>
+<li>如何觀察多個 Agent 之間的互動？</li>
+</ul>
+
+<h2>學習目標</h2>
+<ul>
+<li>辨識多 Agent 適用的場景</li>
+<li>理解多 Agent 相對於單一 Agent 的優勢</li>
+<li>掌握實作多 Agent 設計模式的建構模塊</li>
+</ul>
+<div class="callout">
+<strong>大局觀：</strong>多 Agent 是一種設計模式，讓多個 Agent 協同工作以達成共同目標。此模式廣泛應用於機器人、自主系統和分散式運算等領域。
+</div>
+
+<h2>多 Agent 適用場景</h2>
+<p>哪些場景適合使用多 Agent？以下是最典型的幾種：</p>
+
+<table class="comparison-table">
+<tr><th>場景類型</th><th>說明</th><th>實際範例</th></tr>
+<tr>
+<td><strong>大規模工作負載</strong></td>
+<td>將大型工作負載拆分成小任務，分配給不同 Agent 並行處理，加速完成</td>
+<td>大規模資料處理任務，每個 Agent 處理一部分數據</td>
+</tr>
+<tr>
+<td><strong>複雜任務</strong></td>
+<td>將複雜任務拆分成子任務，每個 Agent 專精於特定面向</td>
+<td>自動駕駛：導航 Agent、障礙物偵測 Agent、車輛通訊 Agent 各司其職</td>
+</tr>
+<tr>
+<td><strong>多元專業知識</strong></td>
+<td>不同 Agent 擁有不同領域的專業知識，協同處理更全面</td>
+<td>醫療：診斷 Agent、治療計畫 Agent、病患監控 Agent</td>
+</tr>
+</table>
+
+<h2>使用多 Agent 的優勢（相較於單一 Agent）</h2>
+<p>單一 Agent 系統在簡單任務上表現良好，但面對複雜任務時，多 Agent 能提供以下優勢：</p>
+
+<table class="comparison-table">
+<tr><th>優勢</th><th>說明</th></tr>
+<tr>
+<td><strong>專業化 (Specialization)</strong></td>
+<td>每個 Agent 專精於特定任務。單一 Agent 缺乏專業化時，雖然什麼都能做，但面對複雜任務容易混淆，甚至做了自己不擅長的事</td>
+</tr>
+<tr>
+<td><strong>可擴展性 (Scalability)</strong></td>
+<td>透過新增 Agent 來擴展系統，遠比讓單一 Agent 過載來得容易</td>
+</tr>
+<tr>
+<td><strong>容錯能力 (Fault Tolerance)</strong></td>
+<td>某個 Agent 故障時，其他 Agent 仍可繼續運作，確保系統可靠性</td>
+</tr>
+</table>
+
+<div class="scenario-box">
+<h4>訂旅行行程：單一 vs 多 Agent</h4>
+<p>以幫使用者訂一趟旅行為例：</p>
+<ul>
+<li><strong>單一 Agent</strong>：必須同時處理找航班、訂飯店、租車等所有環節。Agent 需要具備全部工具，導致系統變得複雜、單體化、難以維護和擴展。</li>
+<li><strong>多 Agent 系統</strong>：找航班 Agent、訂飯店 Agent、租車 Agent 各自專精。系統更模組化、更容易維護、更具可擴展性。</li>
+</ul>
+<p>這就像<strong>夫妻老婆店旅行社 vs. 連鎖旅行社</strong>——前者一人包辦所有事，後者每人分工明確、各有所長。</p>
+</div>
+
+<h2>實作多 Agent 設計模式的建構模塊</h2>
+<p>在實作多 Agent 設計模式之前，你需要了解構成此模式的基礎模塊。讓我們繼續以訂旅行為例：</p>
+
+<table class="comparison-table">
+<tr><th>建構模塊</th><th>說明</th><th>關鍵問題</th></tr>
+<tr>
+<td><strong>Agent 通訊</strong></td>
+<td>航班 Agent、飯店 Agent、租車 Agent 之間需要共享使用者的偏好和限制資訊（如旅行日期）</td>
+<td>哪些 Agent 在共享資訊？<br>它們如何共享資訊？</td>
+</tr>
+<tr>
+<td><strong>協調機制</strong></td>
+<td>Agent 必須協調行動以滿足使用者偏好（如「飯店靠近機場」）和限制（如「租車僅在機場提供」）</td>
+<td>Agent 如何協調它們的行動？</td>
+</tr>
+<tr>
+<td><strong>Agent 架構</strong></td>
+<td>每個 Agent 需要內部結構來做決策，並從與使用者的互動中學習（例如：基於歷史偏好推薦航班）</td>
+<td>Agent 如何做決策和從互動中學習？</td>
+</tr>
+<tr>
+<td><strong>多 Agent 互動可視性</strong></td>
+<td>需要工具和技術來追蹤 Agent 的活動和互動：日誌記錄、監控工具、視覺化工具、效能指標</td>
+<td>如何看到 Agent 之間在「聊什麼」？</td>
+</tr>
+<tr>
+<td><strong>多 Agent 模式</strong></td>
+<td>不同的實作模式：集中式、分散式、混合式架構</td>
+<td>哪種模式最適合你的場景？</td>
+</tr>
+<tr>
+<td><strong>人機迴圈 (Human in the loop)</strong></td>
+<td>在大多數情況下需要人類參與，你必須指示 Agent 何時請求人類介入——例如使用者要求特定飯店或確認預訂</td>
+<td>何時把球傳給人類？</td>
+</tr>
+</table>
+
+<h2>多 Agent 互動的可視性 (Visibility)</h2>
+<p>能夠看到多個 Agent 之間的互動至關重要——這對偵錯、優化和確保整體系統效能都是必須的。要達成可視性，你需要以下工具：</p>
+
+<h3>日誌記錄與監控工具</h3>
+<p>記錄每個 Agent 的每個動作：哪個 Agent 做了什麼、何時做的、結果如何。這些資訊可用於偵錯和優化。</p>
+
+<h3>視覺化工具</h3>
+<p>用圖形直觀顯示 Agent 之間的資訊流，幫助識別瓶頸、低效率和其他問題。</p>
+
+<h3>效能指標</h3>
+<p>追蹤任務完成時間、單位時間完成任務數、Agent 建議的準確率等，幫助識別改進空間。</p>
+
+<div class="callout">
+<strong>實務建議：</strong>為旅行訂購場景建立一個儀表板，顯示每個 Agent 的狀態、使用者偏好、Agent 之間的互動，以及推薦結果。一眼就能看出系統是否正常運作。
+</div>
+
+<h2>多 Agent 模式 (Patterns)</h2>
+<p>以下是幾種值得參考的具體實作模式：</p>
+
+<h3>1. 群組聊天 (Group Chat)</h3>
+<p><strong>適用場景：</strong>團隊協作、客服支援、社群網路</p>
+<p>每個 Agent 代表群組中的一個使用者，訊息透過通訊協定在 Agent 之間交換。可使用集中式架構（訊息由中央伺服器路由）或分散式架構（直接交換訊息）。</p>
+
+<div class="ref-box">
+<em>圖示說明：</em> 多個 Agent 圍繞一個中央訊息匯流排，每個 Agent 發送和接收訊息，形成多對多通訊網路。
+</div>
+
+<h3>2. 交接 (Hand-off)</h3>
+<p><strong>適用場景：</strong>客服支援、任務管理、工作流程自動化</p>
+<p>每個 Agent 代表工作流程中的一個任務或步驟，Agent 根據預定義規則將任務交接給下一個 Agent。例如：客服機器人先收集問題 → 交接給技術專家 Agent → 必要時交接給人類客服。</p>
+
+<div class="ref-box">
+<em>圖示說明：</em> Agent A → Agent B → Agent C，線性（或條件分支）的任務傳遞鏈。
+</div>
+
+<h3>3. 協作過濾 (Collaborative Filtering)</h3>
+<p><strong>適用場景：</strong>推薦系統，需要匯集多方專業知識</p>
+<p>多個 Agent 各自擁有不同專業，協作為使用者提供更全面的建議。以股票推薦為例：</p>
+<ul>
+<li><strong>產業專家 Agent：</strong>專精特定產業趨勢</li>
+<li><strong>技術分析 Agent：</strong>專精技術指標與圖表</li>
+<li><strong>基本面分析 Agent：</strong>專精財務報表與估值</li>
+</ul>
+<p>三者協作，提供比單一 Agent 更全面的投資建議。</p>
+
+<h2>場景演練：退款流程</h2>
+<p>考慮一個客戶申請退款的場景。涉及的 Agent 可區分為「退款專用」和「通用可重用」兩類：</p>
+
+<h3>退款專用 Agent</h3>
+<table class="comparison-table">
+<tr><th>Agent</th><th>職責</th></tr>
+<tr><td>客戶 Agent</td><td>代表客戶，負責啟動退款流程</td></tr>
+<tr><td>賣家 Agent</td><td>代表賣家，負責處理退款</td></tr>
+<tr><td>付款 Agent</td><td>代表付款流程，負責退款給客戶</td></tr>
+<tr><td>調解 Agent</td><td>處理退款過程中的爭議和問題</td></tr>
+<tr><td>合規 Agent</td><td>確保退款流程符合法規與政策</td></tr>
+</table>
+
+<h3>通用 Agent（其他業務也可用）</h3>
+<table class="comparison-table">
+<tr><th>Agent</th><th>職責</th><th>可重用場景</th></tr>
+<tr><td>物流 Agent</td><td>處理退貨運送</td><td>一般購物出貨也可用</td></tr>
+<tr><td>回饋 Agent</td><td>收集客戶意見</td><td>任何需要收集回饋的流程</td></tr>
+<tr><td>升級 Agent</td><td>將問題升級至高層支援</td><td>任何需要升級的流程</td></tr>
+<tr><td>通知 Agent</td><td>在退款各階段發送通知</td><td>任何需要通知的流程</td></tr>
+<tr><td>分析 Agent</td><td>分析退款相關數據</td><td>任何需要數據分析的流程</td></tr>
+<tr><td>審計 Agent</td><td>審計退款流程正確性</td><td>任何需要審計的流程</td></tr>
+<tr><td>報表 Agent</td><td>產生退款報表</td><td>任何需要報表的流程</td></tr>
+<tr><td>知識庫 Agent</td><td>維護退款相關知識庫</td><td>任何需要知識管理的場景</td></tr>
+<tr><td>安全 Agent</td><td>確保退款流程安全</td><td>任何需要安全防護的流程</td></tr>
+<tr><td>品質 Agent</td><td>確保退款流程品質</td><td>任何需要品質控管的流程</td></tr>
+</table>
+
+<div class="hermes-insight">
+<strong>設計啟發：</strong>當你設計多 Agent 系統時，記得區分「流程專用 Agent」和「通用 Agent」。通用 Agent 可以跨業務場景重用，降低開發成本，提高系統一致性。退款範例中列出的 15 個 Agent 看似很多，但其中 10 個是通用的——這就是多 Agent 系統真正的複用價值。
+</div>
+
+<h2>練習</h2>
+<p>設計一個<strong>客服支援流程</strong>的多 Agent 系統。識別流程中涉及的 Agent、各自的角色和責任、以及它們如何互動。同時考慮客服專用 Agent 和可重用的通用 Agent。</p>
+<div class="callout">
+<strong>提示：</strong>思考客服支援的不同階段，也要考慮任何系統都需要的通用 Agent（如安全、審計、通知等）。你可能需要比想像中更多的 Agent。
+</div>
+<p>👉 <a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/08-multi-agent/solution">查看解答</a></p>
+
+<h2>知識測驗</h2>
+<div class="scenario-box">
+<h4>問題 1：哪個場景最適合使用多 Agent 系統？</h4>
+<ul>
+<li>A1：一個客服機器人使用單一知識庫和少量工具回答常見問題</li>
+<li><strong>A2：退款工作流程需要獨立的詐騙偵測、付款和合規角色，各自有專屬工具，結果必須協調 ✅</strong></li>
+<li>A3：同樣的簡單分類請求每小時進來數千次</li>
+</ul>
+</div>
+
+<div class="scenario-box">
+<h4>問題 2：何時單一 Agent 通常是更好的選擇？</h4>
+<ul>
+<li><strong>A1：任務可以用一組指令和工具處理，不需要專業分工交接 ✅</strong></li>
+<li>A2：Agent 可以使用多個工具</li>
+<li>A3：工作流程需要不同角色、不同權限和獨立審計軌跡</li>
+</ul>
+</div>
+<p>👉 <a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/08-multi-agent/solution/solution-quiz.md">測驗解答</a></p>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>多 Agent 適用時機</strong>：大規模工作負載、複雜任務、需要多元專業知識的場景</li>
+<li><strong>三大核心優勢</strong>：專業化（各司其職）、可擴展性（加 Agent 不加重）、容錯能力（一個掛了其他繼續）</li>
+<li><strong>六大建構模塊</strong>：通訊、協調、架構、可視性、模式選擇、人機迴圈——缺一不可</li>
+<li><strong>三種實作模式</strong>：群組聊天（多對多通訊）、交接（鏈式傳遞）、協作過濾（多方專業匯集）</li>
+<li><strong>設計思維</strong>：區分流程專用 Agent 和通用 Agent，最大化複用價值</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/08-multi-agent">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/V6HpE9hZEx0">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 (69.7k ⭐)</a></li>
+<li><a href="https://www.analyticsvidhya.com/blog/2024/10/agentic-design-patterns/">Agentic 設計模式（延伸閱讀）</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-07-planning/">← 第 7 課：規劃設計模式</a>
+<a href="../ai-agents-09-metacognition/">第 9 課：元認知設計模式 →</a>
+</nav>
+</main>
+</body>
+</html>
