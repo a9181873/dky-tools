@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9.4 多類別支援向量機 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}.output-block{background:#0d1117;border:1px dashed var(--border);border-radius:6px;padding:0.8rem 1rem;margin:0.5rem 0 1.2rem;font-size:0.85rem;color:#8b949e;font-family:'JetBrains Mono','Fira Code','Consolas',monospace;white-space:pre-wrap}</style>
+</head>
+<body>
+
+<header>
+  <h1>9.4 多類別支援向量機</h1>
+  <div class="meta">
+    <span>📖 ISLP §9.4</span>
+    <span>📄 pp. 383–384</span>
+    <span class="difficulty">★★☆ 中等</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">SVM</span>
+    <span class="tag">多類別分類</span>
+    <span class="tag">One-vs-One</span>
+    <span class="tag">One-vs-All</span>
+    <span class="tag">sklearn</span>
+    <span class="tag">多數決</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="9.3_support_vector_machines.html">← 9.3 支援向量機 (SVM)</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="9.5_relationship_to_logistic_regression.html">9.5 SVM 與邏輯回歸的關係 →</a>
+</div>
+
+<!-- ====== CONTENT ====== -->
+
+<h2>從二元到多元：SVM 的擴展</h2>
+
+<p>截至目前，我們所討論的 SVM 都是在<strong>二元分類</strong>的情境下運作的——把資料分成兩類（+1 和 −1）。但在真實世界中，很少有問題只需要分兩類。手寫數字辨識有 10 個類別、花卉品種分類有 3 個類別、新聞文章分類可能有幾十個主題。</p>
+
+<p>現在的問題是：<strong>SVM 的天生結構——尋找一個「分隔超平面」——並不自然地推廣到多類別情境。</strong>你沒辦法只用一條線把三類資料同時分開。幸運的是，統計學家發展出了兩種巧妙的策略來解決這個問題：<strong>一對一（One-Versus-One，OvO）</strong>和<strong>一對多（One-Versus-All，OvA）</strong>。</p>
+
+<div class="ref-box">
+ISLP §9.4, pp. 383–384 · 課本原文：James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Applications in Python</em> · 相關文獻：Hsu & Lin (2002) "A Comparison of Methods for Multiclass Support Vector Machines", IEEE Transactions on Neural Networks
+</div>
+
+<div class="callout">
+<strong>核心概念</strong>：既然一個 SVM 只能處理二元分類，那就用「多個 SVM 的組合」來解決多元問題。就像一個人無法同時判斷「這是貓、狗、還是鳥」，但可以問他 10 個「這是 A 還是 B」的問題，最後投票決定。這就是 OvO 和 OvA 的精髓。
+</div>
+
+<h2>策略一：一對一（One-Versus-One, OvO）</h2>
+
+<h3>運作原理</h3>
+
+<p>假設我們有 \(K\) 個類別（\(K > 2\)）。OvO 的做法是：<strong>針對每一對類別都訓練一個 SVM</strong>。總共會訓練 \(\binom{K}{2} = \frac{K(K-1)}{2}\) 個分類器。</p>
+
+<p>以三個類別（A、B、C）為例：</p>
+<ul>
+  <li>SVM₁：區分 A vs B</li>
+  <li>SVM₂：區分 A vs C</li>
+  <li>SVM₃：區分 B vs C</li>
+</ul>
+
+<p>當一個新的測試觀察值 \(x^*\) 進來時，<strong>讓所有 \(\binom{K}{2}\) 個分類器都對它進行分類</strong>，然後統計每個類別獲得的「票數」。最終分類結果就是得票最多的類別——這就是所謂的<strong>多數決（majority voting）</strong>。</p>
+
+<div class="formula">
+\[\text{最終類別} = \arg\max_k \sum_{j=1}^{\binom{K}{2}} \mathbf{1}\{ \text{SVM}_j \text{ 將 } x^* \text{ 分給類別 } k \}\]
+<div class="formula-label">(9.26 等價表述 — OvO 多數決)</div>
+</div>
+
+<h3>Python 實作：用 sklearn 展示 OvO</h3>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.svm import SVC
+from sklearn.datasets import make_blobs
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# 生成三類別資料（方便視覺化）
+X, y = make_blobs(n_samples=300, centers=3, cluster_std=1.8,
+                  random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42)
+
+# sklearn 的 SVC 預設使用 OvO（decision_function_shape='ovo'）
+svm_ovo = SVC(kernel='rbf', C=1.0, gamma='scale',
+              decision_function_shape='ovo', random_state=42)
+svm_ovo.fit(X_train, y_train)
+y_pred = svm_ovo.predict(X_test)
+acc_ovo = accuracy_score(y_test, y_pred)
+
+print(f"OvO 分類準確率：{acc_ovo:.4f}")
+print(f"訓練了 {svm_ovo.n_support_.sum()} 個支援向量")
+print(f"每類支援向量數：{svm_ovo.n_support_}")
+
+# 視覺化決策邊界
+h = 0.05
+x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+Z = svm_ovo.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+fig, ax = plt.subplots(figsize=(8, 6))
+ax.contourf(xx, yy, Z, alpha=0.3, cmap='viridis')
+scatter = ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train,
+                     cmap='viridis', edgecolors='white', s=40)
+ax.scatter(svm_ovo.support_vectors_[:, 0], svm_ovo.support_vectors_[:, 1],
+           s=120, facecolors='none', edgecolors='red', linewidth=1.5,
+           label='Support Vectors')
+ax.set_xlabel('特徵 1 (X₁)')
+ax.set_ylabel('特徵 2 (X₂)')
+ax.set_title(f'SVM 一對一 (OvO) — 三類別決策邊界\n準確率 = {acc_ovo:.3f}')
+ax.legend()
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<div class="output-block">OvO 分類準確率：0.9778
+訓練了 49 個支援向量
+每類支援向量數：[21 12 16]</div>
+
+<h2>策略二：一對多（One-Versus-All, OvA）</h2>
+
+<h3>運作原理</h3>
+
+<p>OvA（也稱為 One-Versus-Rest，OvR）採用不同的策略：<strong>對每個類別 k，訓練一個「k 對其他所有類別」的 SVM</strong>。總共只需要訓練 \(K\) 個分類器。</p>
+
+<p>同樣以三類別（A、B、C）為例：</p>
+<ul>
+  <li>SVM₁：A（+1）vs 非 A = {B, C}（−1）</li>
+  <li>SVM₂：B（+1）vs 非 B = {A, C}（−1）</li>
+  <li>SVM₃：C（+1）vs 非 C = {A, B}（−1）</li>
+</ul>
+
+<p>每個 SVM 給出一個決策函數值 \(f_k(x^*) = \beta_{0k} + \beta_{1k}x^*_1 + \cdots + \beta_{pk}x^*_p\)，表示「觀察值屬於類別 k 的信心程度」（分數越高，越有信心它屬於 k 而非其他類別）。<strong>最終選擇信心分數最高的那個類別。</strong></p>
+
+<div class="formula">
+\[\text{最終類別} = \arg\max_k \; \big( \beta_{0k} + \beta_{1k}x^*_1 + \beta_{2k}x^*_2 + \cdots + \beta_{pk}x^*_p \big)\]
+<div class="formula-label">(課本 §9.4.2 — OvA 決策規則)</div>
+</div>
+
+<h3>Python 實作：OvA 與 OvO 對比</h3>
+
+<pre><code class="language-python">import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.svm import SVC
+from sklearn.datasets import make_blobs
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# 同樣的三類別資料
+X, y = make_blobs(n_samples=300, centers=3, cluster_std=1.8,
+                  random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42)
+
+# OvA 模式（decision_function_shape='ovr'）
+svm_ova = SVC(kernel='rbf', C=1.0, gamma='scale',
+              decision_function_shape='ovr', random_state=42)
+svm_ova.fit(X_train, y_train)
+y_pred_ova = svm_ova.predict(X_test)
+acc_ova = accuracy_score(y_test, y_pred_ova)
+
+# OvO 模式（對照組）
+svm_ovo = SVC(kernel='rbf', C=1.0, gamma='scale',
+              decision_function_shape='ovo', random_state=42)
+svm_ovo.fit(X_train, y_train)
+y_pred_ovo = svm_ovo.predict(X_test)
+acc_ovo = accuracy_score(y_test, y_pred_ovo)
+
+print(f"OvA 準確率：{acc_ova:.4f}  |  OvO 準確率：{acc_ovo:.4f}")
+print(f"OvA 支援向量總數：{svm_ova.n_support_.sum()}")
+print(f"OvO 支援向量總數：{svm_ovo.n_support_.sum()}")
+
+# 並排比較決策邊界
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+h = 0.05
+x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+
+for idx, (svm, name, acc) in enumerate(
+    [(svm_ova, 'OvA (一對多)', acc_ova),
+     (svm_ovo, 'OvO (一對一)', acc_ovo)]):
+    Z = svm.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+    ax = axes[idx]
+    ax.contourf(xx, yy, Z, alpha=0.3, cmap='viridis')
+    ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train,
+               cmap='viridis', edgecolors='white', s=30)
+    ax.set_title(f'{name}\n準確率 = {acc:.3f}')
+    ax.set_xlabel('特徵 1')
+    ax.set_ylabel('特徵 2')
+
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<div class="output-block">OvA 準確率：0.9778  |  OvO 準確率：0.9778
+OvA 支援向量總數：49
+OvO 支援向量總數：49</div>
+
+<div class="callout">
+<strong>📊 OvO vs OvA 的選擇建議</strong><br>
+sklearn 的 <code>SVC</code> 預設使用 OvO（<code>decision_function_shape='ovo'</code>），因為在實務上 OvO 通常更受歡迎——每個子分類器只處理兩個類別，資料量較小、訓練較快。但 OvA 只需 K 個分類器（vs OvO 的 K(K−1)/2 個），當類別數很大時 OvA 反而更有效率。sklearn 也提供 <code>LinearSVC</code> 預設使用 OvA，適合大規模線性分類。
+</div>
+
+<h2>兩種策略的比較</h2>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ OvO（一對一）優點</h4>
+<ul>
+  <li>每個子 SVM 只需處理兩個類別，決策邊界較簡單</li>
+  <li>每對類別的訓練集較小，單個 SVM 訓練較快</li>
+  <li>sklearn SVC 的預設策略，經過高度最佳化</li>
+  <li>適合類別數適中（3~10）的情境</li>
+</ul>
+</div>
+<div class="cons">
+<h4>⚠️ OvO（一對一）缺點</h4>
+<ul>
+  <li>需要訓練 K(K−1)/2 個分類器，類別數大時開銷驚人</li>
+  <li>K=100 時需要 4,950 個 SVM——計算上不可行</li>
+  <li>投票平手時需要額外的決勝規則</li>
+</ul>
+</div>
+</div>
+
+<div class="pros-cons">
+<div class="pros">
+<h4>✅ OvA（一對多）優點</h4>
+<ul>
+  <li>只需 K 個分類器，類別數多時遠比 OvO 有效率</li>
+  <li>每個 SVM 的決策分數有明確的機率解釋（信心分數）</li>
+  <li>sklearn LinearSVC 的預設策略，適合大規模問題</li>
+</ul>
+</div>
+<div class="cons">
+<h4>⚠️ OvA（一對多）缺點</h4>
+<ul>
+  <li>每個 SVM 面對極度不平衡的資料（1 類 vs K−1 類）</li>
+  <li>類別間樣本數差異大時，少數類別容易被「淹沒」</li>
+  <li>決策邊界可能不如 OvO 精細</li>
+</ul>
+</div>
+</div>
+
+<table class="comparison-table">
+  <tr><th>特性</th><th>OvO（一對一）</th><th>OvA（一對多）</th></tr>
+  <tr><td>分類器數量</td><td>\(\binom{K}{2} = K(K-1)/2\)</td><td>\(K\)</td></tr>
+  <tr><td>K=4 時</td><td>6 個 SVM</td><td>4 個 SVM</td></tr>
+  <tr><td>K=10 時</td><td>45 個 SVM</td><td>10 個 SVM</td></tr>
+  <tr><td>K=100 時</td><td>4,950 個 SVM ❌</td><td>100 個 SVM ✓</td></tr>
+  <tr><td>決策機制</td><td>多數決投票</td><td>最大信心分數</td></tr>
+  <tr><td>每子分類器資料量</td><td>僅含兩個類別（較少）</td><td>含所有 K 個類別（較多）</td></tr>
+  <tr><td>類別不平衡敏感度</td><td>低（配對比較）</td><td>高（少數類 vs 多數類）</td></tr>
+  <tr><td>sklearn 預設</td><td>SVC(kernel='rbf')</td><td>LinearSVC</td></tr>
+</table>
+
+<div class="scenario-box">
+<h4>🎯 應用場景：手寫數字辨識（MNIST）</h4>
+<p>MNIST 手寫數字辨識有 10 個類別（0–9）。使用 OvO 策略需要訓練 \(\binom{10}{2} = 45\) 個 SVM，每個只區分兩個數字（例如「3 vs 7」）。對一個新圖片，45 個 SVM 各自投票，最終以多數決決定是哪個數字。sklearn 的 SVC 搭配 RBF 核心在 MNIST 上可達 ~98% 準確率。</p>
+</div>
+
+<div class="scenario-box">
+<h4>📊 應用場景：文件主題分類</h4>
+<p>新聞文章需要被分類到 20 個主題（政治、體育、科技……）。使用 OvA 策略只需 20 個 SVM——遠比 OvO 的 190 個來得實際。每個 SVM 判斷「這篇文章是否屬於類別 k」。最終選出信心分數最高的類別作為文章主題。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🧬 應用場景：基因表達資料的癌症亞型分類</h4>
+<p>基因表達資料通常有數千個特徵但只有幾百個樣本（高維度低樣本問題）。癌症亞型可能有 3–5 種。OvO 在這裡表現良好，因為高維度下的配對比較比 OvA 的全體對抗更能捕捉細微的類別差異。</p>
+</div>
+
+<div class="callout">
+<strong>💡 Hermes 架構啟發：策略模式（Strategy Pattern）的統計學根源</strong><br>
+OvO 和 OvA 是統計學中的「組合策略」——將複雜的多類問題分解為多個簡單的二元問題，再以投票或計分機制整合結果。這和軟體架構中的 <strong>Strategy Pattern</strong> 以及多模型集成（Ensemble）有相同的設計精神。在 Hermes 的多 Agent 系統中，當單一 Agent 無法處理複雜任務時，可以借鏡 OvO 的「配對比較 + 多數決」模式：讓多個專門的副手各自從不同角度判斷，主 Agent 彙總投票進行最終決策。這比單一全能 Agent 更穩健，因為每個專門 Agent 只需要處理自己擅長的二元決策。這就是 <strong>Divide and Conquer</strong> 在 AI 架構中的力量。
+</div>
+
+<div class="key-quote">
+當一個工具天生只能處理二元問題時，聰明的做法不是換工具，而是把多元問題拆成許多個二元問題，再用組合的方式解決。
+<span class="author">— §9.4 核心精神 · OvO / OvA 的設計哲學</span>
+</div>
+
+<!-- ====== END CONTENT ====== -->
+
+<div class="section-nav">
+  <a href="9.3_support_vector_machines.html">← 9.3 支援向量機 (SVM)</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="9.5_relationship_to_logistic_regression.html">9.5 SVM 與邏輯回歸的關係 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 9 章：支援向量機 · §9.4 多類別 SVM</p>
+  <p>Generated: 2026-08-01 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
