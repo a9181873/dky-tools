@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>元認知設計模式 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 9 課繁體中文版：讓 AI Agent「思考自己的思考」，學會自我反思與修正策略">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 9 課 / 共 18 課</p>
+<h1>元認知設計模式：讓 AI Agent「思考自己的思考」</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-08-multi-agent/">← 第 8 課</a>
+<a href="../ai-agents-10-production/">第 10 課 →</a>
+</nav>
+
+<h2>什麼是元認知（Metacognition）？</h2>
+<div class="verdict">
+一句話：<strong>元認知就是「思考自己的思考」——讓 AI Agent 能夠自我評估、察覺錯誤，並自動調整決策策略。</strong>
+</div>
+<p>元認知是高階認知過程，涉及對自身思考的意識與調控。對 AI Agent 來說，這代表它們能根據自我覺察和過去經驗，來評估和調整自己的行動。就像人類「讀空氣」或重新審視問題的方式一樣，AI Agent 也能監控、調節和適應自己的行為。</p>
+
+<h3>元認知解決的四個核心挑戰</h3>
+<table>
+<tr><th>挑戰</th><th>說明</th></tr>
+<tr><td><strong>透明度 (Transparency)</strong></td><td>確保 AI 系統能解釋自己的推理過程與決策原因</td></tr>
+<tr><td><strong>推理能力 (Reasoning)</strong></td><td>增強 AI 整合資訊並做出合理決策的能力</td></tr>
+<tr><td><strong>適應性 (Adaptation)</strong></td><td>讓 AI 能適應新環境與不斷變化的條件</td></tr>
+<tr><td><strong>感知力 (Perception)</strong></td><td>提升 AI 辨識和解讀環境資料的準確度</td></tr>
+</table>
+
+<h3>真正的元認知長什麼樣子？</h3>
+<p>在真正的元認知中，AI 會<strong>明確地推理自己的推理</strong>：</p>
+<ul>
+<li>「我優先選了便宜航班，因為…但我可能漏掉了直飛選項，讓我重新檢查。」</li>
+<li>追蹤自己為什麼選擇特定路線，而不只是輸出結果。</li>
+<li>察覺到自己因為過度依賴上次的使用者偏好而出錯，因此<strong>修改決策策略本身</strong>，而不只是修改最終推薦。</li>
+<li>診斷模式：「每當使用者提到『太擠』，我不只要移除某些景點，還應該反思——我用『人氣排名』來挑選熱門景點的方法本身就有問題。」</li>
+</ul>
+
+<h2>元認知在 AI Agent 中的重要性</h2>
+<table>
+<tr><th>能力</th><th>說明</th></tr>
+<tr><td><strong>自我反思 (Self-Reflection)</strong></td><td>Agent 能評估自己的表現，找出改進空間</td></tr>
+<tr><td><strong>適應性 (Adaptability)</strong></td><td>根據過去經驗和環境變化，修改策略</td></tr>
+<tr><td><strong>錯誤修正 (Error Correction)</strong></td><td>自主偵測並修正錯誤，產生更準確的結果</td></tr>
+<tr><td><strong>資源管理 (Resource Management)</strong></td><td>透過規劃與評估，最佳化時間和計算資源的使用</td></tr>
+</table>
+
+<h2>AI Agent 的基本組成</h2>
+<p>在深入元認知之前，先回顧 AI Agent 的基本元件：</p>
+<table>
+<tr><th>元件</th><th>說明</th></tr>
+<tr><td><strong>人格 (Persona)</strong></td><td>Agent 的個性與特質，定義它如何與使用者互動</td></tr>
+<tr><td><strong>工具 (Tools)</strong></td><td>Agent 能執行的功能與能力</td></tr>
+<tr><td><strong>技能 (Skills)</strong></td><td>Agent 擁有的知識與專業</td></tr>
+</table>
+<p>這三個元件共同構成一個<strong>「專業單元」</strong>，用來完成特定任務。</p>
+
+<h2>旅行社 Agent 的元認知範例</h2>
+<p>假設你正在設計一個 AI 旅行社 Agent（Travel Agent），協助使用者規劃假期。要加入元認知，Travel Agent 需要根據自我覺察和過去經驗來評估並調整行動。</p>
+
+<h3>任務步驟</h3>
+<ol>
+<li><strong>收集使用者偏好</strong>：詢問旅行日期、預算、興趣（博物館、美食、購物等）及特殊需求</li>
+<li><strong>檢索資訊</strong>：搜尋符合偏好的航班、住宿、景點和餐廳</li>
+<li><strong>生成推薦</strong>：提供包含航班、飯店和建議活動的個人化行程</li>
+<li><strong>根據回饋調整</strong>：收集使用者對推薦的意見並進行調整</li>
+</ol>
+
+<h3>元認知如何運作</h3>
+<ol>
+<li><strong>分析使用者回饋</strong>：Travel Agent 審查哪些推薦受歡迎、哪些不被接受，並據此調整未來建議</li>
+<li><strong>適應性</strong>：如果使用者曾表示不喜歡擁擠的地方，未來會避免在尖峰時段推薦熱門景點</li>
+<li><strong>錯誤修正</strong>：如果之前推薦了一間已客滿的飯店，Agent 會學會在推薦前更嚴格檢查可用性</li>
+</ol>
+
+<h2>Agent 中的規劃（Planning）</h2>
+<p>規劃是 AI Agent 行為的關鍵部分。它涉及勾勒實現目標所需的步驟，考量當前狀態、可用資源和潛在障礙。</p>
+
+<h3>規劃要素</h3>
+<table>
+<tr><th>要素</th><th>說明</th></tr>
+<tr><td><strong>當前任務</strong></td><td>明確定義任務目標</td></tr>
+<tr><td><strong>完成步驟</strong></td><td>將任務拆解為可管理的小步驟</td></tr>
+<tr><td><strong>所需資源</strong></td><td>識別完成任務所需的資源</td></tr>
+<tr><td><strong>經驗</strong></td><td>利用過去經驗來指導規劃</td></tr>
+</table>
+
+<h3>Travel Agent 的規劃步驟</h3>
+<ol>
+<li>收集使用者偏好（日期、預算、興趣）</li>
+<li>檢索資訊（航班、住宿、景點、餐廳）</li>
+<li>生成個人化行程推薦</li>
+<li>向使用者展示行程並請求審閱</li>
+<li>收集回饋</li>
+<li>根據回饋調整</li>
+<li>最終確認</li>
+<li>預訂並確認所有 reservation</li>
+<li>提供持續支援（旅程前後的變更需求）</li>
+</ol>
+
+<h2>修正型 RAG（Corrective RAG）</h2>
+<div class="verdict">
+<strong>修正型 RAG</strong> 是將檢索增強生成（RAG）與自我修正機制結合——不只檢索資料，還會評估資料的相關性、根據回饋修正，持續提升準確度。
+</div>
+
+<h3>RAG vs 預先載入上下文</h3>
+<table>
+<tr><th>RAG（檢索增強生成）</th><th>預先載入上下文</th></tr>
+<tr><td>收到查詢時，從外部來源動態擷取相關文件或資料</td><td>在處理查詢前，預先載入相關背景知識到模型中</td></tr>
+<tr><td>檢索到的資訊用來增強生成模型的輸入</td><td>模型從一開始就能取得這些資訊，不需即時檢索</td></tr>
+<tr><td>適合動態、需要最新資料的場景</td><td>適合常用、靜態的知識，回應更快速</td></tr>
+</table>
+
+<h3>修正型 RAG 的三步驟</h3>
+<ol>
+<li><strong>提示技術 (Prompting)</strong>：使用特定提示來引導 Agent 檢索相關資訊</li>
+<li><strong>工具 (Tool)</strong>：實作演算法來評估檢索資訊的相關性，並生成準確回應</li>
+<li><strong>評估 (Evaluation)</strong>：持續評估 Agent 的表現，進行調整以改善準確度和效率</li>
+</ol>
+
+<h3>實戰範例：用 SQL 實作修正型 RAG</h3>
+<p>以下展示 AI Agent 如何動態生成 SQL 查詢來檢索資料，這正是 RAG 技術的一種實作方式：</p>
+<pre><code>def generate_sql_query(table, preferences):
+    query = f"SELECT * FROM {table} WHERE "
+    conditions = []
+    for key, value in preferences.items():
+        conditions.append(f"{key}='{value}'")
+    query += " AND ".join(conditions)
+    return query
+
+# 動態生成的 SQL 範例：
+# SELECT * FROM flights WHERE destination='Paris' AND budget='moderate';
+# SELECT * FROM hotels WHERE destination='Paris' AND budget='moderate';
+# SELECT * FROM attractions WHERE destination='Paris' AND interests='museums, cuisine';</code></pre>
+
+<h2>飯店推薦 Agent：元認知的完整實作</h2>
+<p>以下展示一個具有元認知能力的飯店推薦 Agent——它會<strong>反思自己的決策過程</strong>，當做出次優選擇時自動調整策略：</p>
+
+<h3>元認知的三個階段</h3>
+<ol>
+<li><strong>初始決策</strong>：Agent 先用「最便宜」策略選飯店，但可能忽略品質</li>
+<li><strong>反思與評估</strong>：透過使用者回饋檢查選擇是否「糟糕」，反思自己的推理</li>
+<li><strong>調整策略</strong>：從「最便宜」切換到「最高品質」，改善未來的決策</li>
+</ol>
+
+<pre><code>class HotelRecommendationAgent:
+    def __init__(self):
+        self.previous_choices = []
+        self.corrected_choices = []
+        self.recommendation_strategies = ['cheapest', 'highest_quality']
+
+    def recommend_hotel(self, hotels, strategy):
+        if strategy == 'cheapest':
+            recommended = min(hotels, key=lambda x: x['price'])
+        elif strategy == 'highest_quality':
+            recommended = max(hotels, key=lambda x: x['quality'])
+        self.previous_choices.append((strategy, recommended))
+        return recommended
+
+    def reflect_on_choice(self):
+        """反思上次選擇，決定是否調整策略"""
+        last_strategy, last_choice = self.previous_choices[-1]
+        user_feedback = self.get_user_feedback(last_choice)
+        if user_feedback == "bad":
+            new_strategy = 'highest_quality' if last_strategy == 'cheapest' else 'cheapest'
+            self.corrected_choices.append((new_strategy, last_choice))
+            return f"反思中。將策略調整為 {new_strategy}。"
+        return "上次選擇不錯，不需調整。"
+
+    def get_user_feedback(self, hotel):
+        # 模擬回饋：太便宜或品質低於7分 → 差評
+        if hotel['price'] &lt; 100 or hotel['quality'] &lt; 7:
+            return "bad"
+        return "good"</code></pre>
+
+<p>這個範例的關鍵在於 <code>reflect_on_choice()</code> 方法：Agent 不僅執行動作，還會<strong>回頭審視自己的決策品質</strong>，並在策略層面進行修正。這就是元認知的核心。</p>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>元認知 = 思考自己的思考</strong>：讓 AI Agent 不僅執行任務，還能反思自己為何這樣做、是否有更好的方法</li>
+<li><strong>四大價值</strong>：自我反思、適應性、錯誤修正、資源管理——元認知讓 Agent 不再只是盲目執行</li>
+<li><strong>規劃是元認知的基礎</strong>：拆解任務、識別資源、利用經驗，為反思提供結構化的框架</li>
+<li><strong>修正型 RAG</strong>：不只檢索資料，還會評估相關性、根據回饋修正，形成「檢索 → 評估 → 修正」的閉環學習</li>
+<li><strong>策略層面調整</strong>：真正的元認知不是只改結果，而是修改決策策略本身——這是與一般錯誤修正最關鍵的差異</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/09-metacognition">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/His9R6gw6Ec">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 (69.7k ⭐)</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord 社群</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-08-multi-agent/">← 第 8 課：多 Agent 設計模式</a>
+<a href="../ai-agents-10-production/">第 10 課：AI Agent 上線實戰 →</a>
+</nav>
+</main>
+</body>
+</html>
