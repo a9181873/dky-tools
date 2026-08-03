@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SESA：讓自對弈代理的失敗變成進化技能 — DKY</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{font-size:1.2rem;color:#fff;margin:2rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin-bottom:1rem}.card p{margin:0;line-height:1.8}ul,ol{margin:0;padding-left:1.5rem;line-height:1.9}ul li,ol li{margin-bottom:.4rem}.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin:1rem 0}.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}.mc h4{color:var(--accent);margin:0 0 .4rem;font-size:.95rem}.mc p{font-size:.9rem;color:var(--fg);margin:0}strong,b{color:#fff}@media(max-width:768px){body{padding:1rem .8rem}header h1{font-size:1.3rem}.mb{grid-template-columns:1fr}}</style>
+</head>
+<body>
+
+<header>
+  <h1>SESA：讓自對弈代理的失敗變成進化技能 — 自演化技能增強代理</h1>
+  <p class="meta">arXiv:2607.29468 — 2026-07-31 — cs.AI — Zenghuang Fu, Zhaoyang Li, Qiuyuan Ai 等 9 人 — Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">自對弈</span><span class="tag">技能演化</span><span class="tag">Self-Play</span>
+    <span class="tag">Agent Memory</span><span class="tag">GRPO</span><span class="tag">失敗蒸餾</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+<div class="card">
+<p>現有代理訓練的兩條路線各有一個致命缺口：<b>自對弈（SSP）</b>能自己出題練習，但失敗只更新梯度、不留下可重用的技能記錄；<b>技能增強 RL（SkillRL）</b>把經驗蒸餾成可檢索的技能，但從固定題庫學、無法適應難度變化。SESA 把這兩條線鎖在一起——失敗被蒸餾成技能→技能改變解題行為→解題成功率改變出題分布→新難度產生新失敗→新失敗再寫回技能記憶。這個<b>雙向共演化迴路</b>讓任務生成和技能記憶共同進化。兩種部署模式：SESA-Off（參數內化）+ SESA-On（推理檢索）。跨七基準六 backbone，比純自對弈高 1.2–3.2 點。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>核心創新</h4><p>關閉自對弈↔技能記憶雙向迴路</p></div>
+<div class="mc"><h4>四階段訓練</h4><p>記憶預備→非對稱自對弈→邊界塑形→失敗蒸餾</p></div>
+<div class="mc"><h4>雙重路徑</h4><p>SESA-Off +1.8–2.2 點 / SESA-On +0.5–1.0 點</p></div>
+<div class="mc"><h4>最關鍵元件</h4><p>失敗蒸餾移除 → 2.7 點降幅</p></div>
+</div>
+
+<h2>核心洞察：兩個半套方案的互補缺口</h2>
+<div class="card">
+<p>自對弈決定練什麼但忘了學到什麼，技能記憶記住經驗但不知道下一步該練什麼。SESA 把它們接在一起，兩個問題互相解決。</p>
+<ol>
+<li><b>自對弈（SSP）：</b>挑戰者出題→解題者回答→正確就獎勵。但每個軌跡用完即丟——成功策略沒被記錄、失敗原因沒被分析。梯度是唯一的記憶形式。</li>
+<li><b>技能增強 RL（SkillRL）：</b>把經驗蒸餾成結構化技能（觸發條件、查詢模板、避坑提示），但從固定題庫學——技能停滯在題庫上限。</li>
+</ol>
+</div>
+
+<h2>四階段訓練迴路</h2>
+<div class="card">
+<p><b>階段 1 — 記憶預備：</b>157 筆初始化技能（15 手寫 + 142 挖掘），每筆含描述、觸發條件、避坑提示、查詢模板、使用統計。</p>
+<p><b>階段 2 — 非對稱自對弈：</b>挑戰者和解題者使用獨立參數。關鍵設計：技能檢索僅開放給解題者，挑戰者看不到技能庫，防止技能洩漏導致出題偏移。</p>
+<p><b>階段 3 — 難度邊界塑形：</b>鐘形獎勵函數引導挑戰者生成「邊界難度」問題——有時對有時錯。太簡單無訊號、太難是噪音。確保流入蒸餾的都是可被技能改善的邊界失敗。</p>
+<p><b>階段 4 — 失敗蒸餾：</b>三步生命週期——檢索 top-3 最相關技能 → 收集失敗軌跡摘要 → LLM 法官抽象化為新技能（cosine similarity ≤ 0.93 去重）。技能庫上限 800 筆，依「有幫助次數−有害次數」淘汰。</p>
+</div>
+
+<h2>雙重路徑評估：技能增益在哪裡？</h2>
+<div class="card">
+<p>論文比較三種模式：SSP（無記憶）、SESA-Off（訓練後關閉技能庫）、SESA-On（訓練後開啟技能庫）。</p>
+<ul>
+<li><b>參數內化是真實效應：</b>SESA-Off 比 SSP 高 1.8–2.2 點。技能在訓練時塑造了 on-policy 軌跡分布，增益被 GRPO 梯度寫入模型參數。</li>
+<li><b>技能庫是額外增幅：</b>SESA-On 比 SESA-Off 再高 0.5–1.0 點，接近免費（僅檢索成本）。</li>
+<li><b>失敗蒸餾是最關鍵元件：</b>移除後降 2.7 點——證明「記住失敗」比「多練幾次」有本質差異。</li>
+</ul>
+</div>
+
+<h2>訓練動態：自精煉記憶</h2>
+<div class="card">
+<p>活躍技能數量先增長後收縮——初期大量失敗產生新技能，後期去重+效用淘汰讓技能庫自我精煉。不是無限制堆積，而是達爾文式選擇：有用存活、無用淘汰、重複合併。跨 Qwen3/LLaMA/Search-R1 六組 backbone 全部有效。</p>
+</div>
+
+<h2>對 Hermes 的啟發</h2>
+<div class="card">
+<ul>
+<li><b>技能記憶應與任務生成耦合：</b>Hermes skills/ 是靜態手寫的，self-play search 是無狀態的。SESA 的「失敗→技能→改變難度」迴路提供直接藍圖。</li>
+<li><b>雙重路徑對應 profile skills/ + fine-tune：</b>SESA-Off（參數內化）對應 fine-tuned weights、SESA-On（外部檢索）對應 profile skills/。兩者可疊加，不是互斥。</li>
+<li><b>難度邊界塑形防止記憶汙染：</b>Hermes 記憶固化需要類似的「可學習性閘門」過濾機制。</li>
+<li><b>去重+效用淘汰的輕量維護：</b>cosine ≤ 0.93 去重、helpful−hurt 淘汰，可直接借鑑到 fact_store / consolidation。</li>
+<li><b>非對稱資訊設計：</b>技能僅給解題者不給挑戰者，防止技能洩漏→出題偏移。</li>
+</ul>
+</div>
+
+<h2>限制</h2>
+<div class="card">
+<ul>
+<li>技能蒸餾依賴 DeepSeek-v4-pro，成本高（8×A100），未驗證較小 LLM 的蒸餾品質</li>
+<li>七基準全為英文 QA，未測試多語言或程式碼/工具使用</li>
+<li>訓練和評估使用相同搜尋引擎，對搜尋品質變化敏感</li>
+<li>技能庫上限 800 筆來自經驗，未系統性探討最優容量</li>
+<li>僅提供程式碼，未釋出完整訓練資料或模型權重</li>
+</ul>
+</div>
+
+</body>
+</html>

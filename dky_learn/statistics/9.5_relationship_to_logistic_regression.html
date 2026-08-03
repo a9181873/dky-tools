@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9.5 SVM 與邏輯回歸的關係 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>9.5 SVM 與邏輯回歸的關係</h1>
+  <div class="meta">
+    <span>📖 ISLP §9.5</span>
+    <span>📄 pp. 384–386</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 20 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">SVM</span>
+    <span class="tag">邏輯回歸</span>
+    <span class="tag">Hinge Loss</span>
+    <span class="tag">損失函數</span>
+    <span class="tag">Loss+Penalty</span>
+    <span class="tag">核心方法</span>
+    <span class="tag">SVR</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="9.4_svm_multiclass.html">← 9.4 多類別 SVM</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="index.html">課程首頁 →</a>
+</div>
+
+<!-- ============================================================ -->
+<h2>從「神秘黑箱」到「老朋友的變裝」</h2>
+
+<p>
+1990 年代中期 SVM 剛問世時，在統計與機器學習界引起了不小的轟動。原因不只來自於它的優秀表現與成功的行銷包裝，更因為它的數學形式看起來既新穎又神秘——在允許部分違反邊界的同時找到最佳分離超平面，還用核心函數將資料映射到高維度空間以處理非線性邊界——這一切看起來與傳統的分類方法（如邏輯回歸、線性判別分析）完全不同。
+</p>
+
+<p>
+然而，隨著時間推移，SVM 與古典統計方法之間的深層連結逐漸浮現。本章節的核心訊息是：<strong>SVM 和邏輯回歸本質上是同一框架下的不同實作</strong>——它們只是選擇了不同的損失函數。就像同一個引擎可以裝在不同的車殼裡，SVM 和邏輯回歸共享相同的「損失＋懲罰」最佳化框架，差別只在於損失函數的形狀。
+</p>
+
+<div class="ref-box">
+James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §9.5, pp. 384–386.
+</div>
+
+<!-- ============================================================ -->
+<h2>1. SVM 的「損失＋懲罰」改寫</h2>
+
+<p>
+SVM 的原始表述（式 9.12–9.15）是用幾何語言描述的——最大化邊界、容忍部分違反。但這個看似幾何的問題可以改寫成一個更通用的「<strong>損失函數＋懲罰項</strong>」形式：
+</p>
+
+<div class="formula">
+\[
+\min_{\beta_0,\beta_1,...,\beta_p} \left\{ \sum_{i=1}^{n} \max\left[0,\; 1 - y_i \, f(x_i)\right] + \lambda \sum_{j=1}^{p} \beta_j^2 \right\}
+\]
+<div class="formula-label">（式 9.25）</div>
+</div>
+
+<p>
+其中 \(f(x_i) = \beta_0 + \beta_1 x_{i1} + \cdots + \beta_p x_{ip}\) 是線性決策函數，\(\lambda \ge 0\) 是調節參數。這個改寫讓 SVM 瞬間變得不再神秘——它完全符合我們在前幾章反覆看到的模式：
+</p>
+
+<div class="formula">
+\[
+\min_{\beta} \big\{ \underbrace{L(X, y, \beta)}_{\text{損失函數}} + \lambda \; \underbrace{P(\beta)}_{\text{懲罰項}} \big\}
+\]
+<div class="formula-label">（式 9.26）</div>
+</div>
+
+<div class="callout">
+<strong>💡 白話說明：</strong>損失函數 \(L\) 衡量「模型對訓練資料擬合得有多差」，懲罰項 \(P\) 限制參數的大小以控制模型複雜度（防止過擬合），\(\lambda\) 則平衡兩者。這和 Ridge Regression（§6.2.1）和 Lasso 是完全相同的框架，只是損失函數不同！
+</div>
+
+<h3>統一框架下的各種方法</h3>
+
+<table class="comparison-table">
+  <tr><th>方法</th><th>損失函數 \(L(X,y,\beta)\)</th><th>懲罰項 \(P(\beta)\)</th></tr>
+  <tr>
+    <td><strong>Ridge Regression</strong></td>
+    <td>\(\sum (y_i - \hat{y}_i)^2\)（平方誤差）</td>
+    <td>\(\sum \beta_j^2\)（L2）</td>
+  </tr>
+  <tr>
+    <td><strong>Lasso</strong></td>
+    <td>\(\sum (y_i - \hat{y}_i)^2\)（平方誤差）</td>
+    <td>\(\sum |\beta_j|\)（L1）</td>
+  </tr>
+  <tr>
+    <td><strong>支援向量分類器</strong></td>
+    <td>\(\sum \max[0, 1 - y_i f(x_i)]\)（hinge loss）</td>
+    <td>\(\sum \beta_j^2\)（L2）</td>
+  </tr>
+  <tr>
+    <td><strong>邏輯回歸</strong></td>
+    <td>\(\sum \log[1 + e^{-y_i f(x_i)}]\)（logistic loss）</td>
+    <td>可加 L1 / L2 / Elastic Net</td>
+  </tr>
+</table>
+
+<p>
+注意 SVM 的懲罰項是 <strong>L2 懲罰</strong>（Ridge 風格）——這意味著 \(\lambda\) 扮演與 SVM 的 \(C\) 參數相反的角色：\(\lambda\) 大 ≈ \(C\) 小（更多違反邊界、低變異高偏差），\(\lambda\) 小 ≈ \(C\) 大（嚴格邊界、高變異低偏差）。
+</p>
+
+<div class="callout">
+<strong>🧠 自我內化：Loss+Penalty 框架對 AI 系統設計的啟發</strong><br>
+SVM 的改寫揭示了「所有監督學習方法本質上只是損失函數的選擇」——這對 Hermes 代理架構設計有直接啟發：每個子 agent（dky1/dky2/tky）可視為各自採用不同的「損失函數」來最佳化其輸出品質。dky1 的「損失」是內容品質偏差、dky2 的是程式正確性、tky 的是系統穩定性。統一的協調層（主 agent）扮演 \(\lambda\) 的角色——根據任務上下文動態調整各專家的「權重」。這就是 <strong>C-A-F 路由</strong>的數學直覺來源。
+</div>
+
+<!-- ============================================================ -->
+<h2>2. Hinge Loss vs Logistic Loss：一張圖勝過千言萬語</h2>
+
+<p>
+SVM 使用 <strong>hinge loss（鉸鏈損失）</strong>，邏輯回歸使用的則是 logistic loss。兩者長得很像，但有一個關鍵差異：
+</p>
+
+<div class="formula">
+\[
+\begin{aligned}
+\text{Hinge Loss:} \quad & L_{\text{hinge}}(y, f) = \max[0,\; 1 - y \cdot f] \\[6pt]
+\text{Logistic Loss:} \quad & L_{\text{logistic}}(y, f) = \log[1 + e^{-y \cdot f}]
+\end{aligned}
+\]
+</div>
+
+<p>
+<strong>核心差異：</strong>當 \(y \cdot f(x) \ge 1\)（即觀測值落在邊界的正確一側），hinge loss <strong>精確為零</strong>——這些觀測值完全不會影響分類器。而 logistic loss 永遠不為零，只是當觀測值離決策邊界很遠時變得很小。這就是為什麼 SVM 只有「支援向量」影響最終模型的原因。
+</p>
+
+<h3>Python 視覺化比較</h3>
+
+<pre><code class="language-python"># Colab + 本機相容資料路徑
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+# 計算 hinge loss 和 logistic loss
+yf = np.linspace(-4, 4, 500)
+
+hinge_loss = np.maximum(0, 1 - yf)
+logistic_loss = np.log(1 + np.exp(-yf))
+
+fig, ax = plt.subplots(figsize=(9, 5))
+ax.plot(yf, hinge_loss, 'b-', linewidth=2.5, label='SVM Hinge Loss: max[0, 1 − y·f]')
+ax.plot(yf, logistic_loss, 'r--', linewidth=2.5, label='Logistic Loss: log[1 + e^(−y·f)]')
+
+# 標示關鍵區域
+ax.axvline(x=1, color='gray', linestyle=':', alpha=0.7)
+ax.axhline(y=0, color='gray', linestyle='-', alpha=0.3)
+ax.annotate('y·f = 1（邊界）', xy=(1, 0.2), xytext=(1.8, 1.5),
+            arrowprops=dict(arrowstyle='->', color='gray'), fontsize=10, color='#8b949e')
+ax.annotate('Hinge = 0\n（正確側不影響模型）', xy=(2.5, 0), xytext=(3.5, 1.0),
+            arrowprops=dict(arrowstyle='->', color='#58a6ff'), fontsize=10, color='#58a6ff')
+ax.annotate('Logistic 永遠 > 0\n（每個觀測值都有影響）', xy=(-2, 2.2), xytext=(-3.5, 3.5),
+            arrowprops=dict(arrowstyle='->', color='#f85149'), fontsize=10, color='#f85149')
+
+ax.fill_between(yf[yf >= 1], 0, hinge_loss[yf >= 1], alpha=0.08, color='#3fb950')
+ax.text(2.0, 0.06, 'hinge = 0 區間', fontsize=9, color='#3fb950', ha='center')
+
+ax.set_xlabel('y · f(x)  （正值 = 分類正確，負值 = 分類錯誤）', fontsize=11)
+ax.set_ylabel('Loss', fontsize=11)
+ax.set_title('圖 9.12：SVM Hinge Loss vs Logistic Regression Loss', fontsize=13, color='#58a6ff')
+ax.legend(fontsize=10, loc='upper right')
+ax.set_ylim(-0.1, 7)
+ax.grid(True, alpha=0.15)
+
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<div class="callout">
+<strong>📖 直覺解釋：</strong>想像你是考試閱卷老師。SVM（hinge loss）的態度是「60 分及格，61 分和 100 分對我來說沒區別——都是過了門檻就好。我只關心不及格的學生。」邏輯回歸的態度是「每個人的分數我都納入考量，但分數越高影響越小——100 分的學生幾乎不影響我的決策，但還是有那麼一丁點影響。」
+</div>
+
+<!-- ============================================================ -->
+<h2>3. 何時用 SVM？何時用邏輯回歸？</h2>
+
+<p>
+由於兩者的損失函數形狀相似，<strong>SVM 和邏輯回歸在實務上經常給出非常接近的結果</strong>。選擇的關鍵在於資料的「分離程度」：
+</p>
+
+<div class="scenario-box">
+<h4>🏥 醫療診斷 — 邏輯回歸優選</h4>
+<p>
+在疾病篩檢中（如 COVID-19 快篩），陽性與陰性族群的特徵值常常高度重疊（發燒、咳嗽、疲勞等症狀在兩族群中都可能出現）。此時 logistic loss 的「平滑漸進」特性更適合——它不會像 hinge loss 那樣在邊界處突然截斷資訊，能更好地捕捉重疊區域中的機率梯度。而且邏輯回歸直接輸出機率 \(P(Y=1|X)\)，這對臨床風險評估至關重要。
+</p>
+</div>
+
+<div class="scenario-box">
+<h4>📧 垃圾郵件過濾 — SVM 優選</h4>
+<p>
+垃圾郵件和正常郵件的特徵空間通常有清晰的語義邊界——包含「免費」、「中獎」、「點擊領取」等詞彙的郵件與正常商務郵件在詞頻特徵上分離度較高。SVM 的 hinge loss 在這種情況下表現出色：它只關注邊界附近的「難分郵件」（支援向量），對明顯是垃圾或明顯是正常的郵件直接無視，計算效率高且分類邊界清晰。
+</p>
+</div>
+
+<div class="scenario-box">
+<h4>📈 信用評分卡 — 雙方法皆可、邏輯回歸更受監管青睞</h4>
+<p>
+銀行審核貸款時，不僅需要準確的分類（核貸／拒貸），更需要<strong>可解釋的機率輸出</strong>。邏輯回歸可以直接給出違約機率，且係數有明確的 odds-ratio 解釋（「收入每增加 1 單位，違約 odds 降低 X%」），這是金融監管機構（如巴塞爾協定）所要求的。SVM 雖然分類準確度可能更高，但缺乏這種直接的機率校準。
+</p>
+</div>
+
+<!-- ============================================================ -->
+<h2>4. 核心方法不是 SVM 的專利</h2>
+
+<p>
+課本提出了一個有趣的歷史觀察：<strong>核心方法（kernel trick）並非 SVM 獨有</strong>。我們完全可以用核心函數來擴展邏輯回歸或其他分類方法——這與第 7 章的非線性方法（樣條、GAM）密切相關。然而由於歷史因素，核心方法在 SVM 領域的應用遠比邏輯回歸普遍。這提醒我們：<strong>工具的流行程度不等於其獨特性</strong>——許多「SVM 特有」的特性其實是通用技術被品牌化的結果。
+</p>
+
+<div class="ref-box">
+Schölkopf & Smola (2002) <em>Learning with Kernels</em>, MIT Press — 全面介紹核心方法在各種學習演算法中的應用，不限於 SVM。<br>
+Hastie, Tibshirani & Friedman (2009) <em>The Elements of Statistical Learning</em>, §12.3 — 討論 SVM 與邏輯回歸在損失函數層面的統一觀點。
+</div>
+
+<!-- ============================================================ -->
+<h2>5. 支援向量回歸（SVR）</h2>
+
+<p>
+SVM 不僅能做分類，還能做迴歸——稱為 <strong>支援向量回歸（Support Vector Regression, SVR）</strong>。傳統最小平方法迴歸最小化所有殘差的平方和，而 SVR 採用不同的損失函數：<strong>只有絕對值大於某個門檻 \(\epsilon\) 的殘差才會被計入損失</strong>。這就像是把 SVM 的「邊界」概念延伸到迴歸問題——在 \(\epsilon\)-tube 內的預測誤差被視為「可以接受」，不計入損失。
+</p>
+
+<div class="formula">
+\[
+L_{\text{SVR}}(y, f) = \max[0,\; |y - f(x)| - \epsilon]
+\]
+<div class="formula-label">ε-insensitive loss</div>
+</div>
+
+<p>這在訊號處理和穩健迴歸中有重要應用——當資料含有離群值時，SVR 比最小平方法更不受極端值影響。</p>
+
+<!-- ============================================================ -->
+<h2>6. 優缺點對照</h2>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ SVM 的優勢</h4>
+    <ul>
+      <li>Hinge loss 對遠離邊界的點「零損失」→ 只依賴支援向量，模型精簡</li>
+      <li>類別分離度高時分類效果極佳</li>
+      <li>L2 懲罰 + hinge loss 的組合具備良好的泛化理論保證</li>
+      <li>核心方法生態成熟（scikit-learn 的 SVC 開箱即用）</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ SVM 的限制</h4>
+    <ul>
+      <li>不直接輸出機率（需 Platt scaling 後處理）</li>
+      <li>類別高度重疊時不如邏輯回歸</li>
+      <li>大規模資料（n &gt; 10⁵）訓練慢，核心矩陣計算 O(n²)</li>
+      <li>解釋性較差——係數不像邏輯回歸有 odds-ratio 直覺</li>
+    </ul>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 邏輯回歸的優勢</h4>
+    <ul>
+      <li>直接輸出校準機率 \(P(Y=1|X)\)</li>
+      <li>係數可解釋（odds ratio）——受金融/醫療監管青睞</li>
+      <li>類別重疊時表現穩健</li>
+      <li>可輕鬆加入 L1/L2/Elastic Net 懲罰</li>
+      <li>大規模資料訓練效率高</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>⚠️ 邏輯回歸的限制</h4>
+    <ul>
+      <li>所有觀測值都影響模型（沒有「零損失區域」）→ 離群值更敏感</li>
+      <li>預設為線性邊界，需手動加入非線性特徵</li>
+      <li>在完全線性可分的資料上可能不收斂（係數趨近無限大）</li>
+      <li>核心方法的生態不如 SVM 成熟</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2>7. 方法比較總表</h2>
+
+<table class="comparison-table">
+  <tr><th>特性</th><th>SVM</th><th>邏輯回歸</th></tr>
+  <tr>
+    <td>損失函數</td>
+    <td>Hinge: max[0, 1−y·f]</td>
+    <td>Logistic: log[1+e^(−y·f)]</td>
+  </tr>
+  <tr>
+    <td>損失在 y·f ≥ 1 時</td>
+    <td><strong>精確為零</strong></td>
+    <td>極小但 &gt; 0</td>
+  </tr>
+  <tr>
+    <td>受影響的觀測值</td>
+    <td>僅支援向量</td>
+    <td>全部觀測值</td>
+  </tr>
+  <tr>
+    <td>機率輸出</td>
+    <td>需 Platt scaling 後處理</td>
+    <td>原生輸出 P(Y=1|X)</td>
+  </tr>
+  <tr>
+    <td>預設邊界類型</td>
+    <td>線性（可用核心擴展）</td>
+    <td>線性（可手動加非線性特徵）</td>
+  </tr>
+  <tr>
+    <td>懲罰項</td>
+    <td>L2（Ridge 風格）</td>
+    <td>L1 / L2 / Elastic Net 均可</td>
+  </tr>
+  <tr>
+    <td>核心方法</td>
+    <td>生態成熟、廣泛使用</td>
+    <td>理論可行、實務少用</td>
+  </tr>
+  <tr>
+    <td>類別重疊時</td>
+    <td>表現較差</td>
+    <td><strong>表現較好</strong></td>
+  </tr>
+  <tr>
+    <td>類別分離時</td>
+    <td><strong>表現較好</strong></td>
+    <td>表現尚可</td>
+  </tr>
+  <tr>
+    <td>迴歸版本</td>
+    <td>SVR（ε-insensitive loss）</td>
+    <td>無直接對應（但 GLM 框架涵蓋）</td>
+  </tr>
+  <tr>
+    <td>最佳應用場景</td>
+    <td>高維度、清晰邊界的分類</td>
+    <td>需要機率校準、可解釋性、重疊類別</td>
+  </tr>
+</table>
+
+<div class="callout">
+<strong>⚙️ 關於 C 參數的重要提醒：</strong>SVM 剛問世時，許多人認為 \(C\)（或 \(\lambda\)）只是「無關緊要的討厭參數」，設為預設值 1 就好。但 Loss+Penalty 框架清楚顯示：<strong>\(C\) 的選擇至關重要，它決定模型的偏差-變異權衡</strong>，正如 Figure 9.7 所示。把 C 當成預設值不管，就像開車不調方向盤——你可能剛好走對路，但更可能撞牆。
+</div>
+
+<!-- ============================================================ -->
+<h2>今日關鍵句</h2>
+
+<div class="key-quote">
+  SVM 和邏輯回歸不是敵人，而是同一框架下披著不同損失函數外衣的兄弟。</br>
+  選擇哪一個，取決於你的資料是「楚河漢界」還是「水乳交融」，以及你需要的是「精準的分類邊界」還是「校準的機率輸出」。
+  <span class="author">—— ISLP §9.5 核心訊息</span>
+</div>
+
+<!-- ============================================================ -->
+
+<div class="section-nav">
+  <a href="9.4_svm_multiclass.html">← 9.4 多類別 SVM</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="index.html">課程首頁 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 9 章：支援向量機 · §9.5 SVM 與邏輯回歸的關係</p>
+  <p>Generated: 2026-08-03 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
