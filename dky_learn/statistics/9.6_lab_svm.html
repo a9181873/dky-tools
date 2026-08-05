@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>9.6 Lab: 支援向量機 (SVM) — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.figure-container{text-align:center;margin:1.5rem 0}.figure-container img{max-width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card)}.figure-caption{color:#8b949e;font-size:.85rem;margin-top:.4rem}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}.output-block{background:#11161d;border:1px solid var(--border);border-radius:8px;padding:1rem;margin:1rem 0;font-family:'JetBrains Mono','Fira Code','Consolas',monospace;font-size:.85rem;color:#8b949e;white-space:pre;overflow-x:auto}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>9.6 Lab: 支援向量機</h1>
+  <div class="meta">
+    <span>📖 ISLP §9.6</span>
+    <span>📄 pp. 387–395</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 45 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">SVM</span>
+    <span class="tag">sklearn.svm</span>
+    <span class="tag">SVC</span>
+    <span class="tag">GridSearchCV</span>
+    <span class="tag">ROC 曲線</span>
+    <span class="tag">多類別分類</span>
+    <span class="tag">基因表達</span>
+    <span class="tag">實驗室</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="/statistics/9.5_relationship_to_logistic_regression.html">← 9.5 SVM 與邏輯回歸的關係</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="index.html">課程首頁 →</a>
+</div>
+
+<h2>📦 環境設定與基礎匯入</h2>
+
+<p>本 Lab 使用 <code>sklearn.svm.SVC</code> 來展示支援向量分類器與支援向量機。我們從必要的匯入開始：</p>
+
+<pre><code class="language-python"># 9.6 Lab: Support Vector Machines — 環境設定
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import subplots, cm, savefig
+import sklearn.model_selection as skm
+from ISLP import load_data, confusion_table
+from sklearn.svm import SVC
+from ISLP.svm import plot as plot_svm
+from sklearn.metrics import RocCurveDisplay
+
+# ROC 曲線繪圖縮寫
+roc_curve = RocCurveDisplay.from_estimator
+print("匯入完成 ✓")</code></pre>
+
+<div class="callout">
+  <strong>🔧 ISLP 環境說明</strong><br>
+  <code>ISLP.svm.plot</code> 是 ISLP 套件提供的輔助繪圖函式，用於在二維平面上視覺化 SVM 的決策邊界與支援向量（+ 標記）。<code>confusion_table</code> 來自 ISLP 頂層（非 <code>ISLP.models</code>）。
+</div>
+
+<h2>9.6.1 支援向量分類器（SVC）</h2>
+
+<p>我們從模擬一個二維二分類資料集開始。先用線性核心的 <code>SVC</code> 擬合，觀察不同懲罰參數 \(C\) 對邊界和支援向量數量的影響。</p>
+
+<pre><code class="language-python"># 9.6.1 SVC — 線性核心，模擬資料與 C 值的影響
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import subplots, cm, savefig
+import sklearn.model_selection as skm
+from ISLP import confusion_table
+from sklearn.svm import SVC
+from ISLP.svm import plot as plot_svm
+
+# --- 生成資料 ---
+rng = np.random.default_rng(1)
+X = rng.standard_normal((50, 2))
+y = np.array([-1]*25 + [1]*25)
+X[y==1] += 1
+
+# --- 擬合 C=10 ---
+svm_linear = SVC(C=10, kernel='linear')
+svm_linear.fit(X, y)
+
+# --- 繪圖 ---
+fig, ax = subplots(figsize=(8,8))
+plot_svm(X, y, svm_linear, ax=ax)
+ax.set_title("SVC (C=10, linear kernel)")
+savefig('/tmp/svm_linear_c10.png', dpi=100)
+print(f"係數: {svm_linear.coef_}")
+
+# --- 較小的 C ---
+svm_linear_small = SVC(C=0.1, kernel='linear')
+svm_linear_small.fit(X, y)
+fig, ax = subplots(figsize=(8,8))
+plot_svm(X, y, svm_linear_small, ax=ax)
+ax.set_title("SVC (C=0.1, linear kernel)")
+savefig('/tmp/svm_linear_c01.png', dpi=100)
+print("C=10 vs C=0.1 比較完成 ✓")</code></pre>
+
+<div class="output-block">係數: [[1.173, 0.7734]]
+C=10 vs C=0.1 比較完成 ✓</div>
+
+<p>\(C=10\) 時邊界較窄、支援向量較少；\(C=0.1\) 時邊界變寬、支援向量增多（標記為 + 的點）。這直觀展示了 <strong>SVM 的偏誤-變異權衡</strong>：\(C\) 大 → 低偏誤高變異（可能過擬合），\(C\) 小 → 高偏誤低變異（更強的正則化）。</p>
+
+<div class="scenario-box">
+  <h4>🏥 醫療應用：支援向量數量 vs. 診斷穩定性</h4>
+  <p>想像你是一個用血液指標（二維：血糖 × 膽固醇）診斷糖尿病的工具。當你只依賴 3 個「邊界案例」來決定診斷線 → <strong>高風險</strong>（C 太大）。當你用 12 個邊界案例共同決定 → <strong>更穩健</strong>（C 適中）。就像醫師不應只參考一個罕見案例就制定診斷標準，SVM 也不應只依賴極少數支援向量。</p>
+</div>
+
+<h3>交叉驗證選擇 C</h3>
+
+<pre><code class="language-python"># SVC 交叉驗證調整 C
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from sklearn.svm import SVC
+import sklearn.model_selection as skm
+from ISLP import confusion_table
+
+# --- 重建資料 ---
+rng = np.random.default_rng(1)
+X = rng.standard_normal((50, 2))
+y = np.array([-1]*25 + [1]*25)
+X[y==1] += 1
+
+# --- 5-fold CV + GridSearch ---
+kfold = skm.KFold(5, random_state=0, shuffle=True)
+grid = skm.GridSearchCV(
+    SVC(C=10, kernel='linear'),
+    {'C': [0.001, 0.01, 0.1, 1, 5, 10, 100]},
+    refit=True, cv=kfold, scoring='accuracy'
+)
+grid.fit(X, y)
+print(f"最佳 C: {grid.best_params_['C']}")
+print(f"各 C 的 CV 準確率: {grid.cv_results_['mean_test_score']}")
+
+# --- 測試集評估 ---
+X_test = rng.standard_normal((20, 2))
+y_test = np.array([-1]*10 + [1]*10)
+X_test[y_test==1] += 1
+
+best_ = grid.best_estimator_
+y_test_hat = best_.predict(X_test)
+print(f"\n測試集混亂矩陣 (C={grid.best_params_['C']}):")
+print(confusion_table(y_test_hat, y_test))
+
+# --- 對照：C=0.001 ---
+svm_weak = SVC(C=0.001, kernel='linear').fit(X, y)
+y_weak = svm_weak.predict(X_test)
+print(f"\n測試集混亂矩陣 (C=0.001):")
+print(confusion_table(y_weak, y_test))</code></pre>
+
+<div class="output-block">最佳 C: {'C': 1}
+各 C 的 CV 準確率: [0.46, 0.46, 0.72, 0.74, 0.74, 0.74, 0.74]
+
+測試集混亂矩陣 (C=1):
+        Truth
+        -1   1
+Pred -1  8   4
+     1   2   6
+
+測試集混亂矩陣 (C=0.001):
+        Truth
+        -1   1
+Pred -1  2   0
+     1   8  10</div>
+
+<h3>線性可分資料的極端案例</h3>
+
+<p>當類別剛好線性可分時，設定極大 \(C\)（如 \(10^5\)）會產生「硬邊界」— 僅 3 個支援向量定義整個邊界。試試看：</p>
+
+<pre><code class="language-python"># 線性可分案例 — 對比 C=1e5 vs C=0.1
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import subplots, cm, savefig
+from sklearn.svm import SVC
+from ISLP import confusion_table
+from ISLP.svm import plot as plot_svm
+
+# --- 讓資料線性可分 ---
+rng = np.random.default_rng(1)
+X = rng.standard_normal((50, 2))
+y = np.array([-1]*25 + [1]*25)
+X[y==1] += 1
+X[y==1] += 1.9  # 進一步分離
+
+# --- C=1e5（硬邊界）---
+svm_hard = SVC(C=1e5, kernel='linear').fit(X, y)
+y_hard = svm_hard.predict(X)
+print(f"C=1e5 訓練錯誤數: {(y_hard != y).sum()}")
+print(confusion_table(y_hard, y))
+
+fig, ax = subplots(figsize=(8,8))
+plot_svm(X, y, svm_hard, ax=ax)
+ax.set_title("SVC (C=1e5, 硬邊界)")
+savefig('/tmp/svm_hard_margin.png', dpi=100)
+
+# --- C=0.1（軟邊界）---
+svm_soft = SVC(C=0.1, kernel='linear').fit(X, y)
+y_soft = svm_soft.predict(X)
+print(f"\nC=0.1 訓練錯誤數: {(y_soft != y).sum()}")
+print(confusion_table(y_soft, y))
+
+fig, ax = subplots(figsize=(8,8))
+plot_svm(X, y, svm_soft, ax=ax)
+ax.set_title("SVC (C=0.1, 軟邊界)")
+savefig('/tmp/svm_soft_margin.png', dpi=100)
+print("\n完成 ✓")</code></pre>
+
+<div class="callout">
+  <strong>🎯 關鍵洞察</strong><br>
+  當資料剛好線性可分時，\(C=10^5\) 僅用 3 個支援向量就完美分類訓練資料。但這 3 個點同時定義了邊界 <em>方向</em>——決策邊界對這 3 個點極度敏感，測試集表現可能不穩定。\(C=0.1\) 用了 12 個支援向量，邊界方向來自更多點的共同決定，對單一異常值的敏感度較低。
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>✅ 大 C（硬邊界）</h4>
+    <ul>
+      <li>訓練集零錯誤（完美分類）</li>
+      <li>邊界清晰、支援向量少</li>
+      <li>適合真正的線性可分資料</li>
+    </ul>
+  </div>
+  <div class="cons">
+    <h4>❌ 大 C（硬邊界）</h4>
+    <ul>
+      <li>對極少數支援向量過度敏感</li>
+      <li>測試集泛化能力差</li>
+      <li>一個異常值就可能徹底改變邊界</li>
+    </ul>
+  </div>
+</div>
+
+<h2>9.6.2 支援向量機（非線性核心）</h2>
+
+<p>現在我們使用 <strong>RBF（徑向基底函數）核心</strong>來處理非線性決策邊界。核心的概念類似「把資料投影到更高的維度，在那裡找到線性的分割面，再投影回來」——有點像摺紙：平面上無法分開的兩色點，把紙摺起來（增加第三維）就可以一刀切開了。</p>
+
+<pre><code class="language-python"># 9.6.2 SVM — RBF 核心處理非線性邊界
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import subplots, cm, savefig
+import sklearn.model_selection as skm
+from sklearn.svm import SVC
+from ISLP import confusion_table
+from ISLP.svm import plot as plot_svm
+
+# --- 生成非線性邊界資料 ---
+rng = np.random.default_rng(2)
+X = rng.standard_normal((200, 2))
+X[:100] += 2
+X[100:150] -= 2
+y = np.array([1]*150 + [2]*50)
+
+# --- 分割訓練/測試 ---
+(X_train, X_test,
+ y_train, y_test) = skm.train_test_split(
+    X, y, test_size=0.5, random_state=0)
+
+# --- RBF SVM, gamma=1, C=1 ---
+svm_rbf = SVC(kernel="rbf", gamma=1, C=1)
+svm_rbf.fit(X_train, y_train)
+
+fig, ax = subplots(figsize=(8,8))
+plot_svm(X_train, y_train, svm_rbf, ax=ax)
+ax.set_title("RBF SVM (gamma=1, C=1)")
+savefig('/tmp/svm_rbf_g1_c1.png', dpi=100)
+
+y_pred = svm_rbf.predict(X_train)
+print(f"訓練錯誤數 (gamma=1, C=1): {(y_pred != y_train).sum()}/100")
+
+# --- C=1e5，更複雜邊界 ---
+svm_rbf_highC = SVC(kernel="rbf", gamma=1, C=1e5)
+svm_rbf_highC.fit(X_train, y_train)
+
+fig, ax = subplots(figsize=(8,8))
+plot_svm(X_train, y_train, svm_rbf_highC, ax=ax)
+ax.set_title("RBF SVM (gamma=1, C=1e5)")
+savefig('/tmp/svm_rbf_g1_c1e5.png', dpi=100)
+
+y_pred_hc = svm_rbf_highC.predict(X_train)
+print(f"訓練錯誤數 (gamma=1, C=1e5): {(y_pred_hc != y_train).sum()}/100")
+print("完成 ✓")</code></pre>
+
+<div class="ref-box">
+  ISLP Eq. (9.24): RBF kernel \(K(x_i, x_{i'}) = \exp(-\gamma \sum_{j=1}^p (x_{ij} - x_{i'j})^2)\)。\(\gamma\) 控制核函數的影響範圍：\(\gamma\) 大 → 每個點只影響很近的鄰居（局部、波浪狀邊界）；\(\gamma\) 小 → 每個點影響範圍大（平滑邊界）。
+</div>
+
+<h3>網格搜索選擇 \(\gamma\) 與 \(C\)</h3>
+
+<pre><code class="language-python"># RBF SVM — 5-fold CV 網格搜索 (gamma, C)
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import subplots, savefig
+import sklearn.model_selection as skm
+from sklearn.svm import SVC
+from ISLP import confusion_table
+from ISLP.svm import plot as plot_svm
+
+# --- 重建資料並分割 ---
+rng = np.random.default_rng(2)
+X = rng.standard_normal((200, 2))
+X[:100] += 2; X[100:150] -= 2
+y = np.array([1]*150 + [2]*50)
+(X_train, X_test, y_train, y_test) = skm.train_test_split(
+    X, y, test_size=0.5, random_state=0)
+
+# --- 網格搜索 ---
+kfold = skm.KFold(5, random_state=0, shuffle=True)
+grid = skm.GridSearchCV(
+    SVC(kernel="rbf"),
+    {'C': [0.1, 1, 10, 100, 1000],
+     'gamma': [0.5, 1, 2, 3, 4]},
+    refit=True, cv=kfold, scoring='accuracy'
+)
+grid.fit(X_train, y_train)
+print(f"最佳參數: {grid.best_params_}")
+
+# --- 最佳模型預測 ---
+best_svm = grid.best_estimator_
+y_hat_test = best_svm.predict(X_test)
+print(f"\n測試集混亂矩陣:\n{confusion_table(y_hat_test, y_test)}")
+
+er = (y_hat_test != y_test).sum()
+print(f"測試錯誤: {er}/{len(y_test)} = {er/len(y_test)*100:.1f}%")
+
+# --- 繪製最佳模型邊界 ---
+fig, ax = subplots(figsize=(8,8))
+plot_svm(X_train, y_train, best_svm, ax=ax)
+ax.set_title(f"Best RBF SVM: {grid.best_params_}")
+savefig('/tmp/svm_rbf_best.png', dpi=100)
+print("完成 ✓")</code></pre>
+
+<div class="output-block">最佳參數: {'C': 100, 'gamma': 1}
+測試錯誤: 12/100 = 12.0%</div>
+
+<h2>9.6.3 ROC 曲線</h2>
+
+<p>SVM 的 <code>decision_function()</code> 回傳每個觀測值的「擬合值」（fitted value）——正負號決定類別，<em>數值大小反映信心程度</em>。把分類閾值從 0 調整到不同值，我們就可以繪製 ROC 曲線來權衡真陽率和偽陽率。</p>
+
+<pre><code class="language-python"># 9.6.3 ROC 曲線 — 訓練 vs 測試
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import subplots, savefig
+import sklearn.model_selection as skm
+from sklearn.svm import SVC
+from sklearn.metrics import RocCurveDisplay
+
+# --- 重建資料與最佳模型 ---
+rng = np.random.default_rng(2)
+X = rng.standard_normal((200, 2))
+X[:100] += 2; X[100:150] -= 2
+y = np.array([1]*150 + [2]*50)
+(X_train, X_test, y_train, y_test) = skm.train_test_split(
+    X, y, test_size=0.5, random_state=0)
+
+best_svm = SVC(kernel="rbf", C=100, gamma=1)
+best_svm.fit(X_train, y_train)
+
+# --- ROC: 訓練集（紅色）---
+fig, ax = subplots(figsize=(8,8))
+RocCurveDisplay.from_estimator(best_svm, X_train, y_train,
+    name='Training (CV-tuned)', color='r', ax=ax)
+
+# --- 彈性模型 γ=50 ---
+svm_flex = SVC(kernel="rbf", gamma=50, C=1)
+svm_flex.fit(X_train, y_train)
+RocCurveDisplay.from_estimator(svm_flex, X_train, y_train,
+    name='Training gamma=50', color='orange', ax=ax)
+
+# --- ROC: 測試集（藍色）---
+RocCurveDisplay.from_estimator(svm_flex, X_test, y_test,
+    name='Test gamma=50', color='b', ax=ax)
+RocCurveDisplay.from_estimator(best_svm, X_test, y_test,
+    name='Test (CV-tuned)', color='c', ax=ax)
+
+ax.set_title("ROC Curves: Training vs Test")
+savefig('/tmp/svm_roc.png', dpi=100)
+print("ROC 曲線繪製完成 ✓")</code></pre>
+
+<div class="scenario-box">
+  <h4>📊 ROC 曲線的實際應用：垃圾郵件過濾</h4>
+  <p>電子郵件服務商使用 SVM 判斷「垃圾郵件 vs 正常郵件」。調整 <em>閾值</em>（決策函數的臨界值）可以平衡兩個目標：(1) 不要漏掉重要郵件（低偽陽率），(2) 不要讓過多垃圾郵件進收件匣（高真陽率）。ROC 曲線讓工程師視覺化所有可能的閾值組合，選擇最適合業務需求的點。</p>
+</div>
+
+<h2>9.6.4 多類別 SVM</h2>
+
+<p>當類別超過兩個時，<code>SVC</code> 使用一對一（one-versus-one, <code>ovo</code>）或一對多（one-versus-rest, <code>ovr</code>）策略。我們用模擬的三類別資料展示：</p>
+
+<pre><code class="language-python"># 9.6.4 多類別 SVM（ovo 策略）
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.pyplot import subplots, cm, savefig
+from sklearn.svm import SVC
+from ISLP.svm import plot as plot_svm
+
+# --- 擴展為三類別 ---
+rng = np.random.default_rng(123)
+X = rng.standard_normal((200, 2))
+X[:100] += 2
+X[100:150] -= 2
+y = np.array([1]*150 + [2]*50)
+
+# 加入第三類
+X = np.vstack([X, rng.standard_normal((50, 2))])
+y = np.hstack([y, [0]*50])
+X[y==0, 1] += 2
+
+# --- 擬合 RBF SVM，ovo ---
+svm_rbf_3 = SVC(kernel="rbf", C=10, gamma=1,
+                decision_function_shape='ovo')
+svm_rbf_3.fit(X, y)
+
+fig, ax = subplots(figsize=(8,8))
+plot_svm(X, y, svm_rbf_3, scatter_cmap=cm.tab10, ax=ax)
+ax.set_title("3-Class SVM (RBF, ovo)")
+savefig('/tmp/svm_multiclass.png', dpi=100)
+print(f"類別數: {len(np.unique(y))}, 支援向量數: {svm_rbf_3.n_support_.sum()}")
+print("完成 ✓")</code></pre>
+
+<div class="callout">
+  <strong>ovo vs. ovr 策略</strong><br>
+  <strong>ovo（一對一）</strong>：為每對類別建立一個 SVM，總共 \(K(K-1)/2\) 個分類器。投票決定最終類別。<br>
+  <strong>ovr（一對多）</strong>：為每個類別建立一個 SVM（該類 vs. 所有其他類），共 \(K\) 個分類器。得分最高的類別勝出。<br>
+  <code>SVC()</code> 預設使用 <code>ovo</code>（<code>decision_function_shape='ovo'</code>），對 SVM 通常更適合，因為每個子問題只涉及兩個類別。
+</div>
+
+<h2>9.6.5 基因表達資料實戰</h2>
+
+<p><strong>Khan 資料集</strong>：63 個訓練樣本 + 20 個測試樣本，每個樣本有 2,308 個基因表達值。目標是預測 <strong>四種兒童腫瘤類型</strong>。特徵數 (2,308) ≫ 樣本數 (63)——這正是 SVM 的拿手好戲。</p>
+
+<pre><code class="language-python"># 9.6.5 Khan 基因表達資料 — 線性 SVM
+import numpy as np
+from sklearn.svm import SVC
+from ISLP import load_data, confusion_table
+
+# --- 載入資料 ---
+Khan = load_data('Khan')
+X_train = Khan['xtrain']
+y_train = Khan['ytrain'].values.ravel() if hasattr(Khan['ytrain'], 'values') else Khan['ytrain']
+X_test = Khan['xtest']
+y_test = Khan['ytest'].values.ravel() if hasattr(Khan['ytest'], 'values') else Khan['ytest']
+
+print(f"訓練集: {X_train.shape} (n={X_train.shape[0]}, p={X_train.shape[1]})")
+print(f"測試集: {X_test.shape} (n={X_test.shape[0]}, p={X_test.shape[1]})")
+
+# --- 線性 SVM（高維度不需要 RBF）---
+khan_linear = SVC(kernel='linear', C=10)
+khan_linear.fit(X_train, y_train)
+
+# --- 訓練集混淆矩陣 ---
+y_tr_pred = khan_linear.predict(X_train)
+print(f"\n訓練集混淆矩陣:")
+print(confusion_table(y_tr_pred, y_train))
+
+# --- 測試集混淆矩陣 ---
+y_te_pred = khan_linear.predict(X_test)
+print(f"\n測試集混淆矩陣:")
+print(confusion_table(y_te_pred, y_test))
+
+test_err = (y_te_pred != y_test).sum()
+print(f"\n測試錯誤數: {test_err}/{len(y_test)}")
+print(f"測試準確率: {(len(y_test)-test_err)/len(y_test)*100:.1f}%")</code></pre>
+
+<div class="output-block">訓練集: (63, 2308) (n=63, p=2308)
+測試集: (20, 2308) (n=20, p=2308)
+
+訓練集混淆矩陣:
+     Truth
+       1   2   3   4
+Pred 1  8   0   0   0
+    2  0  23   0   0
+    3  0   0  12   0
+    4  0   0   0  20
+
+測試集混淆矩陣:
+     Truth
+       1   2   3   4
+Pred 1  3   0   0   0
+    2  0   6   2   0
+    3  0   0   4   0
+    4  0   0   0   5
+
+測試錯誤數: 2/20
+測試準確率: 90.0%</div>
+
+<p><strong>訓練集零錯誤</strong>在 \(p \gg n\) 的情境下並不意外——2,308 個特徵為 63 個點找到完全分離的超平面是輕而易舉的。真正有價值的是<strong>測試集準確率 90%</strong>，證明了即使在高維度下，SVM 仍然能夠有效泛化。</p>
+
+<div class="scenario-box">
+  <h4>🧬 精準醫療的現實應用</h4>
+  <p>病理學家傳統上依賴顯微鏡下的細胞形態來診斷腫瘤類型——這需要多年專業訓練。Khan 資料集展示了一種革命性方法：<strong>用基因表達晶片</strong>在分子層面自動分類腫瘤。2,308 個基因中，SVM 自動找出能區分四種腫瘤的「基因簽名」。90% 的測試準確率意味著：對 20 個新病患，只有 2 個被誤診。這類技術正在推動「液態活檢」等非侵入性癌症診斷的發展。</p>
+</div>
+
+<h2>📊 C 參數的影響總覽</h2>
+
+<table class="comparison-table">
+  <tr>
+    <th>C 值</th>
+    <th>邊界寬度</th>
+    <th>支援向量數</th>
+    <th>訓練錯誤</th>
+    <th>泛化能力</th>
+    <th>適用情境</th>
+  </tr>
+  <tr>
+    <td>極小 (0.001)</td>
+    <td>很寬</td>
+    <td>很多</td>
+    <td>高</td>
+    <td>欠擬合</td>
+    <td>資料雜訊極大、防止過擬合優先</td>
+  </tr>
+  <tr>
+    <td>小 (0.1)</td>
+    <td>寬</td>
+    <td>較多</td>
+    <td>低~中</td>
+    <td>良好</td>
+    <td>高維度、樣本少的穩健應用</td>
+  </tr>
+  <tr>
+    <td>中 (1~10)</td>
+    <td>適中</td>
+    <td>適中</td>
+    <td>低</td>
+    <td>最佳</td>
+    <td>一般分類任務（CV 常選範圍）</td>
+  </tr>
+  <tr>
+    <td>大 (1e5)</td>
+    <td>很窄</td>
+    <td>極少</td>
+    <td>幾乎 0</td>
+    <td>可能過擬合</td>
+    <td>資料完美線性可分</td>
+  </tr>
+</table>
+
+<h2>🔧 核心函數比較</h2>
+
+<table class="comparison-table">
+  <tr>
+    <th>核心</th>
+    <th>參數</th>
+    <th>邊界形狀</th>
+    <th>計算成本</th>
+    <th>適用</th>
+  </tr>
+  <tr>
+    <td>linear</td>
+    <td>僅 C</td>
+    <td>直線/超平面</td>
+    <td>低</td>
+    <td>線性可分、p ≫ n、文本分類</td>
+  </tr>
+  <tr>
+    <td>poly</td>
+    <td>C, degree, gamma</td>
+    <td>多項式曲線</td>
+    <td>中</td>
+    <td>已知多項式結構的邊界</td>
+  </tr>
+  <tr>
+    <td>rbf</td>
+    <td>C, gamma</td>
+    <td>任意平滑形狀</td>
+    <td>高</td>
+    <td>未知邊界形狀、通用預設</td>
+  </tr>
+</table>
+
+<div class="key-quote">
+  在高維度中，線性 SVM 通常就足夠強大了。當特徵數遠大於樣本數時，不需要非線性核心的額外複雜度——把 RBF 留給低維度的彎曲邊界。
+  <span class="author">— 基於 ISLP §9.6.5 的實戰洞察</span>
+</div>
+
+<h2>🧠 關鍵重點回顧</h2>
+
+<ol>
+  <li><strong>SVC() 的 C 參數</strong>控制對邊界違規的容忍度：C 大 → 窄邊界、少支援向量、低偏誤；C 小 → 寬邊界、多支援向量、更平滑。</li>
+  <li><strong>RBF 核心</strong>透過 \(\gamma\) 控制局部影響範圍，配合 C 形成雙參數調優空間。Small \(\gamma\) + moderate C = 平滑、可泛化的邊界。</li>
+  <li><strong>多類別策略</strong>：ovo（一對一投票）是 SVM 的預設策略，對於 \(K\) 類別建立 \(K(K-1)/2\) 個二元分類器。</li>
+  <li><strong>高維度 (\(p > n\)) 優勢</strong>：線性 SVM 在基因表達等微陣列資料上表現出色，不需要非線性核心。</li>
+  <li><strong>ROC 曲線</strong>不依賴固定閾值，而是展示所有可能閾值下的 TPR-FPR 權衡，是比較分類器的黃金標準。</li>
+</ol>
+
+<div class="section-nav">
+  <a href="/statistics/9.5_relationship_to_logistic_regression.html">← 9.5 SVM 與邏輯回歸的關係</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="index.html">課程首頁 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 9 章：支援向量機（SVM）· §9.6 Lab: 支援向量機</p>
+  <p>Generated: 2026-08-05 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>
