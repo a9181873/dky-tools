@@ -53,6 +53,7 @@
       <a href="/statistics/9.3_support_vector_machines.html" class="nav-item done">9.3 支援向量機 (SVM)</a>
       <a href="/statistics/9.4_svm_multiclass.html" class="nav-item done">9.4 多類別 SVM</a>
       <a href="/statistics/9.5_relationship_to_logistic_regression.html" class="nav-item done">9.5 SVM 與邏輯回歸的關係</a>
+      <a href="/statistics/9.6_lab_svm.html" class="nav-item done">9.6 Lab: SVM</a>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
