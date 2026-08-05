@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ContinualSkillBench：技能演化的照妖鏡 — DKY 論文筆記</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:#fff;font-size:1.2rem;margin:2rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.5rem;margin:1rem 0;line-height:1.8}.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin:1rem 0}.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}.mc h4{color:var(--accent);margin:0 0 .4rem;font-size:.95rem}.mc p{margin:0;font-size:.85rem;color:var(--fg)}ol,ul{margin:.8rem 0 .8rem 1.5rem;line-height:1.8}li{margin-bottom:.4rem}@media(max-width:768px){body{padding:1rem}.mb{grid-template-columns:1fr}header h1{font-size:1.3rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>ContinualSkillBench：技能演化的照妖鏡 — LLM Agent 真的能演化能力嗎？</h1>
+  <p class="meta">arXiv:2608.03874 — 2026-08-04 — cs.AI — Tianyi Guan, Yiding Wang 等（北大 AI 研究院 / 北京通用 AI 研究院）— Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">Skill Evolution</span><span class="tag">Agent Memory</span><span class="tag">Continual Learning</span>
+    <span class="tag">ICL vs Skill</span><span class="tag">Fragmentation</span><span class="tag">Benchmark</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+<div class="card">
+<p>過去一年 agent 技能研究的共識是「讓 agent 從任務回饋中自主演化技能庫，能力就會成長」。ContinualSkillBench 用五領域、總共 500 個難度遞增的互聯子任務，首次系統性檢驗了這個命題。<b>結果出乎意料：explicit skill maintenance 和 pure in-context learning 的平均表現幾乎持平（0.605 vs 0.602）</b>——大量增益來自適應先前上下文和回饋，而非可重用的技能抽象。弱模型傾向累積更多碎片化技能：GPT-4o 產出 384 個技能（品質 5.68），GPT-5.3-Codex 只產出 205 個（品質 7.94），但前者重用率更低。技能演化不是「有沒有」的問題，而是<b>能不能把經驗壓縮成可重用抽象</b>的問題。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>五領域設計</h4><p>Law/Finance/Healthcare/Math/Office，每領域 100 個難度遞增互聯子任務，技能重複率 69.5%</p></div>
+<div class="mc"><h4>ICL vs Skill</h4><p>ICL 0.605 vs Skill 0.602——差異不顯著。Skill 贏在 EM/Programmatic，ICL 贏在 Rubric</p></div>
+<div class="mc"><h4>技能碎片化</h4><p>GPT-4o 384 技能 vs Codex 205。弱模型更多碎片、更低品質、更少重用</p></div>
+<div class="mc"><h4>領域差異</h4><p>Healthcare +0.149 最大增益；Math 幾乎無增益。模型×領域交互效應主導</p></div>
+</div>
+
+<h2>核心洞察：增益來源分解</h2>
+<div class="card">
+<p>論文設計三種條件：Independent（每任務重置）、Sequential（保留歷史+建技能）、ICL（保留歷史但禁止建技能）。</p>
+<ol>
+<li><b>Seq. − Ind. ≠ 技能演化的功勞：</b>在 Law/Finance/Healthcare 三領域，ICL（0.605）和 Seq.（0.602）差距僅 0.003——不顯著</li>
+<li><b>Skill 和 ICL 各有所長：</b>Skill 改善 Exact Match 和 Programmatic 任務（精確輸出），ICL 改善 Rubric judge 任務（開放式回答）</li>
+<li><b>技能會過度格式化：</b>顯式技能讓 agent 適應早期評估標準，反而失去開放式任務的靈活性</li>
+</ol>
+</div>
+
+<h2>技能庫動態：碎片化陷阱</h2>
+<div class="card">
+<ul>
+<li><b>數量 vs 品質：</b>GPT-4o 384 技能（品質 5.68）、Codex 205 技能（品質 7.94）。少而精 > 多而碎</li>
+<li><b>重用率：</b>弱模型的技能在後續任務中很少被調用——每個任務單獨寫一個技能，而非合併相似經驗</li>
+<li><b>負向循環：</b>能力弱→無法抽象→碎片化技能→技能庫膨脹→檢索效率降→能力更弱</li>
+<li><b>最佳 Law 品質：</b>GPT-4o 5.25、Codex 7.95——差距高達 2.7 分</li>
+</ul>
+</div>
+
+<h2>五領域全景</h2>
+<div class="card">
+<ul>
+<li><b>Healthcare +0.149：</b>程序性知識（診斷流程、術語映射）可序列累積，Codex + Opus 都大幅受益</li>
+<li><b>Finance +0.076：</b>Numeric 任務改善最顯著（Codex +0.416），標準化計算程序最適合技能化</li>
+<li><b>Math +0.052：</b>幾乎無增益，Opus 甚至退化 -0.008。數學推理由參數決定，技能/上下文都幫不上</li>
+<li><b>Opus paradox：</b>獨立 baseline 最強（0.572），但序列增益最小（+0.058）。強者沒什麼可從失敗中學的</li>
+<li><b>GPT-4o 相反：</b>獨立最弱（0.252），但相對增益最大（+30.6%）。弱模型從回饋格式適應中受益更多</li>
+</ul>
+</div>
+
+<h2>RAG baseline：Context 才是王者</h2>
+<div class="card">
+<p>RAG（索引檢索先前 trajectory）結果與 ICL 高度一致：Rubric 提升、EM 不如 Seq.。這印證：<b>上下文適應才是增益的主要引擎，技能抽象是輔助</b>。對 Hermes：conversation history 本身就是最強大的「技能庫」，與其花力氣設計完美的技能蒸餾管線，不如確保對話歷史被有效保留和檢索。</p>
+</div>
+
+<h2>對 Hermes 的啟發</h2>
+<div class="card">
+<ul>
+<li><b>Skill 不一定優於 Context：</b>最顛覆的發現。Hermes skills/ + profile 假設結構化技能優於原始對話歷史，但數據顯示兩者效果幾乎相同。確保歷史被有效保留比設計完美蒸餾更重要</li>
+<li><b>技能碎片化是沉默殺手：</b>fact_store 每次固化增加儲存但未必增加能力。需要重用率追蹤 + 定期淘汰機制</li>
+<li><b>精確輸出 vs 開放式 trade-off：</b>Skill 改善 EM 但傷害 Rubric。Hermes 應區分嚴格式 skill 和指導式 skill，分別啟用</li>
+<li><b>弱模型更需技能管理：</b>子 agent（免費 LLM 池）是弱模型，需要更嚴格而非更寬鬆的技能庫管理。簡單規則（只保留重用 ≥2 次的技能）可能比複雜蒸餾更有效</li>
+<li><b>程序性任務保留歷史、參數性任務從頭開始：</b>Healthcare 增益大（可遷移程序）、Math 無增益（不可遷移參數知識）。task routing 應據此分流</li>
+</ul>
+</div>
+
+<h2>限制</h2>
+<div class="card">
+<ul>
+<li>五領域任務來自固定來源，未覆蓋真實部署長尾場景</li>
+<li>僅三模型兩 harness，未涵蓋 Gemini、Cursor 等</li>
+<li>序列僅 100 任務，長期（1000+）技能庫動態未知</li>
+<li>ICL 對比僅三領域（API 成本），未覆蓋全部</li>
+<li>技能品質由單一 LLM 判定，無人類評估對照</li>
+<li>未測試跨領域技能遷移</li>
+</ul>
+</div>
+
+</body>
+</html>
