@@ -1,49 +1,109 @@
-# DKY Tools (dky-tools)
+# 🛠️ DKY.tw 開發者工具箱 (Developer Toolbox)
 
-這個儲存庫包含了 DKY 的兩個核心網頁工具專案，兩者均建構於 **Cloudflare Pages + Functions** 環境：
+這是一款專為前端開發者、設計師與辦公人員打造的 **純客戶端 (Client-side)**、**高效能** 且 **極簡優雅 (Cyber-Dark 暗色毛玻璃風格)** 的線上工具集合。
 
-## 1. DKY 公開工具箱 (`dky_tw`)
-這是一個對外公開的實用工具集合網站，提供各種日常開發或辦公可能需要的小工具。
-- **網站入口**：通常部署於 `tools.dky.tw`
-- **PDF 進階入口**：`tools.dky.tw` 會連到自架 Stirling PDF：`https://pdf.dky.tw`
-- **主要功能**：
-  - **IDEA Box 提案產生器**：輔助生成提案文件（包含 AI 協助內容生成，並支援導出 Word/Docx 格式）。
-  - **條碼與 QR Code 產生器**：可以快速製作文字或網址的 QR Code。
-  - **資料編解碼**：包含 Base64、URL 編解碼。
-  - **雜湊與格式化**：SHA-256 / MD5 計算、JSON 格式化工具。
-  - **文字與代碼比對**：提供即時的文字 Diff 比對。
-  - **PDF 進階工具**：連結到 Stirling PDF，支援 OCR、壓縮、合併、分割、轉 Word 與 Hermes 自動化。
-  - **其他小工具**：包含 UUID 產生器等。
+所有運算皆於使用者的瀏覽器端完成，不儲存任何資料，無隱私疑慮，且支援 Offline 離線存取能力 (Service Worker PWA)。
 
-## 2. DKY 私人工作台 (`dky_use`)
-這是一個受密碼保護的私人工作空間，提供專屬的個人化工具。
-- **網站入口**：通常部署於 `use.dky.tw`
-- **主要功能**：
-  - **密碼保護**：進入頁面需驗證存取權限。
-  - **美股投資組合**：串接開源 API 與 Google Apps Script (GAS)，以即時追蹤美股報價、損益及資產變化。
-  - **私人 IDEA Box**：與公開版類似，但提供專屬於私人的提案產生環境。
+---
 
-## 專案架構與開發技術
-- **前端技術**：Vanilla JavaScript (ES6 Modules), HTML5, CSS3。無框架，極度輕量化。
-- **後端技術**：Cloudflare Pages Functions (Serverless API)。包含與 Google Gemini AI 的串接 (在 IDEA Box 中運用 AI 生成提案內容)。
-- **部署方式**：將 `dky_tw` 與 `dky_use` 分別設定為 Cloudflare Pages 專案，並綁定對應的自訂網域。支援 `_redirects` 與 `_headers` 等靜態網站配置。
-- **外部服務**：Stirling PDF 部署於 OCI，透過 `pdf.dky.tw` 提供 Web UI，並透過本機 API 供 Hermes 自動化使用。
-- **安全與防護**：Cloudflare Functions 內建 CORS 跨域限制與 Request 驗證。
+## ✨ 核心特色工具詳細說明 (Complete Feature List)
 
-## PDF 進階工具與 Hermes 自動化
+### 1. 📎 PDF 附件提取工具 (`/pdfextract`) — *NEW!*
+- **加密解密**：上傳受密碼保護的 PDF，自動跳出提示並完成解密。
+- **雙重抽取**：完整讀取 Catalog 級別內嵌附件與 Page 級別 FileAttachment 註解，支援 ZIP、Excel (.xlsx/.csv)、圖片、文件等格式。
+- **打包下載**：支援單檔點擊下載，或使用 JSZip 一鍵打包下載全部附件（`extracted_attachments.zip`）。
+- **15 小時銷毀與隱私**：內建 15 小時倒數自動銷毀機制，並提供「立即清除」按鈕。100% 純瀏覽器本機運算，檔案與密碼絕不上傳伺服器。
 
-`dky_tw` 已移除原本較陽春的 PDF 工具箱入口，保留完整的 Stirling PDF 進階服務：
+### 2. 📱 QR Code 產生器 (`/qr`)
+- 輸入任意網址或文字，立刻生成無廣告、無浮水印的高解析度 QR Code Canvas 畫布。
+- 支援一鍵下載為高畫質 PNG 圖片，適合店家、活動或行銷使用。
 
-- 人類入口：`https://pdf.dky.tw`
-- 工具箱入口：`https://tools.dky.tw` 的「PDF 進階」
-- 舊路徑：`https://tools.dky.tw/pdf` 會轉址到 `https://pdf.dky.tw`
-- Hermes：可透過 `stirling-pdf` CLI 呼叫本機 Stirling API 處理 PDF
-- OCR：已支援繁中 `chi_tra` 與英文 `eng`
+### 3. {} JSON 格式檢查與排版 (`/json`)
+- 瞬間將單行壓縮或巢狀混亂的 JSON 字串排版為語法高亮、帶縮排的綺麗格式。
+- 自動揪出未閉合括號、缺少引號或格式錯誤的位置並給予提示。
 
-完整功能、用法、OCI 維運與未來規劃請見：
+### 4. 🎨 顏色代碼轉換 (`/color`)
+- HEX (#00F2FF)、RGB (r, g, b) 與 HSL 的即時數學換算。
+- 內建色塊即時預覽視窗與即時輸入連動（Input Binding）。
 
-- [`docs/stirling-pdf-hermes.md`](docs/stirling-pdf-hermes.md)
+### 5. 📦 Base64 檔案編解碼器 (`/base64`)
+- **文字編解碼**：將文字快速進行 Base64 UTF-8 編碼與反向解碼。
+- **檔案轉換**：支援將圖片、PDF、文件直接拖曳轉換為 Data URI 字串；亦可將 Base64 字串無損還原下載回原本檔案。
 
-## 優化與維護
-- 已實作模組化，核心邏輯如 IDEA Box、美股等均提取至 `tools/` 資料夾中作為獨立的模組。
-- 具備防暴力破解（密碼嘗試過多鎖定）、Payload 大小限制等基礎防護措施。
+### 6. ⚖️ 文字 / PDF 差異比對 (`/diff`)
+- **文字比對**：提供逐行 (Lines) 與逐字 (Words) 差異對比，清晰標示新增（綠色）與刪除（紅色）。
+- **PDF 比對**：在瀏覽器中直接提取兩份 PDF 文件文字並進行內容比對，合約與保險條款修改一目瞭然。
+
+### 7. 🔑 JWT Token 解密 (`/jwt`)
+- 瞬間解析 JSON Web Token (JWT) 的 Header 與 Payload 資料。
+- 自動轉換過期時間 (exp) 與簽發時間 (iat) 為易讀的日期格式，純本地運算保護 Token 隱私。
+
+### 8. 🛡️ 強密碼產生器 (`/pwd`)
+- 調用瀏覽器原生的硬體級亂數 `window.crypto.getRandomValues()`。
+- 支援 8~128 字元長度設定，即時生成駭客無法預測的高強度隨機密碼。
+
+### 9. 🔗 網址編解碼 (`/url`)
+- 解決中文網址複製後變成 `%E6%B8%AC` 惱人亂碼的問題。
+- 一鍵完成 `encodeURIComponent` 與 `decodeURIComponent` 雙向轉換。
+
+### 10. 📝 文字排版助手 (`/text`)
+- **字數統計**：即時計算字數（含空白）、字數（去空白）、行數與段落數。
+- **格式轉換**：提供一鍵英文全大寫 (UPPERCASE)、全小寫 (lowercase) 及去頭尾空白 (Trim) 功能。
+
+### 11. 🌍 跨國時區即時轉換 (`/tz`)
+- 提供全球 50+ 主要城市（東京、紐約、倫敦、巴黎、雪梨、台北等）與 UTC 時間即時換算。
+- 支援中英文城市關鍵字搜尋與跳秒時鐘即時顯示。
+
+### 12. 💱 即時匯率換算 (`/fx`)
+- 串接國際開源匯率 API，提供美金 (USD)、台幣 (TWD)、日圓 (JPY)、歐元 (EUR) 等全球主要貨幣轉換。
+- 自動計算模擬買賣價差與匯率中間價參考。
+
+### 13. 🔒 加密雜湊計算 (`/hash`)
+- 提供 SHA-1、SHA-256、SHA-384、SHA-512 不可逆 Hash 雜湊計算。
+- 100% 瀏覽器端計算，適用於密碼校驗與檔案指紋比對。
+
+### 14. ✨ CSS 視覺產生器 (`/css`)
+- 拖動 X、Y、Blur、Spread 等滑桿，即時在畫面上預覽 CSS `box-shadow` 立體陰影效果。
+- 滿意後一鍵複製語法直接貼至前端專案。
+
+### 15. 🔎 正規表達式測試器 (`/regex`)
+- 輸入 Regex Pattern (如 Email、手機號碼配對)，在測試文本中即時高亮標示配對結果。
+
+### 16. 🪪 台灣身分證字號產生與驗證 (`/id`)
+- **產生器**：依照內政部數學校驗邏輯，可指定縣市、性別生成測試用字號（僅供開發測試使用）。
+- **驗證器**：即時校驗現有字號格式與數學邏輯是否合法。
+
+### 17. 📐 單位換算器 (`/unit`)
+- 長度、重量、溫度、面積、速度等 5 大類常用單位即時連動換算（例如：公里/英里、攝氏/華氏）。
+
+### 18. 🖼️ 圖片批次壓縮 (`/imgzip`)
+- 支援多張圖片拖曳批次處理，可輸出 WebP、JPEG、PNG、AVIF。
+- 可自訂壓縮品質 (Quality 10%~100%)，即時計算體積縮減比例與節省空間。
+
+### 19. 🎬 影片壓縮 (`/videozip`)
+- 純瀏覽器端壓縮，GPU 硬體加速。
+- 提供 Discord (8MB/25MB)、WhatsApp (16MB)、Email (25MB) 等常用限制預設值與自訂 MB 目標。
+
+### 20. 🎞️ 影片轉 GIF (`/video2gif`)
+- 自訂擷取影片時間區段（起訖秒數）、畫質寬度與幀率 (FPS)。
+- 即時轉換生成動畫 GIF 並支援點擊下載。
+
+### 21. 💡 IDEA Box 提案產生器 (`/ideabox`)
+- 結合 Cloudflare Pages Functions 代理呼叫 Google Gemini 2.5 AI 模型。
+- 協助自動生成結構化商業提案，並可直接導出為 Microsoft Word (.docx) 檔案。
+
+### 22. 🧰 PDF 進階工具 (`/stirlingpdf`)
+- 導向 Stirling PDF 服務 (`https://pdf.dky.tw`)，支援 OCR 繁中/英文文字辨識、PDF 轉 Word/Excel/圖片、頁面旋轉與拆分分割。
+
+---
+
+## 🚀 部署架構 (Deployment)
+
+1. **靜態工具箱 + Pages Function**：絕大多數工具皆為純前端本機運算；IDEA Box 透過 Cloudflare Pages Function 代理 API。
+2. **邊緣網路**：針對 Cloudflare Pages 最佳化設計，設定 `dky_tw` 作為建置根目錄 (Root directory)。
+3. **隱私與安全**：不資料庫儲存，檔案離線處理，15 小時自動清空。
+
+---
+
+## 👨‍💻 版權聲明
+© 2026 DKY.tw — All operations run locally in your browser for maximum privacy and performance.
