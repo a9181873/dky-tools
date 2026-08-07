@@ -21,8 +21,7 @@ const ROUTES = {
   '/unit': 'unit',
   '/imgzip': 'imgzip',
   '/videozip': 'videozip',
-  '/video2gif': 'video2gif',
-  '/pdfextract': 'pdfextract'
+  '/video2gif': 'video2gif'
 };
 
 const metaList = {
@@ -45,7 +44,6 @@ const metaList = {
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
   videozip: { icon: '🎬', title: '影片壓縮', desc: '純瀏覽器端壓縮，GPU 硬體加速。提供 Discord/WhatsApp/郵件等常用輸出大小，自訂目標。100% 本機處理，無隱私風險！' },
   video2gif: { icon: '🎞️', title: '影片轉 GIF', desc: '擷取影片片段轉成 GIF 動圖。自訂幀率、畫質、起迄秒數，適合 Discord/Telegram 貼圖。純本機處理，零上傳。' },
-  pdfextract: { icon: '📎', title: 'PDF 附件提取', desc: '解密加密 PDF，快速提取內嵌的 ZIP/Excel/圖片等附件檔。資料 15 小時內自動銷毀，純本地運算零上傳。' },
   stirlingpdf: { icon: '🧰', title: 'PDF 進階工具', desc: '開啟 Stirling PDF 自架服務，支援 OCR、壓縮、合併、分割、轉 Word 與批次處理。', href: 'https://pdf.dky.tw' }
 };
 
@@ -749,77 +747,6 @@ const renderFields = {
       <div id="pdf-export-status" style="display:none; color:var(--muted); margin: 10px 0; font-size:0.9rem;"></div>
     </div>
   `,
-  pdfextract: () => `
-    <div style="background: rgba(0, 242, 255, 0.05); border: 1px solid rgba(0,242,255,0.2); color: var(--accent); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
-      🔒 <strong>隱私保護</strong>：100% 純瀏覽器本機運算，PDF 與密碼完全不上傳任何伺服器。資料於 <strong>15 小時</strong> 內自動銷毀。
-    </div>
-
-    <!-- Step 1: Upload -->
-    <div id="pdfext-step-upload">
-      <div class="imgzip-dropzone" id="pdfext-dropzone" style="padding: 40px 20px;">
-        <input id="pdfext-file" type="file" accept=".pdf,application/pdf" onchange="UI.handlePdfExtractSelectFile(this.files[0])" />
-        <span class="imgzip-drop-text" style="font-size: 1.05rem; font-weight: 500;">📎 點擊選擇或拖曳 PDF 檔案至此處</span>
-        <div style="color: var(--text-muted); font-size: 0.82rem; margin-top: 6px;">支援加密 PDF · 自動偵測解密與內嵌附件提取</div>
-      </div>
-    </div>
-
-    <!-- Step 2: Password Prompt -->
-    <div id="pdfext-step-password" style="display: none;">
-      <div style="padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); border-radius: 8px; margin-bottom: 20px; text-align: center;">
-        <div style="font-size: 1.5rem; margin-bottom: 6px;">🔐</div>
-        <div style="color: var(--text-main); font-weight: 500;" id="pdfext-pw-filename">file.pdf</div>
-        <div style="color: var(--text-muted); font-size: 0.85rem;" id="pdfext-pw-filesize">0 KB</div>
-      </div>
-      <div class="input-group">
-        <label>此 PDF 已加密，請輸入密碼</label>
-        <div style="display: flex; gap: 8px;">
-          <input type="password" id="pdfext-password-input" placeholder="輸入 PDF 開啟密碼" onkeydown="if(event.key==='Enter') UI.handlePdfExtractSubmitPassword()" />
-          <button class="btn" style="margin-right:0;" onclick="UI.handlePdfExtractSubmitPassword()">解密並提取</button>
-        </div>
-        <div id="pdfext-password-error" style="color: #f87171; font-size: 0.85rem; margin-top: 6px; min-height: 1.2em;"></div>
-      </div>
-      <button class="btn btn-sm" onclick="UI.handlePdfExtractReset()">← 選擇其他檔案</button>
-    </div>
-
-    <!-- Step 3: Processing -->
-    <div id="pdfext-step-processing" style="display: none; text-align: center; padding: 40px 0;">
-      <div style="color: var(--accent); font-size: 1.1rem; margin-bottom: 12px;">⏳ 正在處理 PDF...</div>
-      <div style="color: var(--text-muted); font-size: 0.9rem;" id="pdfext-processing-msg">正在載入 pdf.js 與解析檔案...</div>
-    </div>
-
-    <!-- Step 4: Results -->
-    <div id="pdfext-step-results" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-        <h3 style="font-size: 1.2rem; margin: 0; color: #fff;">提取完成 (<span id="pdfext-file-count">0</span> 個檔案)</h3>
-        <div style="padding: 4px 12px; background: rgba(240, 180, 41, 0.12); border: 1px solid rgba(240, 180, 41, 0.25); border-radius: 20px; color: #f0b429; font-size: 0.8rem; font-variant-numeric: tabular-nums;">
-          ⏰ 資料將於 <strong id="pdfext-countdown">15:00:00</strong> 後自動清除
-        </div>
-      </div>
-
-      <div id="pdfext-file-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; max-height: 380px; overflow-y: auto;"></div>
-
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <button class="btn" onclick="UI.handlePdfExtractDownloadAll()">📦 全部打包下載 (ZIP)</button>
-        <button class="btn" style="border-color: rgba(240, 180, 41, 0.4); color: #f0b429;" onclick="UI.handlePdfExtractClear()">🗑️ 立即清除資料</button>
-        <button class="btn" onclick="UI.handlePdfExtractReset()">📄 處理另一個 PDF</button>
-      </div>
-    </div>
-
-    <!-- Step 5: Empty / No Attachments -->
-    <div id="pdfext-step-empty" style="display: none; text-align: center; padding: 40px 0;">
-      <div style="font-size: 2.5rem; margin-bottom: 12px; opacity: 0.6;">📭</div>
-      <div style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 6px;">此 PDF 沒有內嵌附件</div>
-      <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 20px;">只有包含嵌入式檔案 (如 ZIP、Excel 等) 的 PDF 才能提取</div>
-      <button class="btn" onclick="UI.handlePdfExtractReset()">選擇其他 PDF 檔案</button>
-    </div>
-
-    <!-- Step 6: Error -->
-    <div id="pdfext-step-error" style="display: none; text-align: center; padding: 30px 0;">
-      <div style="font-size: 2.2rem; margin-bottom: 10px; color: #f87171;">⚠️</div>
-      <div id="pdfext-error-msg" style="color: var(--text-main); font-size: 0.95rem; margin-bottom: 20px;"></div>
-      <button class="btn" onclick="UI.handlePdfExtractReset()">重試</button>
-    </div>
-  `,
 };
 
 const UI = {
@@ -1311,49 +1238,59 @@ const UI = {
     }
   },
   async handleFX() {
-    const amtStr = document.getElementById('fx-amt').value;
+    const amtStr = document.getElementById('fx-amt')?.value;
     const amt = parseFloat(amtStr);
-    const base = document.getElementById('fx-base').value;
-    const target = document.getElementById('fx-target').value;
+    const base = document.getElementById('fx-base')?.value;
+    const target = document.getElementById('fx-target')?.value;
     const resEl = document.getElementById('fx-result');
+    if (!resEl) return;
     
     if (isNaN(amt) || amt <= 0) return alert('請輸入有效的金額數量');
     if (base === target) {
-      resEl.innerHTML = `同幣別不需換算: ${amt.toLocaleString()} ${base}`;
+      resEl.innerHTML = `<div style="font-size: 1.2rem; margin-top: 10px;">同幣別不需換算：<strong>${amt.toLocaleString()} ${base}</strong></div>`;
       return;
     }
 
-    resEl.innerHTML = `<span style="color:var(--accent);">網頁獲取即時報價中...</span>`;
+    resEl.innerHTML = `<span style="color:var(--accent);">網頁獲取即時國際匯率中...</span>`;
     
     try {
-      let rate = 1;
       const resp = await fetch(`https://open.er-api.com/v6/latest/${base}`);
       if (!resp.ok) {
         throw new Error('API 無法取得該貨幣對的報價支援');
       }
       const data = await resp.json();
       if (!data.rates || !data.rates[target]) throw new Error('找不到目標貨幣的即時匯率');
-      rate = data.rates[target];
       
-      const midVal = (amt * rate).toFixed(3);
-      // Simulate fake bank bid/ask spread (0.5% margin)
-      const bidRate = rate * 0.995;
-      const askRate = rate * 1.005;
-      
-      const bidVal = (amt * bidRate).toFixed(3);
-      const askVal = (amt * askRate).toFixed(3);
+      const rate = data.rates[target];
+      const invRate = 1 / rate;
+      const convertedVal = amt * rate;
+
+      // Format currency display
+      const formattedConverted = convertedVal.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4
+      });
+
+      const updateTimeStr = data.time_last_update_utc ? new Date(data.time_last_update_utc).toLocaleString('zh-TW') : '';
 
       resEl.innerHTML = `
-        <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; margin-top: 12px; display: inline-block; text-align: left;">
-          <div style="margin-bottom: 8px;"><strong>交易中價 (Mid)</strong> : 1 ${base} = ${rate.toFixed(4)} ${target} <br> 總額: <span style="font-size: 1.2rem; color: #aaa;">${midVal}</span></div>
-          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
-          <div style="color: #4CAF50; margin-bottom: 8px;">🛒 <strong>銀行賣出參考 (含加減碼)</strong> : 1 ${base} = ${askRate.toFixed(4)} ${target} <br> 找銀行買 ${base} 總成本估算: <span style="font-size: 1.2em; font-weight: bold;">${askVal}</span></div>
-          <div style="color: #FF5252;">💵 <strong>銀行買入參考 (含加減碼)</strong> : 1 ${base} = ${bidRate.toFixed(4)} ${target} <br> 賣 ${base} 給銀行總收益估算: <span style="font-size: 1.2em; font-weight: bold;">${bidVal}</span></div>
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 12px; margin-top: 12px; max-width: 500px; margin-left: auto; margin-right: auto; text-align: center;">
+          <div style="font-size: 0.95rem; color: var(--muted); margin-bottom: 6px;">
+            ${amt.toLocaleString()} ${base} =
+          </div>
+          <div style="font-size: 2.2rem; font-weight: 700; color: var(--accent); margin-bottom: 16px; word-break: break-all;">
+            ${formattedConverted} <span style="font-size: 1.2rem; font-weight: normal; color: #fff;">${target}</span>
+          </div>
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 14px 0;">
+          <div style="font-size: 0.9rem; color: #ddd; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 8px;">
+            <div>1 ${base} = <strong>${rate.toFixed(4)}</strong> ${target}</div>
+            <div>1 ${target} = <strong>${invRate.toFixed(4)}</strong> ${base}</div>
+          </div>
+          ${updateTimeStr ? `<div style="font-size: 0.75rem; color: var(--muted); margin-top: 12px;">國際匯率最後更新時間：${escapeHTML(updateTimeStr)}</div>` : ''}
         </div>
       `;
     } catch (e) {
-      resEl.innerHTML = `<span style="color:#FF5252">無法獲取匯率，請稍後再試。錯誤: ${escapeHTML(e.message)}</span>
-      <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;">(備註: 開源 API (Frankfurter) 無法跨行包含部分封閉國家的貨幣，例如新台幣 TWD 支援可能受限)</div>`;
+      resEl.innerHTML = `<span style="color:#FF5252">無法獲取匯率，請稍後再試。錯誤: ${escapeHTML(e.message)}</span>`;
     }
   },
   handleIdGen() {
@@ -2203,194 +2140,6 @@ const UI = {
     }
   },
 
-  // ---- PDF 附件提取工具 (pdfextract) ----
-  pdfExtCurrentFile: null,
-  pdfExtArrayBuffer: null,
-  pdfExtExtractedFiles: {},
-  pdfExtExpiryTime: null,
-  pdfExtCountdownInterval: null,
-
-  showPdfExtStep(step) {
-    ['upload', 'password', 'processing', 'results', 'empty', 'error'].forEach(s => {
-      const el = document.getElementById(`pdfext-step-${s}`);
-      if (el) el.style.display = s === step ? 'block' : 'none';
-    });
-  },
-
-  async handlePdfExtractSelectFile(file) {
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      return this.showPdfExtError('請選擇 PDF 檔案');
-    }
-    this.pdfExtCurrentFile = file;
-    this.showPdfExtStep('processing');
-    const msgEl = document.getElementById('pdfext-processing-msg');
-    if (msgEl) msgEl.textContent = '正在讀取檔案...';
-
-    try {
-      this.pdfExtArrayBuffer = await file.arrayBuffer();
-      await this.runPdfExtract(null);
-    } catch (e) {
-      this.showPdfExtError('讀取檔案失敗：' + (e.message || e));
-    }
-  },
-
-  async runPdfExtract(password) {
-    this.showPdfExtStep('processing');
-    const msgEl = document.getElementById('pdfext-processing-msg');
-    if (msgEl) msgEl.textContent = password ? '正在解密 PDF...' : '正在讀取 PDF 與解析附件...';
-
-    try {
-      const res = await tools.pdfextract.extractAttachments(this.pdfExtArrayBuffer, password);
-      this.pdfExtExtractedFiles = res.extracted;
-
-      if (Object.keys(res.extracted).length === 0) {
-        this.showPdfExtStep('empty');
-      } else {
-        this.renderPdfExtResults();
-        this.showPdfExtStep('results');
-        this.startPdfExtCountdown();
-      }
-    } catch (err) {
-      if (err.name === 'PasswordException') {
-        if (!password) {
-          const fnEl = document.getElementById('pdfext-pw-filename');
-          const fsEl = document.getElementById('pdfext-pw-filesize');
-          if (fnEl) fnEl.textContent = this.pdfExtCurrentFile ? this.pdfExtCurrentFile.name : 'PDF 檔案';
-          if (fsEl) fsEl.textContent = this.pdfExtCurrentFile ? tools.pdfextract.formatSize(this.pdfExtCurrentFile.size) : '';
-          const pwInput = document.getElementById('pdfext-password-input');
-          if (pwInput) pwInput.value = '';
-          const pwErr = document.getElementById('pdfext-password-error');
-          if (pwErr) pwErr.textContent = '';
-          this.showPdfExtStep('password');
-          setTimeout(() => document.getElementById('pdfext-password-input')?.focus(), 100);
-        } else {
-          const pwErr = document.getElementById('pdfext-password-error');
-          if (pwErr) pwErr.textContent = '密碼錯誤，請重新輸入';
-          this.showPdfExtStep('password');
-        }
-      } else {
-        this.showPdfExtError('讀取 PDF 失敗：' + (err.message || '未知錯誤'));
-      }
-    }
-  },
-
-  handlePdfExtractSubmitPassword() {
-    const pw = document.getElementById('pdfext-password-input')?.value;
-    if (!pw) {
-      const pwErr = document.getElementById('pdfext-password-error');
-      if (pwErr) pwErr.textContent = '請輸入密碼';
-      return;
-    }
-    this.runPdfExtract(pw);
-  },
-
-  renderPdfExtResults() {
-    const entries = Object.entries(this.pdfExtExtractedFiles);
-    const countEl = document.getElementById('pdfext-file-count');
-    if (countEl) countEl.textContent = entries.length;
-    const container = document.getElementById('pdfext-file-list');
-    if (!container) return;
-
-    container.innerHTML = entries.map(([name, data]) => {
-      const size = tools.pdfextract.formatSize(data.length || data.byteLength || 0);
-      const icon = tools.pdfextract.getFileIcon(name);
-      const safeName = String(name).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      return `
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); border-radius: 8px;">
-          <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
-            <span style="font-size: 1.4rem;">${icon}</span>
-            <div style="min-width: 0; flex: 1;">
-              <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-main); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${safeName}</div>
-              <div style="font-size: 0.78rem; color: var(--text-muted);">${size}</div>
-            </div>
-          </div>
-          <button class="btn btn-sm" style="margin: 0; padding: 6px 14px;" onclick="UI.downloadPdfExtFile('${safeName}')">⬇️ 下載</button>
-        </div>
-      `;
-    }).join('');
-  },
-
-  downloadPdfExtFile(filename) {
-    const data = this.pdfExtExtractedFiles[filename];
-    if (!data) return;
-    const blob = new Blob([data]);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-  },
-
-  async handlePdfExtractDownloadAll() {
-    if (Object.keys(this.pdfExtExtractedFiles).length === 0) return;
-    try {
-      const JSZip = await tools.pdfextract.loadJSZip();
-      const zip = new JSZip();
-      for (const [name, data] of Object.entries(this.pdfExtExtractedFiles)) {
-        zip.file(name, data);
-      }
-      const blob = await zip.generateAsync({ type: 'blob' });
-      const baseName = this.pdfExtCurrentFile ? this.pdfExtCurrentFile.name.replace(/\.pdf$/i, '') : 'extracted';
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${baseName}_attachments.zip`;
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-    } catch (e) {
-      alert('打包下載失敗：' + (e.message || e));
-    }
-  },
-
-  startPdfExtCountdown() {
-    this.stopPdfExtCountdown();
-    this.pdfExtExpiryTime = Date.now() + 15 * 60 * 60 * 1000; // 15 hours
-    this.updatePdfExtCountdown();
-    this.pdfExtCountdownInterval = setInterval(() => this.updatePdfExtCountdown(), 1000);
-  },
-
-  stopPdfExtCountdown() {
-    if (this.pdfExtCountdownInterval) {
-      clearInterval(this.pdfExtCountdownInterval);
-      this.pdfExtCountdownInterval = null;
-    }
-    this.pdfExtExpiryTime = null;
-  },
-
-  updatePdfExtCountdown() {
-    if (!this.pdfExtExpiryTime) return;
-    const remaining = this.pdfExtExpiryTime - Date.now();
-    if (remaining <= 0) {
-      this.handlePdfExtractClear();
-      return;
-    }
-    const h = Math.floor(remaining / 3600000);
-    const m = Math.floor((remaining % 3600000) / 60000);
-    const s = Math.floor((remaining % 60000) / 1000);
-    const str = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    const el = document.getElementById('pdfext-countdown');
-    if (el) el.textContent = str;
-  },
-
-  handlePdfExtractClear() {
-    this.stopPdfExtCountdown();
-    this.pdfExtExtractedFiles = {};
-    this.pdfExtCurrentFile = null;
-    this.pdfExtArrayBuffer = null;
-    this.showPdfExtStep('upload');
-  },
-
-  handlePdfExtractReset() {
-    this.handlePdfExtractClear();
-  },
-
-  showPdfExtError(msg) {
-    const errEl = document.getElementById('pdfext-error-msg');
-    if (errEl) errEl.textContent = msg;
-    this.showPdfExtStep('error');
-  }
 };
 
 let tzTimer = null;
