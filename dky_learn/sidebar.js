@@ -55,6 +55,10 @@
       <a href="/statistics/9.5_relationship_to_logistic_regression.html" class="nav-item done">9.5 SVM 與邏輯回歸的關係</a>
       <a href="/statistics/9.6_lab_svm.html" class="nav-item done">9.6 Lab: SVM</a>
 
+      <div class="section-title" style="margin-top:1.2rem">📖 第 10 章：深度學習（Deep Learning）</div>
+      <a href="/statistics/10.1_single_layer_neural_networks.html" class="nav-item done">10.1 單層神經網路</a>
+      <span class="nav-item pending">10.2 多層神經網路</span>
+
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
       <div class="section-title" style="margin-top:0.8rem">📖 精選資源</div>
