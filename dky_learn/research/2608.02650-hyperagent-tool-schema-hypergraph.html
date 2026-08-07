@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HyperAgent：用工具 Schema 超圖取代隱式推理 — 讓 LLM Agent 的工具調用既準又省 — DKY 論文筆記</title>
+<meta name="description" content="HyperAgent 把工具間依賴關係建模為有向超圖，用 deficit-oriented expansion 動態建構工具支援子圖，在 AppWorld 上以 GPT-4o 達 Test-N TGC 67.1、SGC 55.9，同時降低 API 呼叫與 token 消耗">
+<meta property="og:title" content="HyperAgent：用工具 Schema 超圖取代隱式推理">
+<meta property="og:description" content="GPT-4o 在 AppWorld Test-N TGC 從 ReAct 48.8→63.1→67.1，不只快也省。token 與 API call 雙降，Schema 超圖是關鍵">
+<meta property="og:url" content="https://learn.dky.tw/research/2608.02650-hyperagent-tool-schema-hypergraph.html">
+<meta property="og:type" content="article">
+<link rel="stylesheet" href="../course.css">
+<style>
+body{background:#0d1117}
+.mb{display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;margin:1rem 0}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.mc h4{color:var(--accent);margin:0 0 0.4rem;font-size:0.95rem}
+.mc p{margin:0;font-size:0.85rem;color:var(--text)}
+table{width:100%;border-collapse:collapse;margin:0.8rem 0;font-size:0.9rem}
+th{background:var(--card);border:1px solid var(--border);padding:6px;text-align:left}
+td{border:1px solid var(--border);padding:6px}
+@media(max-width:768px){.mb{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="sidebar"></div>
+<main>
+<h1>HyperAgent：用工具 Schema 超圖取代隱式推理 — 讓 LLM Agent 的工具調用既準又省</h1>
+<div class="meta">arXiv:2608.02650 — 2026-07-31 — cs.AI — Zian Zhai, Xingyu Tan, Gaowang Zou, Xiaoyang Wang, Wenjie Zhang — Hermes Agent generated</div>
+
+<div class="card">
+<h2>一句話核心結論</h2>
+<p>現有 LLM agent 的工具調用依賴<b>隱式推理</b>：從文字描述推斷哪些工具能串接、參數如何傳遞。當工具數量增加時，這種推斷變得不可靠——模型可能選到語義相關但參數不相容的工具，或漏掉「看似無關但實際是前置必要」的生產者工具。HyperAgent 把工具關係<b>顯式建模為有向 Tool-Schema 超圖（TSH）</b>：每個工具是一個超邊，從輸入 schema 節點指向輸出 schema 節點。任務執行前先萃取工具上下文圖→建構 Schema-aware Task DAG；執行時以<b>缺損導向擴張（DOE）</b>動態建構工具支援子圖——只補足當前狀態真正缺少的輸入。在 AppWorld 上，GPT-4o + HyperAgent 以 Test-N TGC 67.1、SGC 55.9 超越所有非微調方法，同時<b>減少 API 呼叫、LLM 互動次數與 token 消耗</b>。消融實驗確認：移除工具上下文圖或工具支援子圖都會顯著降低效能。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>核心指標（GPT-4o）</h4><p>Test-Normal TGC: ReAct 48.8 → PlanExec 63.1 → Traj 65.8 → <b>HyperAgent 67.1</b>。Test-N SGC: 32.1 → 52.6 → <b>55.9</b></p></div>
+<div class="mc"><h4>跨模型泛化</h4><p>GPT-4-Turbo Test-N TGC 45.3（vs ReAct 26.8）；Llama-3-70B 30.1（vs ReAct 20.8）。三個 backbone 全部超越 baseline</p></div>
+<div class="mc"><h4>效率增益</h4><p>API 呼叫數、LLM 互動輪次、token 總消耗三者同步降低。圖 2 顯示 HyperAgent 在兩類任務（Test-N / Test-C）都優於 ReAct</p></div>
+</div>
+
+<div class="card">
+<h2>問題背景：為什麼隱式工具推理會壞掉</h2>
+<p>LLM agent 的工具使用面臨兩個核心困境：</p>
+<ol style="margin:1rem 0 1rem 1.5rem;line-height:1.8">
+<li><b>依賴推斷不可靠：</b>要完成一個目標操作，agent 必須不只知道哪些工具語義相關，還要知道哪些上游工具能產出該工具所需的輸入參數。當工具數量龐大時，LLM 隱式推斷工具依賴鏈的可靠性急遽下降。</li>
+<li><b>前置工具遺漏：</b>語義檢索會保留與任務直接相關的工具，但可能排除「語義上不相關、操作上不可或缺」的前置生產者工具。等到執行時才發現工具無法使用，已經浪費了時間和 token。</li>
+</ol>
+<p>現有圖方法（ToolNet、Graph RAG-Tool Fusion）補了部分缺口——它們把工具依賴顯式化。但仍有兩個限制：(a) 只捕捉粗粒度工具依賴，不指定哪個上游輸出滿足哪個下游輸入；(b) 工具組合是狀態相關的——靜態規劃的路徑可能因執行時已取得的數值而變成冗餘或不完整。</p>
+</div>
+
+<div class="card">
+<h2>核心架構：Tool-Schema 超圖 + 兩階段規劃執行</h2>
+
+<h3 style="color:var(--accent);margin-top:1.2rem">階段零：超圖建構</h3>
+<p>基於 In-N-Out 資料集（專家標註的參數級 API 圖），將每個工具表示為一條從輸入 schema 節點 → 輸出/效果節點的<b>有向超邊</b>。超圖中的 port-level dependency links 精確指定「哪個工具的第幾個輸出能餵給哪個工具的第幾個輸入」。額外從 API 文檔中萃取效果節點（如 login 建立 session）和條件節點（如某 API 要求先驗證），由 GPT-4o 初篩後經專家驗證。</p>
+
+<h3 style="color:var(--accent);margin-top:1.2rem">階段一：任務級規劃（Task-Level Planning）</h3>
+<ul style="margin:1rem 0 1rem 1.5rem;line-height:1.8">
+<li><b>任務解釋：</b>LLM 從使用者請求中產出結構化解釋——操作意圖 + 涉及的 schema、值、約束、期望效果</li>
+<li><b>種子節點錨定：</b>用 embedding 相似度將操作意圖錨定到工具超邊、將 schema 解釋錨定到輸入/輸出節點</li>
+<li><b>上下文圖萃取：</b>從種子節點向後展開（bounded backward search），只保留「能產出種子所需輸入」的工具——語義不相關但操作必要的前置工具被自動補回</li>
+<li><b>Task DAG 分解：</b>基於序列化的工具上下文圖，LLM 規劃器將任務分解為 Schema-aware Task DAG——每個子任務指定目標輸出 schema、候選終端工具、依賴邊</li>
+</ul>
+
+<h3 style="color:var(--accent);margin-top:1.2rem">階段二：缺損導向擴張（Deficit-Oriented Expansion, DOE）</h3>
+<p>Task DAG 告訴 agent「要做什麼」，但不預先決定「用哪些工具」。執行時，DOE 為每個就緒子任務<b>動態建構工具支援子圖</b>：</p>
+<ul style="margin:1rem 0 1rem 1.5rem;line-height:1.8">
+<li>從候選終端工具出發，識別當前 agent 狀態中<b>未滿足的輸入需求</b>（缺損集 Deficit Set）</li>
+<li>用 beam search 在超圖中向後展開，尋找能補足缺損的生產者工具</li>
+<li>優先選擇輸出與缺損集重疊最大的工具（公式：Ω(e,M) = Σρ(e,r)）</li>
+<li>找到完整支援子圖後，執行工具鏈→驗證子任務完成→更新 agent state→refine 剩餘 Task DAG</li>
+</ul>
+<p><b>關鍵設計：</b>DOE 是狀態條件式的——已由先前執行取得的 schema 值不會再被當作缺損。這避免了靜態規劃常犯的「重複呼叫已有資料的工具」錯誤。</p>
+</div>
+
+<div class="card">
+<h2>實驗結果摘要</h2>
+
+<h3 style="color:var(--accent);margin-top:1.2rem">主結果：跨 scaffold 比較（GPT-4o）</h3>
+<table>
+<tr><th>方法</th><th style="text-align:center">Test-N TGC</th><th style="text-align:center">Test-N SGC</th><th style="text-align:center">Test-C TGC</th><th style="text-align:center">Test-C SGC</th></tr>
+<tr><td>ReAct</td><td style="text-align:center">48.8</td><td style="text-align:center">32.1</td><td style="text-align:center">30.2</td><td style="text-align:center">13.0</td></tr>
+<tr><td>PlanExec</td><td style="text-align:center">63.1</td><td style="text-align:center">52.6</td><td style="text-align:center">35.7</td><td style="text-align:center">18.9</td></tr>
+<tr><td>Traj(SetBSR+Snippet)</td><td style="text-align:center">65.8</td><td style="text-align:center">53.6</td><td style="text-align:center">38.7</td><td style="text-align:center">24.8</td></tr>
+<tr style="font-weight:bold;color:var(--green)"><td>HyperAgent</td><td style="text-align:center">67.1</td><td style="text-align:center">55.9</td><td style="text-align:center">40.2</td><td style="text-align:center">26.1</td></tr>
+</table>
+
+<h3 style="color:var(--accent);margin-top:1.2rem">消融實驗：兩個關鍵組件</h3>
+<ul style="margin:1rem 0 1rem 1.5rem;line-height:1.8">
+<li><b>Variant 1（移除工具上下文圖）：</b>只保留簡化工具描述做 DAG 規劃——效能顯著下降，token 和 API 呼叫增加。證明結構化依賴資訊本身對規劃品質至關重要。</li>
+<li><b>Variant 2（移除工具支援子圖）：</b>直接用語義相似度 top-K 工具執行子任務——效能同樣下降。證明 DOE 的缺損感知擴張比單純語義匹配更精確。</li>
+</ul>
+
+<h3 style="color:var(--accent);margin-top:1.2rem">工具上下文圖品質</h3>
+<p>在相同 20 工具預算下，HyperAgent 萃取的工具上下文圖對金標工具集的覆蓋率顯著優於 In-N-Out 圖檢索和純語義 top-K 檢索。Schema 節點錨定 + 依賴引導展開能補回語義上不相關的前置工具。</p>
+</div>
+
+<div class="card">
+<h2>與微調方法的對比</h2>
+<p>HyperAgent 作為無需訓練（NFT, Non-Fine-Tuning）方法，在多個指標上與需要大量軌跡訓練的 RL/DPO 方法競爭甚至超越：</p>
+<ul style="margin:1rem 0 1rem 1.5rem;line-height:1.8">
+<li>Test-N TGC 67.1：超越 Iterative Expert Iteration（58.3）、DPO-MCTS（57.0）、DMPO（59.0）、PPO（50.8）、RLOO（57.2）、GRPO（58.0）</li>
+<li>僅次於 LOOP(turn) 的 71.3 和 LOOP(token) 的 71.3——但 LOOP 需要大量訓練樣本，HyperAgent 是零訓練部署</li>
+<li>Test-C SGC 26.1 與 LOOP(token) 26.6、LOOP(turn) 26.5 幾乎持平</li>
+</ul>
+<p>這說明<b>結構化的工具關係建模可以部分取代大量軌跡訓練</b>——對資源有限的部署場景意義重大。</p>
+</div>
+
+<div class="card">
+<h2>對 Hermes / DKY 的啟發</h2>
+<ul style="margin:1rem 0 1rem 1.5rem;line-height:1.8">
+<li><b>Hermes 的工具描述應從純文字升級為 schema-aware：</b>目前 Hermes 的工具清單是純文字描述（名稱 + description + parameters JSON Schema）。HyperAgent 的教訓是：單純語義匹配會漏掉前置必要工具。應在工具註冊時顯式記錄「哪些工具的輸出可以餵給哪些工具的哪個參數」。</li>
+<li><b>工具支援子圖可以作為 Hermes 的內建模組：</b>DOE 的核心邏輯（缺損集→生產者工具展開）可以用 ~100 行 Python 實現，不需要 LLM 參與。將它作為 Hermes 工具選擇的前處理層，能避免「選了語義相關但參數不相容的工具」的低級錯誤。</li>
+<li><b>狀態感知的工具組合比靜態規劃更可靠：</b>Hermes 目前的工具調用是 step-by-step 的 ReAct 模式。HyperAgent 的 Task DAG + DOE 兩層架構可作為進化方向：規劃層給出高層子任務圖，執行層根據當前已取得的資料動態選擇工具鏈。</li>
+<li><b>消融實驗的啟發：</b>結構化依賴資訊（工具上下文圖）比工具清單本身更重要。Hermes skill 的描述中如果加入「前置條件：需要 X 的輸出」的結構化欄位，就能讓工具選擇從語義匹配升級為依賴匹配。</li>
+<li><b>成本控制的正向循環：</b>HyperAgent 的 token 節省來自「更少的試錯」而非「更短的 prompt」——結構化規劃減少了 ReAct 中反覆查文檔和重試的浪費。Hermes 當前面臨的 token 成本問題，可以透過引入 schema-level 規劃來系統性改善。</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>限制</h2>
+<ul style="margin:1rem 0 1rem 1.5rem;line-height:1.8">
+<li>僅在 AppWorld（模擬消費應用 API）上評估，未測試程式開發、系統管理、網頁操作等其他 agent 領域</li>
+<li>超圖建構依賴 In-N-Out 資料集的專家標註——在沒有標註的新工具集上，需要 LLM 輔助建構，品質可能下降</li>
+<li>DOE beam search 的計算成本隨工具集大小增長——超大工具集（>10K tools）的擴展性未驗證</li>
+<li>論文使用 GPT-4o 作為規劃器——在更弱的 LLM backbone 上，任務解釋和 DAG 分解的品質可能不足以驅動 DOE</li>
+<li>僅測試單一 agent 場景，多 agent 協作下的跨 agent 工具依賴未處理</li>
+</ul>
+</div>
+
+</main>
+<script src="../sidebar.js"></script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
