@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10.1 單層神經網路 — ISLP 統計學習課程</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--danger:#f85149;--code-bg:#1a1e24;--tag-bg:#1f2a37}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.7;max-width:960px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:2rem;color:var(--accent);margin-bottom:.5rem}header .meta{font-size:.9rem;color:#8b949e}.meta span{margin:0 .5rem}.difficulty{color:var(--warn);font-weight:700}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:var(--tag-bg);color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{color:var(--accent);font-size:1.5rem;margin:2.5rem 0 1rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}h3{color:var(--accent2);font-size:1.2rem;margin:1.8rem 0 .8rem}p{margin:.8rem 0}.callout{background:#1a2332;border-left:4px solid var(--accent);padding:1rem 1.2rem;margin:1.2rem 0;border-radius:0 6px 6px 0}.callout strong{color:var(--accent)}.ref-box{background:#1c2128;border:1px solid var(--border);padding:.8rem 1rem;margin:1rem 0;border-radius:6px;font-size:.9rem;color:#8b949e}.ref-box::before{content:'📚 '}.formula{text-align:center;margin:1.5rem 0;padding:1rem;background:var(--card);border-radius:8px;border:1px solid var(--border)}.formula-label{text-align:right;color:#8b949e;font-size:.85rem;margin-top:.3rem}pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.2rem;overflow-x:auto;margin:1rem 0;font-size:.88rem;line-height:1.5}code{font-family:'JetBrains Mono','Fira Code','Consolas',monospace}pre code{background:none;padding:0}.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.2rem 0}.pros,.cons{padding:1rem;border-radius:8px;border:1px solid var(--border)}.pros{background:#12261a;border-color:#1a3d2a}.cons{background:#261212;border-color:#3d1a1a}.pros h4{color:var(--accent2)}.cons h4{color:var(--danger)}.pros ul,.cons ul{padding-left:1.2rem;margin:.5rem 0}.pros li,.cons li{margin:.3rem 0}.comparison-table{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.9rem}.comparison-table th{background:var(--card);color:var(--accent);padding:.6rem .8rem;text-align:left;border:1px solid var(--border)}.comparison-table td{padding:.5rem .8rem;border:1px solid var(--border)}.comparison-table tr:nth-child(even){background:#0f1419}.scenario-box{background:linear-gradient(135deg,#1a2332,#1c2430);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:1.2rem 0}.scenario-box h4{color:var(--accent2);margin-bottom:.5rem}.key-quote{background:linear-gradient(135deg,#1a2a1a,#1c281c);border:2px solid var(--accent2);border-radius:10px;padding:1.5rem;margin:2rem 0 1rem;text-align:center;font-size:1.15rem;font-style:italic}.key-quote::before{content:'🔑 ';font-style:normal}.key-quote .author{display:block;margin-top:.5rem;font-size:.85rem;color:#8b949e;font-style:normal}footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:#8b949e;font-size:.85rem}.section-nav{display:flex;justify-content:space-between;margin:2rem 0 1rem;font-size:.9rem}.section-nav a{color:var(--accent);text-decoration:none}.section-nav a:hover{text-decoration:underline}.output-block{background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:.8rem 1rem;margin:.5rem 0 1rem;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.85rem;color:#8b949e;white-space:pre-wrap;overflow-x:auto}@media print{body{background:#fff;color:#000}}</style>
+</head>
+<body>
+
+<header>
+  <h1>10.1 單層神經網路</h1>
+  <div class="meta">
+    <span>📖 ISLP §10.1</span>
+    <span>📄 pp. 401–402</span>
+    <span class="difficulty">★★★☆☆</span>
+    <span>⏱️ 約 25 分鐘</span>
+  </div>
+  <div class="tags">
+    <span class="tag">深度學習</span>
+    <span class="tag">神經網路</span>
+    <span class="tag">活化函數</span>
+    <span class="tag">ReLU</span>
+    <span class="tag">隱藏層</span>
+  </div>
+</header>
+
+<div class="section-nav">
+  <a href="9.6_lab_svm.html">← 9.6 Lab: SVM</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="10.2_multilayer_neural_networks.html">10.2 多層神經網路 →</a>
+</div>
+
+<!-- ══════════ 1. 什麼是神經網路？ ══════════ -->
+<h2>1. 神經網路的直覺：把特徵「壓縮再放大」</h2>
+
+<p>想像你在做一道料理。你有 <strong>p 種原料</strong>（輸入特徵 X₁, X₂, …, Xₚ），你想要一個味道（輸出 f(X)）。線性迴歸就是每種原料加一點，加總就上桌。但真正厲害的廚師不會直接把原料混在一起，而是先用不同比例的原料做出 K 種 <strong>醬料</strong>（隱藏單元 A₁, A₂, …, Aₖ），每種醬料還要經過「火候」（活化函數）的轉化，最後再把這些醬料混合成最終味道。</p>
+
+<p>這就是單層神經網路的核心概念：<strong>先從原始特徵做出 K 個衍生特徵（隱藏層），再用這些衍生特徵做線性迴歸。</strong></p>
+
+<div class="callout">
+  <strong>一句話總結：</strong>神經網路 = 多個線性組合 → 非線性轉換 → 再加權組合。非線性的那一環（活化函數）是關鍵，沒有它就退化回普通線性模型。
+</div>
+
+<div class="ref-box">
+  James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §10.1, pp. 401–402. Springer.
+</div>
+
+<!-- ══════════ 2. 數學模型 ══════════ -->
+<h2>2. 數學定義：從 X 到 f(X) 的兩步旅程</h2>
+
+<p>一個有 K 個隱藏單元的單層神經網路，分兩步計算：</p>
+
+<h3>第一步：隱藏層（特徵萃取）</h3>
+
+<div class="formula">
+\[
+A_k = h_k(X) = g\left(w_{k0} + \sum_{j=1}^{p} w_{kj} X_j\right), \quad k = 1, 2, \ldots, K
+\]
+<div class="formula-label">公式 10.2：每個隱藏單元是線性組合經過活化函數的結果</div>
+</div>
+
+<p>這裡 \(w_{kj}\) 是權重（weight），\(w_{k0}\) 是偏誤項（bias），\(g(\cdot)\) 是活化函數（activation function）。</p>
+
+<h3>第二步：輸出層（線性組合）</h3>
+
+<div class="formula">
+\[
+f(X) = \beta_0 + \sum_{k=1}^{K} \beta_k A_k
+\]
+<div class="formula-label">公式 10.3：最終輸出是隱藏單元的線性組合</div>
+</div>
+
+<p>合併起來，完整的模型為：</p>
+
+<div class="formula">
+\[
+f(X) = \beta_0 + \sum_{k=1}^{K} \beta_k \; g\left(w_{k0} + \sum_{j=1}^{p} w_{kj} X_j\right)
+\]
+<div class="formula-label">公式 10.1：單層神經網路完整定義</div>
+</div>
+
+<p>所有參數 \(\beta_0, \ldots, \beta_K\) 以及 \(w_{10}, \ldots, w_{Kp}\) 都需要從資料估計。</p>
+
+<!-- ══════════ 3. 活化函數 ══════════ -->
+<h2>3. 活化函數：讓線性變非線性的魔術開關</h2>
+
+<h3>Sigmoid（早期經典）</h3>
+
+<div class="formula">
+\[
+g(z) = \frac{e^z}{1 + e^z} = \frac{1}{1 + e^{-z}}
+\]
+<div class="formula-label">公式 10.4：Sigmoid 活化函數</div>
+</div>
+
+<p>Sigmoid 把任何實數壓縮到 (0, 1)，和邏輯回歸用的是同一個函數。從「神經元」的類比來看：<strong>輸出接近 1 代表神經元「激發」，接近 0 代表「安靜」</strong>。</p>
+
+<h3>ReLU（現代主流）</h3>
+
+<div class="formula">
+\[
+g(z) = (z)_+ = \begin{cases} 0 & \text{if } z < 0 \\ z & \text{otherwise} \end{cases}
+\]
+<div class="formula-label">公式 10.5：ReLU（Rectified Linear Unit）活化函數</div>
+</div>
+
+<p>ReLU 是現代神經網路的主流選擇。它比 sigmoid <strong>更快、更容易計算和儲存</strong>。雖然在 z=0 處有「截斷」，但因為我們是對線性組合做 ReLU，常數項 wₖ₀ 會移動這個轉折點，所以模型仍有足夠彈性。</p>
+
+<div class="callout">
+  <strong>為什麼不用 sigmoid 了？</strong>Sigmoid 在兩端梯度幾乎為零（梯度消失問題），而且指數運算昂貴。ReLU 的導數非 0 即 1，訊號傳遞更穩定。
+</div>
+
+<!-- ══════════ 4. Python 實作 ══════════ -->
+<h2>4. Python 實作：親手打造一個單層神經網路</h2>
+
+<p>讓我們用 numpy 實作上面的數學，親眼看到「非線性活化 → 互動效應」的魔法。</p>
+
+<pre><code class="language-python"># 親手打造單層神經網路：示範非線性活化如何產生互動效應
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+# 重現課本公式 10.6-10.8 的互動效應例子
+# 兩個輸入 X1, X2，兩個隱藏單元，g(z)=z²
+
+def g_quadratic(z):
+    """活化函數：平方（課本為展示互動效應用的特例）"""
+    return z ** 2
+
+# 課本設定的參數（公式 10.6）
+beta_0 = 0
+beta_1 = 0.25
+beta_2 = -0.25
+w10, w11, w12 = 0, 1, 1    # h1: (X1+X2)²
+w20, w21, w22 = 0, 1, -1   # h2: (X1-X2)²
+
+def single_layer_nn(X1, X2):
+    """返回 f(X1,X2)；兩個隱藏單元，g(z)=z²"""
+    z1 = w10 + w11 * X1 + w12 * X2  # = X1+X2
+    z2 = w20 + w21 * X1 + w22 * X2  # = X1-X2
+    A1 = g_quadratic(z1)
+    A2 = g_quadratic(z2)
+    return beta_0 + beta_1 * A1 + beta_2 * A2
+
+# 驗證：f(X1,X2) 應該等於 X1*X2
+grid = np.linspace(-3, 3, 6)
+for x1 in grid[::2]:
+    for x2 in grid[::2]:
+        print(f"f({x1:.0f},{x2:.0f}) = {single_layer_nn(x1,x2):.2f}  |  X1*X2 = {x1*x2:.2f}")
+
+print("\n輸出完全等於 X1*X2：兩個非線性變換的線性組合 = 互動項！")
+</code></pre>
+
+<p>上面這段程式碼精確重現了課本公式 (10.6)-(10.8)：<strong>兩個對線性組合做平方的隱藏單元，加權相減後得到 X₁X₂ 這個互動項。</strong></p>
+
+<pre><code class="language-python"># 比較 Sigmoid 與 ReLU：視覺化活化函數的行為
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+def relu(z):
+    return np.maximum(0, z)
+
+z = np.linspace(-4, 4, 200)
+
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(z, sigmoid(z), label='Sigmoid: 1/(1+e⁻ᶻ)', linewidth=2.2)
+ax.plot(z, relu(z) / 5, label='ReLU/5 (縮放以利比較)', linewidth=2.2)
+ax.axhline(y=0, color='gray', linewidth=0.5)
+ax.axvline(x=0, color='gray', linewidth=0.5)
+ax.set_xlabel('z')
+ax.set_ylabel('g(z)')
+ax.set_title('活化函數比較：Sigmoid vs ReLU')
+ax.legend()
+ax.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<pre><code class="language-python"># 用 sklearn 建立真正的單層神經網路（MLPRegressor）
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# 生成非線性資料：y = sin(X) + 雜訊
+np.random.seed(42)
+X = np.random.uniform(-3, 3, 200).reshape(-1, 1)
+y = np.sin(X.ravel()) + np.random.normal(0, 0.15, 200)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# 單隱藏層神經網路（K=20 個隱藏單元，ReLU 活化）
+nn = MLPRegressor(
+    hidden_layer_sizes=(20,),
+    activation='relu',
+    solver='adam',
+    max_iter=2000,
+    random_state=42
+)
+nn.fit(X_train, y_train)
+
+y_pred = nn.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+print(f"測試集 MSE: {mse:.4f}")
+
+# 視覺化：比較原始資料與神經網路擬合
+X_plot = np.linspace(-3, 3, 300).reshape(-1, 1)
+y_plot = nn.predict(X_plot)
+
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.scatter(X_test, y_test, s=15, alpha=0.5, label='測試資料')
+ax.plot(X_plot, np.sin(X_plot), '--', color='gray', alpha=0.6, label='真實函數 sin(x)')
+ax.plot(X_plot, y_plot, color='#58a6ff', linewidth=2, label=f'神經網路擬合 (K=20, ReLU)')
+ax.set_xlabel('X')
+ax.set_ylabel('y')
+ax.set_title('單層神經網路（20 個隱藏單元）擬合 sin(x)')
+ax.legend()
+ax.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+</code></pre>
+
+<p>觀察上面的結果：20 個 ReLU 隱藏單元的組合就足以擬合出平滑的非線性曲線。每個 ReLU 單元像一塊「積木」，足夠多塊就能拼出任何形狀。</p>
+
+<!-- ══════════ 5. 為什麼非線性不可或缺 ══════════ -->
+<h2>5. 非線性是靈魂：沒有它，K 層也只是一層</h2>
+
+<p>假設我們用 <strong>線性</strong> 活化函數 \(g(z)=z\)，會發生什麼？</p>
+
+<div class="formula">
+\[
+\begin{aligned}
+A_k &= w_{k0} + \sum_{j=1}^p w_{kj} X_j \\
+f(X) &= \beta_0 + \sum_{k=1}^K \beta_k \left(w_{k0} + \sum_{j=1}^p w_{kj} X_j\right) \\
+     &= \left(\beta_0 + \sum_{k=1}^K \beta_k w_{k0}\right) + \sum_{j=1}^p \left(\sum_{k=1}^K \beta_k w_{kj}\right) X_j
+\end{aligned}
+\]
+<div class="formula-label">沒有非線性活化 → 整個網路退化為一個線性模型</div>
+</div>
+
+<p>所有權重可以「折疊」成一個線性組合——<strong>無論疊多少層、多少隱藏單元，都等價於一個簡單的線性迴歸。</strong></p>
+
+<div class="callout">
+  <strong>互動效應的魔法：</strong>課本用 g(z)=z² 示範：h₁(X) = (X₁+X₂)², h₂(X) = (X₁-X₂)²，兩者加權組合後得到 f(X) = X₁X₂。<strong>兩個非線性變換的線性組合，竟能生出純粹的互動項！</strong>在實務上，sigmoid 和 ReLU 比平方函數更強大——它們不只產生二階多項式，可以逼近任意複雜的函數形狀。
+</div>
+
+<!-- ══════════ 6. 模型擬合 ══════════ -->
+<h2>6. 怎麼訓練？最小化誤差</h2>
+
+<p>對於數值型輸出（迴歸問題），使用 <strong>平方誤差損失</strong>：</p>
+
+<div class="formula">
+\[
+\sum_{i=1}^{n} \left(y_i - f(\mathbf{x}_i)\right)^2
+\]
+<div class="formula-label">公式 10.9：最小化預測值與真實值的平方差距</div>
+</div>
+
+<p>所有參數（權重 \(w_{kj}\)、偏誤 \(w_{k0}\)、輸出層權重 \(\beta_k\)）透過最小化這個損失來估計。具體的最佳化方法會在 §10.7 詳述，核心概念是 <strong>梯度下降（gradient descent）</strong>——沿著誤差梯度，逐次微調每個參數。</p>
+
+<div class="ref-box">
+  本節僅介紹單層神經網路的結構與損失函數。反向傳播（backpropagation）、隨機梯度下降（SGD）、以及現代最佳化器（Adam、RMSprop）的細節在 §10.7 深入討論。
+</div>
+
+<!-- ══════════ 7. 應用場景 ══════════ -->
+<h2>7. 應用場景</h2>
+
+<div class="scenario-box">
+  <h4>🏦 金融：信用卡違約預測</h4>
+  <p>輸入特徵：收入、負債比、信用歷史（X₁~Xₚ）。單層神經網路的 K 個隱藏單元各自捕捉不同的非線性組合（例如「高收入 + 高負債」的風險模式），比單純的邏輯回歸更靈活。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>🏥 醫療：疾病風險評分</h4>
+  <p>從數十個生理指標（血壓、膽固醇、年齡…）計算疾病風險。隱藏單元自動學到「血壓偏高＋年齡偏大」的交互作用，不需要人工指定互動項。這正是課本 g(z)=z² 範例的精神——非線性變換自動產生互動效果。</p>
+</div>
+
+<div class="scenario-box">
+  <h4>📱 行銷：用戶流失預測</h4>
+  <p>從用戶行為（登入頻率、購買次數、客服聯絡次數…）預測流失。單層神經網路用少數隱藏單元找出關鍵的非線性組合，在中小型資料集上比深度網路更不易過擬合，且可解釋性較高。</p>
+</div>
+
+<!-- ══════════ 8. 優缺點 ══════════ -->
+<h2>8. 優缺點對照</h2>
+
+<div class="pros-cons">
+<div class="pros">
+  <h4>✅ 優點</h4>
+  <ul>
+    <li><strong>自動捕捉非線性：</strong>不需手動指定互動項或多項式展開，模型自己學</li>
+    <li><strong>萬能近似器：</strong>理論上，單層加足夠多隱藏單元可逼近任何連續函數（Universal Approximation Theorem）</li>
+    <li><strong>計算可並行：</strong>矩陣乘法為主的運算，硬體加速（GPU）效果顯著</li>
+    <li><strong>共享架構：</strong>迴歸與分類使用相同的隱藏層設計，只差輸出層和損失函數</li>
+  </ul>
+</div>
+<div class="cons">
+  <h4>⚠️ 缺點</h4>
+  <ul>
+    <li><strong>黑箱：</strong>難以解釋個別權重或隱藏單元的「意義」</li>
+    <li><strong>需要大量資料：</strong>參數多（K(p+1)+(K+1)個），小樣本易過擬合</li>
+    <li><strong>非凸最佳化：</strong>損失函數有局部最小值，訓練可能卡在不夠好的解</li>
+    <li><strong>超參數敏感：</strong>K 的選擇、活化函數、學習率都需要調校</li>
+  </ul>
+</div>
+</div>
+
+<!-- ══════════ 9. 與其他方法的比較 ══════════ -->
+<h2>9. 方法比較：神經網路 vs 傳統方法</h2>
+
+<table class="comparison-table">
+  <thead>
+    <tr>
+      <th>方法</th>
+      <th>非線性能力</th>
+      <th>參數量</th>
+      <th>可解釋性</th>
+      <th>適用情境</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>線性迴歸（§3）</strong></td>
+      <td>❌ 純線性</td>
+      <td>p+1</td>
+      <td>⭐⭐⭐⭐⭐</td>
+      <td>資料量少、需要解讀係數</td>
+    </tr>
+    <tr>
+      <td><strong>多項式迴歸（§7.1）</strong></td>
+      <td>⚡ 預設形式</td>
+      <td>取決於階數</td>
+      <td>⭐⭐⭐⭐</td>
+      <td>已知非線性形式、低維度</td>
+    </tr>
+    <tr>
+      <td><strong>GAM（§7.7）</strong></td>
+      <td>⚡ 各變數獨立</td>
+      <td>中等</td>
+      <td>⭐⭐⭐⭐</td>
+      <td>需可解釋性、加性假設合理</td>
+    </tr>
+    <tr>
+      <td><strong>決策樹（§8.1）</strong></td>
+      <td>✅ 分段常數</td>
+      <td>取決於深度</td>
+      <td>⭐⭐⭐</td>
+      <td>混合型態變數、需視覺化</td>
+    </tr>
+    <tr>
+      <td><strong>單層神經網路（§10.1）</strong></td>
+      <td>✅ 任意平滑</td>
+      <td>K(p+1)+(K+1)</td>
+      <td>⭐⭐</td>
+      <td>資料量大、預測精度優先</td>
+    </tr>
+    <tr>
+      <td><strong>SVM（§9）</strong></td>
+      <td>✅ 核函數</td>
+      <td>取決於支援向量數</td>
+      <td>⭐⭐</td>
+      <td>高維度、分類邊界複雜</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>單層神經網路坐落在「夠靈活但不至於太複雜」的甜蜜點，適合<strong>中大型資料集的非線性問題</strong>——比線性模型強大得多，但不像深層網路那樣容易過擬合且難解釋。</p>
+
+<!-- ══════════ 10. 自我內化 ══════════ -->
+<h2>10. 自我內化：神經網路給 Hermes 的啟發</h2>
+
+<div class="callout">
+  <strong>「非線性轉換 → 新表徵」是通用設計模式：</strong>單層神經網路的精髓在於「先做 K 種非線性變換再做線性組合」。同理，Hermes 的 agent 架構中，每個 profile worker（dky1/dky2/tky）都是一個「隱藏單元」——各自對原始問題做不同角度的處理（非線性轉換），再由主 agent 做最終整合（線性組合）。關鍵啟發：<strong>單一 worker 的能力有限（就像單一 ReLU 只能處理一半空間），但多個不同視角的 worker 組合後，能處理的複雜度呈指數增長。</strong>這也是為什麼 profile routing 必須依任務型態分派，而不是把所有任務都丟給同一個 model——就像神經網路不會只靠一個隱藏單元解決問題一樣。
+</div>
+
+<!-- ══════════ 11. 今日關鍵句 ══════════ -->
+<div class="key-quote">
+  神經網路不是魔法，只是把特徵「折疊」成非線性，再線性展開。但這一個「折」的動作，讓整盤棋活了。
+  <span class="author">— ISLP §10.1，重新詮釋</span>
+</div>
+
+<div class="section-nav">
+  <a href="9.6_lab_svm.html">← 9.6 Lab: SVM</a>
+  <a href="index.html">📑 課程首頁</a>
+  <a href="10.2_multilayer_neural_networks.html">10.2 多層神經網路 →</a>
+</div>
+
+<footer>
+  <p>ISLP 統計學習課程 · 第 10 章：深度學習 · §10.1 單層神經網路</p>
+  <p>Generated: 2026-08-07 · 基於 James, Witten, Hastie, Tibshirani (2023) ISLP</p>
+  <p>部署於 <a href="https://learn.dky.tw" style="color:var(--accent)">learn.dky.tw</a></p>
+</footer>
+
+<script src="../sidebar.js"></script>
+<script>hljs.highlightAll();</script>
+</body>
+</html>

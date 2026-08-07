@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Engineering：為 AI Agent 管理正確的資訊 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 12 課繁體中文版：Context Engineering 核心概念、策略與常見失敗模式">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 12 課 / 共 18 課</p>
+<h1>Context Engineering：為 AI Agent 管理正確的資訊</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-11-protocols.html">← 第 11 課</a>
+<a href="../ai-agents-13-memory/">第 13 課 →</a>
+</nav>
+<div class="verdict">
+一句話：<strong>Prompt Engineering 決定 AI Agent「怎麼想」，Context Engineering 決定 AI Agent「知道什麼」——管理好上下文，才能讓 Agent 在複雜任務中持續做出正確決策。</strong>
+</div>
+<h2>導論</h2>
+<p>要打造可靠的 AI Agent，理解應用程式的複雜度至關重要。我們需要建立能有效管理資訊的 Agent，以應對超越 Prompt Engineering 的複雜需求。本課將深入探討 Context Engineering 的核心概念，以及它在打造 AI Agent 中扮演的角色。</p>
+<h2>學習目標</h2>
+<ul>
+<li><strong>定義 Context Engineering</strong>，並區分它與 Prompt Engineering 的不同</li>
+<li><strong>辨識 LLM 應用中上下文的關鍵組成</strong></li>
+<li><strong>應用寫入、選擇、壓縮與隔離上下文的策略</strong>，提升 Agent 效能</li>
+<li><strong>辨識常見的上下文失敗模式</strong>：污染、分心、混淆與衝突，並實作緩解技術</li>
+</ul>
+<h2>什麼是 Context Engineering？</h2>
+<p>對 AI Agent 而言，<strong>上下文（Context）是驅動 Agent 規劃並採取行動的核心</strong>。Context Engineering 就是確保 AI Agent 在完成任務的每一步都擁有正確資訊的工程實踐。因為上下文視窗大小有限，身為 Agent 開發者，我們需要建立系統和流程來管理上下文的<strong>新增、移除與濃縮</strong>。</p>
+<h3>Prompt Engineering vs Context Engineering</h3>
+<table>
+<tr><th>面向</th><th>Prompt Engineering</th><th>Context Engineering</th></tr>
+<tr><td><strong>焦點</strong></td><td>單一靜態指令集</td><td>動態資訊管理</td></tr>
+<tr><td><strong>範圍</strong></td><td>撰寫規則與提示</td><td>包含初始提示在內的所有資訊流</td></tr>
+<tr><td><strong>目標</strong></td><td>有效引導 Agent 行為</td><td>確保 Agent 在任何時刻都有正確資訊</td></tr>
+<tr><td><strong>時間性</strong></td><td>一次性設計</td><td>持續管理，隨任務進展動態調整</td></tr>
+<tr><td><strong>核心理念</strong></td><td>「說什麼」</td><td>「知道什麼、何時知道」</td></tr>
+</table>
+<p>Context Engineering 的關鍵理念是：<strong>讓這個過程可重複且可靠</strong>。</p>
+<h2>上下文的五種類型</h2>
+<p>上下文不是單一事物。AI Agent 需要的資訊可能來自多種來源，以下是 Agent 需要管理的上下文類型：</p>
+<table>
+<tr><th>類型</th><th>說明</th><th>範例</th></tr>
+<tr><td><strong>1. 指令 (Instructions)</strong></td><td>Agent 的「規則」——提示詞、系統訊息、Few-shot 範例、工具描述</td><td>系統提示：「你是專業的旅遊顧問」、如何使用訂票工具的範例</td></tr>
+<tr><td><strong>2. 知識 (Knowledge)</strong></td><td>事實、從資料庫檢索的資訊、長期記憶</td><td>RAG 系統從知識庫擷取航班政策、使用者過去偏好</td></tr>
+<tr><td><strong>3. 工具 (Tools)</strong></td><td>外部函式、API 與 MCP Server 的定義，以及使用它們得到的回饋（結果）</td><td>search_flights 的 API 描述、查詢城市天氣的回傳 JSON</td></tr>
+<tr><td><strong>4. 對話歷史 (Conversation History)</strong></td><td>與使用者持續進行的對話記錄</td><td>使用者說「先去東京再去大阪」的完整多輪對話</td></tr>
+<tr><td><strong>5. 使用者偏好 (User Preferences)</strong></td><td>長期累積的使用者喜好與習慣</td><td>偏好靠走道的座位、預算範圍、常用航空公司</td></tr>
+</table>
+<div class="warn">
+<p>⚠️ 對話歷史隨時間增長會佔據大量上下文視窗空間，是 Agent 效能退化最常見的原因之一。</p>
+</div>
+<h2>有效的 Context Engineering 策略</h2>
+<h3>規劃策略（Planning Strategies）</h3>
+<p>好的 Context Engineering 始於好的規劃。以下是幫助你思考如何應用 Context Engineering 的方法：</p>
+<table>
+<tr><th>步驟</th><th>核心問題</th><th>說明</th></tr>
+<tr><td><strong>1. 定義明確結果</strong></td><td>「Agent 完成任務後，世界是什麼樣子？」</td><td>清楚定義使用者應該獲得的變化、資訊或回應</td></tr>
+<tr><td><strong>2. 映射上下文</strong></td><td>「Agent 需要哪些資訊才能完成這個任務？」</td><td>畫出資訊的位置藍圖：從哪個資料庫、哪個 API、哪段對話</td></tr>
+<tr><td><strong>3. 建立上下文管線</strong></td><td>「Agent 如何取得這些資訊？」</td><td>透過 RAG、MCP Server 或其他工具建立資訊流入機制</td></tr>
+</table>
+<h3>實務策略（Practical Strategies）</h3>
+<p>當資訊開始流入 Agent 的上下文視窗，我們需要具體策略來管理它們：</p>
+<h4>一、管理上下文的方式</h4>
+<table>
+<tr><th>策略</th><th>說明</th><th>使用時機</th></tr>
+<tr><td><strong>Agent 便條紙<br>(Agent Scratchpad)</strong></td><td>讓 Agent 將當前任務和使用者互動的相關資訊記錄在上下文視窗<strong>之外</strong>的檔案或執行期物件中，需要時再取回</td><td>單一 session 內的臨時資訊</td></tr>
+<tr><td><strong>記憶<br>(Memories)</strong></td><td>讓 Agent 跨多個 session 儲存和檢索相關資訊，包含摘要、使用者偏好和改進回饋</td><td>跨 session 的長期資訊</td></tr>
+<tr><td><strong>上下文壓縮<br>(Compressing Context)</strong></td><td>當上下文接近極限時，使用摘要化（Summarization）和修剪（Trimming）技術——保留最相關資訊或移除舊訊息</td><td>上下文視窗接近滿載時</td></tr>
+<tr><td><strong>多 Agent 系統<br>(Multi-Agent Systems)</strong></td><td>每個 Agent 有自己獨立的上下文視窗，需規劃上下文如何在 Agent 之間共享與傳遞</td><td>任務複雜、可拆分時</td></tr>
+<tr><td><strong>沙箱環境<br>(Sandbox Environments)</strong></td><td>讓 Agent 在隔離環境中執行程式碼或處理大量文件，只將結果摘要讀回上下文</td><td>需要大量 token 處理的運算</td></tr>
+<tr><td><strong>執行期狀態物件<br>(Runtime State Objects)</strong></td><td>建立資訊容器，讓 Agent 逐步儲存每個子任務的結果，使上下文只與當前子任務連結</td><td>複雜、多步驟任務</td></tr>
+</table>
+<h4>二、檢查上下文（Inspecting Context）</h4>
+<p>套用任何策略後，都值得檢查模型呼叫<strong>實際收到了什麼</strong>。一個有用的除錯問題：</p>
+<blockquote>Agent 是否載入了太多上下文？錯誤的上下文？還是遺漏了需要的上下文？</blockquote>
+<p>你不需要記錄完整的原始提示或工具輸出來回答這個問題。在正式環境中，偏好使用<strong>輕量的上下文檢查記錄</strong>——只記錄計數、ID、雜湊和政策標籤：</p>
+<table>
+<tr><th>檢查面向</th><th>記錄什麼（而非原始內容）</th></tr>
+<tr><td><strong>選擇 (Selection)</strong></td><td>考慮了多少候選區塊/工具/記憶、選中了多少、用哪條規則或分數過濾掉其他</td></tr>
+<tr><td><strong>壓縮 (Compression)</strong></td><td>來源範圍或追蹤 ID、摘要 ID、壓縮前後的估計 token 數、原始內容是否被排除</td></tr>
+<tr><td><strong>隔離 (Isolation)</strong></td><td>哪個子任務在獨立 Agent/session/沙箱中執行、回傳了什麼有界摘要、大型工具輸出是否留在母 Agent 上下文之外</td></tr>
+<tr><td><strong>記憶與 RAG</strong></td><td>儲存檢索文件 ID、記憶 ID、分數、選中 ID 和遮罩狀態，而非完整檢索文字</td></tr>
+<tr><td><strong>安全與隱私</strong></td><td>優先使用雜湊、ID、token 桶和政策標籤，而非敏感的提示文字、工具參數、工具結果或使用者記憶內容</td></tr>
+</table>
+<p>目標不是保留<strong>更多</strong>上下文，而是留下足夠證據讓開發者能判斷<strong>哪個上下文策略被執行、以及它是否以預期方式改變了下一次模型呼叫</strong>。</p>
+<h3>實際範例：訂一趟巴黎之旅</h3>
+<p>假設我們要 AI Agent <strong>「幫我訂一趟巴黎之旅」</strong>：</p>
+<table>
+<tr><th>方式</th><th>Agent 的行為</th></tr>
+<tr><td><strong>僅用 Prompt Engineering</strong></td><td>Agent 只回應：「好的，你什麼時候想去巴黎？」——僅處理了當下的直接提問</td></tr>
+<tr><td><strong>使用 Context Engineering</strong></td><td>在回應之前，系統先做了：<br>① <strong>檢查你的行事曆</strong>找出空檔日期（即時資料擷取）<br>② <strong>回想過往旅行偏好</strong>（長期記憶）：偏好航空、預算、是否喜歡直飛<br>③ <strong>識別可用工具</strong>：航班搜尋、飯店預訂<br>→ 回應：「嗨 [你的名字]！我看到你十月第一週有空。要幫你用 [偏好航空] 搜直飛巴黎的航班嗎？預算照慣例抓 [預算金額]？」</td></tr>
+</table>
+<h2>常見的上下文失敗模式</h2>
+<h3>1. 上下文污染 (Context Poisoning)</h3>
+<div class="warn">
+<p><strong>是什麼：</strong>當幻覺（LLM 生成的虛假資訊）或錯誤進入上下文並被反覆引用，導致 Agent 追求不可能的目標或建立荒謬的策略。</p>
+<p><strong>解法：</strong>實作<strong>上下文驗證與隔離</strong>。在資訊加入長期記憶前先驗證。若偵測到潛在污染，啟動全新的上下文線程，防止錯誤資訊擴散。</p>
+<p><strong>旅遊訂票範例：</strong>Agent 憑空捏造了「從小機場直飛國際城市」的不存在航班，這個錯誤資訊被存入上下文。之後你再問訂票時，Agent 一直嘗試找出這條不可能路線的機票。解法：<strong>在將航班資訊加入工作上下文之前，先用即時 API 驗證航班是否存在</strong>——驗證失敗就隔離，不再使用。</p>
+</div>
+<h3>2. 上下文分心 (Context Distraction)</h3>
+<div class="warn">
+<p><strong>是什麼：</strong>當上下文變得過於龐大，模型過度專注累積的歷史記錄，而非使用訓練時學到的知識，導致重複或無用的行動。模型可能在上下文視窗還沒滿之前就開始犯錯。</p>
+<p><strong>解法：</strong>使用<strong>上下文摘要化</strong>。定期將累積的資訊壓縮成簡短摘要，保留重要細節，移除冗餘歷史，幫助「重置」注意力。</p>
+<p><strong>旅遊訂票範例：</strong>你長時間討論各種夢想旅行目的地，包括兩年前背包旅行的詳細回憶。當你終於說「幫我找下個月便宜機票」，Agent 被舊的無關細節絆住，一直追問你的背包裝備或舊行程。解法：<strong>超過一定回合或上下文過大時，Agent 應摘要最新最相關的對話部分</strong>——聚焦於當前旅行日期和目的地，丟棄不相關的歷史對話。</p>
+</div>
+<h3>3. 上下文混淆 (Context Confusion)</h3>
+<div class="warn">
+<p><strong>是什麼：</strong>當不必要的上下文（通常是太多可用工具）導致模型產生糟糕的回應或呼叫不相關的工具。較小的模型特別容易發生。</p>
+<p><strong>解法：</strong>實作<strong>工具載入管理（Tool Loadout Management）</strong>，使用 RAG 技術。將工具描述儲存在向量資料庫中，針對每個具體任務只選取<strong>最相關的工具</strong>。研究建議限制工具選擇少於 30 個。</p>
+<p><strong>旅遊訂票範例：</strong>你的 Agent 有數十個工具：book_flight, book_hotel, rent_car, find_tours, currency_converter, weather_forecast, restaurant_reservations...你問「在巴黎市內最好的交通方式是什麼？」由於工具太多，Agent 混淆了，試圖在巴黎市內呼叫 book_flight，或推薦 rent_car 即使你偏好公共交通。解法：<strong>對工具描述使用 RAG</strong>，動態只擷取最相關的工具（如 public_transport_info），呈現精簡的「工具選單」給 LLM。</p>
+</div>
+<h3>4. 上下文衝突 (Context Clash)</h3>
+<div class="warn">
+<p><strong>是什麼：</strong>當上下文內存在衝突的資訊，導致不一致的推理或糟糕的最終回應。常發生在資訊分階段到達時，早期的錯誤假設仍保留在上下文中。</p>
+<p><strong>解法：</strong>使用<strong>上下文修剪（Context Pruning）與卸載（Offloading）</strong>。修剪：當新細節到達時移除過時或衝突的資訊。卸載：給模型一個獨立的「便條紙」工作空間來處理資訊，不污染主上下文。</p>
+<p><strong>旅遊訂票範例：</strong>你最初告訴 Agent「我想搭經濟艙」。之後改變心意說「這次升級商務艙」。如果兩個指令都留在上下文中，Agent 可能收到衝突的搜尋結果，或困惑哪個偏好優先。解法：<strong>實作上下文修剪</strong>——當新指令與舊指令矛盾時，移除或明確覆蓋舊指令。或者 Agent 使用便條紙來調和衝突偏好再做決定。</p>
+</div>
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>Context Engineering ≠ Prompt Engineering</strong>：前者管理動態資訊流，後者設計靜態指令——兩者相輔相成</li>
+<li><strong>五種上下文類型</strong>：指令、知識、工具、對話歷史、使用者偏好——每種都需要不同的管理策略</li>
+<li><strong>六大管理策略</strong>：便條紙、記憶、壓縮、多 Agent、沙箱、狀態物件——根據場景選用</li>
+<li><strong>檢查勝於囤積</strong>：記錄 ID/計數/雜湊而非原始內容，確保可觀測性與隱私兼顧</li>
+<li><strong>四大失敗模式</strong>：污染（驗證隔離）、分心（摘要壓縮）、混淆（精簡工具）、衝突（修剪卸載）——各有明確解法</li>
+</ol>
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/12-context-engineering">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/F5zqRV7gEag">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 (69.7k ⭐)</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord</a></li>
+</ul>
+<nav class="lesson-nav">
+<a href="../ai-agents-11-protocols.html">← 第 11 課</a>
+<a href="../ai-agents-13-memory/">第 13 課 →</a>
+</nav>
+</main>
+</body>
+</html>
