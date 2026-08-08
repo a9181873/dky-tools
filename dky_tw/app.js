@@ -44,7 +44,7 @@ const metaList = {
   imgzip: { icon: '🖼️', title: '圖片批次壓縮', desc: '一次拖入多張圖片，自由選擇 WebP/JPEG/PNG/AVIF 輸出格式，即時預覽壓縮前後對比。所有運算本地完成，不上傳任何資料！' },
   videozip: { icon: '🎬', title: '影片壓縮', desc: '純瀏覽器端壓縮，GPU 硬體加速。提供 Discord/WhatsApp/郵件等常用輸出大小，自訂目標。100% 本機處理，無隱私風險！' },
   video2gif: { icon: '🎞️', title: '影片轉 GIF', desc: '擷取影片片段轉成 GIF 動圖。自訂幀率、畫質、起迄秒數，適合 Discord/Telegram 貼圖。純本機處理，零上傳。' },
-  stirlingpdf: { icon: '🧰', title: 'PDF 進階工具', desc: '開啟 Stirling PDF 自架服務，支援 OCR、壓縮、合併、分割、轉 Word 與批次處理。', href: 'https://pdf.dky.tw' }
+  stirlingpdf: { icon: '🧰', title: 'PDF 附件提取工具', desc: '在瀏覽器中安全地解密與提取 PDF 內嵌附件，檔案不會上傳至任何伺服器。', href: 'https://pdfdata.dky.tw' }
 };
 
 window.tzDatabase = [
@@ -336,26 +336,26 @@ const renderFields = {
   },
   fx: () => {
     return `
-      <div class="input-group" style="display:flex;gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:150px">
+      <div class="fx-controls">
+        <div class="fx-field fx-field--amount">
           <label>兌換數量</label>
           <input id="fx-amt" type="number" value="1000" placeholder="例如: 1000" />
         </div>
-        <div style="flex:1;min-width:100px">
-          <label>基準貨幣 (Base)</label>
+        <div class="fx-field">
+          <label>基準貨幣</label>
           <select id="fx-base" onchange="UI.handleFX()">${currencyOptionsHTML('USD')}</select>
         </div>
-        <div style="display:flex;align-items:end;">
-          <button class="btn" onclick="UI.handleFXSwap()" title="交換幣別" style="margin-right:0;">交換</button>
+        <div class="fx-swap-wrap">
+          <button class="btn fx-swap-btn" onclick="UI.handleFXSwap()" title="交換幣別">⇄</button>
         </div>
-        <div style="flex:1;min-width:100px">
-          <label>目標貨幣 (Target)</label>
+        <div class="fx-field">
+          <label>目標貨幣</label>
           <select id="fx-target" onchange="UI.handleFX()">${currencyOptionsHTML('TWD')}</select>
         </div>
       </div>
-      <div class="output" id="fx-output" style="margin-top:20px; text-align:center;">
-         <div style="color:var(--muted); font-size:0.9rem; margin-bottom:8px;">報價來自全球開源匯率 API (中價基準)</div>
-         <div id="fx-result" style="font-size:1.5rem; line-height: 1.8;">載入中...</div>
+      <div class="fx-result-panel" id="fx-output">
+         <div class="fx-api-note">報價來自全球開源匯率 API（中價基準）</div>
+         <div id="fx-result" class="fx-result-body">載入中...</div>
       </div>
     `;
   },
@@ -1271,11 +1271,28 @@ const UI = {
       const askVal = (amt * askRate).toFixed(3);
 
       resEl.innerHTML = `
-        <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; margin-top: 12px; display: inline-block; text-align: left;">
-          <div style="margin-bottom: 8px;"><strong>交易中價 (Mid)</strong> : 1 ${base} = ${rate.toFixed(4)} ${target} <br> 總額: <span style="font-size: 1.2rem; color: #aaa;">${midVal}</span></div>
-          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
-          <div style="color: #4CAF50; margin-bottom: 8px;">🛒 <strong>銀行賣出參考 (含加減碼)</strong> : 1 ${base} = ${askRate.toFixed(4)} ${target} <br> 找銀行買 ${base} 總成本估算: <span style="font-size: 1.2em; font-weight: bold;">${askVal}</span></div>
-          <div style="color: #FF5252;">💵 <strong>銀行買入參考 (含加減碼)</strong> : 1 ${base} = ${bidRate.toFixed(4)} ${target} <br> 賣 ${base} 給銀行總收益估算: <span style="font-size: 1.2em; font-weight: bold;">${bidVal}</span></div>
+        <div class="fx-card">
+          <div class="fx-card__header">
+            <span class="fx-card__pair">${base} → ${target}</span>
+            <span class="fx-card__rate">1 ${base} = <strong>${rate.toFixed(4)}</strong> ${target}</span>
+          </div>
+          <div class="fx-card__mid">
+            <span class="fx-card__label">交易中價 (Mid)</span>
+            <span class="fx-card__value">${Number(midVal).toLocaleString()}</span>
+            <span class="fx-card__currency">${target}</span>
+          </div>
+          <div class="fx-card__divider"></div>
+          <div class="fx-card__row fx-card__row--ask">
+            <div class="fx-card__row-header">🛒 銀行賣出參考</div>
+            <div class="fx-card__row-rate">1 ${base} = ${askRate.toFixed(4)} ${target}</div>
+            <div class="fx-card__row-total">買入成本 <strong>${Number(askVal).toLocaleString()}</strong> ${target}</div>
+          </div>
+          <div class="fx-card__row fx-card__row--bid">
+            <div class="fx-card__row-header">💵 銀行買入參考</div>
+            <div class="fx-card__row-rate">1 ${base} = ${bidRate.toFixed(4)} ${target}</div>
+            <div class="fx-card__row-total">賣出收益 <strong>${Number(bidVal).toLocaleString()}</strong> ${target}</div>
+          </div>
+          <div class="fx-card__footnote">※ 銀行買賣價模擬 ±0.5% 加減碼，僅供參考</div>
         </div>
       `;
     } catch (e) {
@@ -2139,7 +2156,7 @@ window.UI = UI;
 function renderRoute() {
   const path = location.pathname;
   if (path === '/pdf') {
-    location.replace('https://pdf.dky.tw');
+    location.replace('https://pdfdata.dky.tw');
     return;
   }
   let route = ROUTES[path];

@@ -597,3 +597,233 @@ footer {
   .pdf-thumb-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
   .pdf-tab { padding: 6px 10px; font-size: 0.82rem; }
 }
+
+/* ---------- FX (Exchange Rate) Tool ---------- */
+.fx-controls {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.fx-field {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fx-field--amount { min-width: 160px; }
+
+.fx-field label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fx-swap-wrap {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+.fx-swap-btn {
+  width: 44px;
+  height: 44px;
+  padding: 0 !important;
+  font-size: 1.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% !important;
+  background: rgba(0, 242, 255, 0.08) !important;
+  border: 1px solid rgba(0, 242, 255, 0.25) !important;
+  color: var(--accent) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fx-swap-btn:hover {
+  background: rgba(0, 242, 255, 0.18) !important;
+  border-color: var(--accent) !important;
+  transform: rotate(180deg);
+  box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+}
+
+.fx-result-panel {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+}
+
+.fx-api-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+.fx-result-body {
+  font-size: 1.1rem;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+/* FX Result Card */
+.fx-card {
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-card__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.fx-card__pair {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(0, 242, 255, 0.08);
+  padding: 4px 14px;
+  border-radius: 100px;
+  border: 1px solid rgba(0, 242, 255, 0.15);
+}
+
+.fx-card__rate {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.fx-card__rate strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.fx-card__mid {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 20px;
+  background: rgba(0, 242, 255, 0.04);
+  border: 1px solid rgba(0, 242, 255, 0.12);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.fx-card__label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.fx-card__value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-family: var(--font-sans);
+}
+
+.fx-card__currency {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.fx-card__divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  margin: 4px 0 16px;
+}
+
+.fx-card__row {
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.fx-card__row:hover {
+  transform: translateX(4px);
+}
+
+.fx-card__row--ask {
+  background: rgba(52, 211, 153, 0.04);
+  border-color: rgba(52, 211, 153, 0.1);
+}
+
+.fx-card__row--ask:hover {
+  background: rgba(52, 211, 153, 0.07);
+}
+
+.fx-card__row--bid {
+  background: rgba(251, 146, 60, 0.04);
+  border-color: rgba(251, 146, 60, 0.1);
+}
+
+.fx-card__row--bid:hover {
+  background: rgba(251, 146, 60, 0.07);
+}
+
+.fx-card__row-header {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.fx-card__row--ask .fx-card__row-header { color: #34d399; }
+.fx-card__row--bid .fx-card__row-header { color: #fb923c; }
+
+.fx-card__row-rate {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.fx-card__row-total {
+  font-size: 0.92rem;
+  color: var(--text-main);
+}
+
+.fx-card__row-total strong {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.fx-card__row--ask .fx-card__row-total strong { color: #34d399; }
+.fx-card__row--bid .fx-card__row-total strong { color: #fb923c; }
+
+.fx-card__footnote {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 600px) {
+  .fx-controls { flex-direction: column; gap: 10px; }
+  .fx-swap-wrap { align-self: center; }
+  .fx-swap-btn:hover { transform: rotate(90deg); }
+  .fx-card__header { flex-direction: column; gap: 6px; }
+  .fx-card__mid { flex-wrap: wrap; padding: 16px; }
+  .fx-card__value { font-size: 1.6rem; }
+}
