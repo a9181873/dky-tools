@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 的記憶管理：短期記憶、長期記憶與自我改進 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 13 課繁體中文版：AI Agent 記憶類型、Mem0/Cognee 實作、結構化 RAG 與自我改進機制">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 13 課 / 共 18 課</p>
+<h1>AI Agent 的記憶管理：短期記憶、長期記憶與自我改進</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-12-context/">← 第 12 課</a>
+<a href="../ai-agents-14-maf/">第 14 課 →</a>
+</nav>
+
+<h2>為什麼 AI Agent 需要記憶？</h2>
+<div class="verdict">
+一句話：<strong>沒有記憶的 Agent 每次對話都是從零開始；有了記憶，Agent 才能真正從互動中學習、個人化、並長期變得更好。</strong>
+</div>
+
+<p>在討論 AI Agent 的獨特優勢時，兩個核心能力最常被提及：透過工具完成任務的能力，以及<strong>隨時間自我改進的能力</strong>。而記憶（Memory）正是打造這類自我改進 Agent 的基礎。</p>
+
+<h2>什麼是 AI Agent 的記憶？</h2>
+<p>記憶是讓 Agent <strong>保留並回憶資訊</strong>的機制。這些資訊可以是對話細節、使用者偏好、過往行動記錄，甚至是學到的行為模式。</p>
+
+<p>沒有記憶的 AI 應用通常是無狀態（stateless）的——每次互動都從零開始，導致使用者不斷重複說明，體驗極差。Agent 的智慧與其回憶和利用過往資訊的能力密不可分。記憶讓 Agent 做到：</p>
+
+<table>
+<tr><th>能力</th><th>說明</th></tr>
+<tr><td><strong>反思性 (Reflective)</strong></td><td>從過往行動與結果中學習</td></tr>
+<tr><td><strong>互動性 (Interactive)</strong></td><td>在對話中維持上下文</td></tr>
+<tr><td><strong>主動/被動 (Proactive/Reactive)</strong></td><td>根據歷史資料預測需求或適切回應</td></tr>
+<tr><td><strong>自主性 (Autonomous)</strong></td><td>利用儲存知識更獨立地運作</td></tr>
+</table>
+
+<h2>記憶的七種類型</h2>
+
+<h3>1. 工作記憶 (Working Memory)</h3>
+<p>想像成 Agent 在執行單一任務時的「便條紙」。它只保留計算下一步所需的即時資訊。對 AI Agent 而言，工作記憶會從對話中提取最關鍵的元素——需求、提案、決策和行動項目。</p>
+<div class="card">
+<p><strong>範例：</strong>旅遊訂票 Agent 中，工作記憶保存使用者目前的需求，例如「我要訂去巴黎的機票」，作為當前互動的指引。</p>
+</div>
+
+<h3>2. 短期記憶 (Short Term Memory)</h3>
+<p>在單次對話或會話期間保留資訊，讓 Agent 能回溯對話前面的回合。在 <a href="https://github.com/microsoft/agent-framework">Microsoft Agent Framework</a> 中，這對應到 <code>AgentSession</code>——框架內建的短期記憶。同一 session 內上下文有效，但 session 結束或重啟後不會保留。</p>
+<div class="card">
+<p><strong>範例：</strong>使用者問「去巴黎的機票多少錢？」接著問「那住宿呢？」——短期記憶讓 Agent 知道「那」指的是「巴黎」。</p>
+</div>
+
+<h3>3. 長期記憶 (Long Term Memory)</h3>
+<p>跨越多個對話或會話持續存在的資訊。讓 Agent 記住使用者偏好、歷史互動，實現真正的個人化。通常透過資料庫、向量索引或其他持久化儲存實現。</p>
+<div class="card">
+<p><strong>範例：</strong>長期記憶可能儲存「Ben 喜歡滑雪和戶外活動、喜歡山景咖啡、因過去受傷要避開高級雪道」。這些資訊在未來規劃旅行時會自動影響推薦。</p>
+</div>
+
+<h3>4. 人格記憶 (Persona Memory)</h3>
+<p>幫助 Agent 建立一致的「人格」或「角色」，記住自己的定位和風格，讓互動更流暢、更聚焦。</p>
+<div class="card">
+<p><strong>範例：</strong>若旅遊 Agent 設計為「專業滑雪規劃師」，人格記憶會強化這個角色，讓回應語氣符合專家定位。</p>
+</div>
+
+<h3>5. 工作流程／情節記憶 (Episodic Memory)</h3>
+<p>儲存 Agent 在複雜任務中執行的步驟序列，包括成功與失敗。就像記住特定的「情節」或過往經驗來學習。</p>
+<div class="card">
+<p><strong>範例：</strong>若 Agent 嘗試訂某航班但因滿位失敗，情節記憶記錄這次失敗，下次會自動嘗試替代航班或更有條理地告知使用者。</p>
+</div>
+
+<h3>6. 實體記憶 (Entity Memory)</h3>
+<p>從對話中提取並記住特定實體（人物、地點、事物）和事件，建立對關鍵元素的結構化理解。</p>
+<div class="card">
+<p><strong>範例：</strong>從過往對話中提取「巴黎」、「艾菲爾鐵塔」、「Le Chat Noir 餐廳」。未來互動中 Agent 可主動提議「要再訂 Le Chat Noir 嗎？」</p>
+</div>
+
+<h3>7. 結構化 RAG (Structured RAG)</h3>
+<p>從多種來源（對話、郵件、圖片）提取密集且結構化的資訊，在精確度、召回率和速度上超越傳統 RAG。不像經典 RAG 只依賴語義相似度，結構化 RAG 利用資訊的內在結構。</p>
+<div class="card">
+<p><strong>範例：</strong>不只做關鍵字比對，而是從郵件中解析航班細節（目的地、日期、時間、航空公司）並結構化儲存，支援「我週二訂了哪班去巴黎的飛機？」這類精確查詢。</p>
+</div>
+
+<h2>記憶的實作與管理</h2>
+<p>為 AI Agent 實作記憶涉及系統化的<strong>記憶管理流程</strong>：生成、儲存、檢索、整合、更新，甚至是「遺忘」（刪除）資訊。其中檢索是最關鍵的環節。</p>
+
+<h3>Mem0：持久化記憶層</h3>
+<p><a href="https://mem0.ai/">Mem0</a> 是一個專門的持久化記憶工具，讓無狀態 Agent 變為有狀態。它透過<strong>兩階段記憶管線</strong>運作：</p>
+<ol>
+<li><strong>提取階段：</strong>訊息傳送至 Mem0 服務，由 LLM 摘要對話歷史並提取新記憶</li>
+<li><strong>更新階段：</strong>LLM 驅動判斷該新增、修改或刪除哪些記憶，儲存在混合資料儲存（向量 + 圖譜 + 鍵值資料庫）</li>
+</ol>
+<p>Mem0 支援多種記憶類型，並可整合圖譜記憶來管理實體間的關係。</p>
+<p>本課提供完整 Notebook：<a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/13-agent-memory/13-agent-memory.ipynb">13-agent-memory.ipynb</a></p>
+
+<h3>Cognee：語義記憶 + 知識圖譜</h3>
+<p><a href="https://www.cognee.ai/">Cognee</a> 是開源語義記憶工具，將結構化與非結構化資料轉換為可查詢的知識圖譜（搭配 embeddings）。其<strong>雙儲存架構</strong>結合向量相似度搜尋與圖譜關係：</p>
+<ul>
+<li><strong>混合檢索：</strong>融合向量相似度、圖譜結構與 LLM 推理——從原始區塊查詢到圖譜感知問答</li>
+<li><strong>活記憶 (Living Memory)：</strong>記憶持續演化成長，同時保持為一個可查詢的連通圖譜</li>
+<li><strong>雙模式：</strong>支援短期 session 上下文與長期持久化記憶</li>
+</ul>
+<p>本課提供完整 Notebook：<a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/13-agent-memory/13-agent-memory-cognee.ipynb">13-agent-memory-cognee.ipynb</a></p>
+
+<h3>Azure AI Search 作為記憶後端</h3>
+<p>除專用記憶工具外，也可用 <strong>Azure AI Search</strong> 作為記憶儲存和檢索後端，特別適合結構化 RAG。它能：</p>
+<ul>
+<li>用自有資料為 Agent 回應提供 grounding，確保更相關、更準確的答案</li>
+<li>儲存使用者特定的旅行記憶、產品目錄或任何領域知識</li>
+<li>支援結構化 RAG，從大量對話歷史、郵件甚至圖片中提取密集結構化資訊</li>
+</ul>
+
+<h2>讓 AI Agent 自我改進</h2>
+<p>自我改進 Agent 的常見模式是引入一個<strong>「知識 Agent」</strong>。這個獨立 Agent 觀察使用者與主要 Agent 之間的對話，負責：</p>
+
+<ol>
+<li><strong>識別有價值資訊：</strong>判斷對話中哪些部分值得儲存為通用知識或使用者偏好</li>
+<li><strong>提取與摘要：</strong>將對話中的關鍵學習濃縮</li>
+<li><strong>存入知識庫：</strong>將提取的資訊持久化（常使用向量資料庫）</li>
+<li><strong>增強未來查詢：</strong>新查詢時，知識 Agent 檢索相關儲存資訊並附加到使用者 prompt，為主要 Agent 提供關鍵上下文（類似 RAG）</li>
+</ol>
+
+<h3>記憶優化策略</h3>
+<table>
+<tr><th>策略</th><th>做法</th></tr>
+<tr><td><strong>延遲管理 (Latency)</strong></td><td>先用便宜、快速的模型快速判斷資訊是否值得儲存或檢索，只在必要時才觸發複雜的提取/檢索流程，避免拖慢使用者互動</td></tr>
+<tr><td><strong>知識庫維護</strong></td><td>對持續成長的知識庫，將不常用資訊移至「冷儲存」以控制成本</td></tr>
+</table>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>記憶是 Agent 自我改進的基礎</strong>——沒有記憶的 Agent 只是無狀態的問答機，有了記憶才能真正學習和個人化</li>
+<li><strong>七種記憶類型</strong>涵蓋從即時工作記憶到跨會話長期記憶，每種都有特定用途</li>
+<li><strong>工作記憶</strong>是當前任務的便條紙；<strong>短期記憶</strong>維持單次對話上下文；<strong>長期記憶</strong>跨越多次會話實現個人化</li>
+<li><strong>Mem0</strong> 提供兩階段記憶管線（提取+更新），<strong>Cognee</strong> 用知識圖譜實現混合檢索，<strong>Azure AI Search</strong> 是結構化 RAG 的強大後端</li>
+<li><strong>知識 Agent 模式</strong>：獨立觀察對話、提取有價值資訊、儲存並在未來查詢中增強上下文</li>
+<li><strong>記憶系統需要成本管理</strong>：快模型做初篩，慢模型做深層處理；冷儲存管理長期成本</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/13-agent-memory">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/QrYbHesIxpw">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/13-agent-memory/13-agent-memory.ipynb">Mem0 實作 Notebook</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/13-agent-memory/13-agent-memory-cognee.ipynb">Cognee 實作 Notebook</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-12-context/">← 第 12 課</a>
+<a href="../ai-agents-14-maf/">第 14 課 →</a>
+</nav>
+</main>
+</body>
+</html>
