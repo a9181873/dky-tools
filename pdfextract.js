@@ -55,7 +55,8 @@ export const loadJSZip = () => {
  */
 export const extractAttachments = async (arrayBuffer, password = null) => {
   const pdfjs = await loadPdfJs();
-  const data = new Uint8Array(arrayBuffer);
+  // PDF.js 會把 buffer transfer 給 worker；傳副本才能在密碼提示後重試。
+  const data = new Uint8Array(arrayBuffer.slice(0));
   const config = { data };
   if (password) config.password = password;
 
