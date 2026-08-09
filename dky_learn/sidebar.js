@@ -57,7 +57,8 @@
 
       <div class="section-title" style="margin-top:1.2rem">📖 第 10 章：深度學習（Deep Learning）</div>
       <a href="/statistics/10.1_single_layer_neural_networks.html" class="nav-item done">10.1 單層神經網路</a>
-      <span class="nav-item pending">10.2 多層神經網路</span>
+      <a href="/statistics/10.2_multilayer_neural_networks.html" class="nav-item done">10.2 多層神經網路</a>
+      <span class="nav-item pending">10.3 卷積神經網路</span>
 
       <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
 
