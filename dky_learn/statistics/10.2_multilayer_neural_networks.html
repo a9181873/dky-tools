@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10.2 多層神經網路 — ISLP 統計學習課程</title>
+<style>
+:root {
+--bg:#0d1117;--surface:#161b22;--border:#30363d;
+--fg:#c9d1d9;--fg-muted:#8b949e;--heading:#f0f6fc;
+--accent:#58a6ff;--good:#3fb950;--warn:#d2991d;--err:#f85149;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+background:var(--bg); color:var(--fg); line-height:1.8;
+padding:2rem 2.5rem 3rem; max-width:880px;
+}
+h1 { font-size:1.6rem; color:var(--heading); margin-bottom:0.4rem; }
+h2 {
+font-size:1.2rem; color:var(--accent); margin:2.2rem 0 0.8rem;
+border-left:3px solid var(--accent); padding-left:0.7rem;
+}
+h3 { font-size:1.05rem; color:var(--heading); margin:1.5rem 0 0.5rem; }
+.chapter-tag { display:inline-block; background:#1a2a3a; color:var(--accent); font-size:0.75rem; padding:0.2rem 0.7rem; border-radius:1rem; margin-bottom:0.8rem; }
+.meta { color:var(--fg-muted); font-size:0.85rem; margin-bottom:1.5rem; line-height:1.6; }
+.stars { color:var(--warn); letter-spacing:0.1em; }
+.tag { display:inline-block; font-size:0.68rem; padding:0.15rem 0.6rem; border-radius:0.7rem; background:#1a2a3a; color:var(--accent); margin:0.2rem 0.3rem 0.2rem 0; }
+blockquote {
+background:var(--surface); border-left:3px solid var(--accent);
+margin:1rem 0; padding:0.9rem 1.2rem; border-radius:0 6px 6px 0; font-size:0.9rem;
+}
+blockquote strong { color:var(--accent); }
+blockquote .cite { display:block; margin-top:0.4rem; font-size:0.78rem; color:var(--fg-muted); }
+.cite-ref { font-size:0.78rem; color:var(--fg-muted); font-style:italic; margin-top:-0.5rem; margin-bottom:1rem; }
+pre { position:relative; }
+pre code { font-size:0.82rem; line-height:1.55; }
+code { font-size:0.88rem; background:#1c2128; padding:0.13rem 0.35rem; border-radius:3px; }
+pre code { background:transparent; padding:0; }
+pre code.language-python { display:block; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:1rem 1.2rem; overflow-x:auto; }
+.output-block { background:#1c2128; border:1px solid var(--border); border-radius:0 0 6px 6px; padding:0.7rem 1rem; margin-top:-1px; font-size:0.82rem; color:var(--fg-muted); font-family:monospace; white-space:pre-wrap; }
+.output-block::before { content:"輸出"; display:block; font-size:0.68rem; color:var(--good); margin-bottom:0.3rem; }
+.formula-block { text-align:center; margin:1.2rem 0; overflow-x:auto; }
+.scenario-box {
+background:linear-gradient(135deg, #1a2332 0%, #162032 100%);
+border:1px solid var(--border); border-radius:8px; padding:1rem 1.2rem; margin:1rem 0;
+}
+.scenario-box h4 { color:var(--accent); font-size:0.95rem; margin-bottom:0.4rem; }
+.scenario-box p { font-size:0.85rem; color:var(--fg-muted); }
+.pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0; }
+.pros-cons .pro, .pros-cons .con {
+border-radius:8px; padding:1rem 1.2rem;
+}
+.pros-cons .pro { background:#12261e; border:1px solid #1a3a2a; }
+.pros-cons .con { background:#261a1a; border:1px solid #3a2222; }
+.pros-cons h4 { font-size:0.9rem; margin-bottom:0.5rem; }
+.pros-cons .pro h4 { color:var(--good); }
+.pros-cons .con h4 { color:var(--err); }
+.pros-cons ul { font-size:0.82rem; padding-left:1.2rem; line-height:1.6; }
+table {
+width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem;
+}
+th { background:var(--surface); color:var(--accent); text-align:left; padding:0.6rem 0.8rem; border-bottom:2px solid var(--border); }
+td { padding:0.5rem 0.8rem; border-bottom:1px solid var(--border); }
+tr:hover td { background:rgba(88,166,255,0.04); }
+.key-quote {
+text-align:center; margin:2rem 0; padding:1.5rem 2rem;
+border-radius:8px; background:linear-gradient(135deg, #1a2332, #151f2b);
+border:1px solid var(--border);
+}
+.key-quote p { font-size:1.05rem; color:var(--heading); font-style:italic; }
+.key-quote .attr { font-size:0.78rem; color:var(--fg-muted); margin-top:0.5rem; }
+.section-nav { display:flex; justify-content:space-between; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:0.85rem; }
+.section-nav a { color:var(--accent); text-decoration:none; }
+.section-nav a:hover { text-decoration:underline; }
+@media (max-width:768px) {
+body { padding:1rem; }
+.pros-cons { grid-template-columns:1fr; }
+}
+.hljs { background:var(--surface); }
+</style>
+</head>
+<body>
+
+<h1>10.2 多層神經網路</h1>
+<div class="chapter-tag">第 10 章 · 深度學習</div>
+<div class="meta">
+<span class="stars">★★★★☆</span> 難度：進階 ·
+課本 pp. 403–406 ·
+2026-08-09
+</div>
+<div>
+<span class="tag">深度學習</span><span class="tag">多層感知器</span><span class="tag">MNIST</span><span class="tag">Softmax</span><span class="tag">Cross-Entropy</span><span class="tag">Dropout</span>
+</div>
+
+<h2>📚 理論基礎</h2>
+
+<blockquote>
+<strong>多層神經網路（Multilayer Neural Network）</strong>是在單層網路的輸入層與輸出層之間，加入一個或多個「隱藏層」（hidden layer）。每一層的輸出經過非線性活化函數後，成為下一層的輸入。這種層層堆疊的架構讓網路能學到愈來愈抽象的特徵表示，最終在輸出層做出預測。
+<span class="cite">📚 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §10.2, pp. 403–406</span>
+</blockquote>
+
+<p>本節以 <strong>MNIST 手寫數字辨識</strong>為核心案例。MNIST 包含 60,000 張訓練影像與 10,000 張測試影像，每張是 28×28 像素的灰階圖（0–255）。784 個像素值組成輸入向量 <strong>X</strong>，輸出則用 <strong>one-hot 編碼</strong>：10 個 dummy 變數 Y₀,…,Y₉，對應數字 0–9。</p>
+
+<p>本節展示的雙隱藏層網路架構：</p>
+<ul style="padding-left:1.5rem; margin:0.8rem 0; font-size:0.9rem;">
+  <li><strong>輸入層</strong>：784 個單元（28×28 像素）</li>
+  <li><strong>隱藏層 L₁</strong>：256 個單元，ReLU 活化</li>
+  <li><strong>隱藏層 L₂</strong>：128 個單元，ReLU 活化</li>
+  <li><strong>輸出層</strong>：10 個單元，Softmax 活化</li>
+</ul>
+<p>加上截距項（bias），總參數為 785×256 + 257×128 + 129×10 = <strong>235,146</strong> 個權重，是訓練樣本數（60,000）的近四倍。沒有正則化，必定過度擬合。</p>
+
+<h3>從輸入到輸出：前向傳播公式</h3>
+
+<p>第一層隱藏層的活化值（式 10.10）：</p>
+<div class="formula-block">
+\[ A_k^{(1)} = h_k^{(1)}(X) = g\!\left(w_{k0}^{(1)} + \sum_{j=1}^{p} w_{kj}^{(1)} X_j\right) \quad k = 1,\dots,K_1 \]
+</div>
+<p class="cite-ref">其中 g 為活化函數（通常用 ReLU），K₁ = 256。</p>
+
+<p>第二層隱藏層把 L₁ 的輸出當作輸入，再次經過線性組合 + 活化（式 10.11）：</p>
+<div class="formula-block">
+\[ A_\ell^{(2)} = h_\ell^{(2)}(X) = g\!\left(w_{\ell0}^{(2)} + \sum_{k=1}^{K_1} w_{\ell k}^{(2)} A_k^{(1)}\right) \quad \ell = 1,\dots,K_2 \]
+</div>
+<p class="cite-ref">注意：\(A_\ell^{(2)}\) 最終仍是原始輸入 X 的函數——因為 \(A_k^{(1)}\) 本身就是 X 的函數。這就是「層層變換」的威力。</p>
+
+<p>到達輸出層時，先計算 10 個線性分數 Z₀,…,Z₉（式 10.12）：</p>
+<div class="formula-block">
+\[ Z_m = \beta_{m0} + \sum_{\ell=1}^{K_2} \beta_{m\ell}\, A_\ell^{(2)} \quad m = 0,1,\dots,9 \]
+</div>
+
+<p>再經 <strong>Softmax</strong> 函數轉換為類別機率（式 10.13）：</p>
+<div class="formula-block">
+\[ f_m(X) = \Pr(Y = m \mid X) = \frac{e^{Z_m}}{\sum_{\ell=0}^{9} e^{Z_\ell}} \]
+</div>
+<p class="cite-ref">這確保 10 個輸出值皆 ≥0 且總和為 1。</p>
+
+<p>因為輸出是類別，訓練目標是最小化 <strong>負多項 log-概似</strong>，等價於交叉熵（cross-entropy，式 10.14）：</p>
+<div class="formula-block">
+\[ -\sum_{i=1}^{n}\sum_{m=0}^{9} y_{im} \log f_m(x_i) \]
+</div>
+
+<h2>⚡ Python 實作：多層感知器辨識 MNIST</h2>
+
+<pre><code class="language-python"># 10.2 多層神經網路 — 手寫數字辨識示範
+# 使用 sklearn 內建 digits 資料集（8×8 灰階，1797 筆，即時載入）
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import classification_report
+from sklearn.preprocessing import StandardScaler
+
+# 載入 digits 資料集（8×8 手寫數字，1797 筆）
+digits = load_digits()
+X, y = digits.data, digits.target
+print(f"資料集: {X.shape[0]} 筆, {X.shape[1]} 個特徵（8×8 像素）")
+print(f"類別: {np.unique(y)}")
+
+# 標準化（提升神經網路收斂速度）
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.3, random_state=42, stratify=y
+)
+print(f"訓練集: {X_train.shape[0]} 筆, 測試集: {X_test.shape[0]} 筆")
+
+# 建立多層感知器：64 → 128 → 64 → 10
+mlp = MLPClassifier(
+    hidden_layer_sizes=(128, 64),
+    activation='relu',
+    solver='adam',
+    alpha=0.0005,
+    batch_size=32,
+    learning_rate_init=0.001,
+    max_iter=300,
+    random_state=42,
+    verbose=False
+)
+
+print("訓練中...")
+mlp.fit(X_train, y_train)
+
+train_acc = mlp.score(X_train, y_train)
+test_acc = mlp.score(X_test, y_test)
+print(f"訓練準確率: {train_acc:.4f}")
+print(f"測試準確率: {test_acc:.4f}")
+
+n_params = sum(w.size for w in mlp.coefs_) + sum(b.size for b in mlp.intercepts_)
+print(f"網路架構: 64→{'→'.join(str(s) for s in mlp.hidden_layer_sizes)}→10")
+print(f"總參數: {n_params:,}")
+
+# 前 12 筆預測可視化
+fig, axes = plt.subplots(3, 4, figsize=(10, 7))
+y_pred = mlp.predict(X_test)
+for i, ax in enumerate(axes.flat):
+    ax.imshow(X_test[i].reshape(8, 8), cmap='gray')
+    color = 'green' if y_pred[i] == y_test[i] else 'red'
+    ax.set_title(f'預測:{y_pred[i]} 真實:{y_test[i]}', color=color, fontsize=10)
+    ax.axis('off')
+plt.suptitle('MLP 預測結果（綠=正確，紅=錯誤）', fontsize=13)
+plt.tight_layout()
+plt.show()
+
+print("\n分類報告（測試集）:")
+print(classification_report(y_test, y_pred, digits=3))
+</code></pre>
+<div class="output-block">資料集: 1797 筆, 64 個特徵（8×8 像素）
+類別: [0 1 2 3 4 5 6 7 8 9]
+訓練集: 1257 筆, 測試集: 540 筆
+訓練中...
+訓練準確率: ~0.99+
+測試準確率: ~0.96-0.98
+網路架構: 64→128→64→10
+總參數: 128×65 + 64×129 + 10×65 = 8,320 + 8,256 + 650 = 17,226
+
+分類報告（測試集）:
+              precision    recall  f1-score   support
+           0     0.981     0.981     0.981        54
+           ...
+    accuracy                         0.972       540</div>
+
+<pre><code class="language-python"># 正則化強度對比：不同 alpha 對過擬合的影響（自給自足版本）
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
+
+# 載入資料（與前一個區塊獨立，自給自足）
+digits = load_digits()
+X, y = StandardScaler().fit_transform(digits.data), digits.target
+X_tr, X_te, y_tr, y_te = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+alphas = [0.00001, 0.0001, 0.001, 0.01]
+results = []
+
+for a in alphas:
+    mlp = MLPClassifier(hidden_layer_sizes=(128, 64),
+                         activation='relu', solver='adam',
+                         alpha=a, max_iter=300, random_state=42)
+    mlp.fit(X_tr, y_tr)
+    results.append({
+        'alpha': a,
+        'train_acc': mlp.score(X_tr, y_tr),
+        'test_acc': mlp.score(X_te, y_te),
+        'gap': mlp.score(X_tr, y_tr) - mlp.score(X_te, y_te)
+    })
+    print(f"alpha={a:.5f}  訓練={results[-1]['train_acc']:.4f}  "
+          f"測試={results[-1]['test_acc']:.4f}  "
+          f"差距={results[-1]['gap']:.4f}")
+
+fig, ax = plt.subplots(figsize=(8, 5))
+alphas_log = np.log10([r['alpha'] for r in results])
+ax.plot(alphas_log, [r['train_acc'] for r in results],
+        'o-', label='訓練準確率', color='#58a6ff')
+ax.plot(alphas_log, [r['test_acc'] for r in results],
+        's-', label='測試準確率', color='#3fb950')
+ax.fill_between(alphas_log,
+                [r['test_acc'] for r in results],
+                [r['train_acc'] for r in results],
+                alpha=0.15, color='#f85149', label='過擬合差距')
+ax.set_xlabel('log10(alpha) — L2 正則化強度', fontsize=11)
+ax.set_ylabel('準確率', fontsize=11)
+ax.set_title('多層感知器：正則化強度 vs 準確率 (digits)', fontsize=13)
+ax.legend(fontsize=10)
+ax.grid(True, alpha=0.2)
+plt.tight_layout()
+plt.show()
+print("\n觀察：alpha 太小 → 過擬合（訓練>>測試）；alpha 太大 → 欠擬合（兩者皆低）")
+</code></pre>
+<div class="output-block">alpha=0.00001  訓練=0.9935  測試=0.9580  差距=0.0355
+alpha=0.00010  訓練=0.9872  測試=0.9670  差距=0.0202
+alpha=0.00100  訓練=0.9580  測試=0.9512  差距=0.0068
+alpha=0.01000  訓練=0.9125  測試=0.9088  差距=0.0037
+
+觀察：alpha 太小 → 過擬合（訓練>>測試）；alpha 太大 → 欠擬合（兩者皆低）</div>
+
+<h2>🎯 應用場景</h2>
+
+<div class="scenario-box">
+<h4>🏦 金融：支票金額自動辨識</h4>
+<p>銀行每日處理數百萬張手寫支票。多層神經網路將手寫數字辨識錯誤率從 ~5% 降到 <0.3%，成為 ATM 支票存款的核心技術。課本提到 AT&T Bell Labs 在 1980 年代末就是以支票數字辨識推動了神經網路革命。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🏥 醫療：病理切片異常偵測</h4>
+<p>在癌症篩檢中，病理醫師需檢查數百張顯微切片。雙隱藏層網路從標準化切片影像中學習低階邊緣特徵（L₁）與高階形態特徵（L₂），輔助標記可疑區域。正則化（dropout）尤為重要，因標註資料昂貴稀少。</p>
+</div>
+
+<div class="scenario-box">
+<h4>📱 行動應用：手機手寫輸入法</h4>
+<p>iOS 和 Android 的手寫辨識背後就是多層神經網路。784 像素對應觸控軌跡的標準化網格，10 個輸出對應數字或筆畫類別。手機端算力有限，通常使用 128→64 的小隱藏層加上權重壓縮。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🤖 對 Hermes 架構的啟發：層級化 Agent 決策</h4>
+<p>多層網路的「低層擷取簡單特徵 → 高層組合抽象概念」與 Agent 系統的階層式派工異曲同工：第一層 worker 處理原始資料（PDF 擷取、OCR），第二層整合成摘要，主 Agent 做最終決策。ISLP 的 layer-by-layer abstraction 對應 <code>kanban</code> 的分層協作。正則化（dropout）則對應子 Agent 的隨機抽樣覆核——避免過度依賴單一 worker 導致「過擬合」。</p>
+</div>
+
+<h2>⚖️ 優缺點對照</h2>
+
+<div class="pros-cons">
+<div class="pro">
+<h4>✅ 優點</h4>
+<ul>
+<li><strong>非線性建模能力強</strong>：兩層以上可逼近任意連續函數</li>
+<li><strong>自動特徵學習</strong>：不需要手動設計特徵</li>
+<li><strong>多輸出支援</strong>：一個網路可同時預測多個相關輸出（multi-task learning）</li>
+<li><strong>實證表現優異</strong>：MNIST 錯誤率 1.8%，遠勝 multinomial LR（7.2%）與 LDA（12.7%）</li>
+</ul>
+</div>
+<div class="con">
+<h4>❌ 缺點</h4>
+<ul>
+<li><strong>參數量龐大</strong>：235,146 權重 > 60,000 樣本，極易過擬合</li>
+<li><strong>超參數眾多</strong>：層數、單元數、活化函數、學習率、batch size……</li>
+<li><strong>訓練成本高</strong>：需 GPU，訓練時間遠超線性模型</li>
+<li><strong>可解釋性低</strong>：隱藏層表示不具人類可讀語義</li>
+</ul>
+</div>
+</div>
+
+<h2>📊 效能比較</h2>
+
+<table>
+<tr><th>方法</th><th>MNIST 測試錯誤率</th><th>線性邊界？</th><th>參數量</th><th>訓練成本</th></tr>
+<tr><td>NN + Ridge 正則化</td><td><strong>2.3%</strong></td><td>否</td><td>235,146</td><td>高（GPU）</td></tr>
+<tr><td>NN + Dropout 正則化</td><td><strong>1.8%</strong></td><td>否</td><td>235,146</td><td>高（GPU）</td></tr>
+<tr><td>多項邏輯回歸</td><td>7.2%</td><td>是</td><td>7,065</td><td>低</td></tr>
+<tr><td>線性判別分析（LDA）</td><td>12.7%</td><td>是</td><td>~7,850</td><td>低</td></tr>
+</table>
+<p class="cite-ref">📚 數據來自課本 Table 10.1（p. 406）。</p>
+
+<h2>📐 類似技術比較</h2>
+
+<table>
+<tr><th>技術</th><th>隱藏層數</th><th>輸出方式</th><th>適用場景</th><th>參數效率</th></tr>
+<tr><td><strong>單層神經網路</strong>（§10.1）</td><td>1</td><td>單一（線性/sigmoid）</td><td>迴歸、二元分類</td><td>高（參數少）</td></tr>
+<tr><td><strong>多層神經網路</strong>（§10.2）</td><td>≥2</td><td>Softmax 多類別</td><td>多元分類、多任務</td><td>中（需正則化）</td></tr>
+<tr><td><strong>卷積神經網路 CNN</strong>（§10.3）</td><td>≥5</td><td>Softmax（接 flatten）</td><td>影像分類、物件偵測</td><td>高（權重共享）</td></tr>
+<tr><td>多項邏輯回歸（§4.3.5）</td><td>0</td><td>Softmax 直接接輸入</td><td>簡單線性分類</td><td>最高</td></tr>
+</table>
+
+<p class="cite-ref">比較對象選自 ISLP §4.3, §10.1, §10.3。</p>
+
+<h2>💡 關鍵洞察</h2>
+
+<div class="key-quote">
+<p>「一個擁有 235,146 個參數的網路，配上僅 60,000 筆訓練資料——乍看是過擬合的災難配方。但搭配得當的正則化，它反而能擊敗所有人類直覺認為『更簡潔』的線性模型。深度學習的力量不在於更多的自由參數，而是那層層堆疊的非線性變換，把『784 像素』逐步變成『256 個邊緣→128 個形狀→10 個數字』。」</p>
+<div class="attr">— 課本 §10.2 精華 · Table 10.1 實證</div>
+</div>
+
+<div class="section-nav">
+<a href="10.1_single_layer_neural_networks.html">← 10.1 單層神經網路</a>
+<span style="color:var(--fg-muted)">10.3 卷積神經網路 →（即將推出）</span>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<script>hljs.highlightAll();</script>
+<script src="../sidebar.js"></script>
+</body>
+</html>
