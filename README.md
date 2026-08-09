@@ -1,114 +1,111 @@
-# 🛠️ DKY.tw 開發者工具箱 (Developer Toolbox)
+# DKY Tools
 
-這是一款專為前端開發者與設計師打造的**純客戶端**、**高效能**且**極簡優雅 (深川製磁風格)** 的線上工具集合。
+DKY Tools 是一個多站點工具與學習內容儲存庫。各站點以獨立目錄部署；公開網站不使用儲存庫根目錄作為建置輸出。
 
-所有運算皆於使用者的瀏覽器端 (Client-side) 完成，不儲存任何資料，無隱私疑慮，且支援 Offline 離線存取能力 (Service Worker PWA)。
+## 公開網站
 
-## ✨ 核心特色功能 (Features)
+| 網站 | 原始碼目錄 | 目前功能 |
+| --- | --- | --- |
+| [tools.dky.tw](https://tools.dky.tw) | `dky_tw/` | 開發、文字、設計、媒體與換算工具 |
+| [use.dky.tw](https://use.dky.tw) | `dky_use/` | IDEA Box 提案產生器、美股投資組合追蹤 |
+| [learn.dky.tw](https://learn.dky.tw) | `dky_learn/` | 統計學習、AI Agent 與技術研究文章 |
+| [pdfdata.dky.tw](https://pdfdata.dky.tw) | `pdfdata/` | 加密 PDF 解密與內嵌附件提取 |
 
-*   **🔑 JWT 解碼 (JWT Parser)**
-    在本地端瞬間解析 JSON Web Token (JWT)，確保包含機密資訊的 Token 絕不會上傳到第三方伺服器。
-*   **🛡️ 強密碼產生器 (Password Generator)**
-    調用瀏覽器原生的硬體級亂數 `window.crypto.getRandomValues()`，即時生成 8~128 字元的超強高安全性密碼。
-*   **🔗 網址編解碼 (URL Encode / Decode)**
-    解決惱人的 `%E6` 等亂碼網址，快速進行 `encodeURIComponent` 與反向解碼驗證。
-*   **📝 進階文字處理 (Text Utilities)**
-    包含中英文字數統計 (含空白/去空白)、一鍵全大寫/全小寫轉換，以及去除頭尾空白的快速排版小幫手。
-*   **🌍 跨國時區即時轉換 (Timezone Converter)**
-    利用 `Intl.DateTimeFormat` 精準計算日本東京、美國紐約、英國倫敦、台灣台北及世界協調時間 (UTC) 等當地時間。
-*   **🎨 顏色代碼互轉 (Color Converter)**
-    HEX、RGB、HSL 以及印刷用 CMYK 的即時數學換算引擎與即時色彩檢視窗。
-*   **{} JSON 格式檢查與排版 (JSON Formatter)**
-    瞬間揪出被壓縮過或是巢狀結構極深的 JSON 錯誤，並自動美化排版 (Beautify)。
-*   **📦 Base64 檔案編解碼器 (Base64 Encode/Decode)**
-    支援文字或直接將「任何檔案 (圖片、文件)」拖曳轉換為純文字的 Base64 Data URI，也能無損解碼回原本檔案。
-*   **⚖️ 文字內容比對 (Diff)**
-    輕量級的程式碼 / 文本行對比工具，瞬間掌握內容的增減差異。
-*   **🧰 PDF 進階工具 (Stirling PDF)**
-    導向自架 Stirling PDF (`https://pdf.dky.tw`)，支援 OCR、壓縮、合併、分割、擷取頁面、轉 Word、轉文字與 Hermes 自動化。
-*   **📱 QR Code 生產器 (QR Code Generator)**
-    無廣告、無浮水印，輸入網址立即產出高解析度的 Canvas 畫布，支援下載成純淨 PNG。
+## DKY 工具箱
 
-## 🚀 部署架構 (Deployment)
+`dky_tw/` 目前提供以下功能：
 
-1.  **靜態工具箱 + Pages Function**：大多數工具仍是純前端本機運算；IDEA Box 透過 Cloudflare Pages Function 代理 AI API，避免 API Key 暴露在瀏覽器。
-2.  **PDF 進階入口**：PDF 大型處理交給 OCI 上的 Stirling PDF，`/pdf` 會重新導向 `https://pdf.dky.tw`。
-3.  **邊緣網路**：針對 Cloudflare Pages 最佳化設計，建議設定 `dky_tw` 作為建置根目錄 (Root directory)。
-4.  **無資料庫架構**：不儲存提案內容，瀏覽器送出後由 Pages Function 即時呼叫模型並回傳。
+- 開發與編碼：QR Code、JSON 格式化、Base64、JWT 解碼、網址編解碼、SHA-1／SHA-256／SHA-512、Regex 測試、CSS Box Shadow。
+- 文字與設計：文字統計／大小寫／去除頭尾空白、文字與 PDF 差異比對、HEX／RGB／HSL／CMYK 色碼轉換。
+- 換算與產生：時區換算、即時匯率、強密碼、台灣身分證字號產生與驗證、長度／重量／溫度／面積／速度換算。
+- 媒體處理：圖片批次壓縮、影片壓縮、影片轉 GIF。
+- PDF 入口：連至 `pdfdata.dky.tw` 提取 PDF 內嵌附件；`/pdf` 亦會重新導向該站。
 
-### PDF 進階工具
+## DKY 私人工作台
 
-`dky_tw` 不再提供重複的陽春 PDF 工具箱入口；首頁與導覽列保留「PDF 進階」，連到 `https://pdf.dky.tw`。
+`dky_use/` 是有密碼保護的私人工作台，目前包含：
 
-可用能力：
+- IDEA Box：透過 Cloudflare Pages Function 呼叫 Gemini，產生決策分析與提案內容，支援複製純文字及下載 Word。
+- 美股投資組合：多帳戶買入、賣出與配息紀錄，計算已實現／未實現損益，透過 Yahoo Finance 代理更新股價，支援 CSV 匯入與匯出。
+- 投資組合狀態以瀏覽器 `localStorage` 保存，並可透過 Cloudflare D1／KV 同步。
 
-* OCR：繁中 `chi_tra` + 英文 `eng`
-* 壓縮 PDF
-* 合併與分割 PDF
-* 擷取指定頁面
-* PDF 轉文字
-* PDF 轉 Word
-* Hermes 自動化批次處理
+## DKY 學習中心
 
-舊路徑：
+`dky_learn/` 是靜態學習網站，內容包含：
 
-```text
-/pdf -> https://pdf.dky.tw
-```
+- ISLP 統計學習與機器學習課程。
+- AI Agent 系列課程。
+- LLM、RAG、Agent 記憶與相關研究筆記。
 
-完整文件：
+## PDF 附件提取
+
+`pdfdata/` 使用 PDF.js 在瀏覽器內處理 PDF，可輸入開啟密碼並下載 PDF 內嵌附件。PDF 檔案與密碼不會上傳至應用程式伺服器。
+
+## 資料處理說明
+
+- 檔案壓縮、轉檔、文字處理及 PDF 附件提取主要在瀏覽器端完成。
+- 部分工具會從 CDN 載入前端函式庫。
+- 即時匯率會呼叫外部匯率 API。
+- IDEA Box 會將表單內容送至 Cloudflare Pages Function，再由後端呼叫 Gemini。
+- 美股工具會透過 Pages Function 讀取 Yahoo Finance，並使用 D1／KV 儲存同步狀態。
+
+因此，本儲存庫不是所有功能皆可完全離線，也不是所有資料都只存在瀏覽器。
+
+## 目錄結構
 
 ```text
-../docs/stirling-pdf-hermes.md
+dky_tw/        公開開發者工具箱
+dky_use/       私人工作台與 Pages Functions
+dky_learn/     學習課程與研究文章
+pdfdata/       PDF 附件提取靜態站
+pdf/           自架 Stirling PDF／OCI 部署相關檔案
+hermes-proxy/  Hermes 備援代理
+docs/          部署與維運文件
+tests/         PDF buffer 回歸測試
 ```
 
-### Cloudflare Pages 設定
+`pdf/` 保留自架 Stirling PDF 的部署程式與文件，但目前不列為上述公開工具站的可用功能。
 
-建議設定：
+## 部署
 
-* Root directory：`dky_tw`
-* Build command：留空
-* Build output directory：`/`
-* Functions directory：使用預設 `functions`
+Cloudflare Pages 專案對應如下：
 
-### API Key 設定
+| Pages 專案 | Root directory | 網域 |
+| --- | --- | --- |
+| `dky-tools` | `dky_tw` | `tools.dky.tw` |
+| `dky-use` | `dky_use` | `use.dky.tw` |
+| `dky-learn` | `dky_learn` | `learn.dky.tw` |
+| `pdfdata` | `pdfdata` | `pdfdata.dky.tw` |
 
-IDEA Box 需要在 Cloudflare Pages 的 Variables and Secrets 設定 Secret：
-
-* `GEMINI_API_KEY`：必填，Gemini API Key
-* `GEMINI_MODEL`：選填，預設使用 `gemini-2.5-flash`
-* `GEMINI_MAX_OUTPUT_TOKENS`：選填，預設 `4096`，可控制單次生成上限與成本
-* `GEMINI_TIMEOUT_MS`：選填，預設 `25000`，避免 API 等太久
-* `ALLOWED_ORIGIN`：選填，例如 `https://dky.tw`，限制只有指定來源網域可呼叫 API；多個網域可用逗號分隔
-
-可用 Wrangler 設定：
+三個 Git 整合站點皆不需要 Build command；Cloudflare 直接部署對應目錄，其中 `dky_use` 同時包含 Pages Functions。`pdfdata` 目前使用 Direct Upload，正式部署命令：
 
 ```bash
-npx wrangler pages secret put GEMINI_API_KEY --project-name <你的 Cloudflare Pages 專案名稱>
+npx wrangler pages deploy ./pdfdata --project-name pdfdata --branch pdfdata
 ```
 
-本機測試 Pages Function 時，請在 `dky_tw/.dev.vars` 放入：
+### dky_use 環境設定
 
-```dotenv
-GEMINI_API_KEY="你的 Gemini API Key"
-GEMINI_MODEL="gemini-2.5-flash"
-GEMINI_MAX_OUTPUT_TOKENS="4096"
-GEMINI_TIMEOUT_MS="25000"
-ALLOWED_ORIGIN="http://localhost:8788"
+IDEA Box：
+
+- `GEMINI_API_KEY`：必填。
+- `GEMINI_MODEL`、`GEMINI_MAX_OUTPUT_TOKENS`、`GEMINI_TIMEOUT_MS`、`ALLOWED_ORIGIN`：選填。
+
+美股狀態同步：
+
+- `STOCK_DB`：Cloudflare D1 binding，主要儲存空間。
+- `STOCK_KV`：選填的 KV binding，供舊資料移轉與備援鏡像。
+- `API_TOKEN`：前後端同步 API 驗證權杖。
+
+D1 schema 位於 `dky_use/migrations/0001_stock_state.sql`。
+
+## 測試
+
+PDF 密碼重試與 detached ArrayBuffer 回歸測試：
+
+```bash
+node --experimental-default-type=module --test tests/*.test.mjs
 ```
 
-`.dev.vars`、`.env` 不要提交到 GitHub。
+## 作者與版權
 
-### 成本與濫用控制
-
-目前 IDEA Box API 已有基本護欄：
-
-* 構想說明最多取前 4000 字，避免超長輸入吃掉大量 token。
-* 模型輸出預設最多 4096 tokens。
-* Gemini API 超過 25 秒會中止。
-* 可設定 `ALLOWED_ORIGIN` 限制可呼叫來源。
-
-正式公開後仍建議在 Google AI Studio / Google Cloud 設定預算提醒，並視流量加上 Cloudflare WAF / Rate Limiting 或 Turnstile。
-
-## 👨‍💻 作者與版權
-© 2026 DKY.tw — All operations are running locally. 
+© 2026 DKY.tw
