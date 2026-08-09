@@ -598,7 +598,7 @@ const renderFields = {
         <div style="display:flex;gap:8px;align-items:center;">
           <input id="v2g-start" type="number" min="0" step="0.5" value="0" style="width:80px;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:8px;font-size:0.85rem;outline:none;" />
           <span style="color:var(--muted);font-size:0.85rem;">秒 ～</span>
-          <input id="v2g-end" type="number" min="0.5" step="0.5" value="3" style="width:80px;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:8px;font-size:0.85rem;outline:none;" />
+          <input id="v2g-end" type="number" min="0.5" step="0.5" value="10" style="width:80px;border-radius:8px;border:1px solid var(--border-light);background:rgba(0,0,0,0.3);color:var(--text-main);padding:8px;font-size:0.85rem;outline:none;" />
           <span style="color:var(--muted);font-size:0.85rem;">秒</span>
         </div>
       </div>
@@ -1611,7 +1611,7 @@ const UI = {
       const dur = video.duration;
       document.getElementById('v2g-info-dur').textContent = tools.video2gif.formatTime(dur);
       document.getElementById('v2g-end').max = Math.ceil(dur);
-      document.getElementById('v2g-end').value = Math.min(3, dur);
+      document.getElementById('v2g-end').value = Math.min(10, dur);
       URL.revokeObjectURL(video.src);
     };
     video.src = URL.createObjectURL(file);
@@ -1671,8 +1671,9 @@ const UI = {
       }, (p) => {
         bar.style.width = p + '%';
         pct.textContent = p + '%';
-        if (p < 90) status.textContent = '擷取畫面中...';
-        else status.textContent = '編碼 GIF 中...';
+        if (p < 89) status.textContent = `擷取畫面中... (${Math.ceil(p / 88 * 100)}%)`;
+        else if (p < 100) status.textContent = `編碼 GIF 中... (${p - 89}/10)`;
+        else status.textContent = '完成！';
       });
 
       document.getElementById('v2g-result-stats').textContent =
