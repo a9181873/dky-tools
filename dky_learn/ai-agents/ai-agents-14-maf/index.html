@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>探索 Microsoft Agent Framework (MAF) — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 14 課繁體中文版：MAF 核心概念、Workflow、Middleware、Memory 與 Observability">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 14 課 / 共 18 課</p>
+<h1>探索 Microsoft Agent Framework (MAF)</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-13-memory/">← 第 13 課</a>
+<a href="../ai-agents-15-cua/">第 15 課 →</a>
+</nav>
+
+<h2>本課概覽</h2>
+<div class="verdict">
+一句話：<strong>Microsoft Agent Framework (MAF) 是微軟統一的 AI Agent 開發框架，提供從 Agent 建立、工具整合、多 Agent 協作，到上線觀測與安全控管的完整解決方案。</strong>
+</div>
+
+<p>本課將涵蓋：</p>
+<ul>
+<li>認識 MAF：核心功能與價值</li>
+<li>MAF 關鍵概念：Agent、Tool、Thread、Middleware、Memory、Observability</li>
+<li>進階模式：Workflow、Checkpointing、Human-in-the-loop</li>
+<li>在 Microsoft Foundry 上託管 LangChain / LangGraph Agent</li>
+</ul>
+
+<h2>學習目標</h2>
+<p>完成本課後，你將能夠：</p>
+<ul>
+<li>使用 MAF 建立可上線的 AI Agent</li>
+<li>將 MAF 核心功能應用到你的 Agentic 使用場景</li>
+<li>使用進階模式，包括 Workflow、Middleware 和 Observability</li>
+</ul>
+
+<h2>認識 Microsoft Agent Framework</h2>
+
+<p><a href="https://aka.ms/ai-agents-beginners/agent-framework">Microsoft Agent Framework (MAF)</a> 是微軟統一的 AI Agent 開發框架。它提供足夠的靈活性來應對各種 Agentic 場景，包括：</p>
+
+<h3>五種編排模式</h3>
+<table>
+<tr><th>模式</th><th>說明</th><th>適用場景</th></tr>
+<tr><td>循序編排 (Sequential)</td><td>逐步執行的 Agent 工作流程</td><td>固定步驟的資料處理管線</td></tr>
+<tr><td>並行編排 (Concurrent)</td><td>多個 Agent 同時執行任務</td><td>同時查詢多個資料來源</td></tr>
+<tr><td>群組對話 (Group Chat)</td><td>多 Agent 共同討論協作</td><td>需要多方意見的決策場景</td></tr>
+<tr><td>交接編排 (Handoff)</td><td>Agent 完成子任務後交給下一個 Agent</td><td>多階段的客服流程</td></tr>
+<tr><td>磁性編排 (Magnetic)</td><td>管理者 Agent 動態建立任務清單並協調子 Agent</td><td>複雜的專案管理情境</td></tr>
+</table>
+
+<h3>上線必備四大支柱</h3>
+<table>
+<tr><th>支柱</th><th>說明</th></tr>
+<tr><td><strong>可觀測性 (Observability)</strong></td><td>透過 OpenTelemetry 追蹤 Agent 的每一步：工具調用、編排步驟、推理流程，並在 Microsoft Foundry 儀表板中監控效能</td></tr>
+<tr><td><strong>安全性 (Security)</strong></td><td>原生託管於 Microsoft Foundry，內建角色存取控制 (RBAC)、私有資料處理與內容安全防護</td></tr>
+<tr><td><strong>持久性 (Durability)</strong></td><td>Agent 執行緒與工作流程可暫停、恢復、從錯誤中復原，支援長時間執行的流程</td></tr>
+<tr><td><strong>人機迴圈 (Control)</strong></td><td>支援 Human-in-the-loop，任務可標記為需要人工核准</td></tr>
+</table>
+
+<h3>互通性設計</h3>
+<ul>
+<li><strong>雲端中立</strong>：Agent 可在容器、本地部署、跨多雲環境中執行</li>
+<li><strong>服務提供者中立</strong>：支援 Azure OpenAI、OpenAI 等多種 SDK</li>
+<li><strong>開放標準整合</strong>：支援 A2A (Agent-to-Agent) 和 MCP (Model Context Protocol) 協定</li>
+<li><strong>外掛與連接器</strong>：可連接 Microsoft Fabric、SharePoint、Pinecone、Qdrant 等資料與記憶體服務</li>
+</ul>
+
+<h2>MAF 關鍵概念</h2>
+
+<h3>1. Agent 建立</h3>
+<p>建立 Agent 需要定義推論服務（LLM 提供者）、一組指令以及一個 <code>name</code>：</p>
+
+<h4>使用 Azure OpenAI</h4>
+<pre><code>agent = AzureOpenAIChatClient(credential=AzureCliCredential()).create_agent(
+    instructions="You are good at recommending trips to customers based on their preferences.",
+    name="TripRecommender"
+)</code></pre>
+
+<h4>使用 Microsoft Foundry Agent Service</h4>
+<pre><code>AzureAIAgentClient(async_credential=credential).create_agent(
+    name="HelperAgent",
+    instructions="You are a helpful assistant."
+) as agent</code></pre>
+
+<h4>使用 OpenAI Responses / ChatCompletion API</h4>
+<pre><code>agent = OpenAIResponsesClient().create_agent(
+    name="WeatherBot",
+    instructions="You are a helpful weather assistant.",
+)</code></pre>
+
+<pre><code>agent = OpenAIChatClient().create_agent(
+    name="HelpfulAssistant",
+    instructions="You are a helpful assistant.",
+)</code></pre>
+
+<h4>使用 MiniMax（OpenAI 相容 API，支援 204K tokens 上下文）</h4>
+<pre><code>agent = OpenAIChatClient(
+    base_url="https://api.minimax.io/v1",
+    api_key=os.environ["MINIMAX_API_KEY"],
+    model_id="MiniMax-M3"
+).create_agent(
+    name="HelpfulAssistant",
+    instructions="You are a helpful assistant.",
+)</code></pre>
+
+<h4>使用 A2A 協定的遠端 Agent</h4>
+<pre><code>agent = A2AAgent(
+    name=agent_card.name,
+    description=agent_card.description,
+    agent_card=agent_card,
+    url="https://your-a2a-agent-host"
+)</code></pre>
+
+<h3>2. Agent 執行</h3>
+<p>使用 <code>.run</code>（非串流）或 <code>.run_stream</code>（串流）方法：</p>
+
+<pre><code># 非串流
+result = await agent.run("What are good places to visit in Amsterdam?")
+print(result.text)
+
+# 串流
+async for update in agent.run_stream("What are the good places to visit in Amsterdam?"):
+    if update.text:
+        print(update.text, end="", flush=True)</code></pre>
+
+<p>每次執行可自訂 <code>max_tokens</code>、可用 <code>tools</code> 甚至更換 <code>model</code>。這在特定任務需要特定模型或工具時非常有用。</p>
+
+<h3>3. 工具 (Tools)</h3>
+<p>工具可以在定義 Agent 時指定，也可以在執行時才提供：</p>
+
+<pre><code>def get_attractions(
+    location: Annotated[str, Field(description="The location to get the top tourist attractions for")],
+) -> str:
+    """Get the top tourist attractions for a given location."""
+    return f"The top attractions for {location} are."
+
+# 建立 Agent 時定義工具
+agent = ChatAgent(
+    chat_client=OpenAIChatClient(),
+    instructions="You are a helpful assistant",
+    tools=[get_attractions]
+)
+
+# 也可以在執行時才提供工具
+result = await agent.run(
+    "What's the best place to visit in Seattle?",
+    tools=[get_attractions]  # 僅本次執行可用
+)</code></pre>
+
+<h3>4. Agent 執行緒 (Threads)</h3>
+<p>Thread 用來處理多輪對話。可以持久化儲存以便後續使用：</p>
+
+<pre><code># 建立新執行緒
+thread = agent.get_new_thread()
+
+# 使用執行緒執行
+response = await agent.run(
+    "Hello, I am here to help you book travel. Where would you like to go?",
+    thread=thread
+)
+
+# 序列化以儲存
+serialized_thread = await thread.serialize()
+
+# 從儲存中恢復
+resumed_thread = await agent.deserialize_thread(serialized_thread)</code></pre>
+
+<h3>5. Middleware（中介層）</h3>
+
+<p>MAF 提供兩種 Middleware，讓你在 Agent 與工具/LLM 之間插入自訂邏輯：</p>
+
+<h4>Function Middleware</h4>
+<p>在 Agent 呼叫函式/工具前後執行：</p>
+<pre><code>async def logging_function_middleware(
+    context: FunctionInvocationContext,
+    next: Callable[[FunctionInvocationContext], Awaitable[None]],
+) -> None:
+    """記錄函式執行的 Function Middleware"""
+    print(f"[Function] Calling {context.function.name}")
+    await next(context)
+    print(f"[Function] {context.function.name} completed")</code></pre>
+
+<h4>Chat Middleware</h4>
+<p>在 Agent 與 LLM 之間攔截請求：</p>
+<pre><code>async def logging_chat_middleware(
+    context: ChatContext,
+    next: Callable[[ChatContext], Awaitable[None]],
+) -> None:
+    """記錄 AI 互動的 Chat Middleware"""
+    print(f"[Chat] Sending {len(context.messages)} messages to AI")
+    await next(context)
+    print("[Chat] AI response received")</code></pre>
+
+<h3>6. Agent 記憶體 (Memory)</h3>
+
+<table>
+<tr><th>類型</th><th>說明</th><th>範例</th></tr>
+<tr><td><strong>In-Memory Storage</strong></td><td>應用程式執行期間儲存在 Thread 中的記憶</td><td><code>thread = agent.get_new_thread()</code></td></tr>
+<tr><td><strong>Persistent Messages</strong></td><td>跨 Session 持久化對話歷史，使用 <code>chat_message_store_factory</code></td><td>自訂 <code>ChatMessageStore</code></td></tr>
+<tr><td><strong>Dynamic Memory</strong></td><td>在 Agent 執行前注入的動態記憶，可儲存在外部服務如 mem0</td><td><code>Mem0Provider</code> 整合</td></tr>
+</table>
+
+<pre><code># Dynamic Memory with Mem0
+from agent_framework.mem0 import Mem0Provider
+
+memory_provider = Mem0Provider(
+    api_key="your-mem0-api-key",
+    user_id="user_123",
+    application_id="my_app"
+)
+
+agent = ChatAgent(
+    chat_client=OpenAIChatClient(),
+    instructions="You are a helpful assistant with memory.",
+    context_providers=memory_provider
+)</code></pre>
+
+<h3>7. 可觀測性 (Observability)</h3>
+<p>MAF 整合 OpenTelemetry 提供 Tracing 和 Metrics：</p>
+
+<pre><code>from agent_framework.observability import get_tracer, get_meter
+
+tracer = get_tracer()
+meter = get_meter()
+
+with tracer.start_as_current_span("my_custom_span"):
+    # 你的自訂邏輯
+    pass
+
+counter = meter.create_counter("my_custom_counter")
+counter.add(1, {"key": "value"})</code></pre>
+
+<h2>Workflow（工作流程）</h2>
+
+<p>MAF 的 Workflow 是預先定義的步驟來完成任務，Agent 作為這些步驟中的元件。Workflow 支援<strong>多 Agent 編排</strong>和<strong>檢查點 (Checkpointing)</strong> 來保存狀態。</p>
+
+<h3>核心元件</h3>
+
+<h4>Executor（執行器）</h4>
+<p>接收輸入訊息、執行指派任務、產生輸出訊息，推動工作流程。可以是 AI Agent 或自訂邏輯。</p>
+
+<h4>Edge（邊）</h4>
+<p>定義訊息在 Workflow 中的流向：</p>
+
+<table>
+<tr><th>類型</th><th>說明</th></tr>
+<tr><td>Direct Edge</td><td>簡單的一對一連接</td></tr>
+<tr><td>Conditional Edge</td><td>滿足特定條件時觸發（例如飯店無空房時建議其他選項）</td></tr>
+<tr><td>Switch-case Edge</td><td>根據條件將訊息路由到不同 Executor（例如 VIP 客戶走專屬流程）</td></tr>
+<tr><td>Fan-out Edge</td><td>一對多：將同一訊息發送給多個目標</td></tr>
+<tr><td>Fan-in Edge</td><td>多對一：收集多個 Executor 的訊息匯入單一目標</td></tr>
+</table>
+
+<h4>事件 (Events)</h4>
+<p>提供對 Workflow 執行的觀測：</p>
+<ul>
+<li><code>WorkflowStartedEvent</code> — 工作流程開始</li>
+<li><code>WorkflowOutputEvent</code> — 工作流程產出結果</li>
+<li><code>WorkflowErrorEvent</code> — 工作流程遇到錯誤</li>
+<li><code>ExecutorInvokeEvent</code> — Executor 開始處理</li>
+<li><code>ExecutorCompleteEvent</code> — Executor 完成處理</li>
+<li><code>RequestInfoEvent</code> — 發出請求</li>
+</ul>
+
+<pre><code>from agent_framework import WorkflowBuilder
+
+builder = WorkflowBuilder()
+builder.add_edge(source_executor, target_executor)
+builder.set_start_executor(source_executor)
+workflow = builder.build()</code></pre>
+
+<h2>進階 MAF 模式</h2>
+<ul>
+<li><strong>Middleware 組合</strong>：鏈結多個 Middleware（日誌、認證、速率限制），使用 Function 和 Chat Middleware 精細控制 Agent 行為</li>
+<li><strong>Workflow Checkpointing</strong>：使用 Workflow 事件和序列化來保存和恢復長時間執行的 Agent 流程</li>
+<li><strong>動態工具選擇</strong>：結合 RAG 與工具描述，每次查詢只呈現相關工具</li>
+<li><strong>多 Agent Handoff</strong>：使用 Workflow Edge 和條件路由來編排專業 Agent 之間的交接</li>
+</ul>
+
+<h2>在 Microsoft Foundry 上託管 LangChain / LangGraph Agent</h2>
+
+<div class="card">
+<p>MAF 是<strong>框架互通</strong>的 — 不限定只用 MAF 寫的 Agent。如果你已有 LangChain 或 LangGraph 建立的 Agent，可以將它作為 <strong>Microsoft Foundry 託管 Agent</strong> 來執行，讓 Foundry 管理執行環境、Session、擴展、身份驗證和協定端點，而你的 Agent 邏輯仍留在 LangGraph 中。</p>
+</div>
+
+<h3>步驟</h3>
+
+<h4>1. 安裝託管套件</h4>
+<pre><code>pip install -U "langchain-azure-ai[hosting]&gt;=1.2.4" azure-identity</code></pre>
+
+<h4>2. 選擇託管協定</h4>
+<table>
+<tr><th>協定</th><th>Host 類別</th><th>端點</th><th>使用時機</th></tr>
+<tr><td><strong>Responses</strong></td><td><code>ResponsesHostServer</code></td><td><code>/responses</code></td><td>需要 OpenAI 相容的對話、串流、回應歷史和對話執行緒 — 對話型 Agent 的推薦預設</td></tr>
+<tr><td><strong>Invocations</strong></td><td><code>InvocationsHostServer</code></td><td><code>/invocations</code></td><td>需要自訂 JSON 格式、Webhook 端點，或非對話式處理</td></tr>
+</table>
+
+<h4>3. 設定環境變數</h4>
+<pre><code>export FOUNDRY_PROJECT_ENDPOINT="https://&lt;resource&gt;.services.ai.azure.com/api/projects/&lt;project&gt;"
+export FOUNDRY_MODEL_NAME="gpt-5-mini"</code></pre>
+
+<h4>4. 透過 Responses 協定暴露 LangGraph Agent</h4>
+<pre><code>import os
+from azure.ai.projects import AIProjectClient
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+from langchain.agents import create_agent
+from langchain_openai import ChatOpenAI
+from langchain_azure_ai.agents.hosting import ResponsesHostServer
+
+_AZURE_AI_SCOPE = "https://ai.azure.com/.default"
+
+def build_chat_model() -&gt; ChatOpenAI:
+    project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"].rstrip("/")
+    deployment = os.environ.get("FOUNDRY_MODEL_NAME", "gpt-5-mini")
+    credential = DefaultAzureCredential()
+    project = AIProjectClient(endpoint=project_endpoint, credential=credential)
+    openai_client = project.get_openai_client()
+    token_provider = get_bearer_token_provider(credential, _AZURE_AI_SCOPE)
+    return ChatOpenAI(
+        model=deployment,
+        base_url=str(openai_client.base_url),
+        api_key=token_provider,
+    )
+
+def main() -&gt; None:
+    graph = create_agent(build_chat_model(), tools=[])
+    port = int(os.environ.get("PORT", "8088"))
+    ResponsesHostServer(graph).run(port=port)
+
+if __name__ == "__main__":
+    main()</code></pre>
+
+<h3>關鍵行為</h3>
+<ul>
+<li><strong>對話持續性</strong>：客戶端透過 <code>previous_response_id</code> 或 <code>conversation</code> ID 繼續對話。若圖使用 LangGraph Checkpointer 編譯，Foundry 會將對話狀態對應到檢查點。</li>
+<li><strong>Human-in-the-loop</strong>：若圖使用 LangGraph <code>interrupt()</code>，<code>ResponsesHostServer</code> 會將其以 <code>function_call</code> / <code>mcp_approval_request</code> 形式呈現，客戶端可用對應的回應來恢復執行。</li>
+<li><strong>部署到 Foundry</strong>：使用 Azure Developer CLI — <code>azd ai agent init</code> → <code>azd ai agent run</code>（本地，需 Docker）→ <code>azd provision</code> → <code>azd deploy</code>。需要 <strong>Foundry Project Manager</strong> 角色。</li>
+</ul>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>MAF 是微軟統一的 Agent 框架</strong>，支援五種編排模式（循序、並行、群組對話、交接、磁性）</li>
+<li><strong>核心概念</strong>：Agent → Tool → Thread → Middleware → Memory → Observability，六大模組環環相扣</li>
+<li><strong>Workflow</strong> 提供 Executor + Edge + Event 的結構化編排，支援 Checkpoint 和人機迴圈</li>
+<li><strong>框架互通</strong>：可以在 Foundry 上託管 LangChain / LangGraph Agent，不限定使用 MAF 原生 Agent</li>
+<li><strong>上線就緒</strong>：內建 OpenTelemetry 觀測、RBAC 安全、持久性執行緒和 Human-in-the-loop 控制</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/14-microsoft-agent-framework">原始 README（英文）</a></li>
+<li><a href="https://aka.ms/ai-agents-beginners/agent-framework">Microsoft Agent Framework 官方文件</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord 社群</a></li>
+<li><a href="https://learn.microsoft.com/azure/foundry/how-to/develop/langchain-hosted-agents">Host LangGraph agents as Foundry hosted agents</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-13-memory/">← 第 13 課</a>
+<a href="../ai-agents-15-cua/">第 15 課 →</a>
+</nav>
+</main>
+</body>
+</html>
