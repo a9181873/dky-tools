@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10.3 卷積神經網路 — ISLP 統計學習課程</title>
+<style>
+:root {
+--bg:#0d1117;--surface:#161b22;--border:#30363d;
+--fg:#c9d1d9;--fg-muted:#8b949e;--heading:#f0f6fc;
+--accent:#58a6ff;--good:#3fb950;--warn:#d2991d;--err:#f85149;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+background:var(--bg); color:var(--fg); line-height:1.8;
+padding:2rem 2.5rem 3rem; max-width:880px;
+}
+h1 { font-size:1.6rem; color:var(--heading); margin-bottom:0.4rem; }
+h2 {
+font-size:1.2rem; color:var(--accent); margin:2.2rem 0 0.8rem;
+border-left:3px solid var(--accent); padding-left:0.7rem;
+}
+h3 { font-size:1.05rem; color:var(--heading); margin:1.5rem 0 0.5rem; }
+.chapter-tag { display:inline-block; background:#1a2a3a; color:var(--accent); font-size:0.75rem; padding:0.2rem 0.7rem; border-radius:1rem; margin-bottom:0.8rem; }
+.meta { color:var(--fg-muted); font-size:0.85rem; margin-bottom:1.5rem; line-height:1.6; }
+.stars { color:var(--warn); letter-spacing:0.1em; }
+.tag { display:inline-block; font-size:0.68rem; padding:0.15rem 0.6rem; border-radius:0.7rem; background:#1a2a3a; color:var(--accent); margin:0.2rem 0.3rem 0.2rem 0; }
+blockquote {
+background:var(--surface); border-left:3px solid var(--accent);
+margin:1rem 0; padding:0.9rem 1.2rem; border-radius:0 6px 6px 0; font-size:0.9rem;
+}
+blockquote strong { color:var(--accent); }
+blockquote .cite { display:block; margin-top:0.4rem; font-size:0.78rem; color:var(--fg-muted); }
+.cite-ref { font-size:0.78rem; color:var(--fg-muted); font-style:italic; margin-top:-0.5rem; margin-bottom:1rem; }
+pre { position:relative; }
+pre code { font-size:0.82rem; line-height:1.55; }
+code { font-size:0.88rem; background:#1c2128; padding:0.13rem 0.35rem; border-radius:3px; }
+pre code { background:transparent; padding:0; }
+pre code.language-python { display:block; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:1rem 1.2rem; overflow-x:auto; }
+.output-block { background:#1c2128; border:1px solid var(--border); border-radius:0 0 6px 6px; padding:0.7rem 1rem; margin-top:-1px; font-size:0.82rem; color:var(--fg-muted); font-family:monospace; white-space:pre-wrap; }
+.output-block::before { content:"輸出"; display:block; font-size:0.68rem; color:var(--good); margin-bottom:0.3rem; }
+.formula-block { text-align:center; margin:1.2rem 0; overflow-x:auto; }
+.scenario-box {
+background:linear-gradient(135deg, #1a2332 0%, #162032 100%);
+border:1px solid var(--border); border-radius:8px; padding:1rem 1.2rem; margin:1rem 0;
+}
+.scenario-box h4 { color:var(--accent); font-size:0.95rem; margin-bottom:0.4rem; }
+.scenario-box p { font-size:0.85rem; color:var(--fg-muted); }
+.pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0; }
+.pros-cons .pro, .pros-cons .con {
+border-radius:8px; padding:1rem 1.2rem;
+}
+.pros-cons .pro { background:#12261e; border:1px solid #1a3a2a; }
+.pros-cons .con { background:#261a1a; border:1px solid #3a2222; }
+.pros-cons h4 { font-size:0.9rem; margin-bottom:0.5rem; }
+.pros-cons .pro h4 { color:var(--good); }
+.pros-cons .con h4 { color:var(--err); }
+.pros-cons ul { font-size:0.82rem; padding-left:1.2rem; line-height:1.6; }
+table {
+width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem;
+}
+th { background:var(--surface); color:var(--accent); text-align:left; padding:0.6rem 0.8rem; border-bottom:2px solid var(--border); }
+td { padding:0.5rem 0.8rem; border-bottom:1px solid var(--border); }
+tr:hover td { background:rgba(88,166,255,0.04); }
+.key-quote {
+text-align:center; margin:2rem 0; padding:1.5rem 2rem;
+border-radius:8px; background:linear-gradient(135deg, #1a2332, #151f2b);
+border:1px solid var(--border);
+}
+.key-quote p { font-size:1.05rem; color:var(--heading); font-style:italic; }
+.key-quote .attr { font-size:0.78rem; color:var(--fg-muted); margin-top:0.5rem; }
+.section-nav { display:flex; justify-content:space-between; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:0.85rem; }
+.section-nav a { color:var(--accent); text-decoration:none; }
+.section-nav a:hover { text-decoration:underline; }
+@media (max-width:768px) {
+body { padding:1rem; }
+.pros-cons { grid-template-columns:1fr; }
+}
+.hljs { background:var(--surface); }
+</style>
+</head>
+<body>
+
+<h1>10.3 卷積神經網路 (CNN)</h1>
+<div class="chapter-tag">第 10 章 · 深度學習</div>
+<div class="meta">
+<span class="stars">★★★★★</span> 難度：進階 ·
+課本 pp. 407–412 ·
+2026-08-12
+</div>
+<div>
+<span class="tag">CNN</span><span class="tag">卷積層</span><span class="tag">池化層</span><span class="tag">CIFAR100</span><span class="tag">資料擴增</span><span class="tag">遷移學習</span>
+</div>
+
+<h2>📚 理論基礎</h2>
+
+<blockquote>
+<strong>卷積神經網路（Convolutional Neural Network, CNN）</strong>是專為影像分類設計的深度學習架構。它模仿人類視覺系統：先辨識低階特徵（邊緣、色塊），再組合成中階特徵（眼睛、耳朵），最後輸出類別。CNN 透過兩種特殊隱藏層——<strong>卷積層</strong>搜尋局部特徵、<strong>池化層</strong>壓縮維度——加上端到端的學習，在 CIFAR100 等影像分類任務中展現驚人成效。
+<span class="cite">📚 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §10.3, pp. 407–412</span>
+</blockquote>
+
+<p>本節的核心案例是 <strong>CIFAR100 影像分類</strong>：50,000 張訓練影像 + 10,000 張測試影像，每張 32×32 彩色（RGB 三通道），目標是分成 100 個類別。與前一節的 MNIST 手寫數字不同，CIFAR100 的影像包含複雜場景（動植物、交通工具、日常物品），傳統的全連接神經網路效果有限——這就是 CNN 登場的舞台。</p>
+
+<p>CNN 的核心洞見非常直觀：<strong>一隻老虎不管出現在圖片的左上角或右下角，它仍然是老虎</strong>。CNN 的卷積濾波器（convolution filter）會在整張圖片上「滑動」，尋找相同的局部特徵——這是傳統神經網路做不到的，因為傳統網路把每個像素當成獨立變數，失去了空間關係。</p>
+
+<h3>10.3.1 卷積層：像偵探用的放大鏡</h3>
+
+<p>把卷積濾波器想像成一個<strong>小偵探用的放大鏡</strong>（通常是 3×3 或 5×5 的矩陣），在圖片上逐格滑動。每到一個位置，放大鏡裡的權重與圖片上對應的像素值相乘再加總，得到一個數字。這個數字越大，代表該位置越符合濾波器要找的特徵。</p>
+
+<p>數學上，對於 2×2 濾波器 <strong>F</strong> 與 4×3 影像，卷積運算為：</p>
+<div class="formula-block">
+\[
+\text{Conv}(I, F)_{i,j} = \sum_{r=1}^{2}\sum_{c=1}^{2} I_{i+r-1,\,j+c-1} \cdot F_{r,c}
+\]
+</div>
+<p class="cite-ref">課本以一個 2×2 濾波器對 4×3 影像的示範展示：濾波器掃過影像的每個 2×2 子區域，產生一個較小的「卷積後影像」。</p>
+
+<p>課本 Figure 10.7 用一張老虎的照片展示了兩個濾波器——一個偵測垂直條紋，一個偵測水平條紋。垂直濾波器在老虎的垂直斑紋處輸出高值，水平濾波器在水平邊緣處輸出高值。<strong>一個濾波器 = 一種特徵偵測器</strong>。</p>
+
+<p>對於 CIFAR100 的 32×32 彩色影像，每個卷積濾波器也有三個通道（RGB），分別對三個顏色通道做卷積後加總。第一個卷積層使用 K 個濾波器，就會產生 K 個輸出特徵圖（feature map），每一張特徵圖都是這 K 個「偵探」對原始影像的報告。</p>
+
+<h3>10.3.2 池化層：壓縮精華</h3>
+
+<p>池化層的作用是把一張大影像「濃縮」成小影像。最常見的是<strong>最大池化（Max Pooling）</strong>：把影像切成不重疊的 2×2 區塊，每個區塊只保留最大值。</p>
+
+<div class="formula-block">
+\[
+\text{MaxPool}\begin{pmatrix}1&2&5&3\\3&0&1&2\\2&1&3&4\\1&1&2&0\end{pmatrix}
+= \begin{pmatrix}3&5\\2&4\end{pmatrix}
+\]
+</div>
+<p class="cite-ref">課本例：左上是 {1,2,3,0} → 3；右上是 {5,3,1,2} → 5；依此類推。</p>
+
+<p>最大池化的雙重好處：<strong>壓縮資料量</strong>（2×2 → 1，減少 75%）和<strong>位置不變性</strong>（只要某個 2×2 區域中有一個高值，縮小後就能被偵測到，不因微小位移而消失）。</p>
+
+<h3>10.3.3 CNN 架構：層層堆疊的視覺金字塔</h3>
+
+<p>典型的深度 CNN 架構（課本 Figure 10.8，用於 CIFAR100）：</p>
+<ul style="padding-left:1.5rem; margin:0.8rem 0; font-size:0.9rem;">
+  <li><strong>輸入層</strong>：32×32×3（RGB 三通道）</li>
+  <li><strong>卷積層 1</strong>：6 個 3×3 濾波器 → 32×32×6 特徵圖 + ReLU</li>
+  <li><strong>池化層 1</strong>：2×2 MaxPool → 16×16×6</li>
+  <li><strong>卷積層 2</strong>：16 個濾波器 → 16×16×16 + ReLU</li>
+  <li><strong>池化層 2</strong>：2×2 MaxPool → 8×8×16</li>
+  <li><strong>卷積層 3</strong>：32 個濾波器 → 8×8×32 + ReLU</li>
+  <li><strong>池化層 3</strong>：2×2 MaxPool → 4×4×32</li>
+  <li><strong>展平</strong>：4×4×32 = 512 → 全連接 500 → 全連接 100 → <strong>Softmax 輸出</strong></li>
+</ul>
+
+<p class="cite-ref">關鍵設計原則：(1) 每次池化後通道數翻倍（補償空間維度損失），(2) 卷積+池化重複數次直到特徵圖只剩幾像素，(3) 最後接全連接層做分類。CIFAR100 目前最佳測試準確率約 75%。</p>
+
+<h3>10.3.4 資料擴增：一分錢變十分貨</h3>
+
+<p>資料擴增（Data Augmentation）是影像建模的「作弊合法化」：把每張訓練影像複製成多個版本，每個版本經過隨機變形——縮放、平移、旋轉、翻轉——但類別標籤不變。課本 Figure 10.9 展示了老虎照片的各種變體：水平翻轉後的老虎仍然是老虎。</p>
+
+<p>資料擴增本質上是<strong>一種正則化</strong>：在每張原始影像周圍建立一個「雲」──所有自然變形都被視為同一個類別。SGD 的 mini-batch 訓練天生適合搭配擴增，因為可以在每次取 batch 時即時變形影像，不需要儲存擴增後的資料。</p>
+
+<h3>10.3.5 預訓練分類器與權重凍結</h3>
+
+<p>課本展示了一個產業級的 CNN：<strong>ResNet50</strong>，在 ImageNet（百萬張影像、上千類別）上預訓練。對新影像，ResNet50 的前幾十層已經學會了通用的邊緣、形狀、紋理特徵——這些知識可以「凍結」並轉移到新任務上，只需訓練最後幾層。</p>
+
+<p>課本 Figure 10.10 用六張照片展示了 ResNet50 的表現：成功辨識老鷹（Cooper's hawk）但放大後誤判為噴泉（fountain）。這種<strong>遷移學習（transfer learning）</strong>讓小資料集也能享有大模型的視覺智慧——是當代電腦視覺最實用的技術之一。</p>
+
+<h2>⚡ Python 實作：卷積與池化的核心運算</h2>
+
+<pre><code class="language-python"># 10.3 卷積神經網路 — 手動實作卷積與最大池化（自給自足版本）
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_digits
+
+# 載入 digits 作為小型影像資料（8×8 灰階，轉成 2D）
+digits = load_digits()
+img = digits.images[0]  # 第一張圖（數字 0）
+print(f"原始影像 shape: {img.shape}")
+print(f"像素值範圍: {img.min():.0f} – {img.max():.0f}")
+
+# 展示原始影像
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+axes[0].imshow(img, cmap='gray')
+axes[0].set_title('原始影像 (8×8)', fontsize=11)
+axes[0].axis('off')
+
+# === 卷積運算：用一個邊緣偵測濾波器 ===
+# Sobel 水平邊緣濾波器（3×3）：偵測水平方向的亮度變化
+sobel_h = np.array([[-1, -2, -1],
+                     [ 0,  0,  0],
+                     [ 1,  2,  1]], dtype=float)
+
+# 手動實作卷積（無填充，步長=1）
+H, W = img.shape
+kH, kW = sobel_h.shape
+out_H, out_W = H - kH + 1, W - kW + 1
+conv_out = np.zeros((out_H, out_W))
+
+for i in range(out_H):
+    for j in range(out_W):
+        patch = img[i:i+kH, j:j+kW]
+        conv_out[i, j] = np.sum(patch * sobel_h)
+
+axes[1].imshow(conv_out, cmap='gray')
+axes[1].set_title(f'卷積後 ({out_H}×{out_W})：水平邊緣', fontsize=11)
+axes[1].axis('off')
+
+# === 最大池化：2×2 區塊取最大值 ===
+pool_H, pool_W = conv_out.shape[0] // 2, conv_out.shape[1] // 2
+pool_out = np.zeros((pool_H, pool_W))
+
+for i in range(pool_H):
+    for j in range(pool_W):
+        patch = conv_out[i*2:(i+1)*2, j*2:(j+1)*2]
+        pool_out[i, j] = np.max(patch)
+
+axes[2].imshow(pool_out, cmap='gray')
+axes[2].set_title(f'池化後 ({pool_H}×{pool_W})：壓縮 75%', fontsize=11)
+axes[2].axis('off')
+
+plt.suptitle('CNN 基礎運算：卷積 → 池化（digits 數字 0）', fontsize=13, y=1.02)
+plt.tight_layout()
+plt.show()
+print(f"\n維度變化: {img.shape} → {conv_out.shape} → {pool_out.shape}")
+print(f"總像素: {img.size} → {conv_out.size} → {pool_out.size} (壓縮 {(1 - pool_out.size/img.size)*100:.0f}%)")
+</code></pre>
+<div class="output-block">原始影像 shape: (8, 8)
+像素值範圍: 0 – 16
+維度變化: (8, 8) → (6, 6) → (3, 3)
+總像素: 64 → 36 → 9 (壓縮 86%)</div>
+
+<pre><code class="language-python"># 卷積濾波器多樣性展示：不同濾波器捕捉不同特徵（自給自足版本）
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_digits
+
+# 載入資料
+digits = load_digits()
+img = digits.images[5]  # 數字 5
+
+# 定義三個濾波器
+filters = {
+    '水平邊緣': np.array([[-1,-2,-1],[ 0, 0, 0],[ 1, 2, 1]], dtype=float),
+    '垂直邊緣': np.array([[-1, 0, 1],[-2, 0, 2],[-1, 0, 1]], dtype=float),
+    '銳化':      np.array([[ 0,-1, 0],[-1, 5,-1],[ 0,-1, 0]], dtype=float),
+}
+
+H, W = img.shape
+kH, kW = 3, 3
+out_H, out_W = H - kH + 1, W - kW + 1
+
+fig, axes = plt.subplots(1, 4, figsize=(14, 3.5))
+axes[0].imshow(img, cmap='gray')
+axes[0].set_title('原始影像 (數字 5)', fontsize=10)
+axes[0].axis('off')
+
+for idx, (name, f) in enumerate(filters.items()):
+    conv = np.zeros((out_H, out_W))
+    for i in range(out_H):
+        for j in range(out_W):
+            conv[i, j] = np.sum(img[i:i+3, j:j+3] * f)
+    axes[idx+1].imshow(conv, cmap='gray')
+    axes[idx+1].set_title(f'{name} 濾波器', fontsize=10)
+    axes[idx+1].axis('off')
+
+plt.suptitle('不同卷積濾波器捕捉不同特徵', fontsize=13, y=1.02)
+plt.tight_layout()
+plt.show()
+print("\nCNN 的核心概念：每個濾波器學到一種特定的特徵模式。")
+print("水平濾波器：強調橫向筆畫（數字 5 的頂部橫線）")
+print("垂直濾波器：強調縱向邊緣（數字 5 的垂直結構）")
+print("銳化濾波器：強化所有邊緣（讓輪廓更清晰）")
+</code></pre>
+<div class="output-block">CNN 的核心概念：每個濾波器學到一種特定的特徵模式。
+水平濾波器：強調橫向筆畫（數字 5 的頂部橫線）
+垂直濾波器：強調縱向邊緣（數字 5 的垂直結構）
+銳化濾波器：強化所有邊緣（讓輪廓更清晰）</div>
+
+<pre><code class="language-python"># 資料擴展示範：對同一張影像做隨機變形（自給自足版本）
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_digits
+from scipy.ndimage import rotate, shift, zoom
+
+# 載入數字 3 的影像
+digits = load_digits()
+img = digits.images[3]
+
+augmentations = {
+    '原始': lambda x: x,
+    '旋轉 15°': lambda x: rotate(x, 15, reshape=False, mode='nearest'),
+    '水平翻轉': lambda x: np.fliplr(x),
+    '平移+縮放': lambda x: zoom(shift(x, (1, 0.5), mode='nearest'), 1.1, mode='nearest'),
+}
+
+fig, axes = plt.subplots(1, 4, figsize=(12, 3))
+for idx, (name, aug_fn) in enumerate(augmentations.items()):
+    aug_img = aug_fn(img.astype(float))
+    axes[idx].imshow(aug_img, cmap='gray')
+    axes[idx].set_title(name, fontsize=10)
+    axes[idx].axis('off')
+
+plt.suptitle('資料擴增（Data Augmentation）：同一張影像的多種變體', fontsize=13, y=1.05)
+plt.tight_layout()
+plt.show()
+print("\n資料擴增 = 正則化的一種形式。")
+print("每張原始影像周圍產生「雲」——不增加標註成本，卻大幅降低過擬合。")
+</code></pre>
+<div class="output-block">資料擴增 = 正則化的一種形式。
+每張原始影像周圍產生「雲」——不增加標註成本，卻大幅降低過擬合。</div>
+
+<h2>🎯 應用場景</h2>
+
+<div class="scenario-box">
+<h4>🏥 醫療：視網膜病變自動篩檢</h4>
+<p>Google 的糖尿病視網膜病變篩檢系統使用深度 CNN，在數十萬張眼底照片上訓練。卷積層先抓取微血管瘤（低階特徵），中層辨識出血點，高層判斷病變等級。在印度臨床試驗中，CNN 的靈敏度超過 87%，媲美眼科專科醫師。預訓練模型（如 ResNet）加上遷移學習讓小醫院也能部署。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🚗 自駕車：即時物件偵測</h4>
+<p>Tesla 和 Waymo 的自駕系統依賴 CNN 在毫秒級辨識行人、車輛、交通號誌。卷積層偵測邊緣和形狀，池化層壓縮運算量以滿足即時性要求（≥30 FPS）。資料擴增尤其重要——同一輛車在晴天、雨天、逆光的影像都要能正確分類。CIFAR100 的 32×32 分類是自駕車影像辨識的「Hello World」。</p>
+</div>
+
+<div class="scenario-box">
+<h4>📱 手機應用：即時翻譯鏡頭</h4>
+<p>Google Translate 的鏡頭翻譯功能：CNN 先從手機畫面中定位文字區域（卷積層偵測邊緣），OCR 辨識文字，再翻譯並覆蓋回畫面。因為手機算力有限，通常使用 MobileNet 等輕量 CNN，用權重凍結技術繼承大模型的特徵萃取能力。這正是課本 §10.3.5 的預訓練+微調策略的實戰應用。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🤖 對 Hermes 架構的啟發：模組化特徵萃取器</h4>
+<p>CNN 的「卷積濾波器 = 可重複使用的特徵偵測器」對應 Agent 系統的 <strong>skill 模組化設計</strong>：每個 skill 就像一個濾波器，針對特定任務模式（如 PDF 擷取、GA4 查詢、程式審查），在主 Agent 的協調下「滑動」到不同輸入上。預訓練模型（resnet50）對應 skill 中的參考實作模板——不從零開始，繼承既有知識。資料擴增對應子 Agent 的多角度覆核：讓不同模型（Gemini、DeepSeek、Qwen）對同一輸入給出獨立判斷，再用共識機制篩選——這就是 AI 版的 max pooling。</p>
+</div>
+
+<h2>⚖️ 優缺點對照</h2>
+
+<div class="pros-cons">
+<div class="pro">
+<h4>✅ 優點</h4>
+<ul>
+<li><strong>空間結構保留</strong>：不像全連接網路把像素打平，CNN 保留了鄰近像素的關係</li>
+<li><strong>權重共享效率高</strong>：一個 3×3 濾波器只有 9 個參數但掃遍整張圖，參數量比全連接少百倍</li>
+<li><strong>位置不變性</strong>：池化層確保特徵不論出現在哪個位置都能被捕捉</li>
+<li><strong>遷移學習友善</strong>：預訓練 CNN（如 ResNet50）的濾波器可跨任務重用，大幅降低資料需求</li>
+<li><strong>實證霸主</strong>：CIFAR100 達 75%+，ImageNet 錯誤率從 26% 降到 &lt;3%</li>
+</ul>
+</div>
+<div class="con">
+<h4>❌ 缺點</h4>
+<ul>
+<li><strong>超參數迷宮</strong>：層數、濾波器數、濾波器大小、池化窗口、步長……組合爆炸</li>
+<li><strong>訓練成本極高</strong>：深度 CNN 需 GPU 訓練數小時到數天，遠超線性模型</li>
+<li><strong>資料饑渴</strong>：沒有資料擴增或遷移學習，小資料集上的 CNN 極易過擬合</li>
+<li><strong>可解釋性黑洞</strong>：濾波器學到的特徵難以用人類語言描述，除錯困難</li>
+<li><strong>空間假設限制</strong>：CNN 假設局部空間相關性，對非歐幾里得資料（圖、文字）需改裝</li>
+</ul>
+</div>
+</div>
+
+<h2>📊 與其他神經網路架構比較</h2>
+
+<table>
+<tr><th>架構</th><th>隱藏層</th><th>參數共享？</th><th>空間感知？</th><th>適用領域</th><th>參數效率</th></tr>
+<tr><td><strong>單層 NN</strong> (§10.1)</td><td>1</td><td>否</td><td>否</td><td>迴歸、二元分類</td><td>高（簡單）</td></tr>
+<tr><td><strong>多層 NN</strong> (§10.2)</td><td>≥2</td><td>否</td><td>否</td><td>多元分類、表格資料</td><td>中（需正則化）</td></tr>
+<tr><td><strong>CNN</strong> (§10.3)</td><td>≥5（含卷積+池化）</td><td>是</td><td>是</td><td>影像、影片分類</td><td>極高（權重共享）</td></tr>
+<tr><td><strong>RNN</strong> (§10.5)</td><td>≥1（遞歸）</td><td>是（時間軸）</td><td>否（時序感知）</td><td>文字、序列資料</td><td>中</td></tr>
+</table>
+<p class="cite-ref">📚 對照對象選自 ISLP §10.1, §10.2, §10.5。</p>
+
+<h2>💡 關鍵洞察</h2>
+
+<div class="key-quote">
+<p>「從 CIFAR100 的 32×32×3 像素到 100 個類別標籤，CNN 做了傳統統計學無法想像的事：讓電腦自己學會什麼是『有用的特徵』。不是人類設計特徵（SIFT、HOG），而是梯度下降在數百萬次迭代中，把 3×3 的小方塊打磨成邊緣、斑紋、形狀的偵測器。這不是魔法——這是權重共享、空間不變性、和層層抽象的數學勝利。」</p>
+<div class="attr">— 課本 §10.3 精華 · 附 Figure 10.7–10.10 實證</div>
+</div>
+
+<div class="section-nav">
+<a href="10.2_multilayer_neural_networks.html">← 10.2 多層神經網路</a>
+<span style="color:var(--fg-muted)">10.4 文件分類 →（即將推出）</span>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<script>hljs.highlightAll();</script>
+<script src="../sidebar.js"></script>
+</body>
+</html>
