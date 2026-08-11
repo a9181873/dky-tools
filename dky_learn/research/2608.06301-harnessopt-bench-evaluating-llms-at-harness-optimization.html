@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HarnessOpt-Bench：讓 LLM 自己優化 Agent Harness — DKY 論文筆記</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{font-size:1.15rem;color:#fff;margin:2rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.25rem 1.5rem;margin:1rem 0;line-height:1.75}ol,ul{margin:.5rem 0 .5rem 1.5rem;line-height:1.8}li{margin:.3rem 0}b{color:#fff}.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;margin:1rem 0}.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}.mc h4{color:var(--accent2);margin:0 0 0.4rem;font-size:0.95rem}.mc p{margin:0;font-size:0.85rem;color:var(--fg)}table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.8rem}th{background:var(--card);color:var(--accent);text-align:left;padding:8px;border-bottom:2px solid var(--border)}td{padding:8px;border-bottom:1px solid var(--border);color:var(--fg)}tr:nth-child(even) td{background:#131820}@media(max-width:768px){.mb{grid-template-columns:1fr}body{padding:1rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>HarnessOpt-Bench：讓 LLM 自己優化 Agent Harness — Harness 工程從基礎設施變成模型能力</h1>
+  <p class="meta">arXiv:2608.06301 — 2026-08-06 — cs.AI — Varun Ursekar, Apaar Shanker 等（Scale AI）— Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">HarnessOpt-Bench</span><span class="tag">Harness Optimization</span><span class="tag">Agent Evaluation</span>
+    <span class="tag">Scale AI</span><span class="tag">Benchmark</span><span class="tag">Self-Improvement</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+<div class="card">
+<p>LLM 部署在 agentic system 中時，模型權重只是能力的一部分——<b>harness</b>（prompt、工具定義、控制流、記憶、編排程式碼）同樣決定最終表現。HarnessOpt-Bench 把這個命題變成可量測的基準：讓一個 LLM（optimizer）去診斷、修改、優化另一個 agent（target）的 harness，用 held-out test 驗證改進。五個前沿模型在四個下游任務上共 111 次評分運行，結果顯示：<b>模型選擇的影響力是 harness 選擇的 1.8 倍</b>；原生 harness 並無一致優勢（20 組對比中共享 harness 贏 11 次、原生贏 9 次）；最強配置 claude-opus-5 在 OfficeQA 捕捉了 63% 的可用 headroom。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>核心設計</h4><p>Optimizer 接收 seed harness + 分級回饋，在固定預算內編輯 harness、提名最終候選，由 held-out test 獨立評分</p></div>
+<div class="mc"><h4>模型 > Harness</h4><p>換模型平均增益差 0.142；換 harness 僅 0.079。模型影響力 1.8× harness</p></div>
+<div class="mc"><h4>原生無優勢</h4><p>共享 opencode 贏 11 vs 原生贏 9。但 GPT+codex 在 GAIA 上顯著更強（+0.18）</p></div>
+<div class="mc"><h4>廣度 > 細節</h4><p>觸及更多 harness 槓桿與增益正相關（ρ=0.34~0.88）；軌跡閱讀與增益<b>負</b>相關</p></div>
+</div>
+
+<h2>實驗矩陣</h2>
+<div class="card">
+<table>
+<tr><th>Optimizer 模型</th><th>OfficeQA</th><th>BrowseComp</th><th>Terminal</th><th>GAIA</th></tr>
+<tr><td><b>claude-opus-5 + opencode</b></td><td><b>0.63</b></td><td><b>0.48</b></td><td><b>0.29</b></td><td>0.47</td></tr>
+<tr><td>claude-sonnet-5 + opencode</td><td>0.51</td><td>0.15</td><td>0.15</td><td>0.25</td></tr>
+<tr><td>gpt-5.6-sol + codex</td><td>0.49</td><td>0.03</td><td>0.12</td><td><b>0.49</b></td></tr>
+<tr><td>gpt-5.6-terra + codex</td><td>0.07</td><td>-0.03</td><td>0.01</td><td>0.30</td></tr>
+<tr><td>kimi-k3 + kimi-cli</td><td>0.59</td><td>0.23</td><td>0.16</td><td>0.31</td></tr>
+</table>
+<p style="font-size:0.8rem;color:#8b949e">歸一化增益（最佳 per model）。解析度帶：OfficeQA ±0.045、BrowseComp-Plus ±0.066、Terminal-Bench ±0.054、GAIA ±0.035。</p>
+</div>
+
+<h2>五大發現</h2>
+<div class="card">
+<ol>
+<li><b>模型可分級，但非精細排名：</b>claude-opus-5 三任務全面領先；gpt-5.6-terra 接近零增益。中間模型的差距常小於 round-to-round 變異 → <b>梯隊而非排名</b></li>
+<li><b>版本軌跡可追蹤：</b>GPT 五版本在 OfficeQA 從 +0.03 單調升至 +0.49；Claude Opus 從 +0.37 到 +0.59</li>
+<li><b>廣度探索與增益正相關：</b>八類 harness 槓桿中，觸及愈多種類與增益愈相關（ρ=0.34~0.88）</li>
+<li><b>軌跡閱讀無助於增益：</b>Optimizer 依賴逐案例分數摘要而非完整軌跡；閱讀軌跡與增益負相關（-0.31~-0.64）</li>
+<li><b>Val 過度樂觀：</b>大多數 test 分數低於搜尋中最佳 val 分數 → held-out test 不可省略</li>
+</ol>
+</div>
+
+<h2>原生 Harness ≠ 最好 Harness</h2>
+<div class="card">
+<p>共享 opencode 勝 11 次、原生勝 9 次——無系統性優勢。但 GPT 系在 codex 下顯著更強：sol 從 0.31→0.49（+0.18）、terra 從 0.17→0.30（+0.13）。Claude 和 Kimi 的 native/shared 差異不顯著。<b>只讀 shared 會低估 GPT 的能力，只讀 native 會把 harness 貢獻歸因給模型。</b>雙 harness 設計是這個基準最關鍵的方法論貢獻。</p>
+</div>
+
+<h2>對 Hermes 的啟發</h2>
+<div class="card">
+<ul>
+<li><b>Harness 優化是 Hermes 的核心能力：</b>Hermes 本身就是一個 harness。目前最強模型能捕捉 63% OfficeQA headroom，但 Terminal-Bench 僅 29%——複雜系統的 harness 優化遠未飽和</li>
+<li><b>雙 Harness 設計的方法論：</b>比較 Hermes 在固定 harness vs 自身 tooling 下的改進，分離「模型進步」和「工具適配」</li>
+<li><b>廣度 > 細節：</b>快速嘗試多種 harness 改動類型，由評估反推有效方向，而非花時間細讀完整軌跡</li>
+<li><b>Held-out test 必要性：</b>Val 分數系統性高估真實增益——自我評估必須保留未見過的測試案例</li>
+<li><b>預算單位：</b>以「完整任務執行次數」而非「推論 token 數」作為 self-improvement 預算——case passes 才是真正的稀缺資源</li>
+</ul>
+</div>
+
+<h2>限制</h2>
+<div class="card">
+<ul>
+<li>僅限 Python、單一 target model——跨語言/跨 runtime/跨 agent 架構泛化未測試</li>
+<li>固定 tasks/splits，反覆回饋可能獎勵針對性策略——未來需引入 per-run jitter</li>
+<li>GAIA seed 是 stub vs 其他三任務是 competent-but-naive——seed 品質影響未系統性變化</li>
+<li>Optimizer 推論 token 不設限 → 結果代表「推理不受限」的上限</li>
+<li>未測試 optimizer=target 的自我優化場景（最貼近 Hermes 實際情境）</li>
+</ul>
+</div>
+
+</body>
+</html>
