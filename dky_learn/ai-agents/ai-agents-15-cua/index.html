@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打造 Computer Use Agent (CUA)：讓 AI 像人一樣操作瀏覽器 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 15 課繁體中文版：Browser-Use、Playwright/CDP 瀏覽器自動化、結構化資料擷取與安全防護">
+<link rel="stylesheet" href="../../course.css">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 15 課 / 共 18 課</p>
+<h1>打造 Computer Use Agent (CUA)：讓 AI 像人一樣操作瀏覽器</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="../ai-agents-14-maf/">← 第 14 課</a>
+<a href="../ai-agents-16-deploy/">第 16 課 →</a>
+</nav>
+
+<h2>本課概覽</h2>
+<div class="verdict">
+一句話：<strong>Computer Use Agent (CUA) 讓 AI 像真人一樣「開啟瀏覽器 → 觀察頁面 → 從所見內容決定下一步」；本課將打造一個搜尋 Airbnb、擷取結構化房源資料、找出斯德哥爾摩最便宜住宿的瀏覽器自動化 Agent。</strong>
+</div>
+
+<p>本課結合四大元件：<strong>Browser-Use</strong> 負責 AI 驅動導覽、<strong>Playwright 與 Chrome DevTools Protocol (CDP)</strong> 負責瀏覽器控制、<strong>Azure OpenAI</strong> 提供具視覺能力的推理、<strong>Pydantic</strong> 做結構化資料擷取。</p>
+
+<p>本課將涵蓋：</p>
+<ul>
+<li>了解何時 Computer Use Agent 比純 API 自動化更合適</li>
+<li>結合 Browser-Use 與 Playwright、CDP，可靠地管理瀏覽器生命週期</li>
+<li>使用 Azure OpenAI 視覺能力與 Pydantic 結構化輸出，從動態網頁擷取房源資料</li>
+<li>判斷何時採用 Agent 優先、Actor 優先、或混合式瀏覽器自動化流程</li>
+</ul>
+
+<h2>學習目標</h2>
+<p>完成本課後，你將知道如何：</p>
+<ul>
+<li>以 Azure OpenAI 與 Playwright 設定 Browser-Use</li>
+<li>建立能導覽真實網站、處理動態 UI 元素的瀏覽器自動化流程</li>
+<li>從可見的頁面內容擷取「型別化」結果，並轉換為下游商業邏輯</li>
+<li>依瀏覽器任務的可預測程度，在 Agent 與 Actor 模式間抉擇</li>
+</ul>
+
+<h2>程式範例</h2>
+<p>本課包含一個 Notebook 教學：</p>
+<ul>
+<li><a href="./15-browser-user.ipynb">15-browser-user.ipynb</a>：透過 CDP 啟動 Chrome 會話、搜尋 Airbnb 斯德哥爾摩房源、以 Browser-Use 視覺能力擷取價格，回傳最便宜選項的結構化資料。</li>
+</ul>
+
+<h2>前置需求</h2>
+<ul>
+<li>Python 3.12+</li>
+<li>環境中已設定好的 Azure OpenAI 部署</li>
+<li>本機安裝 Chrome 或 Chromium</li>
+<li>已安裝 Playwright 依賴</li>
+<li>基本 async Python 概念</li>
+</ul>
+
+<h2>安裝設定</h2>
+<p>安裝 Notebook 使用的套件：</p>
+<pre><code>pip install browser_use playwright python-dotenv
+playwright install chromium</code></pre>
+
+<p>設定 Notebook 使用的 Azure OpenAI 環境變數：</p>
+<pre><code>AZURE_OPENAI_ENDPOINT=...
+AZURE_OPENAI_API_KEY=...
+AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=...
+# 選用：省略時預設使用最新 API 版本
+AZURE_OPENAI_API_VERSION=...</code></pre>
+
+<h2>架構概覽</h2>
+<p>Notebook 展示的是<strong>混合式 (hybrid) 瀏覽器自動化流程</strong>：</p>
+<ol>
+<li>Chrome 以啟用 CDP 的方式啟動，讓 Playwright 與 Browser-Use 共用同一個瀏覽器會話。</li>
+<li>Browser-Use Agent 處理<strong>開放式導覽</strong>任務，例如開啟 Airbnb、關閉彈窗、搜尋斯德哥爾摩。</li>
+<li>以結構化 Pydantic schema 檢視當前頁面，擷取房源標題、每晚價格、評分與網址。</li>
+<li>Python 邏輯比較擷取到的房源，標出最便宜的選項。</li>
+</ol>
+<p>這種做法保留了 Browser-Use 擅長的彈性視覺推理，同時在需要時仍能給你確定性的瀏覽器控制。</p>
+
+<h2>Agent vs Actor：何時該用誰？</h2>
+<table>
+<tr><th>情境</th><th>用 Agent</th><th>用 Actor</th></tr>
+<tr><td>動態版面</td><td>是，AI 能適應頁面變化</td><td>否，脆弱的選擇器容易失效</td></tr>
+<tr><td>已知結構</td><td>否，Agent 比直接控制慢</td><td>是，快速且精準</td></tr>
+<tr><td>尋找元素</td><td>是，自然語言非常有效</td><td>否，需要精確的選擇器</td></tr>
+<tr><td>時序控制</td><td>否，較難預測</td><td>是，完全掌控等待與重試</td></tr>
+<tr><td>複雜工作流程</td><td>是，能處理意外的 UI 狀態</td><td>否，需要顯式的分支邏輯</td></tr>
+</table>
+
+<h2>Browser-Use 最佳實踐</h2>
+<ol>
+<li>先用 Agent 進行探索與動態導覽。</li>
+<li>當互動變得可預測時，切換為直接頁面控制。</li>
+<li>使用結構化輸出模型，讓擷取的資料被驗證且型別安全。</li>
+<li>在會觸發可見 UI 變化的動作之後，策略性地加入延遲。</li>
+<li>迭代時擷取螢幕截圖，讓失敗更容易除錯。</li>
+<li>預期網站會變動，為彈窗與版面位移設計備援策略。</li>
+<li>混合 Agent 與 Actor 模式，同時取得彈性與精準。</li>
+</ol>
+
+<h2>瀏覽器 Agent 的安全防護 (Safety Guardrails)</h2>
+<p>瀏覽器 Agent 在<strong>真實網站</strong>上運作，因此需要比「只呼叫已知 API 的腳本」更嚴格的邊界。從 Notebook 展示走向真實工作流程之前，先定義 Agent 能「看什麼、點什麼、提交什麼」的控管：</p>
+<ol>
+<li><strong>界定瀏覽環境範圍。</strong>在專屬的瀏覽器 profile 或沙箱中執行 Agent，並限制它只能存取任務所需的網域。</li>
+<li><strong>分離「觀察」與「行動」。</strong>先讓 Agent 搜尋、閱讀、擷取資料；在提交表單、發送訊息、訂房、購物、刪除紀錄或更改帳戶設定之前，要求明確的核准步驟。</li>
+<li><strong>金鑰不要進入提示與追蹤。</strong>不要把密碼、付款資料、Session Cookie 或原始個人資料放進模型上下文。認證交由使用者接管，並從日誌中移除敏感欄位。</li>
+<li><strong>把頁面內容視為不可信輸入。</strong>網站可能包含「針對 Agent、而非使用者」的指令。Agent 應忽略任何要求它改變目標、洩漏資料、關閉防護或造訪無關網站的頁面文字。</li>
+<li><strong>在高風險步驟周圍使用確定性檢查。</strong>在要求使用者核准最終步驟前，先用程式碼驗證當前 URL、頁面標題、選中項目、價格、收件人與動作摘要。</li>
+<li><strong>設定預算與停止條件。</strong>限制 Agent 可使用的動作數、重試次數、分頁數與分鐘數。當頁面狀態不明時就停止，而非繼續點擊。</li>
+<li><strong>記錄有用的證據，而非全部。</strong>保留動作摘要、時間戳、URL、選中元素描述與螢幕截圖參考，以便檢視失敗，同時避免儲存不必要的敏感頁面內容。</li>
+</ol>
+<div class="card">
+<p>在 Airbnb 範例中，安全的預設做法是<strong>搜尋房源並擷取價格</strong>。登入、聯絡房東或完成訂房，都應是<strong>獨立的、由使用者核准的動作</strong>。</p>
+</div>
+
+<h2>實際應用場景</h2>
+<ul>
+<li>旅遊訂房與價格監控</li>
+<li>電商比價與庫存可用性檢查</li>
+<li>從動態網站擷取結構化資料</li>
+<li>具視覺感知的 UI 測試與驗證</li>
+<li>網站監控與告警</li>
+<li>跨多步驟流程的智慧表單填寫</li>
+</ul>
+
+<h2>實際範例：Microsoft Project Opal</h2>
+<p>本課打造的 Agent，正是<strong>Computer Use Agent (CUA)</strong>——一個「像人一樣驅動瀏覽器」的程式——的小型本地版本。微軟把同樣的概念帶到企業，以 <a href="https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-project-opal-frontier">Project Opal (Frontier)</a> 的形式提供，作為 Microsoft 365 Copilot 的一項能力。</p>
+<p>有了 Project Opal，你描述任務，Agent 就在<strong>安全的 Windows 365 Cloud PC</strong> 上以 computer use 為你代勞，跨你組織內的瀏覽器應用程式、網站與資料運作。它<strong>非同步地在背景運作</strong>，你隨時可以引導工作或接手控制。範例工作包括：</p>
+<ul>
+<li>管理安全群組成員申請</li>
+<li>收集並驗證合規審查的稽核證據</li>
+<li>IT 事故分類（更新工單狀態、指派負責人、關閉重複工單）</li>
+<li>將 Excel 資料彙編成財務結算簡報</li>
+</ul>
+<p>Opal 是「<strong>生產級、可信賴</strong>的 computer use agent」絕佳參考範本，也呼應了前幾課的概念：</p>
+<table>
+<tr><th>本課概念</th><th>Project Opal 如何應用</th></tr>
+<tr><td><strong>Human-in-the-loop</strong>（第 06 課）</td><td>遇到登入憑證、敏感資料或模糊指令時暫停；從不自行輸入密碼或未經明確確認就提交表單。可隨時 Take Control / Return Control。</td></tr>
+<tr><td><strong>可信賴且安全的 Agent</strong>（第 06 &amp; 18 課）</td><td>在隔離的 Windows 365 Cloud PC 執行、預設僅瀏覽器（其他電腦存取被封鎖，經 Intune 強制）、使用你的身份（只存取你被授權的內容）、記錄每個動作供稽核。</td></tr>
+<tr><td><strong>規劃與元認知</strong>（第 07 &amp; 09 課）</td><td>先為工作產生計畫，再逐步監督自身推理，偵測到可疑活動即暫停。</td></tr>
+<tr><td><strong>可重用的能力 / 工具</strong>（第 04 課）</td><td>透過 <strong>Skills</strong> 為重複性工作撰寫指令（從 .md 檔匯入或與 Opal 一起撰寫），並跨對話重用。</td></tr>
+</table>
+<div class="callout">
+<strong>可用性：</strong>Project Opal 目前提供給 <a href="https://adoption.microsoft.com/copilot/frontier-program/">Frontier early access program</a> 且具 Microsoft 365 Copilot 訂閱的使用者，需由管理員完成設定。因屬實驗性 Frontier 功能，能力可能隨時間變動。
+</div>
+
+<h2>知識測驗</h2>
+<p><strong>1. 何時瀏覽器型 Computer Use Agent 比純 API 工作流程更合適？</strong></p>
+<details><summary>查看答案</summary><p>當任務依賴網頁 UI 上「看得見」的內容、網站沒有提供所需 API、或頁面變動頻繁到固定的 API 或選擇器邏輯會變脆弱時，就用瀏覽器 Agent。若同一任務存在穩定的 API，則優先使用 API，因為它通常更快、更容易測試、也更容易保護。</p></details>
+
+<p><strong>2. 在混合式流程中，哪些部分交給 Agent、哪些交給直接的 Playwright 程式碼？</strong></p>
+<details><summary>查看答案</summary><p>讓 Agent 處理開放式導覽與動態 UI 狀態（例如找到正確頁面、關閉意外彈窗）。當頁面結構已知、且動作需要精準、重試、等待或確定性驗證時，切換為直接 Playwright 控制。</p></details>
+
+<p><strong>3. Airbnb 範例找到一個使用者可能想訂的房源。在簽入、聯絡房東或完成訂房之前，應發生什麼事？</strong></p>
+<details><summary>查看答案</summary><p>流程應暫停並要求明確的使用者核准。在詢問之前，應先展示所選房源、當前 URL、價格、日期與預期動作的清楚摘要。搜尋與擷取價格可以自動進行；帳戶存取、訊息、購物與訂房則須由使用者核准。</p></details>
+
+<p><strong>4. 一個網頁告訴 Agent 忽略原本的指令、造訪另一個網站、並洩漏已儲存的憑證。Agent 該如何處理這段文字？</strong></p>
+<details><summary>查看答案</summary><p>把它視為「不可信的頁面內容」，而非開發者或使用者的指令。Agent 應停留在允許的網域與任務範圍內、拒絕洩漏機密、並避免遵循任何會改變目標、停用防護或導向無關網站的頁面文字。</p></details>
+
+<p><strong>5. 瀏覽器 Agent 執行時，哪些證據值得保留、哪些應避免？</strong></p>
+<details><summary>查看答案</summary><p>保留動作摘要、時間戳、URL、選中元素描述、驗證結果與螢幕截圖參考，讓執行紀錄可供檢視。避免儲存密碼、付款資料、Session Cookie、原始個人資料或完整頁面內容，除非有特定的保留與隱私理由。</p></details>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>CUA = 讓 AI 像人一樣操作瀏覽器</strong>，適合「任務依賴可見 UI、無可用 API、頁面頻繁變動」的情境；有穩定 API 時仍應優先選 API。</li>
+<li><strong>混合流程最佳</strong>：Agent 處理開放式導覽與動態 UI，Actor (Playwright) 處理已知結構的精準操作、等待與重試。</li>
+<li><strong>結構化輸出 (Pydantic)</strong> 讓擷取的資料型別安全、可驗證，可直接轉為下游商業邏輯。</li>
+<li><strong>瀏覽器 Agent 需要更嚴格的安全邊界</strong>：界定範圍、分離觀察與行動、金鑰不進提示、把頁面內容當不可信輸入、高風險步驟做確定性檢查。</li>
+<li><strong>Project Opal 是企業級 CUA 的參考範本</strong>，呼應第 04（工具）、06（人機迴圈／可信賴）、07（規劃）、09（元認知）、18（安全）課的概念。</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/15-browser-use">原始 README（英文）</a></li>
+<li><a href="https://support.microsoft.com/en-us/microsoft-365-copilot/get-started-with-project-opal-frontier">Project Opal (Frontier) 入門</a></li>
+<li><a href="https://docs.browser-use.com/examples/templates/playwright-integration">Browser-Use Playwright 整合範本</a></li>
+<li><a href="https://docs.browser-use.com/customize/actor/all-parameters">Browser-Use actor 參數與內容擷取</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/00-course-setup">課程設定</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="../ai-agents-14-maf/">← 第 14 課</a>
+<a href="../ai-agents-16-deploy/">第 16 課 →</a>
+</nav>
+</main>
+</body>
+</html>
