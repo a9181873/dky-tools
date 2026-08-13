@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Skills Can Be Harmful：當技能反而傷害 Agent — DKY 論文筆記</title>
+<style>:root{--bg:#0d1117;--fg:#c9d1d9;--card:#161b22;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--warn:#d2991d;--red:#e05555}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;line-height:1.85;max-width:800px;margin:0 auto;padding:2rem 1.5rem}header{text-align:center;padding:2rem 0 1.5rem;border-bottom:2px solid var(--border);margin-bottom:2rem}header h1{font-size:1.6rem;color:#fff;margin-bottom:.5rem;line-height:1.4}header .meta{font-size:.9rem;color:#8b949e}.tags{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-top:.8rem}.tag{background:#1f2a37;color:var(--accent);padding:.2rem .7rem;border-radius:12px;font-size:.8rem;border:1px solid var(--border)}h2{font-size:1.2rem;color:var(--accent);margin:2rem 0 .8rem;border-left:3px solid var(--accent);padding-left:.6rem}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin:.8rem 0}.card p{line-height:1.85}.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin:1rem 0}.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem}.mc h4{color:var(--accent2);margin:0 0 .4rem;font-size:.95rem}.mc p{margin:0;font-size:.85rem;color:var(--fg)}table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.85rem}th{background:#1f2a37;color:var(--accent);text-align:left;padding:8px;border-bottom:2px solid var(--border)}td{padding:8px;border-bottom:1px solid var(--border)}tr:nth-child(even) td{background:#12161d}ol,ul{margin:1rem 0 1rem 1.5rem;line-height:1.85}code{background:#1f2a37;color:var(--accent2);padding:.1rem .4rem;border-radius:4px;font-size:.85em}@media(max-width:768px){.mb{grid-template-columns:1fr}body{padding:1.2rem}}</style>
+</head>
+<body>
+
+<header>
+  <h1>Agent Skills Can Be Harmful：當技能反而傷害 Agent — 307 個技能誘發失敗的實證拆解</h1>
+  <p class="meta">arXiv:2608.11888 — 2026-08-12 — cs.AI — Gen Dong, Yanjie Gao, Liqun Li, Tianyin Xu, Yu Hua, Fan Yang（Microsoft Research 實習）— Hermes Agent generated</p>
+  <div class="tags">
+    <span class="tag">Agent Skills</span><span class="tag">Skill-Induced Failure</span><span class="tag">SkillTriage</span>
+    <span class="tag">Microsoft Research</span><span class="tag">Differential Analysis</span><span class="tag">LLM Agent</span>
+  </div>
+</header>
+
+<h2>一句話核心結論</h2>
+<div class="card">
+<p>技能是擴充 LLM agent 的標準機制，但這篇 Microsoft Research 研究揭示反直覺真相：<b>傷害 agent 的通常不是明顯不相關的技能，而是「看起來很相關」的技能</b>。差分分析框架在 SkillsBench 與 SWE-Skills-Bench 上確認 <b>307 個技能誘發失敗</b>（125 功能失敗 + 182 效率迴歸）。Task-Implementation Fault 佔功能失敗 68.8%（相關技能讓 agent 做錯或漏做必要元素）；Excessive Procedure 佔效率迴歸 62.6%（技能把驗證清單與建構配方變成強制工作）。釋出 SkillTriage 自動歸因工具，功能失敗根因命中率 88.8%。</p>
+</div>
+
+<div class="mb">
+<div class="mc"><h4>307 個失敗</h4><p>125 功能失敗 + 182 效率迴歸，兩個基準差分對比確認</p></div>
+<div class="mc"><h4>相關技能才致命</h4><p>僅 1.6% 是明顯不相關技能；68.8% 是 Task-Implementation Fault</p></div>
+<div class="mc"><h4>不是 prompt 太長</h4><p>62.6% 是 Excessive Procedure（多做步驟），僅 25.3% 是 context 膨脹</p></div>
+<div class="mc"><h4>SkillTriage</h4><p>功能失敗 88.8%、效率迴歸 72.5% 命中根因</p></div>
+</div>
+
+<h2>方法：差分分析框架</h2>
+<div class="card">
+<p>技能效果「好壞混雜」是已知事實，但過去無法把失敗歸因到具體技能。這篇論文把「差分測試」思維搬到技能評估：</p>
+<ul>
+<li><b>對照構建：</b>每個技能引導執行，配對一個無技能／語義匹配技能的參考執行解同一題。目標失敗而參考成功 → 技能誘發功能失敗；token 與時間雙增且超 T=2.0 門檻 → 技能誘發效率迴歸</li>
+<li><b>根因分類：</b>功能失敗四類（適用性／環境／任務實作／產物錯位）；效率迴歸三類（context 膨脹／過度程序／依賴解析）</li>
+<li><b>自動歸因：</b>SkillTriage 正規化配對案例、抽差分證據、產分診報告</li>
+</ul>
+<p>它把「技能好不好」從主觀感受變成<b>可量測、可歸因、可自動化</b>的工程問題。</p>
+</div>
+
+<h2>功能失敗分類（125 例）</h2>
+<div class="card">
+<table>
+<tr><th>類別</th><th>數量</th><th>佔比</th></tr>
+<tr><td>Task-Implementation Fault（做錯／漏做必要元素）</td><td>86</td><td>68.8%</td></tr>
+<tr><td>Artifact Misplacement（產物放錯位置）</td><td>24</td><td>19.2%</td></tr>
+<tr><td>Environment Mismatch（依賴／環境錯配）</td><td>13</td><td>10.4%</td></tr>
+<tr><td>Applicability Mismatch（適用性錯配）</td><td>2</td><td>1.6%</td></tr>
+</table>
+<p style="font-size:0.8rem;color:#8b949e">TIF 內部 IRF（做錯必要元素）+ RRO（漏做必要元素）合計 82 例。</p>
+</div>
+
+<h2>效率迴歸分類（182 例）</h2>
+<div class="card">
+<table>
+<tr><th>類別</th><th>子類</th><th>數量</th><th>佔比</th></tr>
+<tr><td rowspan="3">Excessive Procedure</td><td>Excessive Verification（過度驗證）</td><td>67</td><td>36.8%</td></tr>
+<tr><td>Heavy Implementation Pipeline</td><td>30</td><td>16.5%</td></tr>
+<tr><td>Excessive Exploration</td><td>17</td><td>9.3%</td></tr>
+<tr><td>Context Bloat</td><td>Skill-Body 43 + Supplementary 3</td><td>46</td><td>25.3%</td></tr>
+<tr><td>Dependency Resolution</td><td>脆弱／不相容依賴</td><td>22</td><td>12.1%</td></tr>
+</table>
+<p style="font-size:0.8rem;color:#8b949e">EP 小計 114 例（62.6%）> CO 46 例（25.3%）——推翻「只是 prompt 變長」的直覺。</p>
+</div>
+
+<h2>四大發現</h2>
+<div class="card">
+<ol>
+<li><b>相關技能才致命：</b>125 例中僅 2 例（1.6%）是明顯不相關技能；絕大多數是「看起來高度相關」卻讓 agent 做錯或漏做必要元素（TIF 68.8%）</li>
+<li><b>效率迴歸不是 prompt 太長：</b>Excessive Procedure 佔 62.6%，遠高於 Context Bloat 25.3%。技能把可選活動變成強制步驟</li>
+<li><b>context 膨脹幾乎全來自強制正文：</b>46 例中 43 例是 Skill-Body Context Bloat。技能正文應精簡，範例／長清單應延遲載入</li>
+<li><b>過度驗證 + 重型建構管線是最大來源：</b>67 + 30 例。驗證範圍與建構深度應依不確定性、變更規模、預算調整</li>
+</ol>
+</div>
+
+<h2>對 Hermes / DKY 的啟發</h2>
+<div class="card">
+<ul>
+<li><b>Hermes 本身就是重度技能系統：</b>技能、Profile、Kanban 派工正是論文研究對象，結論直接適用於 DKY 技能庫設計</li>
+<li><b>驗證清單要「按需縮放」：</b>技能文件裡的 checklist 應標明何時可跳過，依任務不確定性與變更規模縮放，而非無條件跑完整流程</li>
+<li><b>精簡正文、延遲載入範例：</b>context 膨脹 93%（43/46）來自強制正文，應把範例／範本／長清單移到 lazy-load 觸發器之後</li>
+<li><b>差分評估是技能品質的黃金標準：</b>問「同一任務加技能 vs 不加技能，成功率與成本差多少」，而非單次成功與否</li>
+<li><b>「看起來相關」是最大風險信號：</b>適用性不能只靠名稱判斷，技能載入應是「有成本、需驗證」的決策</li>
+</ul>
+</div>
+
+<h2>限制</h2>
+<div class="card">
+<ul>
+<li>基於 SkillsBench + SWE-Skills-Bench，未覆蓋創意寫作、科學推理等非工程任務</li>
+<li>效率迴歸以 T=2.0 倍增門檻界定，更細微迴歸（1.5×）可能被排除</li>
+<li>SkillTriage 對效率迴歸的精確子類歸因（72.5%）低於功能失敗（88.8%），邊界案例難自動區分</li>
+<li>以單一 agent 框架與特定技能庫為基礎，跨框架泛化性待驗證</li>
+</ul>
+</div>
+
+</body>
+</html>
