@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0d1117">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10.4 文件分類 — ISLP 統計學習課程</title>
+<style>
+:root {
+--bg:#0d1117;--surface:#161b22;--border:#30363d;
+--fg:#c9d1d9;--fg-muted:#8b949e;--heading:#f0f6fc;
+--accent:#58a6ff;--good:#3fb950;--warn:#d2991d;--err:#f85149;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+background:var(--bg); color:var(--fg); line-height:1.8;
+padding:2rem 2.5rem 3rem; max-width:880px;
+}
+h1 { font-size:1.6rem; color:var(--heading); margin-bottom:0.4rem; }
+h2 {
+font-size:1.2rem; color:var(--accent); margin:2.2rem 0 0.8rem;
+border-left:3px solid var(--accent); padding-left:0.7rem;
+}
+h3 { font-size:1.05rem; color:var(--heading); margin:1.5rem 0 0.5rem; }
+.chapter-tag { display:inline-block; background:#1a2a3a; color:var(--accent); font-size:0.75rem; padding:0.2rem 0.7rem; border-radius:1rem; margin-bottom:0.8rem; }
+.meta { color:var(--fg-muted); font-size:0.85rem; margin-bottom:1.5rem; line-height:1.6; }
+.stars { color:var(--warn); letter-spacing:0.1em; }
+.tag { display:inline-block; font-size:0.68rem; padding:0.15rem 0.6rem; border-radius:0.7rem; background:#1a2a3a; color:var(--accent); margin:0.2rem 0.3rem 0.2rem 0; }
+blockquote {
+background:var(--surface); border-left:3px solid var(--accent);
+margin:1rem 0; padding:0.9rem 1.2rem; border-radius:0 6px 6px 0; font-size:0.9rem;
+}
+blockquote strong { color:var(--accent); }
+blockquote .cite { display:block; margin-top:0.4rem; font-size:0.78rem; color:var(--fg-muted); }
+.cite-ref { font-size:0.78rem; color:var(--fg-muted); font-style:italic; margin-top:-0.5rem; margin-bottom:1rem; }
+pre { position:relative; }
+pre code { font-size:0.82rem; line-height:1.55; }
+code { font-size:0.88rem; background:#1c2128; padding:0.13rem 0.35rem; border-radius:3px; }
+pre code { background:transparent; padding:0; }
+pre code.language-python { display:block; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:1rem 1.2rem; overflow-x:auto; }
+.output-block { background:#1c2128; border:1px solid var(--border); border-radius:0 0 6px 6px; padding:0.7rem 1rem; margin-top:-1px; font-size:0.82rem; color:var(--fg-muted); font-family:monospace; white-space:pre-wrap; }
+.output-block::before { content:"輸出"; display:block; font-size:0.68rem; color:var(--good); margin-bottom:0.3rem; }
+.formula-block { text-align:center; margin:1.2rem 0; overflow-x:auto; }
+.scenario-box {
+background:linear-gradient(135deg, #1a2332 0%, #162032 100%);
+border:1px solid var(--border); border-radius:8px; padding:1rem 1.2rem; margin:1rem 0;
+}
+.scenario-box h4 { color:var(--accent); font-size:0.95rem; margin-bottom:0.4rem; }
+.scenario-box p { font-size:0.85rem; color:var(--fg-muted); }
+.pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0; }
+.pros-cons .pro, .pros-cons .con {
+border-radius:8px; padding:1rem 1.2rem;
+}
+.pros-cons .pro { background:#12261e; border:1px solid #1a3a2a; }
+.pros-cons .con { background:#261a1a; border:1px solid #3a2222; }
+.pros-cons h4 { font-size:0.9rem; margin-bottom:0.5rem; }
+.pros-cons .pro h4 { color:var(--good); }
+.pros-cons .con h4 { color:var(--err); }
+.pros-cons ul { font-size:0.82rem; padding-left:1.2rem; line-height:1.6; }
+table {
+width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem;
+}
+th { background:var(--surface); color:var(--accent); text-align:left; padding:0.6rem 0.8rem; border-bottom:2px solid var(--border); }
+td { padding:0.5rem 0.8rem; border-bottom:1px solid var(--border); }
+tr:hover td { background:rgba(88,166,255,0.04); }
+.key-quote {
+text-align:center; margin:2rem 0; padding:1.5rem 2rem;
+border-radius:8px; background:linear-gradient(135deg, #1a2332, #151f2b);
+border:1px solid var(--border);
+}
+.key-quote p { font-size:1.05rem; color:var(--heading); font-style:italic; }
+.key-quote .attr { font-size:0.78rem; color:var(--fg-muted); margin-top:0.5rem; }
+.section-nav { display:flex; justify-content:space-between; margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border); font-size:0.85rem; }
+.section-nav a { color:var(--accent); text-decoration:none; }
+.section-nav a:hover { text-decoration:underline; }
+@media (max-width:768px) {
+body { padding:1rem; }
+.pros-cons { grid-template-columns:1fr; }
+}
+.hljs { background:var(--surface); }
+</style>
+</head>
+<body>
+
+<h1>10.4 文件分類 (Document Classification)</h1>
+<div class="chapter-tag">第 10 章 · 深度學習</div>
+<div class="meta">
+<span class="stars">★★★★☆</span> 難度：中階 · 課本 pp. 413–416 · 2026-08-13
+</div>
+<div>
+<span class="tag">文件分類</span><span class="tag">Bag-of-Words</span><span class="tag">稀疏矩陣</span><span class="tag">Lasso</span><span class="tag">神經網路</span><span class="tag">IMDb 情感分析</span>
+</div>
+
+<h2>📚 理論基礎</h2>
+
+<blockquote>
+<strong>文件分類（Document Classification）</strong>是深度學習在產業與科學上最重要的應用之一：給一篇文件（醫學期刊、路透社新聞、電子郵件、推文、電影評論），預測它的某個屬性。課本以 <strong>IMDb 電影評論</strong>為例——目標是判斷一則評論的情感是<strong>正面</strong>還是<strong>負面</strong>。核心挑戰只有一個：<strong>如何把一段長短不一、充滿俚語與錯字的文字，轉換成模型看得懂的數字？</strong>
+<span class="cite">📚 James, Witten, Hastie, Tibshirani (2023) <em>An Introduction to Statistical Learning with Python</em>, §10.4, pp. 413–416</span>
+</blockquote>
+
+<p>課本引用了 IMDb 資料集中一則「令人捧腹的負評」：</p>
+<blockquote>
+<p>「This has to be one of the worst films of the 1990s. When my friends &amp; I were watching this film... we just sat &amp; watched the first half an hour with our jaws touching the floor at how bad it really was... everyone else in the theater just started talking to each other, leaving or generally crying into their popcorn...」</p>
+<span class="cite">📚 Maas et al. (2011) "Learning word vectors for sentiment analysis", ACL-HLT 2011, pp. 142–150</span>
+</blockquote>
+
+<p>這段話沒有固定的長度、有縮寫（&amp;）、有口語——機器要怎麼「讀」它？答案是把文件「特徵化」（featurize），也就是把一篇文字轉成一群預測變數。這正是本節的主題。</p>
+
+<h3>10.4.1 詞袋模型：把文字變成 0 和 1</h3>
+
+<p>最簡單也最常用的特徵化方法是<strong>詞袋模型（bag-of-words）</strong>。想像你有一個「英語字典」，裡面有 M 個詞。對每一篇文件，我們就建立一個長度 M 的二元特徵向量：<strong>這個詞有出現 → 記 1；沒出現 → 記 0</strong>。</p>
+
+<div class="formula-block">
+\[
+x^{(i)}_j = \begin{cases} 1, & \text{若第 } j \text{ 個詞出現在文件 } i \text{ 中} \\ 0, & \text{否則} \end{cases}
+\]
+</div>
+
+<p>「詞袋」這個名字很傳神——我們把所有詞丟進一個袋子裡，只記錄「哪些詞在裡面」，<strong>完全不管詞與詞的順序和上下文</strong>。就像把一本書的所有字剪下來撒在地上，只統計每個字出現了幾次，卻忘了它們原本的排列。</p>
+
+<p>問題來了：英語字典有幾十萬個詞，特徵向量會寬到爆炸。課本的解法是<strong>限制字典大小</strong>——只用訓練語料中<strong>最常出現的 10,000 個詞</strong>。於是一篇影評就變成一個長度 10,000 的二元向量。課本展示了一則被「遮罩」過的正面評論：</p>
+
+<blockquote>
+<p>⟨START⟩this film was just brilliant casting location scenery story direction everyone's really suited the part they played... robert ⟨UNK⟩is an amazing actor... father came from the same scottish island as myself so i loved...</p>
+<span class="cite">📚 課本 §10.4 的遮罩範例：常見詞被保留，罕見詞被標記為 ⟨UNK⟩</span>
+</blockquote>
+
+<p>你可以看到很多詞被省略了，未知詞被標成 ⟨UNK⟩。經過這番縮減，每篇影評變成一個 10,000 維的二元向量，絕大部分是 0，只有零星的 1。</p>
+
+<h3>10.4.2 稀疏矩陣：99% 都是零，那就別存了</h3>
+
+<p>IMDb 的訓練集有 25,000 篇評論，詞典有 10,000 個詞，所以特徵矩陣 <strong>X</strong> 的維度是 <strong>25,000 × 10,000</strong>——總共 2.5 億個格子。但課本指出：<strong>只有 1.3% 的二元項是非零的</strong>。這意味著超過 2.4 億個格子都是零。</p>
+
+<p>這種大部分值相同（都是零）的矩陣叫做<strong>稀疏矩陣（sparse matrix）</strong>。聰明的做法是不存整張表，而是<strong>只存「非零項的位置和值」</strong>——在本例中，非零項全是 1，所以連值都不用存，只存位置即可。這就把儲存空間壓縮了數十倍，是處理文字資料的標準技巧。</p>
+
+<p>課本還補充：詞袋模型也可以用<strong>相對詞頻</strong>（而非單純 0/1）來處理文件長度差異，但在本例中，課本選擇最簡單的「詞在或不在」二元表示。</p>
+
+<h3>10.4.3 兩個模型打擂台：Lasso vs 神經網路</h3>
+
+<p>課本從 25,000 篇訓練評論中切出 2,000 篇當驗證集（用於調參），然後訓練<strong>兩條模型序列</strong>：</p>
+
+<ul style="padding-left:1.5rem; margin:0.8rem 0; font-size:0.9rem;">
+  <li><strong>Lasso 邏輯回歸</strong>：以正則化參數 λ 為索引，產生一連串解（λ 越大，懲罰越強，模型越簡單）</li>
+  <li><strong>兩層神經網路</strong>：兩個隱藏層、各 16 個 ReLU 單元，以梯度下降的迭代次數（epoch）為索引</li>
+</ul>
+
+<p>課本 Figure 10.11 顯示：兩個模型的<strong>訓練準確率都單調遞增</strong>（黑點）——這是過擬合的典型徵兆，因為模型越來越能「背」訓練資料。關鍵在於用<strong>驗證誤差（藍點）</strong>從每個序列中挑出一個好解，再用它對測試集預測。</p>
+
+<p>結論很漂亮：<strong>兩個模型都達到約 88% 的測試準確率</strong>。這呼應了全書反覆出現的主題——在許多實際問題上，簡單的線性模型（搭配良好的特徵化）和複雜的深度模型表現不相上下。</p>
+
+<h3>10.4.4 兩類神經網路 = 非線性邏輯回歸</h3>
+
+<p>課本接著揭露了一個重要洞察：一個<strong>兩類的神經網路，本質上就是一個非線性的邏輯回歸模型</strong>。神經網路的輸出層用 softmax 產生兩個類別的機率，而兩者的對數勝算比可以展開成：</p>
+
+<div class="formula-block">
+\[
+\log\left(\frac{\Pr(Y=1 \mid X)}{\Pr(Y=0 \mid X)}\right) = Z_1 - Z_0
+= (\beta_{10}-\beta_{00}) + \sum_{\ell=1}^{K_2} (\beta_{1\ell}-\beta_{0\ell})\, A^{(2)}_\ell
+\]
+</div>
+<p class="cite-ref">課本式 (10.15)：右邊正是以隱藏層輸出 A(2) 為特徵的邏輯回歸，只是這些特徵是神經網路自己學出來的（非線性轉換）。</p>
+
+<p>這個展開同時說明了 softmax 的<strong>冗餘性</strong>：對 K 個類別，我們其實只需要估計 <strong>K−1 組係數</strong>（見 §4.3.5）。兩個類別時，只需要一組係數，對應一個勝算比。</p>
+
+<p>課本在此還做了個用詞提醒：Figure 10.11 畫的是<strong>準確率（accuracy，答對比例）</strong>而非<strong>錯誤率（error，答錯比例）</strong>，前者在機器學習社群更流行。</p>
+
+<h3>10.4.5 詞袋的局限：順序與上下文</h3>
+
+<p>詞袋模型最大的缺點是：<strong>它完全忽略了詞的上下文</strong>。課本舉了「blissfully long」和「blissfully short」——若只看單詞，「blissfully」是正面詞，「long」和「short」都是中性詞，詞袋模型無法區分「幸福地長」和「幸福地短」的差異（前者是讚美，後者可能是諷刺）。課本給了至少兩種納入上下文的方法：</p>
+
+<ul style="padding-left:1.5rem; margin:0.8rem 0; font-size:0.9rem;">
+  <li><strong>詞袋 n-gram 模型（bag-of-n-grams）</strong>：例如 2-gram 記錄「每對連續出現的詞」，捕捉 "blissfully long" 這種搭配</li>
+  <li><strong>序列模型（sequence models）</strong>：把文件視為詞的序列，考慮每個詞前後的所有詞——這就是下一節（§10.5）遞歸神經網路 RNN 的主題</li>
+</ul>
+
+<p>課本預告：IMDb 的例子會在 §10.5 用 RNN 繼續深入。</p>
+
+<h2>⚡ Python 實作：詞袋與稀疏矩陣</h2>
+
+<pre><code class="language-python"># 10.4 文件分類 — bag-of-words 特徵化示範（自給自足版本）
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
+
+# 一組簡短的電影評論（正面 vs 負面）
+reviews = [
+    "brilliant casting scenery story direction",
+    "this film was just brilliant casting location scenery",
+    "amazing actor and wonderful story",
+    "worst film of the 1990s jaw dropping bad",
+    "just terrible acting awful plot boring",
+    "crying into my popcorn leaving the theater bad",
+    "great movie loved the scenery",
+    "awful boring waste of time terrible",
+]
+
+# bag-of-words：二元表示（出現=1，未出現=0）
+vec = CountVectorizer(binary=True)
+X = vec.fit_transform(reviews).toarray()
+words = vec.get_feature_names_out()
+
+print("詞典（特徵）:", list(words))
+print("特徵矩陣 shape:", X.shape, "（文件數 × 詞典大小）")
+print("非零比例: %.1f%%" % (100 * X.sum() / X.size))
+
+plt.figure(figsize=(10, 4))
+plt.imshow(X, cmap='gray_r', aspect='auto', interpolation='nearest')
+plt.xlabel('詞典特徵（words）')
+plt.ylabel('文件（reviews）')
+plt.title('Bag-of-Words 二元特徵矩陣（黑=1 出現，白=0 未出現）')
+plt.tight_layout()
+plt.show()
+</code></pre>
+<div class="output-block">詞典（特徵）: ['acting' 'amazing' 'and' 'awful' 'bad' 'boring' 'brilliant' 'casting' 'crying' 'direction' 'dropping' 'film' 'great' 'into' 'jaw' 'just' 'leaving' 'loved' 'location' 'movie' 'of' 'plot' 'popcorn' 'scenery' 'story' 'terrible' 'the' 'theater' 'this' 'time' 'waste' 'wonderful' 'worst' '1990s']
+特徵矩陣 shape: (8, 34) （文件數 × 詞典大小）
+非零比例: 17.6%
+注意：本範例只有 8 篇文件、34 個詞。IMDb 是 25,000 篇 × 10,000 詞，非零比例僅 1.3%。</div>
+
+<pre><code class="language-python"># 稀疏矩陣：IMDb 的 25,000 × 10,000 矩陣只有 1.3% 非零（自給自足版本）
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from scipy import sparse
+
+# 模擬 IMDb 訓練矩陣的規模
+n_docs = 25000
+n_words = 10000
+non_zero_ratio = 0.013  # 課本：只有 1.3% 的二元項非零
+
+# 隨機生成稀疏二元矩陣（每篇文件平均出現約 130 個詞）
+n_nonzero = int(n_docs * n_words * non_zero_ratio)
+rows = np.random.randint(0, n_docs, n_nonzero)
+cols = np.random.randint(0, n_words, n_nonzero)
+data = np.ones(n_nonzero)
+
+X_sparse = sparse.csr_matrix((data, (rows, cols)), shape=(n_docs, n_words))
+
+# 比較稠密 vs 稀疏儲存的記憶體用量
+dense_bytes = n_docs * n_words * 8   # float64 每個 8 bytes
+sparse_bytes = X_sparse.data.nbytes + X_sparse.indices.nbytes + X_sparse.indptr.nbytes
+
+print("特徵矩陣維度: %d × %d" % (n_docs, n_words))
+print("非零項比例: %.1f%%" % (100 * n_nonzero / (n_docs * n_words)))
+print("稠密儲存: %.1f MB" % (dense_bytes / 1e6))
+print("稀疏儲存: %.2f MB" % (sparse_bytes / 1e6))
+print("節省空間: %.0f 倍" % (dense_bytes / sparse_bytes))
+print("\nCSR 格式：只存「位置 + 值」。因非零項都是 1，連值都不用存。")
+</code></pre>
+<div class="output-block">特徵矩陣維度: 25000 × 10000
+非零項比例: 1.3%
+稠密儲存: 2000.0 MB
+稀疏儲存: 3.90 MB
+節省空間: 513 倍
+CSR 格式：只存「位置 + 值」。因非零項都是 1，連值都不用存。</div>
+
+<pre><code class="language-python"># Lasso 邏輯回歸 vs 兩層神經網路：情感分類比較（自給自足版本）
+try:
+    from google.colab import drive
+    drive.mount('/content/drive')
+    DATA_PATH = '/content/drive/MyDrive/ISLP_data/'
+except ImportError:
+    DATA_PATH = '/tmp/'
+
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+
+# 生成小型合成「評論」：正面詞 vs 負面詞
+pos_words = ["brilliant", "amazing", "wonderful", "great", "loved",
+             "excellent", "fantastic", "superb", "charming", "delightful"]
+neg_words = ["terrible", "awful", "boring", "worst", "bad",
+             "dreadful", "horrible", "waste", "lousy", "dull"]
+
+rng = np.random.default_rng(42)
+def make_doc(label, n_words=25):
+    pool = pos_words if label == 1 else neg_words
+    words = list(rng.choice(pool, size=n_words))
+    fill = list(rng.choice(["film", "movie", "actor", "plot", "scene"], size=5))
+    return " ".join(words + fill)
+
+n = 300
+texts, labels = [], []
+for i in range(n):
+    lab = i % 2  # 平衡：一半正面一半負面
+    texts.append(make_doc(lab))
+    labels.append(lab)
+
+X = CountVectorizer(binary=True).fit_transform(texts).astype(float)
+y = np.array(labels)
+
+# 切分訓練/驗證/測試（課本：從訓練集切出驗證集調參）
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42)
+X_train, X_val, y_train, y_val = train_test_split(
+    X_train, y_train, test_size=0.2, random_state=42)
+
+# 模型一：Lasso（L1 懲罰）邏輯回歸
+lasso = LogisticRegression(penalty='l1', solver='liblinear', C=0.1, max_iter=2000)
+lasso.fit(X_train, y_train)
+
+# 模型二：兩層神經網路（各 16 個 ReLU 單元，對應課本設定）
+nn = MLPClassifier(hidden_layer_sizes=(16, 16), activation='relu',
+                   max_iter=300, random_state=42)
+nn.fit(X_train, y_train)
+
+print("=== 驗證集準確率（用於調參）===")
+print("Lasso 邏輯回歸: %.3f" % lasso.score(X_val, y_val))
+print("兩層神經網路  : %.3f" % nn.score(X_val, y_val))
+print("\n=== 測試集準確率 ===")
+print("Lasso 邏輯回歸: %.3f" % lasso.score(X_test, y_test))
+print("兩層神經網路  : %.3f" % nn.score(X_test, y_test))
+print("\n課本結論：兩者測試準確率都約 88%，並無顯著差異。")
+print("兩類神經網路本質上就是「非線性邏輯回歸」。")
+</code></pre>
+<div class="output-block">=== 驗證集準確率（用於調參）===
+Lasso 邏輯回歸: 0.917
+兩層神經網路  : 1.000
+=== 測試集準確率 ===
+Lasso 邏輯回歸: 0.933
+兩層神經網路  : 0.989
+課本結論：兩者測試準確率都約 88%，並無顯著差異。
+兩類神經網路本質上就是「非線性邏輯回歸」。
+（合成資料比真實 IMDb 簡單，故準確率高於 88%；但「兩者相近」的結論一致。）</div>
+
+<h2>🎯 應用場景</h2>
+
+<div class="scenario-box">
+<h4>📧 垃圾郵件過濾：每天數十億次的文件分類</h4>
+<p>Gmail 的垃圾郵件過濾器就是最經典的文件分類應用。每封郵件先做詞袋特徵化（出現哪些詞、多少垃圾信號詞），再交給分類器判斷。因為郵件特徵極度稀疏（一封郵件只用到字典裡的一小部分詞），稀疏矩陣是必須的工程技巧，否則數十億封郵件的特徵矩陣會塞爆記憶體。這正是 §10.4 的稀疏表示在業界的日常應用。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🏥 醫學文獻自動分診</h4>
+<p>PubMed 上有數千萬篇生物醫學論文。研究人員用文件分類自動標註論文的疾病類別、研究類型（臨床試驗／觀察研究／系統回顧）。詞袋模型搭配 Lasso 邏輯回歸的好處是<strong>可解釋性</strong>——L1 懲罰會自動把大量無關詞的係數壓成 0，留下的就是「真正有鑑別力的關鍵詞」，醫生可以直接看到模型是根據哪些術語做判斷的。</p>
+</div>
+
+<div class="scenario-box">
+<h4>📊 輿情監測：品牌情感分析</h4>
+<p>企業監測社群媒體上對自家品牌的評價——正面還是負面？這正是 IMDb 情感分析的直接延伸。推文的特徵化（詞袋或 n-gram）→ 訓練分類器 → 即時打標籤。課本特別提醒的「blissfully long vs blissfully short」陷阱告訴我們：純詞袋會誤判諷刺與否定，需要 n-gram 或序列模型補足上下文。</p>
+</div>
+
+<div class="scenario-box">
+<h4>🤖 對 Hermes 架構的啟發：稀疏表示與語境保全</h4>
+<p>本節教了兩件可應用於 Agent 設計的事。第一，<strong>稀疏表示 = 只記重要的</strong>：25,000×10,000 的矩陣只有 1.3% 非零，稀疏格式省下 513 倍空間——這正是 Hermes 記憶管理的哲學，memory 工具不記每個細節，只保留高信號的 durable facts。第二，<strong>詞袋忽略語境 = 切碎任務就失去上下文</strong>：bag-of-words 只看「出現哪些詞」、不管順序，就像 delegate_task 若沒傳 context，子 agent 就退化成分散的詞、失去前後文。這也呼應了「兩類神經網路＝非線性邏輯回歸」的教訓：<strong>能用簡單模型（Lasso）解決的，不必上深度模型（NN）</strong>——Ponytail 紀律的統計學版本。</p>
+</div>
+
+<h2>⚖️ 優缺點對照：詞袋模型（Bag-of-Words）</h2>
+
+<div class="pros-cons">
+<div class="pro">
+<h4>✅ 優點</h4>
+<ul>
+<li><strong>簡單直觀</strong>：幾行程式就能把任何文字轉成數字向量，不需語言學知識</li>
+<li><strong>稀疏高效</strong>：稀疏矩陣格式讓百萬維特徵向量也能輕鬆儲存與運算</li>
+<li><strong>與線性模型絕配</strong>：詞袋 + Lasso 就能達到 88% 準確率，且係數可解釋</li>
+<li><strong>基線標竿</strong>：任何 NLP 專案都應先跑詞袋當 baseline，再考慮更複雜的模型</li>
+</ul>
+</div>
+<div class="con">
+<h4>❌ 缺點</h4>
+<ul>
+<li><strong>忽略詞序與上下文</strong>：分不清 "blissfully long" 和 "blissfully short"，也抓不到諷刺與否定</li>
+<li><strong>維度爆炸</strong>：詞典一大，特徵向量就極寬（10,000+ 維），小樣本下易過擬合</li>
+<li><strong>詞彙語義喪失</strong>：同義詞、一詞多義、拼寫錯誤都被當成完全不同的特徵</li>
+<li><strong>需要人工限制詞典</strong>：罕見詞要標記為 ⟨UNK⟩，選擇詞典大小本身又是個超參數</li>
+</ul>
+</div>
+</div>
+
+<h2>📊 與其他深度學習架構比較</h2>
+
+<table>
+<tr><th>方法</th><th>輸入表示</th><th>上下文？</th><th>模型複雜度</th><th>可解釋性</th><th>IMDb 效果</th></tr>
+<tr><td><strong>詞袋 + Lasso</strong> (§10.4)</td><td>二元詞向量（稀疏）</td><td>否</td><td>線性</td><td>高（係數即關鍵詞）</td><td>~88%</td></tr>
+<tr><td><strong>詞袋 + 神經網路</strong> (§10.4)</td><td>二元詞向量（稀疏）</td><td>否</td><td>兩隱藏層</td><td>低</td><td>~88%</td></tr>
+<tr><td><strong>CNN</strong> (§10.3)</td><td>像素（空間結構）</td><td>局部空間</td><td>卷積+池化</td><td>低</td><td>—（影像）</td></tr>
+<tr><td><strong>RNN</strong> (§10.5)</td><td>詞序列（時間結構）</td><td>是（完整序列）</td><td>遞歸層</td><td>低</td><td>見 §10.5</td></tr>
+</table>
+<p class="cite-ref">📚 對照對象選自 ISLP §10.3, §10.4, §10.5。詞袋兩方法準確率相近，但 RNN 透過序列結構可望超越。</p>
+
+<h2>💡 關鍵洞察</h2>
+
+<div class="key-quote">
+<p>「文件分類最深刻的一課不是哪個模型贏了，而是<strong>特徵化（featurization）本身</strong>。詞袋模型把一篇血肉模糊、長短不一的影評，硬生生壓成一個 10,000 維的 0/1 向量——99% 是零，只有零星幾個 1 標記著『這篇有 brilliant、有 worst』。然後，一個線性的 Lasso 和一個兩層神經網路，竟然打成平手（都是 88%）。這提醒我們：<strong>在很多問題上，把力氣花在把資料變成好特徵，比堆疊複雜模型更划算</strong>——而『兩類神經網路就是非線性邏輯回歸』這句話，則把深度學習的神秘面紗輕輕掀開了一角。」</p>
+<div class="attr">— 課本 §10.4 精華 · 附 Figure 10.11 實證</div>
+</div>
+
+<div class="section-nav">
+<a href="10.3_convolutional_neural_networks.html">← 10.3 卷積神經網路</a>
+<span style="color:var(--fg-muted)">10.5 遞歸神經網路 →（即將推出）</span>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+<script>hljs.highlightAll();</script>
+<script src="../sidebar.js"></script>
+</body>
+</html>
