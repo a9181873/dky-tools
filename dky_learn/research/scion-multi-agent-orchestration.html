@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1117">
+<title>Scion：多 Agent 容器編排平台 — 學習中心</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;margin-left:260px;padding:40px;max-width:920px}h1{font-size:1.55em;color:#fff;margin-bottom:4px}h2{font-size:1.1em;color:var(--accent);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}.meta{color:var(--muted);font-size:.85em;margin-bottom:20px}.meta a,a{color:var(--accent)}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:16px 0}.one-liner{font-size:1.08em;color:var(--green);font-weight:600;border-left:3px solid var(--green);padding-left:16px;margin:16px 0}.tag{display:inline-block;font-size:.75em;padding:2px 8px;border-radius:10px;background:#1a2a3a;color:var(--accent);margin:2px}li{margin:6px 0;margin-left:1.4em}.note{border-left:3px solid var(--orange);padding-left:14px;color:#e6b450}@media(max-width:768px){body{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+<h1>Scion：多 Agent 容器編排平台</h1>
+<div class="meta">Google Cloud Platform · GitHub 開源專案 · Apache License 2.0 · <a href="https://github.com/GoogleCloudPlatform/scion" target="_blank" rel="noopener">原始專案</a></div>
+<div class="one-liner">讓多個深度 Agent 在獨立容器、工作區、Git worktree 與憑證環境中平行協作。</div>
+
+<div class="card"><h2>摘要</h2><p>Scion 是多 Agent 編排與執行層，負責啟動、隔離、管理及觀測執行中的 Agent。每個 Agent 可使用自己的容器、工作區與選配 Git worktree，降低同時修改同一專案時的干擾。</p><ul><li>預設支援 Claude Code 與 Gemini CLI，也可擴充其他 Harness。</li><li>支援 Docker、Podman、Apple Container 與 Kubernetes。</li><li>提供啟動、附加、傳訊息、日誌、停止、恢復與刪除等生命週期管理。</li><li>支援 Agent 模板、tmux、遠端執行與 OpenTelemetry 觀測。</li></ul></div>
+
+<div class="card"><h2>應用</h2><ul><li>把軟體開發拆成多個平行角色，例如實作、測試、安全審查與文件整理。</li><li>在隔離容器中執行互不信任或需要不同依賴的 Agent。</li><li>跨本機、遠端 VM 或 Kubernetes 執行大量長時間任務。</li><li>以 Markdown 定義角色、工具與協作規則，測試不同多 Agent 工作模式。</li><li>搭配 GitHub Issues、Linear、Beads 等任務系統，以及外部記憶系統組成完整 Agent 工廠。</li></ul></div>
+
+<div class="card"><h2>建議</h2><p>目前不需要導入。只有在多 Agent 工作量增加到需要獨立容器、Git worktree、長時間背景執行或跨主機調度時，才值得建立小型 PoC。</p><p class="note">PoC 應先限制在非正式專案，確認容器權限、Secrets 隔離、網路出口、映像檔來源、日誌與清理機制。</p></div>
+
+<div class="card"><h2>限制與注意事項</h2><p>Scion 著重執行隔離與編排，不負責完整的記憶、任務管理、模型路由或對外 Gateway。導入時仍需自行設計權限、Secrets、網路出口、資料持久化、成本控管與容器映像檔供應鏈。</p><p class="note">專案仍在快速演進，Local、Hub 與 Kubernetes API 可能變動；另外，雖由 Google Cloud Platform 維護，但官方聲明不是 Google 正式支援產品。</p></div>
+
+<div class="card"><h2>關鍵資料</h2><p><span class="tag">Multi-Agent</span><span class="tag">Container</span><span class="tag">Git Worktree</span><span class="tag">Docker</span><span class="tag">Kubernetes</span><span class="tag">tmux</span><span class="tag">OpenTelemetry</span></p><p style="margin-top:12px"><a href="https://googlecloudplatform.github.io/scion/" target="_blank" rel="noopener">官方文件</a> · <a href="https://github.com/GoogleCloudPlatform/scion/blob/main/LICENSE" target="_blank" rel="noopener">Apache 2.0 授權</a></p></div>
+<p style="color:var(--muted);font-size:.8em;margin-top:30px">← <a href="index.html">回學習資源列表</a></p>
+<script src="../sidebar.js"></script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');</script>
+</body></html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d1117">
+<title>GBrain：AI Agent 長期記憶與知識圖譜 — 學習中心</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--orange:#d2991d}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);line-height:1.8;margin-left:260px;padding:40px;max-width:920px}h1{font-size:1.55em;color:#fff;margin-bottom:4px}h2{font-size:1.1em;color:var(--accent);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}.meta{color:var(--muted);font-size:.85em;margin-bottom:20px}.meta a,a{color:var(--accent)}.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;margin:16px 0}.one-liner{font-size:1.08em;color:var(--green);font-weight:600;border-left:3px solid var(--green);padding-left:16px;margin:16px 0}.tag{display:inline-block;font-size:.75em;padding:2px 8px;border-radius:10px;background:#1a2a3a;color:var(--accent);margin:2px}li{margin:6px 0;margin-left:1.4em}.note{border-left:3px solid var(--orange);padding-left:14px;color:#e6b450}@media(max-width:768px){body{margin-left:0;padding:20px}}
+</style>
+</head>
+<body>
+<h1>GBrain：AI Agent 長期記憶與知識圖譜</h1>
+<div class="meta">Garry Tan · GitHub 開源專案 · MIT 授權 · <a href="https://github.com/garrytan/gbrain" target="_blank" rel="noopener">原始專案</a></div>
+<div class="one-liner">把 Markdown 記憶、混合搜尋、知識圖譜與帶引用的綜合回答整合成一個可供 AI Agent 使用的外部大腦。</div>
+
+<div class="card"><h2>摘要</h2><p>GBrain 是給 OpenClaw、Hermes、Claude Code、Codex 等 Agent 使用的長期記憶層。它不只回傳搜尋結果，也能跨人物、公司、事件與想法進行綜合回答，並指出資料缺口。</p><ul><li>混合搜尋：關鍵字、向量、RRF、重排序與來源層級加權。</li><li>知識圖譜：寫入頁面時自動抽取實體關係，例如任職、投資、創辦與參與。</li><li>支援本機 PGLite，也可接 PostgreSQL；提供 CLI、stdio MCP 與 HTTP MCP。</li><li>可透過排程持續匯入、豐富、整理與合併記憶。</li></ul></div>
+
+<div class="card"><h2>應用</h2><ul><li>跨回合記住人物、專案、決策與待辦，支援會議準備。</li><li>匯入郵件、會議、語音、文件與筆記，建立可追溯的機構知識庫。</li><li>查詢人物與公司關係，例如誰任職於某公司、某人參與過哪些專案。</li><li>以來源頁面支撐回答，並標示資料最後更新時間與未知部分。</li><li>透過 MCP 讓多個 Agent 共用記憶；也可用權限範圍隔離個人或團隊資料。</li></ul></div>
+
+<div class="card"><h2>建議</h2><p>先不取代現有 Hermes 記憶。若未來要處理大量郵件、會議與文件，再以獨立 PGLite 測試匯入少量非敏感資料，驗證搜尋、引用、匯出與刪除流程後再決定是否導入。</p><p class="note">正式資料導入前，必須確認資料範圍、Token 權限、MCP 存取控制、備份與復原方式。</p></div>
+
+<div class="card"><h2>對現有系統的意義</h2><p>它的定位接近「完整外部知識庫」，不是單純的偏好記憶。若只需要 Hermes 的跨回合偏好、環境設定與工作規則，現有 memory、fact_store 與 skills 已能涵蓋；若要管理大量文件、郵件與人物關係，GBrain 才能提供額外價值。</p></div>
+
+<div class="card"><h2>關鍵資料</h2><p><span class="tag">個人知識庫</span><span class="tag">知識圖譜</span><span class="tag">混合搜尋</span><span class="tag">MCP</span><span class="tag">PGLite</span><span class="tag">PostgreSQL</span><span class="tag">Agent Memory</span></p><p style="margin-top:12px"><a href="https://github.com/garrytan/gbrain/blob/master/SECURITY.md" target="_blank" rel="noopener">資安文件</a> · <a href="https://github.com/garrytan/gbrain/blob/master/docs/mcp/HERMES.md" target="_blank" rel="noopener">Hermes 整合文件</a></p></div>
+<p style="color:var(--muted);font-size:.8em;margin-top:30px">← <a href="index.html">回學習資源列表</a></p>
+<script src="../sidebar.js"></script><script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');</script>
+</body></html>
