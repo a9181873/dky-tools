@@ -19,7 +19,9 @@ td{font-size:.9em}
 .warn{background:#2a1a1a;border-left:3px solid var(--red);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:10px 0}
 .app-box{background:#142a1a;border-left:3px solid var(--green);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:8px 0}
 @media(max-width:768px){body{margin-left:0;padding:20px}}
-</style></head>
+</style><link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+</head>
 <body>
 <h1>Headroom: LLM Agent Context 壓縮代理層</h1>
 <div class="meta"><a href="https://github.com/headroomlabs-ai/headroom">headroomlabs-ai/headroom</a> · Python/Rust · MIT<br>Context 優化層，透過多階段壓縮 pipeline + 可逆 CCR 架構，為 AI Agent 節省 60-95%% token。</div>
@@ -66,6 +68,5 @@ td{font-size:.9em}
 <div class="card"><h2>與論文的互補定位</h2>
 <p style="font-size:.85em">Headroom 和論文 2606.10209 可疊加使用：Headroom 處理 token-level 壓縮（SmartCrusher 削減 tool output），論文 C4 policy 處理語義層的保留/摘要策略。兩者組合可同時實現 60-95%% token 節省（Headroom）+ 20.6pp 完成率提升（C4 vs C2）。</p></div>
 <p style="color:var(--muted);font-size:.8em;margin-top:30px"> <a href="/research/" style="color:var(--accent)">回論文筆記首頁</a> · <a href="/" style="color:var(--accent)">DKY 學習中心</a></p>
-<script src="../sidebar.js"></script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body></html>

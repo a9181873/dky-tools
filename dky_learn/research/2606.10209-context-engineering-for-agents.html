@@ -19,7 +19,9 @@ td{font-size:.9em}
 .warn{background:#2a1a1a;border-left:3px solid var(--red);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:10px 0}
 .app-box{background:#142a1a;border-left:3px solid var(--green);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:8px 0}
 @media(max-width:768px){body{margin-left:0;padding:20px}}
-</style></head>
+</style><link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+</head>
 <body>
 <h1>更少的 Context，更好的 Agent</h1>
 <div class="meta">arXiv: <a href="https://arxiv.org/abs/2606.10209">2606.10209</a> · 2026-06-08 · Microsoft<br>Abhilasha Lodha et al.</div>
@@ -74,6 +76,5 @@ td{font-size:.9em}
 <div class="warn">限制: 論文在 D365 F&amp;O 驗證。Hermes tool response 為 HTML/JSON，optimal N 需實測。Summary 先用 Agnes 免費模型。</div>
 <div class="card"><h2>我們的筆記</h2><p style="font-size:.85em">對 Hermes 有直接工程價值。每天面對 context rot。pruning+summary 極簡極有效極穩定。先從 context pruner 開始。</p></div>
 <p style="color:var(--muted);font-size:.8em;margin-top:30px"> <a href="/research/" style="color:var(--accent)">回論文筆記首頁</a> · <a href="/" style="color:var(--accent)">DKY 學習中心</a></p>
-<script src="../sidebar.js"></script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body></html>

@@ -84,6 +84,8 @@ footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--bord
   .course-grid { grid-template-columns: 1fr; }
 }
 </style>
+<link rel="stylesheet" href="warm-theme.css">
+<script src="sidebar.js" defer></script>
 </head>
 <body>
 
@@ -102,8 +104,29 @@ footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--bord
   </a>
 </div>
 
+<!-- ── 學習指引 ── -->
+<h2>學習指引：先走一條路，再延伸探索</h2>
+<div class="course-grid" aria-label="建議學習路徑">
+  <a href="statistics/" class="course-card">
+    <h3>第 1 步：建立統計直覺</h3>
+    <div class="meta">第 1–2 週 · 每次 30 分鐘</div>
+    <div class="desc">從「統計學習是什麼」到模型如何評估；先理解問題與誤差，再開始寫程式。</div>
+  </a>
+  <a href="statistics/6.2_shrinkage_methods.html" class="course-card">
+    <h3>第 2 步：練習選模型</h3>
+    <div class="meta">第 3–5 週 · 觀念搭配 Lab</div>
+    <div class="desc">把迴歸、分類、驗證與正則化串起來；每一章至少完成一個 Lab。</div>
+  </a>
+  <a href="statistics/8.1_decision_trees.html" class="course-card">
+    <h3>第 3 步：進入非線性與深度學習</h3>
+    <div class="meta">第 6–8 週 · 依目標選讀</div>
+    <div class="desc">樹狀方法、SVM、神經網路。完成後再到研究資源延伸你的專題。</div>
+  </a>
+</div>
+<div class="callout"><strong>建議節奏：</strong>每週選 3 堂課；先讀核心觀念、再做 Lab，並使用每頁的「本頁已完成」留下自己的進度。按 <kbd>/</kbd> 搜尋、<kbd>[</kbd>/<kbd>]</kbd> 切換上一／下一課、<kbd>m</kbd> 開關目錄。</div>
+
 <!-- ── 課程 ── -->
-<h2>📚 系統課程</h2>
+<h2>系統課程</h2>
 
 <div class="course-grid">
   <a href="statistics/" class="course-card">
@@ -230,7 +253,6 @@ footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--bord
   內容持續更新 · <a href="https://github.com/a9181873/islp-course">GitHub</a>
 </footer>
 
-<script src="sidebar.js"></script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body>
 </html>

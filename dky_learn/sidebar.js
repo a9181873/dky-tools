@@ -1,124 +1,36 @@
-// 學習中心 — shared sidebar
-(function() {
-  if (document.querySelector('.dky-sidebar')) return;
-
-  const sidebarHTML = `
-  <nav class="dky-sidebar sidebar">
-    <div class="sidebar-header">
-      <a href="/">📚 學習中心</a>
-      <div class="sub">系統課程 · 精選資源 · 自由探索</div>
-    </div>
-    <div class="sidebar-nav">
-      <div class="section-title">📊 統計學習入門 (ISLP)</div>
-      <a href="/statistics/02_What_Is_Statistical_Learning.html" class="nav-item done">2.1 什麼是統計學習？</a>
-      <a href="/statistics/02_Assessing_Model_Accuracy.html" class="nav-item done">2.2 評估模型準確度</a>
-      <a href="/statistics/02_Lab_Python_Introduction.html" class="nav-item done">2.3 Lab: Python 入門</a>
-      <a href="/statistics/03_simple_linear_regression.html" class="nav-item done">3.1 簡單線性迴歸</a>
-      <a href="/statistics/3.2_multiple_linear_regression.html" class="nav-item done">3.2 多元線性迴歸</a>
-      <a href="/statistics/3_3_other_considerations.html" class="nav-item done">3.3 迴歸模型的其他考量</a>
-      <a href="/statistics/3.4_the_marketing_plan.html" class="nav-item done">3.4 行銷計畫</a>
-      <a href="/statistics/3.5_linear_regression_vs_knn.html" class="nav-item done">3.5 線性迴歸 vs KNN</a>
-      <a href="/statistics/3.6_lab_linear_regression.html" class="nav-item done">3.6 Lab: 線性迴歸</a>
-      <span class="nav-item done">4.1-4.2 分類概述</span>
-      <a href="/statistics/4.3_logistic_regression.html" class="nav-item done">4.3 邏輯回歸</a>
-      <a href="/statistics/04_Generative_Models.html" class="nav-item done">4.4 生成模型：LDA・QDA・Naive Bayes</a>
-      <a href="/statistics/04_classification_methods_comparison.html" class="nav-item done">4.5 分類方法比較</a>
-      <a href="/statistics/4_6_generalized_linear_models.html" class="nav-item done">4.6 廣義線性模型</a>
-      <a href="/statistics/04_7_lab_classification_methods.html" class="nav-item done">4.7 Lab: 邏輯回歸・LDA・QDA・KNN</a>
-      <a href="/statistics/05_cross_validation.html" class="nav-item done">5.1 交叉驗證</a>
-      <a href="/statistics/05_the_bootstrap.html" class="nav-item done">5.2 Bootstrap</a>
-      <a href="/statistics/05_lab_cross_validation_bootstrap.html" class="nav-item done">5.3 Lab: CV & Bootstrap</a>
-      <a href="/statistics/6.1_subset_selection.html" class="nav-item done">6.1 子集選擇</a>
-      <a href="/statistics/6.2_shrinkage_methods.html" class="nav-item done">6.2 收縮方法</a>
-      <a href="/statistics/6.3_pcr_pls.html" class="nav-item done">6.3 PCR 與 PLS</a>
-      <a href="/statistics/6.4_high_dimensions.html" class="nav-item done">6.4 高維度資料</a>
-      <a href="/statistics/6.5_lab_regularization.html" class="nav-item done">6.5 Lab: 線性模型選擇與正則化</a>
-      <a href="/statistics/7.1_polynomial_regression.html" class="nav-item done">7.1 多項式迴歸</a>
-      <a href="/statistics/7.2_step_functions.html" class="nav-item done">7.2 階梯函數</a>
-<a href="/statistics/7.3_basis_functions.html" class="nav-item done">7.3 基底函數</a>
-<a href="/statistics/7.4_regression_splines.html" class="nav-item done">7.4 迴歸樣條</a>
-<a href="/statistics/7.5_smoothing_splines.html" class="nav-item done">7.5 平滑樣條</a>
-<a href="/statistics/7.6_local_regression.html" class="nav-item done">7.6 局部迴歸</a>
-<a href="/statistics/7.7_generalized_additive_models.html" class="nav-item done">7.7 廣義加法模型</a>
-<a href="/statistics/7.8_lab_nonlinear_modeling.html" class="nav-item done">7.8 Lab: 非線性建模</a>
-
-      <div class="section-title" style="margin-top:0.8rem">📖 第 8 章：樹狀方法（Tree-Based Methods）</div>
-      <a href="/statistics/8.1_decision_trees.html" class="nav-item done">8.1 決策樹基礎</a>
-      <a href="/statistics/8.2_bagging_random_forests_boosting.html" class="nav-item done">8.2 Bagging・隨機森林・Boosting</a>
-      <a href="/statistics/8.3_lab_tree_methods.html" class="nav-item done">8.3 Lab: 決策樹</a>
-
-      <div class="section-title" style="margin-top:1.2rem">📖 第 9 章：支援向量機（SVM）</div>
-      <a href="/statistics/9.1_maximal_margin_classifier.html" class="nav-item done">9.1 最大邊界分類器</a>
-      <a href="/statistics/9.2_support_vector_classifiers.html" class="nav-item done">9.2 支援向量分類器</a>
-      <a href="/statistics/9.3_support_vector_machines.html" class="nav-item done">9.3 支援向量機 (SVM)</a>
-      <a href="/statistics/9.4_svm_multiclass.html" class="nav-item done">9.4 多類別 SVM</a>
-      <a href="/statistics/9.5_relationship_to_logistic_regression.html" class="nav-item done">9.5 SVM 與邏輯回歸的關係</a>
-      <a href="/statistics/9.6_lab_svm.html" class="nav-item done">9.6 Lab: SVM</a>
-
-      <div class="section-title" style="margin-top:1.2rem">📖 第 10 章：深度學習（Deep Learning）</div>
-      <a href="/statistics/10.1_single_layer_neural_networks.html" class="nav-item done">10.1 單層神經網路</a>
-      <a href="/statistics/10.2_multilayer_neural_networks.html" class="nav-item done">10.2 多層神經網路</a>
-      <span class="nav-item pending">10.3 卷積神經網路</span>
-
-      <div class="section-title" style="margin-top:1.2rem">🤖 更多課程 <span class="coming">即將推出</span></div>
-
-      <div class="section-title" style="margin-top:0.8rem">📖 精選資源</div>
-      <a href="/research/prompt-engineering-guide.html" class="nav-item-link">Prompt Engineering Guide</a>
-      <a href="/research/" class="nav-item-link">→ 全部資源</a>
-    </div>
-    <div class="sidebar-footer">
-      <a href="https://tools.dky.tw">工具箱</a>
-      <a href="https://www.statlearning.com/">ISLP 課本</a>
-    </div>
-  </nav>`;
-
-  document.body.insertAdjacentHTML('afterbegin', sidebarHTML);
-
-  const style = document.createElement('style');
-  style.textContent = `
-  .sidebar {
-    width: 240px; background: #161b22; border-right: 1px solid #30363d;
-    position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; z-index: 100;
-    display: flex; flex-direction: column;
-  }
-  .sidebar-header {
-    padding: 1.2rem 1rem; border-bottom: 1px solid #30363d;
-    font-weight: 700; font-size: 1rem; color: #f0f6fc;
-  }
-  .sidebar-header a { color: inherit; text-decoration: none; }
-  .sidebar-header .sub { font-size: 0.72rem; color: #8b949e; font-weight: 400; }
-  .sidebar-nav { flex: 1; padding: 0.8rem 0; }
-  .sidebar-nav .section-title {
-    padding: 0.5rem 1rem 0.3rem; font-size: 0.72rem; text-transform: uppercase;
-    letter-spacing: 0.04em; color: #8b949e; display: flex; align-items: center; gap: 0.5rem;
-  }
-  .nav-item {
-    display: block; padding: 0.35rem 1rem 0.35rem 1.5rem; font-size: 0.84rem;
-    color: #484f58; border-left: 2px solid transparent; text-decoration: none;
-  }
-  a.nav-item:hover { background: rgba(88,166,255,0.06); }
-  .nav-item.done { color: #8b949e; }
-  a.nav-item.done:hover { color: #f0f6fc; border-left-color: #58a6ff; }
-  .nav-item.pending { color: #d2991d; }
-  .nav-item.done::before { content: "✓ "; color: #3fb950; font-size: 0.7rem; }
-  .nav-item.pending::before { content: "○ "; color: #d2991d; font-size: 0.7rem; }
-  .nav-item-link {
-    display: block; padding: 0.35rem 1rem 0.35rem 1.5rem; font-size: 0.84rem;
-    color: #58a6ff; border-left: 2px solid transparent; text-decoration: none;
-  }
-  .nav-item-link:hover { border-left-color: #58a6ff; background: rgba(88,166,255,0.05); }
-  .coming { font-size: 0.65rem; color: #484f58; font-weight: 400; text-transform: none; }
-  .sidebar-footer {
-    padding: 0.8rem 1rem; border-top: 1px solid #30363d;
-    font-size: 0.75rem; color: #8b949e; display: flex; gap: 0.8rem;
-  }
-  .sidebar-footer a { color: #58a6ff; text-decoration: none; }
-  .sidebar-footer a:hover { text-decoration: underline; }
-  body { margin-left: 240px; }
-  @media (max-width: 768px) {
-    .sidebar { display: none; }
-    body { margin-left: 0; }
-  }
-  `;
-  document.head.appendChild(style);
+/* 全站共用：目錄、學習進度、搜尋與鍵盤操作。 */
+(function () {
+  if (document.querySelector('.study-sidebar')) return;
+  const lessons = [
+    ['第 2 章｜統計學習','2.1 什麼是統計學習？','/statistics/02_What_Is_Statistical_Learning.html'],['','2.2 評估模型準確度','/statistics/02_Assessing_Model_Accuracy.html'],['','2.3 Lab：Python 入門','/statistics/02_Lab_Python_Introduction.html'],
+    ['第 3 章｜線性迴歸','3.1 簡單線性迴歸','/statistics/03_simple_linear_regression.html'],['','3.2 多元線性迴歸','/statistics/3.2_multiple_linear_regression.html'],['','3.3 迴歸模型的其他考量','/statistics/3_3_other_considerations.html'],['','3.4 行銷計畫','/statistics/3.4_the_marketing_plan.html'],['','3.5 線性迴歸 vs KNN','/statistics/3.5_linear_regression_vs_knn.html'],['','3.6 Lab：線性迴歸','/statistics/3.6_lab_linear_regression.html'],
+    ['第 4 章｜分類','4.3 邏輯回歸','/statistics/4.3_logistic_regression.html'],['','4.4 生成模型','/statistics/04_Generative_Models.html'],['','4.5 分類方法比較','/statistics/04_classification_methods_comparison.html'],['','4.6 廣義線性模型','/statistics/4_6_generalized_linear_models.html'],['','4.7 Lab：分類方法','/statistics/04_7_lab_classification_methods.html'],
+    ['第 5 章｜重抽樣','5.1 交叉驗證','/statistics/05_cross_validation.html'],['','5.2 Bootstrap','/statistics/05_the_bootstrap.html'],['','5.3 Lab：CV 與 Bootstrap','/statistics/05_lab_cross_validation_bootstrap.html'],
+    ['第 6 章｜模型選擇','6.1 子集選擇','/statistics/6.1_subset_selection.html'],['','6.2 收縮方法','/statistics/6.2_shrinkage_methods.html'],['','6.3 PCR 與 PLS','/statistics/6.3_pcr_pls.html'],['','6.4 高維度資料','/statistics/6.4_high_dimensions.html'],['','6.5 Lab：正則化','/statistics/6.5_lab_regularization.html'],
+    ['第 7 章｜非線性','7.1 多項式迴歸','/statistics/7.1_polynomial_regression.html'],['','7.2 階梯函數','/statistics/7.2_step_functions.html'],['','7.3 基底函數','/statistics/7.3_basis_functions.html'],['','7.4 迴歸樣條','/statistics/7.4_regression_splines.html'],['','7.5 平滑樣條','/statistics/7.5_smoothing_splines.html'],['','7.6 局部迴歸','/statistics/7.6_local_regression.html'],['','7.7 廣義加法模型','/statistics/7.7_generalized_additive_models.html'],['','7.8 Lab：非線性建模','/statistics/7.8_lab_nonlinear_modeling.html'],
+    ['第 8 章｜樹狀方法','8.1 決策樹基礎','/statistics/8.1_decision_trees.html'],['','8.2 隨機森林與 Boosting','/statistics/8.2_bagging_random_forests_boosting.html'],['','8.3 Lab：決策樹','/statistics/8.3_lab_tree_methods.html'],
+    ['第 9 章｜SVM','9.1 最大邊界分類器','/statistics/9.1_maximal_margin_classifier.html'],['','9.2 支援向量分類器','/statistics/9.2_support_vector_classifiers.html'],['','9.3 支援向量機','/statistics/9.3_support_vector_machines.html'],['','9.4 多類別 SVM','/statistics/9.4_svm_multiclass.html'],['','9.5 SVM 與邏輯回歸','/statistics/9.5_relationship_to_logistic_regression.html'],['','9.6 Lab：SVM','/statistics/9.6_lab_svm.html'],
+    ['第 10 章｜深度學習','10.1 單層神經網路','/statistics/10.1_single_layer_neural_networks.html'],['','10.2 多層神經網路','/statistics/10.2_multilayer_neural_networks.html'],['','10.3 卷積神經網路','/statistics/10.3_convolutional_neural_networks.html']
+  ];
+  const normalize = p => (p.replace(/index\.html$/, '').replace(/\/$/, '') || '/');
+  const current = normalize(location.pathname);
+  const nav = lessons.map(([section, label, href]) => `${section ? `<div class="study-sidebar__section">${section}</div>` : ''}<a class="study-nav-link" href="${href}" ${normalize(href) === current ? 'aria-current="page"' : ''}>${label}</a>`).join('');
+  document.body.classList.add('has-study-sidebar');
+  document.body.insertAdjacentHTML('afterbegin', `<nav id="study-sidebar" class="study-sidebar" aria-label="學習索引地圖"><a class="study-sidebar__brand" href="/"><span>學習中心</span><small>統計學習 · AI 技術 · 自由探索</small></a><div class="study-sidebar__scroll"><div class="study-sidebar__section">開始學習</div><a class="study-nav-link" href="/statistics/">8 週統計學習路徑</a><a class="study-nav-link" href="/research/">AI 應用與延伸閱讀</a>${nav}<div class="study-sidebar__section">延伸閱讀</div><a class="study-nav-link" href="/research/">研究與工具資源</a></div><div class="study-sidebar__footer"><a href="https://tools.dky.tw">工具箱</a><a href="https://www.statlearning.com/">ISLP 原書</a></div></nav><button class="study-menu-toggle" type="button" aria-expanded="false" aria-controls="study-sidebar">目錄</button><button class="study-shortcuts-toggle" type="button" aria-expanded="false">快捷鍵</button><section class="study-shortcuts" hidden aria-label="快捷鍵說明"><h2>快捷鍵</h2><p><kbd>/</kbd> 搜尋　<kbd>m</kbd> 開關目錄</p><p><kbd>[</kbd> 上一課　<kbd>]</kbd> 下一課</p><p><kbd>Alt</kbd>+<kbd>1</kbd> 首頁　<kbd>Alt</kbd>+<kbd>2</kbd> 課程　<kbd>Alt</kbd>+<kbd>3</kbd> 資源</p></section><div class="study-search" hidden><section class="study-search__box" role="dialog" aria-modal="true" aria-label="搜尋學習內容"><input type="search" autocomplete="off" placeholder="搜尋課名、主題或資源…" aria-label="搜尋學習內容"><div class="study-search__results"></div></section></div>`);
+  const sidebar = document.querySelector('.study-sidebar');
+  const menu = document.querySelector('.study-menu-toggle');
+  menu.addEventListener('click', () => { const open = sidebar.classList.toggle('is-open'); menu.setAttribute('aria-expanded', String(open)); });
+  const shortcuts = document.querySelector('.study-shortcuts');
+  document.querySelector('.study-shortcuts-toggle').addEventListener('click', e => { const open = shortcuts.hidden; shortcuts.hidden = !open; e.currentTarget.setAttribute('aria-expanded', String(open)); });
+  const contentLinks = [...document.querySelectorAll('a[href]')].filter(a => a.href.startsWith(location.origin) && a.textContent.trim().length > 2).map(a => ({href:a.href, label:a.textContent.trim().replace(/\s+/g,' ').slice(0,120)}));
+  const search = document.querySelector('.study-search'); const searchInput = search.querySelector('input'); const results = search.querySelector('.study-search__results');
+  function find(q) { const words = q.toLocaleLowerCase('zh-TW').trim().split(/\s+/).filter(Boolean); const matched = contentLinks.filter(x => words.every(w => x.label.toLocaleLowerCase('zh-TW').includes(w))).slice(0,12); results.innerHTML = matched.length ? matched.map(x => `<a href="${x.href}">${x.label}</a>`).join('') : '<p>找不到相符內容，請換個關鍵字。</p>'; }
+  function openSearch() { search.hidden=false; searchInput.value=''; find(''); setTimeout(() => searchInput.focus(),0); }
+  searchInput.addEventListener('input', () => find(searchInput.value)); search.addEventListener('click', e => { if (e.target === search) search.hidden=true; });
+  const courseLinks = lessons.map(x=>x[2]); const pos = courseLinks.findIndex(x => normalize(x)===current);
+  function courseGo(offset) { if (pos >= 0 && courseLinks[pos+offset]) location.href=courseLinks[pos+offset]; }
+  document.addEventListener('keydown', e => { const tag=(e.target.tagName||'').toLowerCase(); if (tag==='input'||tag==='textarea'||tag==='select') return; if (e.key==='Escape') { search.hidden=true; sidebar.classList.remove('is-open'); menu.setAttribute('aria-expanded','false'); return; } if (e.key==='/') { e.preventDefault(); openSearch(); } if (e.key.toLowerCase()==='m') menu.click(); if (e.key==='[') courseGo(-1); if (e.key===']') courseGo(1); if (e.altKey && ['1','2','3'].includes(e.key)) location.href = e.key==='1' ? '/' : e.key==='2' ? '/statistics/' : '/research/'; });
+  const headings = [...document.querySelectorAll('main h2, main h3, article h2, article h3, body > h2, body > h3, header ~ h2, header ~ h3')].filter(h => h.offsetParent !== null).slice(0,24);
+  if (headings.length >= 2) { const toc=document.createElement('nav'); toc.className='study-toc'; toc.setAttribute('aria-label','本頁目錄'); toc.innerHTML='<h2>本頁目錄</h2>'; headings.forEach((h,i)=>{if(!h.id)h.id=`section-${i+1}`; const a=document.createElement('a');a.href='#'+h.id;a.textContent=h.textContent.trim();a.className=h.tagName==='H3'?'level-3':'';toc.appendChild(a);});document.body.appendChild(toc); }
+  const pageKey='dky-learn-complete:'+current; const utility=document.createElement('section'); utility.className='study-utility'; utility.setAttribute('aria-label','學習工具'); utility.innerHTML=`<label><input type="checkbox" ${localStorage.getItem(pageKey)==='1'?'checked':''}> 本頁已完成</label><span class="study-reading-progress" aria-label="閱讀進度"><span></span></span><button type="button">回到頂端</button>`; const anchor=document.querySelector('header,h1'); if(anchor)anchor.insertAdjacentElement('afterend',utility); const checkbox=utility.querySelector('input'); checkbox.addEventListener('change',()=>localStorage.setItem(pageKey,checkbox.checked?'1':'0')); utility.querySelector('button').addEventListener('click',()=>scrollTo({top:0,behavior:'smooth'})); const bar=utility.querySelector('.study-reading-progress span'); const update=()=>{const max=document.documentElement.scrollHeight-innerHeight;bar.style.width=(max>0?Math.min(100,scrollY/max*100):0)+'%';}; addEventListener('scroll',update,{passive:true});update();
 })();

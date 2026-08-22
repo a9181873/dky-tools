@@ -19,7 +19,9 @@ td{font-size:.9em}
 .warn{background:#2a1a1a;border-left:3px solid var(--red);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:10px 0}
 .app-box{background:#142a1a;border-left:3px solid var(--green);padding:10px 14px;font-size:.85em;border-radius:0 6px 6px 0;margin:8px 0}
 @media(max-width:768px){body{margin-left:0;padding:20px}}
-</style></head>
+</style><link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+</head>
 <body>
 <h1>Agent-as-a-Router: Agentic Model Routing for Coding Tasks</h1>
 <div class="meta">arXiv: <a href="https://arxiv.org/abs/2606.22902">2606.22902</a> · 2026-06-22 · NUS/Alibaba/UC Berkeley/ZJU/HKUST<br>Pengfei Zhou et al. · <a href="https://github.com/LanceZPF/agent-as-a-router">GitHub</a></div>
@@ -66,6 +68,5 @@ td{font-size:.9em}
 <div class="warn">限制: OOD test 僅 176 tasks，限 coding agent 場景。我們的子 agent 任務含內容生成、翻譯、爬蟲等非 coding 任務，需自建 per-task-type 矩陣。GPT-5.4 backend 跑 OOD 達 75%%，代表 backend 演進本身也有顯著效果。</div>
 <div class="card"><h2>我們的筆記</h2><p style="font-size:.85em">直接驗證 caf-router 方向同時指出關鍵缺陷：靜態 routing 無法泛化。升級路徑：加 Verifier（記錄實際執行結果）、加 Memory（kNN 檢索歷史）、用輕量模型做 Orchestrator。起點：為子 agent 任務建立 (task_type, model, success, cost) log。</p></div>
 <p style="color:var(--muted);font-size:.8em;margin-top:30px"> <a href="/research/" style="color:var(--accent)">回論文筆記首頁</a> · <a href="/" style="color:var(--accent)">DKY 學習中心</a></p>
-<script src="../sidebar.js"></script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body></html>
