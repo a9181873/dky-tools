@@ -2,86 +2,81 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<meta name="theme-color" content="#fefaf6">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>學習中心 — 統計學習 · AI 技術 · 開源工具</title>
-<meta name="description" content="統計學習、AI 技術與開源工具教學 — ISLP 課程筆記、機器學習實作、Python 程式範例。大學統計系程度，全繁體中文。">
+<meta name="description" content="統計學習、AI Agents 課程與 64 篇研究筆記 — ISLP 課程、Microsoft AI Agents 入門、Agent 記憶與 RAG 前沿。全繁體中文。">
 <meta property="og:title" content="學習中心 — 統計學習 · AI 技術 · 開源工具">
-<meta property="og:description" content="統計學習、AI 技術與開源工具教學。ISLP 課程筆記、機器學習實作、Python 範例。">
+<meta property="og:description" content="統計學習 43 課、AI Agents 入門 15 課、延伸閱讀 64 篇。全繁體中文。">
 <meta property="og:url" content="https://learn.dky.tw/">
 <meta property="og:type" content="website">
 <link rel="canonical" href="https://learn.dky.tw/">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"EducationalOrganization","name":"DKY 學習中心","url":"https://learn.dky.tw","description":"統計學習與 AI 技術教學中心"}
-</script>
 <style>
 :root {
-  --bg: #0d1117; --surface: #161b22; --border: #30363d;
-  --fg: #c9d1d9; --fg-muted: #8b949e; --heading: #f0f6fc;
-  --accent: #58a6ff; --good: #3fb950; --warn: #d2991d;
+  --bg: #fefaf6; --surface: #fef9f4; --surface-strong: #f8efe5;
+  --border: #e6d5c0; --text: #3b2a1a; --muted: #8b6f50;
+  --accent: #a0522d; --accent-dark: #71391f; --good: #5f7b50;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-  background: var(--bg); color: var(--fg); line-height: 1.8;
-  margin-left: 240px; padding: 3rem 3rem 4rem; max-width: 960px;
+  background: var(--bg); color: var(--text); line-height: 1.8;
+  margin-left: 264px; padding: 3rem 3rem 4rem; max-width: 980px;
 }
-h1 { font-size: 1.8rem; color: var(--heading); margin-bottom: 0.3rem; }
-.subtitle { color: var(--fg-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+h1 { font-size: 1.8rem; color: var(--accent-dark); margin-bottom: 0.3rem; }
+.subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
 h2 {
-  font-size: 1.15rem; color: var(--accent); margin: 2.2rem 0 0.8rem;
+  font-size: 1.15rem; color: var(--accent-dark); margin: 2.2rem 0 0.8rem;
   border-left: 3px solid var(--accent); padding-left: 0.7rem;
 }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
+a:focus-visible, button:focus-visible { outline: 3px solid #d79567; outline-offset: 3px; }
 
-/* Course cards */
-.course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; margin: 1rem 0; }
+.course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin: 1rem 0; }
 .course-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 8px; padding: 1.2rem 1.4rem; transition: border-color 0.15s;
-  display: block; color: var(--fg); text-decoration: none;
+  display: block; color: var(--text); text-decoration: none;
 }
 .course-card:hover { border-color: var(--accent); text-decoration: none; }
-.course-card h3 { font-size: 1rem; color: var(--heading); margin-bottom: 0.3rem; }
-.course-card .meta { font-size: 0.78rem; color: var(--fg-muted); }
-.course-card .desc { font-size: 0.85rem; margin-top: 0.5rem; color: var(--fg-muted); }
+.course-card h3 { font-size: 1rem; color: var(--accent-dark); margin-bottom: 0.3rem; }
+.course-card .meta { font-size: 0.78rem; color: var(--muted); }
+.course-card .desc { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); }
 .course-card .tag-row { margin-top: 0.8rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
-.tag {
-  font-size: 0.68rem; padding: 0.15rem 0.6rem; border-radius: 0.7rem;
-  background: #1a2a3a; color: var(--accent);
-}
+.tag { font-size: 0.68rem; padding: 0.15rem 0.6rem; border-radius: 0.7rem; background: var(--surface-strong); color: var(--accent-dark); }
 
-/* Resource cards */
+.path-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin: 1rem 0; }
+.path-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem 1.3rem; }
+.path-card h3 { font-size: 0.95rem; color: var(--accent-dark); margin-bottom: 0.4rem; }
+.path-card .meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+.path-card dl { font-size: 0.82rem; }
+.path-card dt { color: var(--accent-dark); font-weight: 600; margin-top: 0.45rem; }
+.path-card dd { color: var(--muted); margin-left: 0; }
+
 .resource-grid { display: grid; gap: 0.6rem; margin: 1rem 0; }
 .resource-card {
   display: flex; align-items: center; gap: 0.8rem;
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 6px; padding: 0.8rem 1.1rem; transition: border-color 0.15s;
-  color: var(--fg); text-decoration: none;
+  color: var(--text); text-decoration: none;
 }
 .resource-card:hover { border-color: var(--accent); text-decoration: none; }
 .resource-card .icon { font-size: 1.1rem; flex-shrink: 0; }
 .resource-card .info { flex: 1; min-width: 0; }
-.resource-card .info h4 { font-size: 0.9rem; color: var(--heading); }
-.resource-card .info p { font-size: 0.78rem; color: var(--fg-muted); margin: 0.1rem 0 0; }
-.resource-card .tag-row { display: flex; gap: 0.3rem; flex-shrink: 0; }
+.resource-card .info h4 { font-size: 0.9rem; color: var(--accent-dark); }
+.resource-card .info p { font-size: 0.78rem; color: var(--muted); margin: 0.1rem 0 0; }
 
-/* Tag cloud */
+.callout { background: var(--surface); border-left: 4px solid var(--accent); padding: 1rem 1.2rem; margin: 1.2rem 0; border-radius: 0 8px 8px 0; font-size: 0.9rem; }
+.callout kbd { padding: 0.05rem 0.35rem; background: var(--surface-strong); border: 1px solid var(--border); border-radius: 4px; color: var(--accent-dark); font-size: 0.82em; }
+.soon { background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; padding: 1.2rem; text-align: center; color: var(--muted); font-size: 0.85rem; }
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.8rem 0; }
 .tag-cloud .tag { font-size: 0.78rem; padding: 0.3rem 0.8rem; }
-
-/* Empty state */
-.soon {
-  background: var(--surface); border: 1px dashed var(--border);
-  border-radius: 8px; padding: 1.2rem; text-align: center;
-  color: var(--fg-muted); font-size: 0.85rem;
-}
-
-footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--fg-muted); }
+footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--muted); }
 @media (max-width: 768px) {
   body { margin-left: 0; padding: 1.2rem; }
   h1 { font-size: 1.4rem; }
-  .course-grid { grid-template-columns: 1fr; }
+  .course-grid, .path-grid { grid-template-columns: 1fr; }
 }
 </style>
 <link rel="stylesheet" href="warm-theme.css">
@@ -94,36 +89,76 @@ footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--bord
 
 <!-- ── CTA ── -->
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.8rem;margin:1.5rem 0 2.5rem;">
-  <a href="statistics/" style="background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:1rem;color:var(--fg);text-decoration:none;display:block;">
-    <div style="font-weight:600;color:var(--accent);">🎯 從零開始的 8 週路徑</div>
-    <div style="font-size:0.82rem;color:var(--fg-muted);margin-top:0.3rem;">統計學習 41 堂課，從迴歸到深度學習的完整路線</div>
+  <a href="statistics/" style="background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:1rem;color:var(--text);text-decoration:none;display:block;">
+    <div style="font-weight:600;color:var(--accent-dark);">🎯 從零開始的 8 週路徑</div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem;">統計學習 43 堂課，從迴歸到深度學習的完整路線</div>
   </a>
-  <a href="https://github.com/a9181873/islp-course" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--fg);text-decoration:none;display:block;">
-    <div style="font-weight:600;color:var(--accent);">📥 下載免費練習包</div>
-    <div style="font-size:0.82rem;color:var(--fg-muted);margin-top:0.3rem;">Python Notebook、資料集與課後練習，開源於 GitHub</div>
+  <a href="ai-agents/ai-agents-01-intro.html" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);text-decoration:none;display:block;">
+    <div style="font-weight:600;color:var(--accent-dark);">🤖 AI Agents 入門 15 課</div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem;">從定義到 Computer Use Agent，微軟課程繁體中文版</div>
+  </a>
+  <a href="https://github.com/a9181873/islp-course" target="_blank" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;color:var(--text);text-decoration:none;display:block;">
+    <div style="font-weight:600;color:var(--accent-dark);">📥 下載免費練習包</div>
+    <div style="font-size:0.82rem;color:var(--muted);margin-top:0.3rem;">Python Notebook、資料集與課後練習，開源於 GitHub</div>
   </a>
 </div>
 
 <!-- ── 學習指引 ── -->
-<h2>學習指引：先走一條路，再延伸探索</h2>
+<h2>學習指引：這裡的內容適合誰、怎麼走</h2>
+
+<div class="course-grid" aria-label="適合誰">
+  <div class="path-card">
+    <h3>👩‍💻 想轉進資料／AI 領域的人</h3>
+    <div class="meta">有基礎 Python，沒有統計背景</div>
+    <dl>
+      <dt>建議順序</dt><dd>統計學習第 2–6 章 → AI Agents 1–3 課</dd>
+      <dt>先修</dt><dd>高中數學即可；Lab 會邊做邊教</dd>
+      <dt>投入</dt><dd>每週 3 小時 × 6 週</dd>
+    </dl>
+  </div>
+  <div class="path-card">
+    <h3>🛠️ 已在寫程式、想懂 Agent 的人</h3>
+    <div class="meta">不需要統計，可直接開始</div>
+    <dl>
+      <dt>建議順序</dt><dd>AI Agents 1–9 課 → 延伸閱讀的記憶與 RAG 系列</dd>
+      <dt>先修</dt><dd>會呼叫 API、懂基本 HTTP</dd>
+      <dt>投入</dt><dd>每課 20–40 分鐘，兩週可讀完主線</dd>
+    </dl>
+  </div>
+  <div class="path-card">
+    <h3>📊 工作上要用數據說話的人</h3>
+    <div class="meta">行銷、產品、營運分析</div>
+    <dl>
+      <dt>建議順序</dt><dd>第 3 章（迴歸）→ 第 5 章（驗證）→ 8.1（決策樹）</dd>
+      <dt>先修</dt><dd>無；觀念頁不寫程式也讀得懂</dd>
+      <dt>投入</dt><dd>挑 8–10 課，每課 30 分鐘</dd>
+    </dl>
+  </div>
+</div>
+
 <div class="course-grid" aria-label="建議學習路徑">
   <a href="statistics/" class="course-card">
     <h3>第 1 步：建立統計直覺</h3>
-    <div class="meta">第 1–2 週 · 每次 30 分鐘</div>
+    <div class="meta">第 1–2 週 · 每次 30 分鐘 · 先修：無</div>
     <div class="desc">從「統計學習是什麼」到模型如何評估；先理解問題與誤差，再開始寫程式。</div>
   </a>
   <a href="statistics/6.2_shrinkage_methods.html" class="course-card">
     <h3>第 2 步：練習選模型</h3>
-    <div class="meta">第 3–5 週 · 觀念搭配 Lab</div>
+    <div class="meta">第 3–5 週 · 觀念搭配 Lab · 先修：第 1 步</div>
     <div class="desc">把迴歸、分類、驗證與正則化串起來；每一章至少完成一個 Lab。</div>
   </a>
   <a href="statistics/8.1_decision_trees.html" class="course-card">
     <h3>第 3 步：進入非線性與深度學習</h3>
-    <div class="meta">第 6–8 週 · 依目標選讀</div>
+    <div class="meta">第 6–8 週 · 依目標選讀 · 先修：第 2 步</div>
     <div class="desc">樹狀方法、SVM、神經網路。完成後再到研究資源延伸你的專題。</div>
   </a>
+  <a href="ai-agents/ai-agents-01-intro.html" class="course-card">
+    <h3>第 4 步（選修）：AI Agents 實戰線</h3>
+    <div class="meta">15 課 · 每課 20–40 分鐘 · 先修：會寫程式</div>
+    <div class="desc">設計模式、工具使用、多 Agent 協作、記憶管理到 Computer Use Agent。</div>
+  </a>
 </div>
-<div class="callout"><strong>建議節奏：</strong>每週選 3 堂課；先讀核心觀念、再做 Lab，並使用每頁的「本頁已完成」留下自己的進度。按 <kbd>/</kbd> 搜尋、<kbd>[</kbd>/<kbd>]</kbd> 切換上一／下一課、<kbd>m</kbd> 開關目錄。</div>
+<div class="callout"><strong>建議節奏：</strong>每週選 3 堂課；先讀核心觀念、再做 Lab，並用每頁的「本頁已完成」記錄進度。快捷鍵：<kbd>/</kbd> 搜尋、<kbd>←</kbd>/<kbd>→</kbd> 切換前後課、<kbd>?</kbd> 說明、<kbd>Home</kbd> 回首頁、<kbd>Esc</kbd> 關閉面板。</div>
 
 <!-- ── 課程 ── -->
 <h2>系統課程</h2>
@@ -131,25 +166,32 @@ footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--bord
 <div class="course-grid">
   <a href="statistics/" class="course-card">
     <h3>📊 統計學習入門</h3>
-    <div class="meta">41 堂課 · ISLP 教科書</div>
-    <div class="desc">從迴歸分析到分類模型，搭配 Python 實作。基於 Stanford 經典教材。</div>
-    <div class="tag-row">
-      <span class="tag">統計</span><span class="tag">Python</span><span class="tag">機器學習</span>
-    </div>
+    <div class="meta">43 堂課 · ISLP 教科書</div>
+    <div class="desc">從迴歸分析到深度學習，搭配 Python 實作。基於 Stanford 經典教材。</div>
+    <div class="tag-row"><span class="tag">統計</span><span class="tag">Python</span><span class="tag">機器學習</span></div>
+  </a>
+
+  <a href="ai-agents/ai-agents-01-intro.html" class="course-card">
+    <h3>🤖 AI Agents 入門</h3>
+    <div class="meta">15 堂課 · 微軟課程繁中版</div>
+    <div class="desc">Agent 定義、設計模式、工具使用、多 Agent 協作、記憶、MCP/A2A 協定到 CUA。</div>
+    <div class="tag-row"><span class="tag">AI Agent</span><span class="tag">MCP</span><span class="tag">實戰</span></div>
+  </a>
+
+  <a href="research/" class="course-card">
+    <h3>📖 延伸閱讀</h3>
+    <div class="meta">64 篇 · 論文筆記與深度分析</div>
+    <div class="desc">Agent 記憶、RAG、自演化技能、工具最佳化——2026 前沿研究的中文導讀。</div>
+    <div class="tag-row"><span class="tag">論文筆記</span><span class="tag">記憶</span><span class="tag">RAG</span></div>
   </a>
 
   <div class="soon">
-    <h3 style="color:var(--fg-muted);font-weight:400">🤖 機器學習</h3>
-    <div>即將推出</div>
-  </div>
-
-  <div class="soon">
-    <h3 style="color:var(--fg-muted);font-weight:400">🐍 Python 基礎</h3>
+    <h3 style="color:var(--muted);font-weight:400">🐍 Python 基礎</h3>
     <div>即將推出</div>
   </div>
 </div>
 
-<!-- ── 資源 ── -->
+<!-- ── 精選 ── -->
 <h2>📖 精選資源</h2>
 
 <div class="resource-grid">
@@ -159,98 +201,65 @@ footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--bord
       <h4>GBrain：AI Agent 長期記憶與知識圖譜</h4>
       <p>外部長期記憶、混合搜尋、知識圖譜與帶引用的綜合回答</p>
     </div>
-    <span class="tag-row"><span class="tag">記憶</span><span class="tag">知識圖譜</span></span>
   </a>
-
-  <a href="research/scion-multi-agent-orchestration.html" class="resource-card">
-    <span class="icon">🧩</span>
-    <div class="info">
-      <h4>Scion：多 Agent 容器編排平台</h4>
-      <p>在獨立容器與工作區中平行執行多個深度 Agent</p>
-    </div>
-    <span class="tag-row"><span class="tag">多 Agent</span><span class="tag">容器</span></span>
-  </a>
-
   <a href="research/2026-06-14-multi-agent-reliability.html" class="resource-card">
     <span class="icon">🛡️</span>
     <div class="info">
       <h4>多 Agent 系統故障復原實戰</h4>
       <p>五種失敗模式、三層復原架構、複合可靠性陷阱一次搞懂</p>
     </div>
-    <span class="tag-row"><span class="tag">multi-agent</span><span class="tag">可靠性</span></span>
   </a>
-
-  <a href="research/prompt-engineering-guide.html" class="resource-card">
-    <span class="icon">📝</span>
-    <div class="info">
-      <h4>Prompt Engineering Guide</h4>
-      <p>DAIR.AI 維護的提示工程知識庫，涵蓋 11 種技術、80+ 工具、多語言</p>
-    </div>
-    <span class="tag-row"><span class="tag">prompt</span><span class="tag">LLM</span></span>
-  </a>
-
   <a href="research/2605.22502-Compiling-Agentic-Workflows-into-LLM-Wei.html" class="resource-card">
     <span class="icon">📄</span>
     <div class="info">
       <h4>Compiling Agentic Workflows into LLM Weights</h4>
       <p>將 agent 工作流程編譯進小模型權重，成本降 100 倍</p>
     </div>
-    <span class="tag-row"><span class="tag">agent</span><span class="tag">LLM</span></span>
   </a>
-
-  <a href="research/2605.26099-llm-sleep.html" class="resource-card">
-    <span class="icon">📄</span>
+  <a href="research/prompt-engineering-guide.html" class="resource-card">
+    <span class="icon">📝</span>
     <div class="info">
-      <h4>語言模型需要睡覺嗎？</h4>
-      <p>離線循環增強線上推理——記憶不是瓶頸，算力才是</p>
+      <h4>Prompt Engineering Guide</h4>
+      <p>DAIR.AI 維護的提示工程知識庫，涵蓋 11 種技術、80+ 工具</p>
     </div>
-    <span class="tag-row"><span class="tag">LLM</span><span class="tag">記憶</span></span>
   </a>
 </div>
 
-<p style="margin-top:0.5rem;"><a href="research/">→ 瀏覽全部學習資源</a></p>
+<p style="margin-top:0.5rem;"><a href="research/">→ 瀏覽全部 64 篇延伸閱讀</a></p>
 
 <!-- ── 標籤 ── -->
 <h2>🔖 依主題瀏覽</h2>
 <div class="tag-cloud">
-  <a href="statistics/05_cross_validation.html" class="tag">交叉驗證</a>
-  <a href="statistics/05_lab_cross_validation_bootstrap.html" class="tag">Bootstrap 實作</a>
   <a href="statistics/02_What_Is_Statistical_Learning.html" class="tag">統計學習</a>
   <a href="statistics/03_simple_linear_regression.html" class="tag">線性迴歸</a>
+  <a href="statistics/3.2_multiple_linear_regression.html" class="tag">多元迴歸</a>
   <a href="statistics/04_classification_methods_comparison.html" class="tag">分類方法比較</a>
   <a href="statistics/4_6_generalized_linear_models.html" class="tag">廣義線性模型</a>
-  <a href="statistics/04_7_lab_classification_methods.html" class="tag">分類實戰</a>
-  <a href="statistics/3.2_multiple_linear_regression.html" class="tag">多元迴歸</a>
-  <span class="tag">Python</span>
-  <span class="tag">LLM</span>
-  <span class="tag">RAG</span>
-  <span class="tag">AI Agent</span>
-  <a href="statistics/6.2_shrinkage_methods.html" class="tag">脊迴歸與Lasso</a>
-  <a href="statistics/6.2_shrinkage_methods.html" class="tag">正則化</a>
+  <a href="statistics/05_cross_validation.html" class="tag">交叉驗證</a>
+  <a href="statistics/05_the_bootstrap.html" class="tag">Bootstrap</a>
+  <a href="statistics/6.2_shrinkage_methods.html" class="tag">Ridge 與 Lasso</a>
   <a href="statistics/6.3_pcr_pls.html" class="tag">維度縮減</a>
   <a href="statistics/6.4_high_dimensions.html" class="tag">高維度</a>
-  <a href="statistics/6.5_lab_regularization.html" class="tag">模型選擇實作</a>
-  <a href="statistics/7.8_lab_nonlinear_modeling.html" class="tag">GAM 實作</a>
+  <a href="statistics/6.5_lab_regularization.html" class="tag">正則化實作</a>
+  <a href="statistics/7.7_generalized_additive_models.html" class="tag">GAM</a>
   <a href="statistics/8.1_decision_trees.html" class="tag">決策樹</a>
   <a href="statistics/8.2_bagging_random_forests_boosting.html" class="tag">集成學習</a>
-  <a href="statistics/8.3_lab_tree_methods.html" class="tag">決策樹實作</a>
   <a href="statistics/9.1_maximal_margin_classifier.html" class="tag">SVM</a>
   <a href="statistics/9.3_support_vector_machines.html" class="tag">核方法</a>
-  <a href="statistics/9.4_svm_multiclass.html" class="tag">多類別分類</a>
-  <a href="statistics/9.1_maximal_margin_classifier.html" class="tag">支援向量</a>
   <a href="statistics/10.1_single_layer_neural_networks.html" class="tag">神經網路</a>
-  <a href="statistics/10.1_single_layer_neural_networks.html" class="tag">深度學習</a>
-  <a href="statistics/10.1_single_layer_neural_networks.html" class="tag">活化函數</a>
-  <a href="statistics/10.2_multilayer_neural_networks.html" class="tag">多層感知器</a>
-  <a href="statistics/10.2_multilayer_neural_networks.html" class="tag">MLP</a>
-  <a href="statistics/10.2_multilayer_neural_networks.html" class="tag">Softmax</a>
-  <a href="statistics/10.3_convolutional_neural_networks.html" class="tag">卷積神經網路</a>
-  <span class="tag">機器學習</span>
-  <span class="tag">prompt</span>
+  <a href="statistics/10.3_convolutional_neural_networks.html" class="tag">CNN</a>
+  <a href="statistics/10.4_document_classification.html" class="tag">文件分類</a>
+  <a href="ai-agents/ai-agents-01-intro.html" class="tag">AI Agent</a>
+  <a href="ai-agents/ai-agents-05-rag/" class="tag">RAG</a>
+  <a href="ai-agents/ai-agents-08-multi-agent/" class="tag">多 Agent</a>
+  <a href="ai-agents/ai-agents-11-protocols.html" class="tag">MCP</a>
+  <a href="ai-agents/ai-agents-13-memory/" class="tag">Agent 記憶</a>
+  <a href="ai-agents/ai-agents-15-cua/" class="tag">Computer Use</a>
+  <a href="research/" class="tag">論文筆記</a>
 </div>
 
 <footer>
-  內容持續更新 · <a href="https://github.com/a9181873/islp-course">GitHub</a>
+  內容持續更新 · <a href="https://github.com/a9181873/islp-course">GitHub</a> · <a href="privacy.html">隱私</a>
 </footer>
 
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>

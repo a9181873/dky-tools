@@ -1,421 +1,71 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<meta name="theme-color" content="#0d1117">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>統計學習入門 — ISLP 課程</title>
-
-
-<link rel="stylesheet" href="../course.css">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
-<link rel="stylesheet" href="../warm-theme.css">
-<script src="../sidebar.js" defer></script>
-</head>
-<body>
-
-<h1>📊 統計學習入門</h1>
-<div class="subtitle">
-  基於 <em>An Introduction to Statistical Learning</em> (ISLP)<br>
-  James, Witten, Hastie, Tibshirani · Springer 2023 · 全繁體中文筆記
+<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="theme-color" content="#fefaf6"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>統計學習入門 — ISLP 課程</title><meta name="description" content="43 堂全繁體中文統計學習課程，從統計直覺、迴歸、分類到深度學習，搭配 Python 實作。"><style>
+:root{--bg:#fefaf6;--surface:#fef9f4;--strong:#f8efe5;--border:#e6d5c0;--text:#3b2a1a;--muted:#8b6f50;--accent:#a0522d;--dark:#71391f}*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:var(--bg);color:var(--text);line-height:1.8;margin-left:264px;padding:2.5rem 3rem 4rem;max-width:980px}h1{font-size:1.8rem;color:var(--dark);margin-bottom:.4rem}.subtitle{color:var(--muted);font-size:.9rem;margin-bottom:1.4rem}h2{font-size:1.15rem;color:var(--dark);margin:2rem 0 .7rem;border-left:3px solid var(--accent);padding-left:.7rem}.count{font-size:.72em;font-weight:400;color:var(--muted);margin-left:.4em}.lesson-list{display:grid;gap:.55rem}.lesson-card{display:flex;align-items:center;gap:.8rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;color:var(--text);text-decoration:none}.lesson-card:hover{border-color:var(--accent)}.lesson-card:focus-visible{outline:3px solid #d79567;outline-offset:3px}.lesson-card .num{min-width:2.7rem;color:var(--accent);font-size:.82rem;font-weight:700}.lesson-card .info{flex:1}.lesson-card strong{display:block;color:var(--dark);font-size:.92rem}.lesson-card small{display:block;color:var(--muted);font-size:.76rem}.legacy{margin-top:2.2rem;border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:.8rem 1rem;color:var(--muted)}.legacy summary{cursor:pointer;color:var(--dark);font-weight:600}.legacy-list{display:grid;gap:.35rem;margin-top:.7rem;font-size:.82rem}.legacy-list a{color:var(--accent)}@media(max-width:768px){body{margin-left:0;padding:1.2rem}.lesson-card{padding:.7rem}.lesson-card .num{min-width:2.2rem}}
+</style><link rel="stylesheet" href="../warm-theme.css"><script src="../sidebar.js" defer></script></head><body><h1>📊 統計學習入門</h1><div class="subtitle">基於 <em>An Introduction to Statistical Learning</em>（ISLP）· 43 堂主線課程 · 全繁體中文 · 觀念搭配 Python 實作</div><div class="callout">建議順序：每週 3 堂；先讀觀念，再完成同章 Lab。課程頁可用「本頁已完成」記錄進度，方向鍵可切換前後課。</div><h2>第 2 章｜統計學習 <span class="count">3 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="02_What_Is_Statistical_Learning.html"><span class="num">§2.1</span><span class="info"><strong>什麼是統計學習？</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="02_Assessing_Model_Accuracy.html"><span class="num">§2.2</span><span class="info"><strong>評估模型準確度</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="02_Lab_Python_Introduction.html"><span class="num">§2.3</span><span class="info"><strong>Lab：Python 入門</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<div class="book-banner">
-  <span class="icon">📖</span>
-  <div class="info">
-    <h3>An Introduction to Statistical Learning with Applications in Python</h3>
-    <p>Stanford 經典教材 · <a href="https://www.statlearning.com/" target="_blank">官方網站</a> · <a href="../ISLP_textbook.pdf">下載課本 PDF</a></p>
-  </div>
+<h2>第 3 章｜線性迴歸 <span class="count">6 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="03_simple_linear_regression.html"><span class="num">§3.1</span><span class="info"><strong>簡單線性迴歸</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="3.2_multiple_linear_regression.html"><span class="num">§3.2</span><span class="info"><strong>多元線性迴歸</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="3_3_other_considerations.html"><span class="num">§3.3</span><span class="info"><strong>迴歸模型的其他考量</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="3.4_the_marketing_plan.html"><span class="num">§3.4</span><span class="info"><strong>行銷計畫</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="3.5_linear_regression_vs_knn.html"><span class="num">§3.5</span><span class="info"><strong>線性迴歸 vs KNN</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="3.6_lab_linear_regression.html"><span class="num">§3.6</span><span class="info"><strong>Lab：線性迴歸</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<h2>第 2 章：統計學習</h2>
-<div class="lesson-list">
-  <a href="02_What_Is_Statistical_Learning.html" class="lesson-card">
-    <span class="num">§2.1</span>
-    <div class="info">
-      <h4>什麼是統計學習？</h4>
-      <p>Y=f(X)+ε、預測 vs 推論、參數化 vs 非參數化、監督 vs 非監督</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="02_Assessing_Model_Accuracy.html" class="lesson-card">
-    <span class="num">§2.2</span>
-    <div class="info">
-      <h4>評估模型準確度</h4>
-      <p>Bias-Variance Tradeoff、Bayes Classifier、KNN、訓練 vs 測試誤差</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="02_Lab_Python_Introduction.html" class="lesson-card">
-    <span class="num">§2.3</span>
-    <div class="info">
-      <h4>Lab: Python 入門</h4>
-      <p>NumPy、pandas、matplotlib 基礎操作</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
+<h2>第 4 章｜分類 <span class="count">5 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="4.3_logistic_regression.html"><span class="num">§4.3</span><span class="info"><strong>邏輯回歸</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="04_Generative_Models.html"><span class="num">§4.4</span><span class="info"><strong>生成模型：LDA、QDA 與 Naive Bayes</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="04_classification_methods_comparison.html"><span class="num">§4.5</span><span class="info"><strong>分類方法比較</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="4_6_generalized_linear_models.html"><span class="num">§4.6</span><span class="info"><strong>廣義線性模型</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="04_7_lab_classification_methods.html"><span class="num">§4.7</span><span class="info"><strong>Lab：分類方法</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<h2>第 3 章：線性迴歸</h2>
-<div class="lesson-list">
-  <a href="03_simple_linear_regression.html" class="lesson-card">
-    <span class="num">§3.1</span>
-    <div class="info">
-      <h4>簡單線性迴歸</h4>
-      <p>最小平方法、係數估計、信賴區間、假說檢定</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="3.2_multiple_linear_regression.html" class="lesson-card">
-    <span class="num">§3.2</span>
-    <div class="info">
-      <h4>多元線性迴歸</h4>
-      <p>F 檢定、變數選擇、R²、預測區間</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="3_3_other_considerations.html" class="lesson-card">
-    <span class="num">§3.3</span>
-    <div class="info">
-      <h4>迴歸模型的其他考量</h4>
-      <p>虛擬變數、交互作用、多項式迴歸、殘差診斷、共線性與 VIF</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="3.4_the_marketing_plan.html" class="lesson-card">
-    <span class="num">§3.4</span>
-    <div class="info">
-      <h4>行銷計畫</h4>
-      <p>迴歸模型在行銷策略中的應用案例</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="3.5_linear_regression_vs_knn.html" class="lesson-card">
-    <span class="num">§3.5</span>
-    <div class="info">
-      <h4>線性迴歸 vs KNN</h4>
-      <p>參數化 vs 非參數化方法的比較、維度詛咒</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="3.6_lab_linear_regression.html" class="lesson-card">
-    <span class="num">§3.6</span>
-    <div class="info">
-      <h4>Lab: 線性迴歸</h4>
-      <p>Boston 房價資料集實作：簡單/多元迴歸、交互作用、殘差分析</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
+<h2>第 5 章｜重抽樣 <span class="count">3 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="05_cross_validation.html"><span class="num">§5.1</span><span class="info"><strong>交叉驗證</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="05_the_bootstrap.html"><span class="num">§5.2</span><span class="info"><strong>Bootstrap</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="05_lab_cross_validation_bootstrap.html"><span class="num">§5.3</span><span class="info"><strong>Lab：交叉驗證與 Bootstrap</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<h2>第 4 章：分類</h2>
-<div class="lesson-list">
-  <a href="4.3_logistic_regression.html" class="lesson-card">
-    <span class="num">§4.3</span>
-    <div class="info">
-      <h4>邏輯回歸：從線性到機率</h4>
-      <p>Logistic function、勝算比、最大概似估計、混淆因子</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="4.4_linear_discriminant_analysis.html" class="lesson-card">
-    <span class="num">§4.4</span>
-    <div class="info">
-      <h4>線性判別分析 (LDA)</h4>
-      <p>貝氏定理、常態假設、判別函數、LDA vs QDA vs Logistic</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="04_Generative_Models.html" class="lesson-card">
-    <span class="num">§4.4.5</span>
-    <div class="info">
-      <h4>生成模型對分類的啟發</h4>
-      <p>Naive Bayes、生成 vs 判別模型</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="04_classification_methods_comparison.html" class="lesson-card">
-    <span class="num">§4.5</span>
-    <div class="info">
-      <h4>分類方法比較</h4>
-      <p>Logistic · LDA · QDA · KNN · Naive Bayes 全比較</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="4_6_generalized_linear_models.html" class="lesson-card">
-    <span class="num">§4.6</span>
-    <div class="info">
-      <h4>廣義線性模型 (GLM)</h4>
-      <p>Poisson 迴歸、計數資料、連結函數、GLM 統一框架</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="5.2_bootstrap.html" class="lesson-card">
-    <span class="num">§5.2</span>
-    <div class="info">
-      <h4>Bootstrap 自助抽樣法</h4>
-      <p>有放回抽樣估計標準誤差、Portfolio 資產配置、信賴區間、Bagging 基礎</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
+<h2>第 6 章｜模型選擇 <span class="count">5 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="6.1_subset_selection.html"><span class="num">§6.1</span><span class="info"><strong>子集選擇</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="6.2_shrinkage_methods.html"><span class="num">§6.2</span><span class="info"><strong>收縮方法：Ridge 與 Lasso</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="6.3_pcr_pls.html"><span class="num">§6.3</span><span class="info"><strong>PCR 與 PLS</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="6.4_high_dimensions.html"><span class="num">§6.4</span><span class="info"><strong>高維度資料</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="6.5_lab_regularization.html"><span class="num">§6.5</span><span class="info"><strong>Lab：模型選擇與正則化</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<h2>第 5 章：重抽樣方法</h2>
-<div class="lesson-list">
-  <a href="5.1_cross_validation.html" class="lesson-card">
-    <span class="num">§5.1</span>
-    <div class="info">
-      <h4>交叉驗證 (Cross-Validation)</h4>
-      <p>Validation Set、LOOCV、k-Fold CV、Bias-Variance Tradeoff</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="5.2_bootstrap.html" class="lesson-card">
-    <span class="num">§5.2</span>
-    <div class="info">
-      <h4>Bootstrap 自助抽樣法</h4>
-      <p>有放回抽樣估計標準誤差、Portfolio 資產配置、信賴區間、Bagging 基礎</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
+<h2>第 7 章｜非線性 <span class="count">8 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="7.1_polynomial_regression.html"><span class="num">§7.1</span><span class="info"><strong>多項式迴歸</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="7.2_step_functions.html"><span class="num">§7.2</span><span class="info"><strong>階梯函數</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="7.3_basis_functions.html"><span class="num">§7.3</span><span class="info"><strong>基底函數</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="7.4_regression_splines.html"><span class="num">§7.4</span><span class="info"><strong>迴歸樣條</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="7.5_smoothing_splines.html"><span class="num">§7.5</span><span class="info"><strong>平滑樣條</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="7.6_local_regression.html"><span class="num">§7.6</span><span class="info"><strong>局部迴歸</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="7.7_generalized_additive_models.html"><span class="num">§7.7</span><span class="info"><strong>廣義加法模型</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="7.8_lab_nonlinear_modeling.html"><span class="num">§7.8</span><span class="info"><strong>Lab：非線性建模</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<h2>第 6 章：線性模型選擇與正則化</h2>
-<div class="lesson-list">
-  <a href="6.1_subset_selection.html" class="lesson-card">
-    <span class="num">§6.1</span>
-    <div class="info">
-      <h4>子集選擇法（Subset Selection）</h4>
-      <p>最佳子集、向前逐步、向後逐步、Cp/AIC/BIC/Adj-R² 選擇指標</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="6.2_ridge_lasso.html" class="lesson-card">
-    <span class="num">§6.2</span>
-    <div class="info">
-      <h4>脊迴歸與 Lasso（Ridge & Lasso）</h4>
-      <p>用懲罰項馴服過配：Ridge 溫和收縮、Lasso 自動選變數、交叉驗證選 λ</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="6.3_pcr_pls.html" class="lesson-card">
-    <span class="num">§6.3</span>
-    <div class="info">
-      <h4>降維方法：PCR 與 PLS</h4>
-      <p>主成分迴歸 vs 偏最小平方法：先濃縮再分析，PLS 偷看 Y 更聰明</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="6.4_high_dimensions.html" class="lesson-card">
-    <span class="num">§6.4</span>
-    <div class="info">
-      <h4>高維度資料的考量</h4>
-      <p>當 p &gt; n 時 OLS 崩潰──必須賭稀疏性，Ridge/Lasso 不是選項而是生存必需品</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-    <a href="6.6_lab_ridge_lasso.html" class="lesson-card">
-    <span class="num">6.6 Lab 2</span>
-    <div class="info">
-      <h4>Ridge Regression and the Lasso</h4>
-      <p>Regularization path visualization, RidgeCV/LassoCV, coefficient comparison</p>
-    </div>
-    <span class="status">NEW</span>
-  </a>
+<h2>第 8 章｜樹狀方法 <span class="count">3 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="8.1_decision_trees.html"><span class="num">§8.1</span><span class="info"><strong>決策樹基礎</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="8.2_bagging_random_forests_boosting.html"><span class="num">§8.2</span><span class="info"><strong>Bagging、隨機森林與 Boosting</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="8.3_lab_tree_methods.html"><span class="num">§8.3</span><span class="info"><strong>Lab：決策樹方法</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<h2>第 7 章：超越線性（Moving Beyond Linearity）</h2>
-<div class="lesson-list">
-  <a href="7.1_polynomial_regression.html" class="lesson-card">
-    <span class="num">§7.1</span>
-    <div class="info">
-      <h4>多項式迴歸（Polynomial Regression）</h4>
-      <p>從直線到曲線：用多項式展開捕捉非線性關係、信賴區間、多項式邏輯回歸</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="7.2_step_functions.html" class="lesson-card">
-    <span class="num">§7.2</span>
-    <div class="info">
-      <h4>階梯函數（Step Functions）</h4>
-      <p>將連續變數切成區間，每段擬合常數——放棄全域曲線，換取區段獨立判決的自由</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="7.3_basis_functions.html" class="lesson-card">
-    <span class="num">§7.3</span>
-    <div class="info">
-      <h4>基底函數（Basis Functions）</h4>
-      <p>將多項式、階梯、樣條、傅立葉等非線性方法統一於線性模型框架</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="7.4_regression_splines.html" class="lesson-card">
-    <span class="num">§7.4</span>
-    <div class="info">
-      <h4>迴歸樣條（Regression Splines）</h4>
-      <p>分段多項式 + 節點平滑連接——基底函數框架中最實用的變體</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="7.5_smoothing_splines.html" class="lesson-card">
-    <span class="num">§7.5</span>
-    <div class="info">
-      <h4>平滑樣條（Smoothing Splines）</h4>
-      <p>每個資料點都是節點＋λ 懲罰控制平滑度——不用選節點的非線性建模</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="7.6_local_regression.html" class="lesson-card">
-    <span class="num">§7.6</span>
-    <div class="info">
-      <h4>局部迴歸（Local Regression）</h4>
-      <p>每個點只看附近鄰居的加權迴歸——記憶式方法，span 控制平滑度，p>4 就投降</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="7.7_generalized_additive_models.html" class="lesson-card">
-    <span class="num">§7.7</span>
-    <div class="info">
-      <h4>廣義加法模型（GAM）</h4>
-      <p>讓每個變數各自擬合非線性函數再加總——可解釋的非線性建模，線性與全非參數的黃金折衷</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="7.8_lab_nonlinear_modeling.html" class="lesson-card">
-    <span class="num">§7.8</span>
-    <div class="info">
-      <h4>Lab: 非線性建模</h4>
-      <p>多項式回歸、樣條、GAM 的 Python 實作 — 從 Wage 資料親手跑完 Ch7 所有非線性方法</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
+<h2>第 9 章｜支援向量機 <span class="count">6 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="9.1_maximal_margin_classifier.html"><span class="num">§9.1</span><span class="info"><strong>最大邊界分類器</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="9.2_support_vector_classifiers.html"><span class="num">§9.2</span><span class="info"><strong>支援向量分類器</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="9.3_support_vector_machines.html"><span class="num">§9.3</span><span class="info"><strong>支援向量機與核方法</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="9.4_svm_multiclass.html"><span class="num">§9.4</span><span class="info"><strong>多類別 SVM</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="9.5_relationship_to_logistic_regression.html"><span class="num">§9.5</span><span class="info"><strong>SVM 與邏輯回歸的關係</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="9.6_lab_svm.html"><span class="num">§9.6</span><span class="info"><strong>Lab：SVM</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<div class="section-header"><span class="chapter">Ch 8</span> 樹狀方法（Tree-Based Methods）</div>
-<div class="lesson-grid">
-  <a href="8.1_decision_trees.html" class="lesson-card">
-    <span class="num">§8.1</span>
-    <div class="info">
-      <h4>決策樹基礎</h4>
-      <p>遞迴二元分割、不純度衡量、剪枝、分類與回歸樹</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="8.2_bagging_random_forests_boosting.html" class="lesson-card">
-    <span class="num">§8.2</span>
-    <div class="info">
-      <h4>Bagging・隨機森林・Boosting・BART</h4>
-      <p>集成學習：自助抽樣聚合、隨機森林去相關化、梯度提升、貝氏加法樹</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="8.3_lab_tree_methods.html" class="lesson-card">
-    <span class="num">§8.3</span>
-    <div class="info">
-      <h4>Lab: 決策樹方法</h4>
-      <p>決策樹、隨機森林、梯度提升的 Python 實作</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
+<h2>第 10 章｜深度學習 <span class="count">4 堂</span></h2><div class="lesson-list">
+<a class="lesson-card" href="10.1_single_layer_neural_networks.html"><span class="num">§10.1</span><span class="info"><strong>單層神經網路</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="10.2_multilayer_neural_networks.html"><span class="num">§10.2</span><span class="info"><strong>多層神經網路</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="10.3_convolutional_neural_networks.html"><span class="num">§10.3</span><span class="info"><strong>卷積神經網路</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
+<a class="lesson-card" href="10.4_document_classification.html"><span class="num">§10.4</span><span class="info"><strong>文件分類</strong><small>觀念與實作</small></span><span aria-hidden="true">→</span></a>
 </div>
-
-<div class="section-header"><span class="chapter">Ch 9</span> 支援向量機（Support Vector Machines）</div>
-<div class="lesson-grid">
-  <a href="9.1_maximal_margin_classifier.html" class="lesson-card">
-    <span class="num">§9.1</span>
-    <div class="info">
-      <h4>最大邊界分類器</h4>
-      <p>超平面、分離超平面、最大邊界、支援向量、非可分離情況</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="9.2_support_vector_classifiers.html" class="lesson-card">
-    <span class="num">§9.2</span>
-    <div class="info">
-      <h4>支援向量分類器</h4>
-      <p>軟邊界、寬容錯誤、C 參數調節、支援向量在邊界內外的角色</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="9.3_support_vector_machines.html" class="lesson-card">
-    <span class="num">§9.3</span>
-    <div class="info">
-      <h4>支援向量機 (SVM)</h4>
-      <p>核函數擴展、RBF 核心、多項式核心、γ 參數調節、Heart 資料應用</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="9.4_svm_multiclass.html" class="lesson-card">
-    <span class="num">§9.4</span>
-    <div class="info">
-      <h4>多類別 SVM</h4>
-      <p>One-vs-One 多數決、One-vs-All 信心分數、K 類別擴展策略比較</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="9.5_relationship_to_logistic_regression.html" class="lesson-card">
-    <span class="num">§9.5</span>
-    <div class="info">
-      <h4>SVM 與邏輯回歸的關係</h4>
-      <p>Loss+Penalty 框架統一、Hinge vs Logistic loss、SVR 簡介</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="9.6_lab_svm.html" class="lesson-card">
-    <span class="num">§9.6</span>
-    <div class="info">
-      <h4>Lab: 支援向量機</h4>
-      <p>SVC 實作、RBF 核心調參、ROC 曲線、多類別分類、Khan 基因表達資料</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-</div>
-
-<div class="section-header"><span class="chapter">Ch 10</span> 深度學習（Deep Learning）</div>
-<div class="lesson-grid">
-  <a href="10.1_single_layer_neural_networks.html" class="lesson-card">
-    <span class="num">§10.1</span>
-    <div class="info">
-      <h4>單層神經網路</h4>
-      <p>從線性回歸到單層 NN、活化函數、Keras/PyTorch 框架、單層即邏輯回歸</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="10.2_multilayer_neural_networks.html" class="lesson-card">
-    <span class="num">§10.2</span>
-    <div class="info">
-      <h4>多層神經網路</h4>
-      <p>隱藏層、反向傳播、softmax 輸出、ReLU 活化、非線性特徵轉換</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="10.3_convolutional_neural_networks.html" class="lesson-card">
-    <span class="num">§10.3</span>
-    <div class="info">
-      <h4>卷積神經網路</h4>
-      <p>卷積層、池化層、CIFAR100、資料擴增、遷移學習</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-  <a href="10.4_document_classification.html" class="lesson-card">
-    <span class="num">§10.4</span>
-    <div class="info">
-      <h4>文件分類</h4>
-      <p>Bag-of-Words、稀疏矩陣、Lasso vs 神經網路、IMDb 情感分析</p>
-    </div>
-    <span class="status">✓</span>
-  </a>
-</div>
-
-<footer>
-  <a href="/">← 回首頁</a>
-</footer>
-
-<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script>hljs.highlightAll();</script>
-</body>
-</html>
+<details class="legacy"><summary>補充版本與相容網址（不影響主學習順序）</summary><div class="legacy-list">
+<a href="4.4_linear_discriminant_analysis.html">第 4 章：分類 — 4.4 線性判別分析 (LDA)</a>
+<a href="5.1_cross_validation.html">§5.1 交叉驗證 (Cross-Validation) — ISLP 統計學習課程</a>
+<a href="5.2_bootstrap.html">§5.2 Bootstrap 自助抽樣法 — ISLP 統計學習課程</a>
+<a href="6.2_ridge_lasso.html">6.2 收縮方法 — ISLP 統計學習課程</a>
+<a href="6.5_lab_model_selection.html">6.5 Lab: Linear Model Selection and Regularization - ISLP Statistical Learning</a>
+<a href="6.6_lab_ridge_lasso.html">6.6 Lab 2：脊迴歸與 Lasso — ISLP 統計學習</a>
+</div></details></body></html>
