@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>探索 Agentic 框架 — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 2 課繁體中文版：AI Agent 框架簡介、快速原型開發、MAF vs Foundry Agent Service 比較">
+<link rel="stylesheet" href="../../../course.css">
+<style>
+.code-caption { font-size:.8rem; color:var(--fg-muted); margin-bottom:-.5rem; }
+.qna { background:var(--card); border-left:4px solid var(--accent2); padding:.8rem 1.2rem; margin:.8rem 0; border-radius:0 8px 8px 0; }
+.qna .q { color:var(--accent); font-weight:700; }
+.qna .a { color:var(--fg); margin-left:.5rem; }
+</style>
+<link rel="stylesheet" href="../../warm-theme.css">
+<script src="../../sidebar.js" defer></script>
+<link rel="canonical" href="https://learn.dky.tw/ai-agents/ai-agents-02-frameworks/">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 2 課 / 共 18 課</p>
+<h1>探索 Agentic 框架</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="/ai-agents/ai-agents-01-intro/">← 第 1 課：AI Agents 入門</a>
+<a href="/ai-agents/ai-agents-03-patterns/">第 3 課：Agentic 設計模式 →</a>
+</nav>
+<p style="text-align:center;margin:1rem 0;">
+  <a href="https://youtu.be/ODwF-EZo_O8" target="_blank" rel="noopener">
+    <img src="https://img.youtube.com/vi/ODwF-EZo_O8/maxresdefault.jpg" alt="課程影片" style="max-width:100%;border-radius:8px;">
+  </a>
+</p>
+<p style="text-align:center;font-size:.85rem;color:var(--fg-muted);">▲ 點擊圖片觀看課程影片</p>
+<h2>什麼是 AI Agent 框架？</h2>
+<div class="verdict">
+一句話：<strong>AI Agent 框架是一個軟體平台，簡化 AI Agent 的建立、部署與管理，提供預建元件、抽象層與工具，讓你專注在應用邏輯而非底層基礎建設。</strong>
+</div>
+<p>AI Agent 框架幫助開發者用標準化的方式解決 Agent 開發中的常見挑戰，提升系統的擴展性、可及性和開發效率。</p>
+<p>傳統的 AI 框架能做到：</p>
+<table>
+<tr><th>能力</th><th>說明</th><th>範例</th></tr>
+<tr><td><strong>個人化</strong></td><td>分析使用者行為與偏好，提供個人化推薦</td><td>Netflix 根據觀看紀錄推薦影片</td></tr>
+<tr><td><strong>自動化與效率</strong></td><td>自動化重複任務、簡化工作流程</td><td>客服聊天機器人處理常見問題</td></tr>
+<tr><td><strong>更好的使用者體驗</strong></td><td>語音辨識、自然語言處理、預測文字</td><td>Siri / Google Assistant 語音互動</td></tr>
+</table>
+<h3>那為什麼還需要「Agent 專用框架」？</h3>
+<p>AI Agent 框架跟一般 AI 框架不同。它們是為了建立<strong>能與使用者、其他 Agent 和環境互動以達成特定目標</strong>的智慧型 Agent。這些 Agent 能展現自主行為、做決策，並適應變化中的環境。</p>
+<div class="callout">
+<strong>AI Agent 框架的核心能力：</strong>
+<ul>
+<li><strong>Agent 協作與協調</strong>：建立多個能互相溝通、協調完成複雜任務的 AI Agent</li>
+<li><strong>任務自動化與管理</strong>：提供多步驟工作流程自動化、任務委派和動態任務管理</li>
+<li><strong>情境理解與適應</strong>：讓 Agent 理解上下文、適應變化環境、根據即時資訊做決策</li>
+</ul>
+</div>
+<h2>如何快速原型、迭代、改進 Agent？</h2>
+<p>雖然技術變化很快，但多數 AI Agent 框架有以下共同點可以幫助你快速開發：</p>
+<h3>1. 使用模組化元件</h3>
+<p>SDK（如 Microsoft Agent Framework）提供預建的 AI 連接器、工具定義、Prompt 模板等。團隊可以直接組裝這些元件來建立功能性原型，不需從零打造。</p>
+<div class="scenario-box">
+<h4>實際運作方式</h4>
+<p>用預建的解析器從使用者輸入中提取資訊，用記憶模組儲存和讀取資料，用 Prompt 產生器與使用者互動——全部不用從頭寫。</p>
+</div>
+<p class="code-caption">📝 Microsoft Agent Framework 範例 — 用 FoundryChatClient 建立旅遊訂票 Agent：</p>
+<pre><code>import asyncio
+import os
+
+from agent_framework import tool
+from agent_framework.foundry import FoundryChatClient
+from azure.identity import AzureCliCredential
+
+# 定義工具函式：訂機票
+@tool(approval_mode="never_require")
+def book_flight(date: str, location: str) -> str:
+    """根據日期和地點訂票"""
+    return f"已為您預訂 {date} 飛往 {location} 的航班"
+
+async def main():
+    provider = FoundryChatClient(
+        project_endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+        model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"],
+        credential=AzureCliCredential(),
+    )
+    agent = provider.as_agent(
+        name="travel_agent",
+        instructions="幫助使用者訂票。準備好時使用 book_flight 工具。",
+        tools=[book_flight],
+    )
+
+    response = await agent.run("我想在 2025 年 1 月 1 日去紐約")
+    print(response)
+
+if __name__ == "__main__":
+    asyncio.run(main())</code></pre>
+<h3>2. 利用協作工具</h3>
+<p>像 Microsoft Agent Framework 這類框架能讓多個 Agent 一起工作。團隊可以為每個 Agent 設計專門的角色和任務，測試和改進協作流程。</p>
+<div class="scenario-box">
+<h4>實際運作方式</h4>
+<p>建立一組 Agent，每個有專門功能：資料擷取、分析、決策。這些 Agent 可以互相通訊、分享資訊來達成共同目標。</p>
+</div>
+<p class="code-caption">📝 多 Agent 協作範例：</p>
+<pre><code>import os
+from agent_framework.foundry import FoundryChatClient
+from azure.identity import AzureCliCredential
+
+provider = FoundryChatClient(
+    project_endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+    model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"],
+    credential=AzureCliCredential(),
+)
+
+# 資料擷取 Agent
+agent_retrieve = provider.as_agent(
+    name="dataretrieval",
+    instructions="使用可用工具擷取相關資料",
+    tools=[retrieve_tool],
+)
+
+# 資料分析 Agent
+agent_analyze = provider.as_agent(
+    name="dataanalysis",
+    instructions="分析擷取到的資料並提供洞見",
+    tools=[analyze_tool],
+)
+
+# 循序執行
+retrieval_result = await agent_retrieve.run("擷取 Q4 銷售數據")
+analysis_result = await agent_analyze.run(f"分析這些數據：{retrieval_result}")
+print(analysis_result)</code></pre>
+<h3>3. 即時學習</h3>
+<p>進階框架提供即時情境理解和適應能力。團隊可以實作回饋迴圈，讓 Agent 從互動中學習、動態調整行為，持續改進。</p>
+<div class="hermes-insight">
+<strong>關鍵啟發：</strong>回饋迴圈是讓 Agent「越用越聰明」的核心機制。Agent 可以分析使用者回饋、環境資料與任務結果，更新其知識庫、調整決策演算法，隨時間提升效能。
+</div>
+<h2>Microsoft Agent Framework vs Microsoft Foundry Agent Service</h2>
+<p>這兩個工具互補，但設計目標不同。以下是核心差異：</p>
+<h3>Microsoft Agent Framework (MAF)</h3>
+<div class="card">
+<p><strong>定位：</strong>精簡的 SDK，用 <code>FoundryChatClient</code> 建立 AI Agent。內建 tool calling、對話管理、Azure 身分驗證。</p>
+<p><strong>適用場景：</strong>建立生產級 AI Agent，含工具使用、多步驟工作流程、企業整合。</p>
+</div>
+<p>核心概念：</p>
+<table>
+<tr><th>概念</th><th>說明</th></tr>
+<tr><td><strong>Agent</strong></td><td>透過 <code>FoundryChatClient</code> 建立，設定名稱、指令和工具。能處理使用者訊息、自動呼叫工具、跨互動維護對話狀態。</td></tr>
+<tr><td><strong>Tools</strong></td><td>框架支援將 Python 函式定義為 Agent 可自動調用的工具。例如 <code>get_weather(location)</code> 函式能在對話中被自動觸發。</td></tr>
+<tr><td><strong>Multi-Agent Coordination</strong></td><td>建立多個不同專長的 Agent（如 planner + executor），協調分工完成複雜任務。</td></tr>
+<tr><td><strong>Azure Identity</strong></td><td>使用 <code>AzureCliCredential</code> 或 <code>DefaultAzureCredential</code>，無需手動管理 API Key，安全無金鑰驗證。</td></tr>
+</table>
+<h3>Microsoft Foundry Agent Service</h3>
+<div class="card">
+<p><strong>定位：</strong>平台與部署服務（2024 Ignite 推出），支援更彈性的模型選擇（Llama 3、Mistral、Cohere 等開源 LLM），提供更強的企業安全機制和資料儲存。</p>
+<p><strong>適用場景：</strong>需要安全、可擴展、靈活部署的企業級 AI Agent 應用。</p>
+<p>目前為公開預覽版，支援 Python 和 C#。</p>
+</div>
+<p>核心概念：</p>
+<table>
+<tr><th>概念</th><th>說明</th></tr>
+<tr><td><strong>Agent</strong></td><td>在 Microsoft Foundry 中，AI Agent 作為「智慧微服務」，可用於回答問題（RAG）、執行動作、或完全自動化工作流程。結合生成式 AI 模型與工具來存取真實資料。</td></tr>
+<tr><td><strong>Thread 與 Messages</strong></td><td>Thread 代表 Agent 與使用者的對話/互動。可追蹤對話進度、儲存上下文、管理互動狀態。訊息可以是文字、圖片或檔案類型。</td></tr>
+<tr><td><strong>與 MAF 整合</strong></td><td>無縫整合 Microsoft Agent Framework：用 <code>FoundryChatClient</code> 開發 Agent，再透過 Agent Service 部署到生產環境。</td></tr>
+</table>
+<h2>快速對照表</h2>
+<table class="comparison-table">
+<tr><th>框架</th><th>定位</th><th>核心概念</th><th>適用場景</th></tr>
+<tr><td><strong>Microsoft Agent Framework</strong></td><td>精簡 Agent SDK，含 tool calling</td><td>Agents、Tools、Azure Identity</td><td>建立 AI Agent、工具使用、多步驟工作流程</td></tr>
+<tr><td><strong>Microsoft Foundry Agent Service</strong></td><td>靈活模型、企業安全、程式碼生成、Tool calling</td><td>模組化、協作、流程編排</td><td>安全、可擴展、靈活的 AI Agent 部署</td></tr>
+</table>
+<h2>我該選哪一個？常見問答</h2>
+<div class="qna">
+<p class="q">Q: 我要快速開始建立生產級 AI Agent 應用</p>
+<p class="a"><strong>A:</strong> 選 Microsoft Agent Framework。它提供簡潔的 Python API（透過 <code>FoundryChatClient</code>），幾行程式碼就能定義 Agent 的工具和指令。</p>
+</div>
+<div class="qna">
+<p class="q">Q: 我需要企業級部署，整合 Azure Search 和程式碼執行</p>
+<p class="a"><strong>A:</strong> 選 Microsoft Foundry Agent Service。它內建多模型支援、Azure AI Search、Bing Search 和 Azure Functions，可在 Foundry Portal 中建立並大規模部署。</p>
+</div>
+<div class="qna">
+<p class="q">Q: 我還是很困惑，給我一個簡單的建議</p>
+<p class="a"><strong>A:</strong> 先用 <strong>Microsoft Agent Framework</strong> 開發 Agent，到要部署和擴展時再用 <strong>Microsoft Foundry Agent Service</strong>。這樣可以快速迭代 Agent 邏輯，同時有清楚的企業部署路徑。</p>
+</div>
+<h2>能否整合既有的 Azure 生態工具？</h2>
+<div class="callout">
+<strong>答案是可以的。</strong>Microsoft Foundry Agent Service 專為無縫整合 Azure 服務而設計，可直接整合 Bing、Azure AI Search、Azure Functions 等。MAF 也透過 <code>FoundryChatClient</code> 和 Azure Identity 讓你能從 Agent 工具中直接呼叫 Azure 服務。
+</div>
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>AI Agent 框架 ≠ 一般 AI 框架</strong>：多了 Agent 協作、任務自動化、情境適應等關鍵能力</li>
+<li><strong>快速開發三招</strong>：模組化元件（用 SDK 預建組件）、協作工具（多 Agent 分工）、即時學習（回饋迴圈）</li>
+<li><strong>MAF = SDK</strong>：用 <code>FoundryChatClient</code> 簡潔開發，適合建立生產級 Agent</li>
+<li><strong>Foundry Agent Service = 平台</strong>：企業級部署、多模型支援、Azure 整合，適合上線和大規模營運</li>
+<li><strong>兩者互補</strong>：先用 MAF 開發迭代，再用 Foundry Agent Service 部署擴展</li>
+</ol>
+<h2>範例程式碼</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/02-explore-agentic-frameworks/code_samples/02-python-agent-framework.ipynb">Python: Agent Framework (Microsoft Foundry)</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/02-explore-agentic-frameworks/code_samples/02-python-agent-framework-azure-openai.ipynb">Python: Agent Framework (Azure OpenAI Responses API)</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/blob/main/02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.md">.NET: Agent Framework</a></li>
+</ul>
+<h2>參考資源</h2>
+<ul>
+<li><a href="https://techcommunity.microsoft.com/blog/azure-ai-services-blog/introducing-azure-ai-agent-service/4298357">Azure Agent Service 介紹</a></li>
+<li><a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses">Microsoft Agent Framework - Azure OpenAI Responses</a></li>
+<li><a href="https://learn.microsoft.com/azure/ai-services/agents/overview">Microsoft Foundry Agent Service 概覽</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord 社群</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/02-explore-agentic-frameworks">原始 README（英文）</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 (69.7k ⭐)</a></li>
+</ul>
+<nav class="lesson-nav">
+<a href="/ai-agents/ai-agents-01-intro/">← 第 1 課：AI Agents 入門</a>
+<a href="/ai-agents/ai-agents-03-patterns/">第 3 課：Agentic 設計模式 →</a>
+</nav>
+</main>
+</body>
+</html>

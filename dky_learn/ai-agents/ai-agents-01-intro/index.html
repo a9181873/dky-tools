@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agents 入門：什麼是 AI Agent？何時該用？ — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 1 課繁體中文版：AI Agent 定義、類型、使用場景與核心架構">
+<link rel="stylesheet" href="../../../course.css">
+<link rel="stylesheet" href="../../warm-theme.css">
+<script src="../../sidebar.js" defer></script>
+<link rel="canonical" href="https://learn.dky.tw/ai-agents/ai-agents-01-intro/">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 1 課 / 共 18 課</p>
+<h1>AI Agents 入門：什麼是 AI Agent？何時該用？</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<span>← 課程設定</span>
+<a href="/ai-agents/ai-agents-02-frameworks/">第 2 課 →</a>
+</nav>
+<h2>什麼是 AI Agent？</h2>
+<div class="verdict">
+一句話：<strong>AI Agent 是一個系統，讓 LLM 不只是回答問題，而是實際「做事」——透過工具和知識對環境採取行動。</strong>
+</div>
+<h3>三個核心元件</h3>
+<table>
+<tr><th>元件</th><th>說明</th><th>旅行社 Agent 舉例</th></tr>
+<tr><td>環境 (Environment)</td><td>Agent 運作的空間</td><td>訂房平台本身</td></tr>
+<tr><td>感知器 (Sensors)</td><td>讀取環境狀態的方式</td><td>查詢飯店空房、航班價格</td></tr>
+<tr><td>執行器 (Actuators)</td><td>採取行動的方式</td><td>訂房、發送確認信、取消預約</td></tr>
+</table>
+<h2>AI Agent 的七種類型</h2>
+<table>
+<tr><th>類型</th><th>特點</th><th>範例</th></tr>
+<tr><td>簡單反射型</td><td>純規則驅動，無記憶、無規劃</td><td>看到客訴信 → 自動轉給客服</td></tr>
+<tr><td>模型反射型</td><td>維護世界模型，隨變化更新</td><td>追蹤歷史票價，標示異常漲價</td></tr>
+<tr><td>目標導向型</td><td>有目標，逐步找出達成路徑</td><td>從出發地到目的地，訂完機票+租車+飯店</td></tr>
+<tr><td>效用導向型</td><td>不只找解，找最佳解（權衡取捨）</td><td>平衡成本與便利性，給出最高分方案</td></tr>
+<tr><td>學習型</td><td>從回饋中學習，越用越好</td><td>根據旅客事後問卷調整未來推薦</td></tr>
+<tr><td>階層型</td><td>高層拆任務，委派給子 Agent</td><td>「取消行程」→ 取消機票+取消飯店+取消租車</td></tr>
+<tr><td>多 Agent 系統</td><td>多個獨立 Agent 協作或競爭</td><td>協作：各 Agent 分頭處理航班、飯店、娛樂</td></tr>
+</table>
+<h2>何時該用 AI Agent？</h2>
+<div class="card">
+<h3>✅ 適合的場景</h3>
+<ul>
+<li><strong>開放性問題</strong>——解題步驟無法事先寫死，需要 LLM 動態規劃</li>
+<li><strong>多步驟流程</strong>——需要跨多個回合使用多種工具，非單次查詢</li>
+<li><strong>隨時間改善</strong>——希望系統根據回饋或環境訊號變得更聰明</li>
+</ul>
+</div>
+<div class="warn">
+<h3>⚠️ 不要用的時候</h3>
+<ul>
+<li>單一步驟就能解決的問題（寫 SQL 查詢就好）</li>
+<li>邏輯固定不變的流程（傳統 if/else 更穩）</li>
+<li>需要 100% 確定性的場景（Agent 本質上不保證結果一致）</li>
+</ul>
+</div>
+<h2>Agent 開發基礎</h2>
+<h3>三個關鍵概念</h3>
+<table>
+<tr><th>概念</th><th>說明</th><th>課程中的實作</th></tr>
+<tr><td>Agentic Patterns</td><td>可重用的提示與編排策略，讓 LLM 在複雜任務中更可靠</td><td>課程以最常見的 pattern 為結構主軸</td></tr>
+<tr><td>Agentic Frameworks</td><td>開發框架提供現成模板、工具和基礎設施</td><td>使用 Microsoft Agent Framework (MAF)</td></tr>
+<tr><td>Tool Definitions</td><td>用 OpenAPI 3.0 標準定義 Agent 能用的工具</td><td>Foundry Agent Service 支援</td></tr>
+</table>
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>AI Agent = LLM + 工具 + 記憶 + 行動能力</strong>，不只是回應提示</li>
+<li><strong>七種 Agent 類型</strong>從簡單反射到多 Agent 協作，複雜度遞增</li>
+<li><strong>判斷何時用 Agent</strong>：開放、多步驟、需學習的場景才適合</li>
+<li><strong>本課程用 MAF + Foundry</strong>，但你學的原則適用於任何框架</li>
+</ol>
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/01-intro-to-ai-agents">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/3zgm60bXmQk">課程影片</a></li>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners">完整課程 (69.7k ⭐)</a></li>
+</ul>
+<nav class="lesson-nav">
+<span>← 課程設定</span>
+<a href="/ai-agents/ai-agents-02-frameworks/">第 2 課 →</a>
+</nav>
+</main>
+</body>
+</html>

@@ -1,6 +1,6 @@
 // DKY Learn Service Worker — network-first with offline fallback
-const CACHE_NAME = 'dky-learn-v1';
-const PRECACHE_URLS = ['/', '/index.html'];
+const CACHE_NAME = 'dky-learn-v1-r2';
+const PRECACHE_URLS = ['/', '/index'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -22,10 +22,10 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
+          caches.open(CACHE_NAME).then((cache) => cache.put('/index', copy));
           return response;
         })
-        .catch(() => caches.match('/index.html'))
+        .catch(() => caches.match('/index'))
     );
     return;
   }

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic 通訊協定 (MCP/A2A/NLWeb) — AI Agents 入門課程</title>
+<meta name="description" content="Microsoft AI Agents for Beginners 第 11 課繁體中文版：深入理解 MCP、A2A 與 NLWeb 三種 Agentic 通訊協定">
+<link rel="stylesheet" href="../../../course.css">
+<link rel="stylesheet" href="../../warm-theme.css">
+<script src="../../sidebar.js" defer></script>
+<link rel="canonical" href="https://learn.dky.tw/ai-agents/ai-agents-11-protocols/">
+</head>
+<body>
+<main class="lesson">
+<header class="lesson-header">
+<p class="lesson-meta">AI Agents 入門課程 · 第 11 課 / 共 18 課</p>
+<h1>使用 Agentic 通訊協定：MCP、A2A 與 NLWeb</h1>
+<p class="lesson-source">原文：Microsoft <a href="https://github.com/microsoft/ai-agents-for-beginners">AI Agents for Beginners</a> · MIT 授權</p>
+</header>
+<nav class="lesson-nav">
+<a href="/ai-agents/ai-agents-10-production/">← 第 10 課</a>
+<a href="/ai-agents/ai-agents-12-context/">第 12 課 →</a>
+</nav>
+
+<div class="verdict">
+一句話：<strong>當 AI Agent 生態蓬勃發展，標準化通訊協定就是讓不同 Agent 之間、Agent 與工具之間能「講共通語言」的關鍵——MCP 負責 Agent↔工具、A2A 負責 Agent↔Agent、NLWeb 負責網站↔自然語言。</strong>
+</div>
+
+<h2>導論</h2>
+<p>隨著 AI Agent 的使用日益普及，對標準化、安全且支援開放創新的通訊協定需求也與日俱增。本課將介紹三種協定：<strong>Model Context Protocol (MCP)</strong>、<strong>Agent-to-Agent (A2A)</strong> 與 <strong>Natural Language Web (NLWeb)</strong>。</p>
+<ul>
+<li><strong>MCP</strong>：讓 AI Agent 存取外部工具與資料以完成使用者任務</li>
+<li><strong>A2A</strong>：讓不同 AI Agent 之間可以通訊與協作</li>
+<li><strong>NLWeb</strong>：為任何網站帶來自然語言介面，讓 AI Agent 能發現並與內容互動</li>
+</ul>
+
+<h2>學習目標</h2>
+<ul>
+<li><strong>辨識</strong> MCP、A2A 與 NLWeb 在 AI Agent 場景中的核心用途與優勢</li>
+<li><strong>說明</strong> 各協定如何促進 LLM、工具與其他 Agent 之間的通訊與互動</li>
+<li><strong>認識</strong> 各協定在建構複雜 Agentic 系統中所扮演的獨特角色</li>
+</ul>
+
+<h2>Model Context Protocol (MCP)</h2>
+<p><strong>Model Context Protocol (MCP)</strong> 是一項開放標準，為應用程式提供標準化的方式來向 LLM 提供上下文（Context）與工具（Tools）。它就像一個「通用轉接頭」，讓 AI Agent 能以一致的方式連接各種資料來源與工具。</p>
+
+<h3>MCP 核心元件</h3>
+<p>MCP 採用<strong>主從式架構（Client-Server）</strong>，核心元件如下：</p>
+<table>
+<tr><th>元件</th><th>說明</th></tr>
+<tr><td><strong>Host（主機）</strong></td><td>LLM 應用程式（如 VSCode），負責啟動與 MCP Server 的連線</td></tr>
+<tr><td><strong>Client（客戶端）</strong></td><td>Host 應用程式內的元件，與 Server 維持一對一連線</td></tr>
+<tr><td><strong>Server（伺服器）</strong></td><td>輕量級程式，暴露特定功能給 Agent 使用</td></tr>
+</table>
+
+<p>協定中包含三種核心原語（Primitives），代表 MCP Server 的能力：</p>
+<table>
+<tr><th>原語</th><th>說明</th><th>範例</th></tr>
+<tr><td><strong>Tools（工具）</strong></td><td>Agent 可呼叫的獨立動作或函式</td><td>天氣服務暴露 "get_weather" 工具；電商服務暴露 "purchase_product"</td></tr>
+<tr><td><strong>Resources（資源）</strong></td><td>唯讀的資料或文件，客戶端可按需擷取</td><td>檔案內容、資料庫記錄、日誌檔（可為文字或二進位）</td></tr>
+<tr><td><strong>Prompts（提示模板）</strong></td><td>預定義的提示模板，支援更複雜的工作流程</td><td>結構化的對話範本</td></tr>
+</table>
+
+<h3>MCP 的優勢</h3>
+<div class="card">
+<ul>
+<li><strong>動態工具發現</strong>：Agent 可動態取得 Server 提供的工具清單及其描述。傳統 API 需要靜態編碼整合，API 變更就需改程式碼。MCP 採用「整合一次」的方式，適應性更高。</li>
+<li><strong>跨 LLM 互通性</strong>：MCP 跨不同 LLM 運作，讓你可彈性切換核心模型以評估效能。</li>
+<li><strong>標準化安全機制</strong>：MCP 內建標準認證方式，擴展更多 MCP Server 時更簡單，不用管理各種不同的 API Key 和認證類型。</li>
+</ul>
+</div>
+
+<h3>MCP 運作範例：訂機票</h3>
+<ol>
+<li><strong>連線</strong>：AI 助理（MCP Client）連線到航空公司提供的 MCP Server</li>
+<li><strong>工具發現</strong>：Client 詢問「有哪些工具可用？」Server 回應「search_flights」和「book_flights」</li>
+<li><strong>工具調用</strong>：使用者說「幫我搜尋波特蘭到檀香山的航班」，AI 助理使用 LLM 判斷需要呼叫 "search_flights"，並傳遞出發地、目的地等參數</li>
+<li><strong>執行與回應</strong>：MCP Server 作為包裝層，實際呼叫航空公司內部訂票 API，取得航班資料（JSON）後回傳給 AI 助理</li>
+<li><strong>後續互動</strong>：AI 助理呈現航班選項，使用者選擇後，助理呼叫同一 MCP Server 的 "book_flight" 工具完成訂位</li>
+</ol>
+
+<h2>Agent-to-Agent Protocol (A2A)</h2>
+<p>MCP 專注於連接 LLM 與工具，而 <strong>Agent-to-Agent (A2A) 協定</strong>則更進一步：讓<strong>不同 AI Agent 之間</strong>可以通訊與協作。A2A 能連結跨組織、跨環境、跨技術棧的 AI Agent，共同完成一個共享任務。</p>
+
+<h3>A2A 核心元件</h3>
+<table>
+<tr><th>元件</th><th>說明</th></tr>
+<tr><td><strong>Agent Card</strong></td><td>類似 MCP Server 的工具清單，包含：Agent 名稱、任務描述、技能清單、Endpoint URL、版本與能力（如串流回應、推播通知）</td></tr>
+<tr><td><strong>Agent Executor</strong></td><td>負責將使用者對話的上下文傳遞給遠端 Agent，遠端 Agent 使用自己的 LLM 解析請求並以自有工具執行任務</td></tr>
+<tr><td><strong>Artifact</strong></td><td>遠端 Agent 完成任務後產出的工作成果。包含：執行結果、完成描述、透過協定傳送的文字上下文。傳送後即關閉連線</td></tr>
+<tr><td><strong>Event Queue</strong></td><td>處理更新與訊息傳遞的佇列機制。生產環境中特別重要，防止長時間任務在完成前被中斷連線</td></tr>
+</table>
+
+<h3>A2A 的優勢</h3>
+<div class="card">
+<ul>
+<li><strong>強化協作</strong>：讓不同供應商和平台的 Agent 能互動、共享上下文、共同作業，實現跨系統的無縫自動化</li>
+<li><strong>模型選擇彈性</strong>：每個 A2A Agent 可自行選擇使用哪個 LLM 來處理請求，不像某些 MCP 情境只綁定單一 LLM</li>
+<li><strong>內建認證</strong>：認證機制直接整合進 A2A 協定，為 Agent 互動提供健全的安全框架</li>
+</ul>
+</div>
+
+<h3>A2A 運作範例：規劃整套旅行</h3>
+<ol>
+<li><strong>使用者請求</strong>：使用者對「旅行 Agent」說「幫我安排下週去檀香山的整趟旅行，包含機票、飯店和租車」</li>
+<li><strong>旅行 Agent 編排</strong>：旅行 Agent 收到複雜請求，使用自己的 LLM 推理，判斷需要與其他專業 Agent 互動</li>
+<li><strong>跨 Agent 通訊</strong>：旅行 Agent 透過 A2A 協定連線到下游 Agent：由不同公司建立的「航空 Agent」「飯店 Agent」「租車 Agent」</li>
+<li><strong>委派任務執行</strong>：旅行 Agent 發送具體任務給各專業 Agent（「找檀香山航班」「訂飯店」「租車」），各 Agent 以自有 LLM 和工具（可能本身就是 MCP Server）各自完成</li>
+<li><strong>統整回應</strong>：所有下游 Agent 完成後，旅行 Agent 彙整結果（航班明細、飯店確認、租車預約），以完整的對話式回應回傳給使用者</li>
+</ol>
+
+<h2>Natural Language Web (NLWeb)</h2>
+<p>網站長期以來是使用者在網路上存取資訊的主要方式。NLWeb 讓任何網站都能擁有自然語言介面，AI Agent 可以發現並與內容互動。</p>
+
+<h3>NLWeb 核心元件</h3>
+<table>
+<tr><th>元件</th><th>說明</th></tr>
+<tr><td><strong>NLWeb 應用程式</strong></td><td>處理自然語言查詢的核心服務，連接平台各元件以產生回應——可視為網站自然語言功能的「引擎」</td></tr>
+<tr><td><strong>NLWeb 協定</strong></td><td>與網站進行自然語言互動的基本規則集，以 JSON 格式（常使用 Schema.org）回傳回應。目標是為「AI Web」建立簡單基礎，如同 HTML 讓文件分享成為可能</td></tr>
+<tr><td><strong>MCP Server 端點</strong></td><td>每個 NLWeb 設定同時作為 MCP Server，可分享工具（如 "ask" 方法）與資料給其他 AI 系統，讓網站內容能被 AI Agent 使用</td></tr>
+<tr><td><strong>嵌入模型</strong></td><td>將網站內容轉換為向量（Embedding），捕捉語意以利電腦比較與搜尋。儲存在特殊資料庫中，使用者可自行選擇嵌入模型</td></tr>
+<tr><td><strong>向量資料庫</strong></td><td>儲存網站內容的 Embedding。當使用者提問時，NLWeb 查詢向量資料庫快速找到最相關的資訊，按相似度排序。支援 Qdrant、Snowflake、Milvus、Azure AI Search、Elasticsearch 等</td></tr>
+</table>
+
+<h3>NLWeb 運作範例：智慧旅遊網站</h3>
+<ol>
+<li><strong>資料導入</strong>：旅遊網站的產品目錄（航班列表、飯店描述、旅遊套裝）以 Schema.org 格式化或透過 RSS 匯入。NLWeb 工具導入結構化資料、建立 Embedding、存入向量資料庫</li>
+<li><strong>自然語言查詢</strong>：使用者造訪網站，不點選單，直接在聊天介面輸入「幫我找下週檀香山適合家庭、有游泳池的飯店」</li>
+<li><strong>NLWeb 處理</strong>：NLWeb 應用程式收到查詢，送至 LLM 理解，同時搜尋向量資料庫中相關飯店清單</li>
+<li><strong>精確結果</strong>：LLM 解讀資料庫搜尋結果，根據「家庭友善」「游泳池」「檀香山」條件找出最佳匹配，以自然語言格式化回應——關鍵是回應引用的是網站目錄中的真實飯店，不會憑空捏造</li>
+<li><strong>AI Agent 互動</strong>：因為 NLWeb 同時作為 MCP Server，外部 AI 旅行 Agent 也可連線至此網站的 NLWeb 實例，使用 <code>ask</code> MCP 方法查詢：<code>ask("飯店附近有推薦的純素食餐廳嗎？")</code></li>
+</ol>
+
+<h2>三種協定總覽</h2>
+<table>
+<tr><th>協定</th><th>核心功能</th><th>連接對象</th><th>典型場景</th></tr>
+<tr><td><strong>MCP</strong></td><td>標準化 LLM↔工具連線</td><td>LLM ⇄ 外部工具/資料</td><td>AI 助理查詢天氣、操作資料庫、訂票</td></tr>
+<tr><td><strong>A2A</strong></td><td>跨 Agent 通訊協作</td><td>Agent ⇄ Agent</td><td>多 Agent 協同完成複雜任務（旅行規劃）</td></tr>
+<tr><td><strong>NLWeb</strong></td><td>網站自然語言介面</td><td>使用者/Agent ⇄ 網站</td><td>智慧搜尋網站內容、網頁即 API</td></tr>
+</table>
+
+<h2>本課重點回顧</h2>
+<ol>
+<li><strong>MCP = Agent 與工具的橋樑</strong>：Client-Server 架構，三種原語（Tools/Resources/Prompts），讓 Agent 動態發現並調用外部功能</li>
+<li><strong>A2A = Agent 之間的共通語言</strong>：Agent Card + Executor + Artifact + Event Queue，實現跨組織、跨平台的 Agent 協作</li>
+<li><strong>NLWeb = 讓網站開口說話</strong>：Embedding + 向量搜尋 + MCP 端點，任何網站都能成為 AI Agent 生態系的一員</li>
+<li><strong>三者互補</strong>：MCP 處理 Agent↔工具、A2A 處理 Agent↔Agent、NLWeb 讓網站成為可被 Agent 存取的資源</li>
+</ol>
+
+<h2>原始資源</h2>
+<ul>
+<li><a href="https://github.com/microsoft/ai-agents-for-beginners/tree/main/11-agentic-protocols">原始 README（英文）</a></li>
+<li><a href="https://youtu.be/X-Dh9R3Opn8">課程影片</a></li>
+<li><a href="https://aka.ms/mcp-for-beginners">MCP for Beginners</a></li>
+<li><a href="https://github.com/nlweb-ai/NLWeb">NLWeb Repo</a></li>
+<li><a href="https://aka.ms/ai-agents-beginners/agent-framework">Microsoft Agent Framework</a></li>
+<li><a href="https://discord.com/invite/ATgtXmAS5D">Microsoft Foundry Discord</a></li>
+</ul>
+
+<nav class="lesson-nav">
+<a href="/ai-agents/ai-agents-10-production/">← 第 10 課</a>
+<a href="/ai-agents/ai-agents-12-context/">第 12 課 →</a>
+</nav>
+</main>
+</body>
+</html>

@@ -15,13 +15,13 @@
         統計學習入門 (ISLP)
         <a href="/ISLP_textbook.pdf" class="textbook-link" title="下載課本 PDF">📖</a>
       </div>
-      <a href="/statistics/02_What_Is_Statistical_Learning.html" class="nav-item done">2.1 什麼是統計學習？</a>
-      <a href="/statistics/02_Assessing_Model_Accuracy.html" class="nav-item done">2.2 評估模型準確度</a>
+      <a href="/statistics/02_What_Is_Statistical_Learning" class="nav-item done">2.1 什麼是統計學習？</a>
+      <a href="/statistics/02_Assessing_Model_Accuracy" class="nav-item done">2.2 評估模型準確度</a>
       <span class="nav-item pending">2.3 Lab: Python 入門</span>
-      <a href="/statistics/03_simple_linear_regression.html" class="nav-item done">3.1 簡單線性迴歸</a>
-      <a href="/statistics/3.2_multiple_linear_regression.html" class="nav-item done">3.2 多元線性迴歸</a>
-      <a href="/statistics/3_3_other_considerations.html" class="nav-item done">3.3 迴歸模型的其他考量</a>
-      <a href="/statistics/3.4_the_marketing_plan.html" class="nav-item done">3.4 行銷計畫</a>
+      <a href="/statistics/03_simple_linear_regression" class="nav-item done">3.1 簡單線性迴歸</a>
+      <a href="/statistics/3.2_multiple_linear_regression" class="nav-item done">3.2 多元線性迴歸</a>
+      <a href="/statistics/3_3_other_considerations" class="nav-item done">3.3 迴歸模型的其他考量</a>
+      <a href="/statistics/3.4_the_marketing_plan" class="nav-item done">3.4 行銷計畫</a>
       <span class="nav-item pending">3.5 線性迴歸 vs KNN</span>
 
       <div class="section-title" style="margin-top:1.2rem">機器學習 <span class="coming">即將推出</span></div>
