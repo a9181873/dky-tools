@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Machine Learning University 導讀：亞馬遜把內部 ML 培訓搬上網 — 學習中心</title>
+<meta name="description" content="亞馬遜 2016 年創立的內部機器學習培訓體系 MLU，2020 年起對外免費開放：三門加速課程（NLP、電腦視覺、表格資料）加上決策樹進階班，YouTube 影音與 GitHub 教材全公開。繁體中文導讀含觀點與應用場景。">
+<style>
+:root{--bg:#fefaf6;--surface:#fef9f4;--border:#e6d5c0;--text:#3b2a1a;--muted:#8b6f50;--accent:#a0522d;--accent-dark:#71391f;--green:#5f7b50}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:var(--bg);color:var(--text);line-height:1.85;padding:40px;max-width:900px}
+h1{font-size:1.55em;color:var(--accent-dark);line-height:1.35;margin-bottom:6px}
+.meta{color:var(--muted);font-size:.87em;margin-bottom:14px}
+.tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
+.tag{background:#f8efe5;color:var(--accent-dark);padding:.18rem .65rem;border-radius:12px;font-size:.78rem;border:1px solid var(--border)}
+h2{font-size:1.12em;color:var(--accent-dark);margin:28px 0 10px;border-left:3px solid var(--accent);padding-left:.6rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin:.7rem 0}
+.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin:.8rem 0}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.mc h4{color:var(--accent-dark);font-size:.93rem;margin-bottom:.3rem}
+.mc p{font-size:.86rem;margin:0}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.88em}
+th{background:#f8efe5;color:var(--accent-dark);text-align:left;padding:8px;border-bottom:2px solid var(--border)}
+td{padding:8px;border-bottom:1px solid var(--border)}
+ul,ol{padding-left:1.4rem;margin:.5rem 0}
+li{margin:.25rem 0}
+.oneliner{color:var(--green);font-weight:600;font-size:1.02em;border-left:3px solid var(--green);padding:.5rem 0 .5rem .9rem;margin:1rem 0}
+code{background:#faf4ed;color:#513621;padding:.08rem .35rem;border-radius:4px;font-size:.88em}
+.foot{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--border);color:var(--muted);font-size:.82em}
+@media(max-width:768px){body{padding:20px}.mb{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+</head>
+<body>
+
+<h1>Amazon Machine Learning University 導讀：亞馬遜把內部 ML 培訓搬上網</h1>
+<div class="meta">來源：Amazon Science 公告（2020-08-12、2020-12-21）· Hermes Agent 繁中導讀 · 2026-08-25</div>
+<div class="tags"><span class="tag">MLU</span><span class="tag">機器學習教育</span><span class="tag">AWS</span><span class="tag">免費課程</span><span class="tag">決策樹</span></div>
+
+<div class="oneliner">一句話：亞馬遜把訓練自家工程師的 ML 課程原封不動搬到網路上——三門加速課（NLP／電腦視覺／表格資料）加一門決策樹與集成方法進階班，YouTube 影音、GitHub 投影片與程式碼全免費。</div>
+
+<h2>背景：為什麼亞馬遜要辦大學</h2>
+<div class="card">
+<p>MLU（Machine Learning University）2016 年成立時是純內部組織，動機很直接：<b>外面的大學供給不出亞馬遜需要的 ML 人才量</b>。AWS 研究科學家 Brent Werness（MLU 實際上的教務長）的原話是「大學培養 ML 人才的速度趕不上亞馬遜的需求，更不用說其他所有公司」。2020 年 8 月，MLU 把三門加速課程對外公開，同年 12 月再推出第一門第二梯次進階課。</p>
+</div>
+
+<h2>課程地圖</h2>
+<div class="card">
+<table>
+<tr><th>課程</th><th>內容</th><th>講師</th></tr>
+<tr><td>Accelerated NLP</td><td>自然語言處理：文字分類、詞向量、序列模型</td><td>Cem Sazara</td></tr>
+<tr><td>Accelerated CV</td><td>電腦視覺：影像分類、偵類、偵測、遷移學習</td><td>Rachel Hu</td></tr>
+<tr><td>Accelerated Tabular Data</td><td>表格資料 ML：特徵工程、梯度提升</td><td>Amazon 科學家群</td></tr>
+<tr><td>Decision Trees &amp; Ensemble（DTE）</td><td>決策樹基礎到 LightGBM、CatBoost 等 boosting 技術，五週每週釋出一天份錄影</td><td>Cem Sazara</td></tr>
+</table>
+<p style="font-size:.86em;color:var(--muted)">每門課都有配套 GitHub repo（投影片、notebook、資料集），例如 <code>aws-samples/aws-machine-learning-university-accelerated-nlp</code> 與 <code>-dte</code>。核心課綱另含深度學習、強化學習、機率圖模型、ML 上線實務；指定教材是亞馬遜科學家寫的《Dive into Deep Learning》（d2l.ai）。</p>
+</div>
+
+<h2>兩個值得注意的設計決策</h2>
+<div class="mb">
+<div class="mc"><h4>加速課先動手、晚補數學</h4><p>傳統三學期制要 18–20 週才碰到實戰；加速版三天讓你髒了手，足以判斷「這是不是我的商業問題的解法」（專案經理 Ben Starsky 語）。先建立地圖感，數學地基留給核心課。</p></div>
+<div class="mc"><h4>課綱跟著業務問題走</h4><p>Werness 課程開發有兩條路：業務痛點驅動（CV、NLP 都是這樣來的）與技術進步驅動（如 AutoGluon 這類 AutoML 進步就改課）。教材不是學術移植，而是內部實戰沉澱。</p></div>
+</div>
+
+<h2>我的觀點</h2>
+<div class="card">
+<ul>
+<li><b>公開課程是一石三鳥的策略：</b>人才招募漏斗（上完課的人最懂 AWS 工具）、雲端生態圈綁定（範例碼用 SageMaker）、品牌護城河。看懂這層，就知道「免費」的商業邏輯——這也是經營 learn.dky.tw 這類自學站的同構參考。</li>
+<li><b>加速課的教學排序值得抄：</b>先讓學員能「問出好問題」，再回頭補理論。這跟我們統計課程「觀念 → 實作 → 案例」的分類邏輯一致，但他們的「三天判斷適配性」定位更狠、更適合在職者。</li>
+<li><b>2026 回看仍不過時的部分：</b>NLP 影音的模型細節已被 Transformer 世代超越，但表格資料與樹模型課（XGBoost／LightGBM 系）至今仍是產業主力——保險核保、風控、推薦排序的離線模型九成還是這一套。LLM 熱潮沒有取代它，反而襯托它穩定便宜。</li>
+<li><b>過時的部分也要講清楚：</b>2020 年的 CV/NLP 課前深度學習時代的架構占比偏高，當作入門地圖可以，追前沿要另外找資源。</li>
+</ul>
+</div>
+
+<h2>應用場景</h2>
+<div class="mb">
+<div class="mc"><h4>保險業表格建模</h4><p>DTE 課的 boosting 技術直接對應核保評分、理賠詐欺偵測的常見生產架構，且附完整 notebook 可改造。</p></div>
+<div class="mc"><h4>團隊培訓替代方案</h4><p>預算有限時，MLU＋GitHub 教材可完全替代入門級付費 bootcamp；先加速課後核心課的路徑已鋪好。</p></div>
+<div class="mc"><h4>自學路徑設計</h4><p>先用加速課建立全景 → 回頭補 ISLP 統計基礎 → 再挑一門進階課深鑽。本站統計路徑正好補它的數學側。</p></div>
+<div class="mc"><h4>教學產品拆解練習</h4><p>觀察亞馬遜怎麼切「加速 vs 核心」、「業務驅動 vs 技術驅動」，是設計任何技術課程目錄的免費範本。</p></div>
+</div>
+
+<h2>限制與提醒</h2>
+<div class="card">
+<ul>
+<li>全英文授課，無字幕翻譯；中文學習者需搭配本站 ISLP 等中文教材交叉閱讀。</li>
+<li>影音攝於 2020–2021，套件版本較舊（跑 notebook 可能要降版本或自行改寫）。</li>
+<li>部分連結以 MLU 官方頁（aws.amazon.com/machine-learning/mlu）為準，個別舊連結可能隨 AWS 改版失效。</li>
+</ul>
+</div>
+
+<h2>資料來源</h2>
+<div class="card">
+<ul>
+<li><a href="https://www.amazon.science/latest-news/machine-learning-course-free-online-from-amazon-machine-learning-university" target="_blank" rel="noreferrer">Amazon's MLU is making its online courses available to the public（2020-08-12）</a></li>
+<li><a href="https://www.amazon.science/latest-news/amazon-machine-learning-university-launches-new-advanced-course" target="_blank" rel="noreferrer">Amazon MLU launches new, advanced course（2020-12-21）</a></li>
+<li><a href="https://aws.amazon.com/machine-learning/mlu/" target="_blank" rel="noreferrer">MLU 官方網站（課程總入口）</a></li>
+<li><a href="https://github.com/aws-samples/aws-machine-learning-university-dte" target="_blank" rel="noreferrer">DTE 課程 GitHub（投影片／notebook／資料集）</a></li>
+</ul>
+</div>
+
+<div class="foot">← <a href="./">回延伸閱讀列表</a> · <a href="../">回學習中心首頁</a>　｜　本文為繁體中文智慧摘要與評論，原文版權屬 Amazon Science。</div>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>

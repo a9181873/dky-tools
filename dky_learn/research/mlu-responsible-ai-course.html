@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLU 免費課程：Responsible AI — 偏差緩解與公平性準則 — 學習中心</title>
+<meta name="description" content="AWS Machine Learning University 的免費 Responsible AI 課程：從資料收集到部署的完整 ML 生命週期偏差緩解，30 支影片、白皮書、程式碼範例與期末實作。繁體中文導讀含觀點與金融業應用場景。">
+<style>
+:root{--bg:#fefaf6;--surface:#fef9f4;--border:#e6d5c0;--text:#3b2a1a;--muted:#8b6f50;--accent:#a0522d;--accent-dark:#71391f;--green:#5f7b50}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:var(--bg);color:var(--text);line-height:1.85;padding:40px;max-width:900px}
+h1{font-size:1.55em;color:var(--accent-dark);line-height:1.35;margin-bottom:6px}
+.meta{color:var(--muted);font-size:.87em;margin-bottom:14px}
+.tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
+.tag{background:#f8efe5;color:var(--accent-dark);padding:.18rem .65rem;border-radius:12px;font-size:.78rem;border:1px solid var(--border)}
+h2{font-size:1.12em;color:var(--accent-dark);margin:28px 0 10px;border-left:3px solid var(--accent);padding-left:.6rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin:.7rem 0}
+.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin:.8rem 0}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.mc h4{color:var(--accent-dark);font-size:.93rem;margin-bottom:.3rem}
+.mc p{font-size:.86rem;margin:0}
+ul,ol{padding-left:1.4rem;margin:.5rem 0}
+li{margin:.25rem 0}
+.oneliner{color:var(--green);font-weight:600;font-size:1.02em;border-left:3px solid var(--green);padding:.5rem 0 .5rem .9rem;margin:1rem 0}
+code{background:#faf4ed;color:#513621;padding:.08rem .35rem;border-radius:4px;font-size:.88em}
+blockquote{background:#fff6e6;border-left:3px solid #9a671e;padding:.7rem 1rem;border-radius:6px;margin:.6rem 0;font-size:.92em}
+@media(max-width:768px){body{padding:20px}.mb{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+</head>
+<body>
+
+<h1>MLU 免費課程：Responsible AI — 偏差緩解與公平性準則</h1>
+<div class="meta">來源：Amazon Science（2022-12-15）· 課程開發者 Mia Mayer · Hermes Agent 繁中導讀 · 2026-08-25</div>
+<div class="tags"><span class="tag">Responsible AI</span><span class="tag">偏差緩解</span><span class="tag">公平性</span><span class="tag">MLU</span><span class="tag">AI 治理</span><span class="tag">EU AI Act</span></div>
+
+<div class="oneliner">一句話：AWS MLU 的免費入門課「Responsible AI — Bias Mitigation &amp; Fairness Criteria」，用 30 支影片＋白皮書＋可執行程式碼走完 ML 生命週期每一站的偏差測量與緩解——從問題發想到部署，是少數「理論＋程式碼」全包且完全公開的負責任 AI 課。</div>
+
+<h2>課程內容</h2>
+<div class="card">
+<ul>
+<li><b>定位：</b>入門級，不需 ML 背景；會一點 Python、高中數學即可。</li>
+<li><b>結構：</b>30 天份影片（<a href="https://www.youtube.com/watch?v=utRsidz8TJM" target="_blank" rel="noreferrer">Day 1 歡迎影片</a>起），依序講 responsible AI 的各面向 → 資料整備（<a href="https://youtu.be/hGn7q_MHRF0" target="_blank" rel="noreferrer">prepare data</a>）→ 模型訓練中的偏差緩解（<a href="https://youtu.be/YIMP_00PPsY" target="_blank" rel="noreferrer">mitigate bias</a>）→ 公平性指標。</li>
+<li><b>配套：</b><a href="https://pages.awscloud.com/rs/112-TZM-766/images/Amazon.AI.Fairness.and.Explainability.Whitepaper.pdf" target="_blank" rel="noreferrer">Fairness &amp; Explainability 白皮書</a>、<a href="https://github.com/aws-samples/aws-machine-learning-university-responsible-ai" target="_blank" rel="noreferrer">GitHub 程式碼範例</a>、期末專題：<b>自選一種偏差緩解技術實作</b>，降低模型對不同子族群的結果落差。</li>
+<li><b>開發者：</b>Mia Mayer（AWS 資料科學家），自身研究即機器翻譯性別偏誤評測資料集 MT-GenEval。</li>
+<li><b>互補：</b>AWS 同期的 AI Service Cards（用途、限制文件化）。</li>
+</ul>
+</div>
+
+<h2>三個關鍵洞見</h2>
+<div class="mb">
+<div class="mc"><h4>公平 ≠ 高性能</h4><p>Mia Mayer 觀察到的學生頓悟點：把所有人全部拒絕的模型「技術上完美公平」但毫無用處。模型必須<b>同時</b>用性能與公平兩把尺衡量。</p></div>
+<div class="mc"><h4>沒有萬能解法</h4><p>偏差緩解技術在生命週期每一站都有多種選擇；重點是先理解偏差從哪來，而不是假設它不存在。</p></div>
+<div class="mc"><h4>科學已可用</h4><p>很多人量化了偏差卻不知下一步；這門課的主張是緩解方法學已成熟到能在生產環境落地。</p></div>
+</div>
+
+<h2>我的觀點</h2>
+<div class="card">
+<ul>
+<li><b>2026 回看，這門課的時效性反而更強了。</b>上線時歐盟 AI Act 還在草案階段；如今高風險 AI 系統的偏誤管控已是法定要求，台灣金管會也在 2024 年發布《金融業運用人工智慧(AI)指引》，六項核心原則裡「確保公平性、保護消費者權益」直接對應這門課的內容。免費教材裡能對齊監理語言的，這門最完整。</li>
+<li><b>「全生命週期」是它的差異化。</b>多數 fairness 教材只講訓練前測量（資料層偏差）；這門課從問題發想、資料收集、訓練、評估一路管到部署後監控，跟實務上的模型治理流程同構。</li>
+<li><b>「拒絕所有申請人」的思想實驗值得寫進任何模型審查清單：</b>公平性指標可以被退化模型騙過，永遠要成對檢視性能與公平。</li>
+<li><b>局限：</b>以 AWS 工具（SageMaker Clarify 等）為例的程式碼範例有平台綁定色彩；概念可遷移，套件要換掉。另外美國脈絡的案例（房貸、招聘）與亞洲市場的敏感屬性清單不盡相同，落地時要重列受保護子族群。</li>
+</ul>
+</div>
+
+<h2>應用場景</h2>
+<div class="mb">
+<div class="mc"><h4>保險核保／理賠模型審查</h4><p>期末專題的做法（對不同子族群量測結果落差）可直接改造成核保模型的公平性驗收測試，對應金管會 AI 指引的公平性原則。</p></div>
+<div class="mc"><h4>模型治理制度藍本</h4><p>白皮書＋Service Cards 的文件化思路，可作為金融業 AI 使用揭露與內部稽核文件的起手架構。</p></div>
+<div class="mc"><h4>資料科學團隊在職訓練</h4><p>零成本、含實作的合規素養課；建議搭配公司自有資料做期末專題，訓完即產出一份真實偏差報告。</p></div>
+<div class="mc"><h4>採購第三方 AI 的驗收清單</h4><p>向供應商要求「性能＋公平」雙指標報告時，本課的指標體系就是現成的提問框架。</p></div>
+</div>
+
+<h2>限制與提醒</h2>
+<div class="card">
+<ul>
+<li>全英文授課；術語密集，初學者建議先讀本站 ISLP 分類章節再回來看。</li>
+<li>2022 年錄製：法規進度引用停在 GDPR／EU AI Act 草案期，最新法規狀態需自行補充。</li>
+<li>程式碼綁 AWS 生態；非 AWS 用戶需自行轉換工具鏈。</li>
+</ul>
+</div>
+
+<h2>資料來源</h2>
+<div class="card">
+<ul>
+<li><a href="https://www.amazon.science/latest-news/amazon-machine-learning-university-debuts-free-responsible-ai-course" target="_blank" rel="noreferrer">Machine Learning University debuts responsible AI course（Amazon Science, 2022-12-15）</a></li>
+<li><a href="https://aws.amazon.com/machine-learning/mlu/" target="_blank" rel="noreferrer">MLU 官方網站</a></li>
+<li><a href="https://law.fsc.gov.tw/LawContent.aspx?id=GL003920" target="_blank" rel="noreferrer">金管會《金融業運用人工智慧（AI）指引》（2024-06-20）</a></li>
+</ul>
+</div>
+
+<div class="foot">← <a href="./">回延伸閱讀列表</a> · <a href="../">回學習中心首頁</a>　｜　本文為繁體中文智慧摘要與評論，原文版權屬 Amazon Science。</div>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>

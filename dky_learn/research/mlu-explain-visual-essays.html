@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLU Explain：用互動視覺化拆解 ML 核心概念 — 學習中心</title>
+<meta name="description" content="AWS Machine Learning University 的免費視覺化互動文章網站：ROC/AUC、偏差變異權衡、隨機森林、雙重下降、資料切分等核心概念用捲動敘事與瀏覽器內即時模型講解。繁體中文導讀含觀點與應用場景。">
+<style>
+:root{--bg:#fefaf6;--surface:#fef9f4;--border:#e6d5c0;--text:#3b2a1a;--muted:#8b6f50;--accent:#a0522d;--accent-dark:#71391f;--green:#5f7b50}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:var(--bg);color:var(--text);line-height:1.85;padding:40px;max-width:900px}
+h1{font-size:1.55em;color:var(--accent-dark);line-height:1.35;margin-bottom:6px}
+.meta{color:var(--muted);font-size:.87em;margin-bottom:14px}
+.tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
+.tag{background:#f8efe5;color:var(--accent-dark);padding:.18rem .65rem;border-radius:12px;font-size:.78rem;border:1px solid var(--border)}
+h2{font-size:1.12em;color:var(--accent-dark);margin:28px 0 10px;border-left:3px solid var(--accent);padding-left:.6rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin:.7rem 0}
+.mb{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin:.8rem 0}
+.mc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem}
+.mc h4{color:var(--accent-dark);font-size:.93rem;margin-bottom:.3rem}
+.mc p{font-size:.86rem;margin:0}
+table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.88em}
+th{background:#f8efe5;color:var(--accent-dark);text-align:left;padding:8px;border-bottom:2px solid var(--border)}
+td{padding:8px;border-bottom:1px solid var(--border)}
+ul,ol{padding-left:1.4rem;margin:.5rem 0}
+li{margin:.25rem 0}
+.oneliner{color:var(--green);font-weight:600;font-size:1.02em;border-left:3px solid var(--green);padding:.5rem 0 .5rem .9rem;margin:1rem 0}
+code{background:#faf4ed;color:#513621;padding:.08rem .35rem;border-radius:4px;font-size:.88em}
+@media(max-width:768px){body{padding:20px}.mb{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+</head>
+<body>
+
+<h1>MLU Explain：用互動視覺化拆解 ML 核心概念</h1>
+<div class="meta">來源：Amazon Science（2022-07-12）· mlu-explain.github.io · Hermes Agent 繁中導讀 · 2026-08-25</div>
+<div class="tags"><span class="tag">MLU</span><span class="tag">視覺化教學</span><span class="tag">ROC/AUC</span><span class="tag">偏差變異</span><span class="tag">Double Descent</span><span class="tag">scrollytelling</span></div>
+
+<div class="oneliner">一句話：AWS 把 ML 最容易卡住初學者的核心概念（ROC/AUC、偏差變異權衡、資料切分、double descent）做成八篇免費互動文章——動畫、可拖曳的瀏覽器內即時模型、捲動敘事，五分鐘建立一個直覺。</div>
+
+<h2>它是什麼</h2>
+<div class="card">
+<p><b><a href="https://mlu-explain.github.io/" target="_blank" rel="noreferrer">MLU Explain</a></b> 是 AWS MLU 團隊 2022 年推出的公開網站，收錄視覺化「互動文章」（visual essays）。團隊成員稱之為「輕量但仍有資訊量的補充教材」，設計原則是每篇都要塞進一個「連教科書都常忽略的小亮點」。上線時共八篇，涵蓋：</p>
+<ul>
+<li><b><a href="https://mlu-explain.github.io/train-test-validation/" target="_blank" rel="noreferrer">Train / Test / Validation 資料切分</a></b>——用貓狗分類動畫示範，模型就跑在瀏覽器裡，拖動樣本點能看到決策邊界即時移動</li>
+<li><b><a href="https://mlu-explain.github.io/roc-auc/" target="_blank" rel="noreferrer">ROC 曲線與 AUC</a></b>——從二戰雷達訊號分析的起源講起，附互動範例說明假陰性／假陽性的取捨</li>
+<li><b><a href="https://mlu-explain.github.io/precision-recall/" target="_blank" rel="noreferrer">Precision &amp; Recall</a></b>——為什麼只看準確率會騙人：類別不平衡下兩個指標才看得出後果</li>
+<li><b>Bias-Variance Trade-off</b>——欠擬合／過擬合的經典權衡</li>
+<li><b>Random Forest</b>——集成方法直覺</li>
+<li><b><a href="https://mlu-explain.github.io/double-descent/" target="_blank" rel="noreferrer">Double Descent 兩部曲</a></b>——模型變大反而先壞後好的反直覺現象；第二篇含 MLU 首席講師 Brent Werness 的<b>原創研究</b>，不是教科書搬運</li>
+</ul>
+<p style="font-size:.86em;color:var(--muted)">同場加映：團隊成員 Jared Wilber 先前的獨立作品〈The Permutation Test: A Visual Explanation〉（jwilber.me/permutationtest），用粉藍兩色羊駝洗毛精實驗把假設檢定的完整流程——隨機化、統計量、置換分布、p 值——走一遍。</p>
+</div>
+
+<h2>我的觀點</h2>
+<div class="card">
+<ul>
+<li><b>這是「直覺先行」教學的最佳實踐之一。</b>多數課程先給公式再給圖；MLU Explain 反過來，先讓你在瀏覽器裡玩到決策邊界移動，公式變成事後的正式化。認知負荷理論會站在它這邊：具體操作經驗能替抽象符號提供錨點。</li>
+<li><b>Double Descent 篇最珍貴。</b>教科書還停在 bias-variance 的 U 形曲線，但深度學習時代模型參數遠超樣本仍能泛化——經典 U 形在插值門檻後又降下去。一篇免費網頁把這個典範修正講到能懂，而且帶原創研究，CP值極高。</li>
+<li><b>對內容站經營者的啟發：</b>它的每一篇都是「單一概念＋單一互動＋單一亮點」的最小完整單位。這種顆粒度既適合搜尋引擎收錄（一個概念一個查詢意圖），也方便社群傳播。learn.dky.tw 的論文筆記採同一哲學。</li>
+<li><b>局限：</b>八篇覆蓋的是「古典 ML + 深度學習入門」交界，Transformer、注意力機制都不在內；別把它當完整課綱，它是藥引不是主方。</li>
+</ul>
+</div>
+
+<h2>應用場景</h2>
+<div class="mb">
+<div class="mc"><h4>統計課前測暖身</h4><p>ISLP 第 4 章分類方法前，先讓學員玩 ROC/AUC 與 Precision-Recall 兩篇，實作課畫混淆矩陣時直覺已到位。</p></div>
+<div class="mc"><h4>向業務端解釋模型</h4><p>跟核保或行銷同事溝通「為什麼不能只看準確率」，直接丟 Precision &amp; Recall 連結比自製簡報省事且效果好。</p></div>
+<div class="mc"><h4>面試速複習</h4><p>樹模型、集成、資料切分的直覺題目，五篇各花十分鐘就能過一輪。</p></div>
+<div class="mc"><h4>教學素材改編參考</h4><p>想做中文版互動教材的話，它的 scrollytelling 結構與瀏覽器內建模（無需後端）是可直接模仿的低成本路徑。</p></div>
+</div>
+
+<h2>限制與提醒</h2>
+<div class="card">
+<ul>
+<li>全英文介面；術語翻譯建議搭配本站 ISLP 中文課程對照閱讀。</li>
+<li>2022 年上線後更新頻率低，覆蓋範圍停在八篇左右。</li>
+<li>互動以桌面瀏覽器體驗最佳，手機部分拖曳操作較擠。</li>
+</ul>
+</div>
+
+<h2>資料來源</h2>
+<div class="card">
+<ul>
+<li><a href="https://www.amazon.science/latest-news/amazon-machine-learning-university-new-courses-mlu-explains" target="_blank" rel="noreferrer">Machine Learning University expands with MLU Explains（Amazon Science, 2022-07-12）</a></li>
+<li><a href="https://mlu-explain.github.io/" target="_blank" rel="noreferrer">MLU Explain 官方網站</a></li>
+</ul>
+</div>
+
+<div class="foot">← <a href="./">回延伸閱讀列表</a> · <a href="../">回學習中心首頁</a>　｜　本文為繁體中文智慧摘要與評論，原文版權屬 Amazon Science。</div>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
