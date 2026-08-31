@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fefaf6">
+<title>AI Agent 工具艦隊怎麼選：Skills、Codebase 脈絡與多 Agent 工作區 — 學習中心</title>
+<meta name="description" content="比較 Matt Pocock skills、Graft、Codebase Memory MCP、Agency Agents、Agent-Reach、Orca 與 OpenMontage，整理各自用途、風險與 Hermes／DKY 導入優先序。">
+<link rel="canonical" href="https://learn.dky.tw/research/agent-fleet-selection">
+<style>
+:root{--bg:#fefaf6;--surface:#fef9f4;--surface-strong:#f8efe5;--border:#e6d5c0;--text:#3b2a1a;--muted:#8b6f50;--accent:#a0522d;--accent-dark:#71391f;--good:#5f7b50;--warn:#9a671c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;background:var(--bg);color:var(--text);line-height:1.8;margin-left:264px;padding:2.6rem 3rem 4rem;max-width:1040px}
+a{color:var(--accent)}a:hover{color:var(--accent-dark)}a:focus-visible,button:focus-visible{outline:3px solid #d79567;outline-offset:3px}
+h1{color:var(--accent-dark);font-size:1.8rem;line-height:1.45;margin-bottom:.35rem}
+h2{color:var(--accent-dark);font-size:1.2rem;margin:2.2rem 0 .8rem;border-left:3px solid var(--accent);padding-left:.75rem}
+h3{color:var(--accent-dark);font-size:1.02rem;margin:0 0 .35rem}
+p{margin:.65rem 0}ul,ol{padding-left:1.4rem;margin:.65rem 0}li{margin:.3rem 0}
+.meta{color:var(--muted);font-size:.86rem;margin-bottom:1.4rem}
+.lead{background:var(--surface);border-left:4px solid var(--accent);border-radius:0 8px 8px 0;color:var(--accent-dark);font-size:1.08rem;font-weight:600;padding:1rem 1.2rem;margin:1.1rem 0 1.7rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.2rem 1.35rem;margin:1rem 0}
+.card p:first-child{margin-top:0}.card p:last-child{margin-bottom:0}
+.table-wrap{overflow-x:auto;margin:.8rem 0}table{width:100%;min-width:760px;border-collapse:collapse}th,td{border-bottom:1px solid var(--border);padding:.65rem .7rem;text-align:left;vertical-align:top}th{background:var(--surface-strong);color:var(--accent-dark);font-size:.88rem}td{font-size:.9rem}td:first-child{color:var(--accent-dark);font-weight:600;white-space:nowrap}.good{color:var(--good);font-weight:600}.warn{color:var(--warn);font-weight:600}
+.tag{display:inline-block;background:var(--surface-strong);color:var(--accent-dark);border:1px solid var(--border);border-radius:999px;font-size:.76rem;padding:.1rem .55rem;margin:.15rem .25rem .15rem 0}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;align-items:stretch;margin:1rem 0}.flow-step{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.9rem;text-align:center}.flow-step:not(:last-child)::after{content:"→";position:absolute;right:-.8rem;top:50%;transform:translateY(-50%);color:var(--accent);font-size:1.3rem;z-index:1}.flow-step small{display:block;color:var(--muted);font-size:.76rem;margin-top:.25rem}
+.note{background:#fbf3e8;border-left:3px solid var(--warn);color:var(--text);padding:.7rem .9rem;margin:.8rem 0}.sources{font-size:.88rem;color:var(--muted)}.sources li{margin:.45rem 0}footer{border-top:1px solid var(--border);color:var(--muted);font-size:.8rem;margin-top:2.5rem;padding-top:1.2rem}
+@media(max-width:768px){body{margin-left:0;padding:1.2rem 1rem 3rem}h1{font-size:1.45rem}h2{font-size:1.1rem}.flow{grid-template-columns:1fr}.flow-step:not(:last-child)::after{content:"↓";right:50%;top:auto;bottom:-.9rem;transform:translateX(50%)}}
+</style>
+<link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+</head>
+<body>
+<main>
+<header>
+<h1>AI Agent 工具艦隊怎麼選：Skills、Codebase 脈絡與多 Agent 工作區</h1>
+<p class="meta">DKY 工具評測與導入筆記 · 2026-08-31 · 七個開源專案的用途、風險與 Hermes／DKY 選型</p>
+</header>
+
+<div class="lead">這七個專案不在同一個競爭層次。Matt Pocock skills 管流程規則，Graft 與 Codebase Memory MCP 管程式脈絡，Agent-Reach 管外部資料，Orca 管多 Agent 工作區，Agency Agents 管角色提示，OpenMontage 則是完整的影片製作流水線。合理做法是先找瓶頸，再只測一個能力層。</div>
+
+<h2>先看結論</h2>
+<div class="card">
+<div class="table-wrap">
+<table>
+<thead><tr><th>專案</th><th>主要用途</th><th>對 Hermes／DKY 的判斷</th></tr></thead>
+<tbody>
+<tr><td>Matt Pocock skills</td><td>需求釐清、領域語言、模組設計、除錯與 Code Review</td><td class="good">取方法，不整包匯入</td></tr>
+<tr><td>Graft</td><td>以本機 codebase graph 減少 Agent 重複探索</td><td>大型程式庫可測；先審查 npm 與遙測</td></tr>
+<tr><td>Codebase Memory MCP</td><td>本機知識圖譜、呼叫鏈、影響分析與 MCP 查詢</td><td class="good">Linux ARM64 首選候選；隔離安裝</td></tr>
+<tr><td>Agency Agents</td><td>角色人格、工作規則與交付格式的 Markdown 集合</td><td>與 dky1／dky2／tky 重疊，不導入整套</td></tr>
+<tr><td>Agent-Reach</td><td>網頁、影片、GitHub、RSS 與部分社群資料存取</td><td>保留公開資料路線；完整登入版風險較高</td></tr>
+<tr><td>Orca</td><td>桌面型多 Agent、Git worktree、diff 與通知工作區</td><td>非 Gateway；Hermes Kanban 已涵蓋核心協調</td></tr>
+<tr><td>OpenMontage</td><td>研究、腳本、素材、剪輯與影片合成的 Agent 流程</td><td>只在 AI 影片工廠專案另案評估</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<h2>一、Matt Pocock skills：值得吸收的是工程習慣</h2>
+<div class="card">
+<p>本次固定審查的 commit 包含 37 個 <code>SKILL.md</code>，主體是可組合的 Markdown 工作流程，不是新的模型、MCP Server 或 Agent 執行引擎。它的價值在於把資深工程師的判斷寫成可重複流程。</p>
+<ol>
+<li><strong>diagnosing-bugs：</strong>先建立能對準使用者症狀的紅燈迴圈，再重現、最小化、提出可證偽假設、加測量、修正與補回歸測試。</li>
+<li><strong>domain-modeling：</strong>挑戰模糊或混用的業務術語，用具體情境確認邊界，並把穩定的詞彙寫入 <code>CONTEXT.md</code>。</li>
+<li><strong>codebase-design：</strong>以小介面包住複雜實作，讓變更集中在乾淨 seam，減少呼叫端與測試端需要知道的細節。</li>
+<li><strong>code-review：</strong>把「是否符合工程規範」與「是否符合 Spec」分開審查，避免其中一項掩蓋另一項。</li>
+</ol>
+<div class="note">這四項適合轉成 DKY 內部的輕量規範，接到既有 Profile、Kanban 與驗收流程；不需要新增一個會重複路由與派工的總管 skill。</div>
+</div>
+
+<h2>二、六個專案其實是六個能力層</h2>
+<div class="flow" aria-label="Agent 工具能力分層">
+<div class="flow-step"><h3>工程規則</h3><small>Matt skills</small></div>
+<div class="flow-step"><h3>程式脈絡</h3><small>Graft／Codebase Memory</small></div>
+<div class="flow-step"><h3>外部資料</h3><small>Agent-Reach</small></div>
+<div class="flow-step"><h3>執行工作區</h3><small>Orca／OpenMontage</small></div>
+</div>
+<div class="card">
+<p>Agency Agents 橫跨多個領域，但它提供的是角色 Prompt 與工作規則，不是可獨立負責結果的專業員工。這種角色庫只有在現有分工不足時才有價值；對已有明確專家責任與成本路由的 Hermes，整套安裝反而會增加選擇成本、上下文負擔與規則衝突。</p>
+</div>
+
+<h2>三、程式脈絡：Graft 與 Codebase Memory MCP 二選一</h2>
+<div class="card">
+<h3>Graft</h3>
+<p>Graft 把程式結構與說明整理成可閱讀的本機 Markdown graph，主打減少 Agent 每次重新搜尋檔案、追 import 的成本。官方 npm 套件要求 Node.js 20 以上，並含 <code>postinstall</code> 與多個 Tree-sitter 原生依賴；官方版本另有匿名使用遙測，可在初始化時退出或用環境設定停用。</p>
+<p><span class="tag">Node.js ≥20</span><span class="tag">Tree-sitter</span><span class="tag">本機檔案 graph</span><span class="tag">匿名遙測</span></p>
+<h3>Codebase Memory MCP</h3>
+<p>Codebase Memory MCP 以原生 binary 建立持久知識圖譜，提供函式、類別、呼叫鏈、HTTP 路由、跨服務關聯與 MCP 查詢。官方 README 明列 Linux ARM64 版本，且宣稱本機處理、不需 API key；但安裝程序會下載 binary、修改 Agent 設定，並可啟動共享 daemon、watcher 與 localhost UI。</p>
+<p><span class="tag">Linux ARM64</span><span class="tag">15 個 MCP tools</span><span class="tag">原生 binary</span><span class="tag">呼叫鏈</span></p>
+<div class="note">對 OCI ARM 主機，先以 Codebase Memory MCP 做隔離 PoC，比 Graft 更符合平台條件；使用固定 release、核對 SHA-256／簽章，先用跳過自動設定的模式，確認讀取範圍後才接入 Hermes。兩者不要同時安裝，否則無法判斷收益來源。</div>
+</div>
+
+<h2>四、外部資料與多 Agent 工作區</h2>
+<div class="card">
+<h3>Agent-Reach</h3>
+<p>Agent-Reach 是能力安裝、診斷與路由層，將網頁、YouTube、GitHub、RSS 及不同平台的上游 CLI 串起來。公開網頁與影片字幕是低風險用途；Twitter、Reddit、小紅書、Facebook、Instagram 等路線可能需要 Cookie、瀏覽器登入態或代理。Cookie 等同登入權限，不能把「沒有 API 費」誤解成沒有維護、封號與合規成本。</p>
+<h3>Orca</h3>
+<p>Orca 是桌面型 Agent Development Environment，讓多個 CLI Agent 各自在 Git worktree 工作，集中比較 diff、發送追問與接收通知。它適合本機需要視覺化管理多個候選方案的人，但它不是 Hermes Gateway、不是 Profile 路由器，也不取代 Kanban 的責任分工與驗收。</p>
+<h3>OpenMontage</h3>
+<p>OpenMontage 把影片製作拆成研究、企劃、腳本、分鏡、素材、剪輯與合成，並要求 Python、Node.js、FFmpeg 及影音服務。它是獨立的內容生產系統，採 AGPLv3；不應為了研究 Agent 工具而放進 Hermes 全域技能庫。</p>
+</div>
+
+<h2>五、Hermes／DKY 的最小導入方案</h2>
+<div class="card">
+<ol>
+<li><strong>保留協調核心：</strong>Profile、Kanban、主 Agent 驗收與現有公開網路資料能力維持不變。</li>
+<li><strong>先吸收四項工程方法：</strong>把除錯、領域語言、深模組與雙軸審查做成現有流程的補強，而非複製整個 skill repo。</li>
+<li><strong>只選一個 codebase context 工具：</strong>大型 repo 優先測 Codebase Memory MCP；Node.js 生態與低摩擦 Markdown graph 才測 Graft。</li>
+<li><strong>建立基準線：</strong>用三至五個真實任務記錄 token、工具呼叫、耗時、成功率、人工修正量與錯誤類型。</li>
+<li><strong>設定淘汰條件：</strong>若索引維護、合併、遙測或設定修改成本高於節省的探索成本，就移除，不為了熱門度保留。</li>
+</ol>
+<div class="note">最終選擇不是「擁有多少 Agent」，而是每一層是否有單一責任、可驗證產物與清楚的退出路徑。</div>
+</div>
+
+<h2>安全審查結果</h2>
+<div class="card">
+<ul>
+<li>Matt Pocock repo 固定於 commit <code>6654f6b</code> 審查；對 skill 目錄內 105 個檔案執行已安裝的靜態 pattern analyzer，共 10 個命中。</li>
+<li>命中主要是危險 Git 指令清單、設定目錄操作、人機互動輸入與依賴圖描述；人工判斷未發現明顯惡意執行行為。</li>
+<li>未命中提示注入、資料外傳或 SSRF pattern；完整 SkillSpector CLI 因本機缺少間接依賴而未完成，因此不能宣稱通過完整安全認證。</li>
+<li>本頁只做研究記錄，沒有安裝任何外部 skill、binary、MCP Server 或社群登入工具。</li>
+</ul>
+</div>
+
+<h2>原始來源</h2>
+<div class="card sources">
+<ul>
+<li><a href="https://github.com/mattpocock/skills/tree/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76" target="_blank" rel="noreferrer">Matt Pocock skills，固定審查 commit</a></li>
+<li><a href="https://www.aiposthub.com/github-ai-agent-projects-graft-orca/" target="_blank" rel="noreferrer">AI郵報：六個 AI Agent 專案比較文章</a></li>
+<li><a href="https://raw.githubusercontent.com/trailhq/Graft/main/README.md" target="_blank" rel="noreferrer">Graft 官方 README</a> · <a href="https://raw.githubusercontent.com/trailhq/Graft/main/package.json" target="_blank" rel="noreferrer">Graft package.json</a> · <a href="https://raw.githubusercontent.com/trailhq/Graft/main/TELEMETRY.md" target="_blank" rel="noreferrer">Graft Telemetry</a></li>
+<li><a href="https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/main/README.md" target="_blank" rel="noreferrer">Codebase Memory MCP 官方 README</a></li>
+<li><a href="https://raw.githubusercontent.com/msitarzewski/agency-agents/main/README.md" target="_blank" rel="noreferrer">Agency Agents 官方 README</a></li>
+<li><a href="https://raw.githubusercontent.com/Panniantong/Agent-Reach/main/README.md" target="_blank" rel="noreferrer">Agent-Reach 官方 README</a></li>
+<li><a href="https://raw.githubusercontent.com/stablyai/orca/main/README.md" target="_blank" rel="noreferrer">Orca 官方 README</a></li>
+<li><a href="https://raw.githubusercontent.com/calesthio/OpenMontage/main/README.md" target="_blank" rel="noreferrer">OpenMontage 官方 README</a></li>
+</ul>
+</div>
+
+<footer>← <a href="./">回學習資源列表</a> · <a href="../">回學習中心首頁</a> · DKY Learn AI Agent 工具研究筆記</footer>
+</main>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
