@@ -1,118 +1,339 @@
+<!-- 📌 判讀：論文筆記 × LLM／RAG 工程師與 Agent 建置者 × 學術嚴謹＋工程導向 × 從「RAG 失效時該信誰」切入 -->
+<!-- 旋鈕：ANALYTICAL_DEPTH=8；ORIGINALITY=7；READABILITY=6 -->
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<title>Astute RAG 繁體中文研究筆記</title>
-<style>
-    body {
-        background-color: #ffffff;
-        color: #222222;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        line-height: 1.6;
-        margin: 0;
-        padding: 2rem;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    h1, h2, h3 {
-        color: #001f3f; /* navy */
-        margin-top: 1.5rem;
-        margin-bottom: 0.5rem;
-    }
-    p {
-        margin-bottom: 1rem;
-    }
-    ul {
-        margin-bottom: 1rem;
-        padding-left: 2rem;
-    }
-    .summary {
-        background-color: #f0f8ff;
-        border-left: 4px solid #001f3f;
-        padding: 1rem;
-        margin-bottom: 2rem;
-        font-style: italic;
-    }
-    .footer {
-        margin-top: 3rem;
-        font-size: 0.9rem;
-        color: #555555;
-        text-align: center;
-        border-top: 1px solid #ddd;
-        padding-top: 1rem;
-    }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fefaf6">
+<title>Astute RAG：RAG 失效時，該信誰？ — DKY 論文筆記</title>
+<meta name="description" content="Astute RAG 研究筆記：檢索噪聲、內外部知識衝突、三階段後檢索可靠性流程，以及對 AI Agent 的最小落地方案。">
+<meta property="og:title" content="Astute RAG：RAG 失效時，該信誰？">
+<meta property="og:description" content="RAG 不能把檢索結果直接當答案；Astute RAG 用內部候選、來源感知合併與衝突決策提高可靠性。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://learn.dky.tw/research/astute-rag">
+<link rel="canonical" href="https://learn.dky.tw/research/astute-rag">
 <link rel="stylesheet" href="../warm-theme.css">
 <script src="../sidebar.js" defer></script>
+<style>
+:root {
+  --page-bg: var(--warm-bg, #fefaf6);
+  --page-surface: var(--warm-surface, #fef9f4);
+  --page-strong: var(--warm-surface-strong, #f8efe5);
+  --page-border: var(--warm-border, #e6d5c0);
+  --page-text: var(--warm-text, #3b2a1a);
+  --page-muted: var(--warm-muted, #8b6f50);
+  --page-accent: var(--warm-accent, #a0522d);
+  --page-accent-dark: var(--warm-accent-dark, #71391f);
+  --page-good: var(--warm-success, #5f7b50);
+}
+* { box-sizing: border-box; }
+html { background: var(--page-bg); }
+body {
+  margin: 0 auto;
+  max-width: 940px;
+  padding: 2.5rem 2rem 5rem;
+  background: var(--page-bg);
+  color: var(--page-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
+  line-height: 1.85;
+}
+main { max-width: 900px; }
+header { border-bottom: 1px solid var(--page-border); padding-bottom: 1.25rem; }
+.kicker {
+  margin: 0 0 .45rem;
+  color: var(--page-accent);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+h1 {
+  margin: 0;
+  color: var(--page-accent-dark);
+  font-size: clamp(1.55rem, 4vw, 2.15rem);
+  line-height: 1.35;
+}
+.meta { margin: .7rem 0 0; color: var(--page-muted); font-size: .88rem; }
+.tags { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem; }
+.tag {
+  display: inline-block;
+  padding: .18rem .62rem;
+  border: 1px solid var(--page-border);
+  border-radius: 999px;
+  background: var(--page-strong);
+  color: var(--page-accent-dark);
+  font-size: .76rem;
+}
+.scope {
+  margin: 1rem 0 0;
+  padding: .75rem .9rem;
+  border-left: 3px solid var(--page-border);
+  background: var(--page-surface);
+  color: var(--page-muted);
+  font-size: .86rem;
+}
+h2 {
+  margin: 2.3rem 0 .85rem;
+  padding-bottom: .45rem;
+  border-bottom: 2px solid var(--page-border);
+  color: var(--page-accent-dark);
+  font-size: 1.22rem;
+  line-height: 1.45;
+}
+h3 { margin: 1.35rem 0 .45rem; color: var(--page-accent-dark); font-size: 1rem; }
+p { margin: .7rem 0; }
+ul, ol { padding-left: 1.45rem; }
+li { margin: .35rem 0; }
+a { color: var(--page-accent); }
+a:hover { color: var(--page-accent-dark); }
+a:focus-visible, button:focus-visible { outline: 3px solid #d79567; outline-offset: 3px; }
+.cite { font-size: .75em; text-decoration: none; vertical-align: super; }
+.one-liner {
+  margin: 1.4rem 0;
+  padding: 1.05rem 1.2rem;
+  border-left: 4px solid var(--page-good);
+  border-radius: 0 9px 9px 0;
+  background: #f4f7ed;
+  color: #435936;
+  font-size: 1.04rem;
+  font-weight: 650;
+}
+.one-liner strong { color: #435936 !important; }
+.card {
+  margin: 1rem 0;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--page-border);
+  border-radius: 10px;
+  background: var(--page-surface);
+}
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin: 1rem 0;
+}
+.metric {
+  min-height: 8.2rem;
+  padding: .9rem;
+  border: 1px solid var(--page-border);
+  border-radius: 9px;
+  background: var(--page-surface);
+}
+.metric strong { display: block; color: var(--page-accent-dark) !important; font-size: 1.45rem; line-height: 1.25; }
+.metric span { display: block; margin-top: .35rem; color: var(--page-muted); font-size: .82rem; line-height: 1.55; }
+.table-wrap { overflow-x: auto; margin: .9rem 0; }
+table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: .88rem; }
+th, td { padding: .62rem .7rem; border: 1px solid var(--page-border); text-align: left; vertical-align: top; }
+th { background: var(--page-strong); color: var(--page-accent-dark); font-weight: 700; }
+td { background: var(--page-surface); }
+.num { white-space: nowrap; color: var(--page-accent-dark); font-weight: 700; }
+.good { color: var(--page-good); font-weight: 700; }
+.warn { color: #895d19; font-weight: 650; }
+.flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .7rem;
+  margin: 1rem 0;
+}
+.flow-step { position: relative; padding: .95rem; border: 1px solid var(--page-border); border-radius: 9px; background: var(--page-surface); }
+.flow-step:not(:last-child)::after { content: "→"; position: absolute; right: -.62rem; top: 2.1rem; z-index: 2; color: var(--page-accent); font-weight: 800; }
+.flow-step .step-no { color: var(--page-accent); font-size: .76rem; font-weight: 800; }
+.flow-step h3 { margin: .25rem 0 .35rem; }
+.flow-step p { margin: 0; font-size: .86rem; }
+.callout {
+  margin: 1rem 0;
+  padding: .9rem 1.05rem;
+  border-left: 4px solid var(--page-accent);
+  border-radius: 0 8px 8px 0;
+  background: var(--page-strong);
+}
+.callout strong { color: var(--page-accent-dark) !important; }
+pre {
+  overflow-x: auto;
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--page-border);
+  border-radius: 8px;
+  background: #faf4ed;
+  color: #513621;
+  font: .82rem/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+code { padding: .08rem .28rem; border-radius: 4px; background: #faf4ed; color: #513621; font-size: .9em; }
+pre code { padding: 0; background: transparent; }
+.sources { font-size: .86rem; }
+.sources ol { padding-left: 1.5rem; }
+.sources li { margin: .55rem 0; }
+footer {
+  margin-top: 2.8rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--page-border);
+  color: var(--page-muted);
+  font-size: .8rem;
+}
+@media (max-width: 768px) {
+  body { padding: 1.1rem 1rem 4rem; }
+  .metric-grid, .flow { grid-template-columns: 1fr; }
+  .flow-step:not(:last-child)::after { content: "↓"; right: auto; left: 50%; top: auto; bottom: -.78rem; }
+  .card { padding: 1rem; }
+  h2 { margin-top: 1.9rem; }
+}
+</style>
 </head>
 <body>
-<h1>Astute RAG 研究筆記</h1>
-<div class="summary">
-一句話摘要：Astute RAG 是一種新穎的檢索增強生成方法，通過自適應 elicitation、迭代 consolidation 和可靠性 기반 最終答案選擇，有效克服不完美檢索和知識衝突，提升大型語言模型的可信度。
-</div>
+<header>
+  <p class="kicker">論文筆記／RAG 與上下文工程</p>
+  <h1>Astute RAG：RAG 失效時，該信誰？</h1>
+  <p class="meta">Fei Wang、Xingchen Wan、Ruoxi Sun、Jiefeng Chen、Sercan Ö. Arık · Google Cloud AI Research／University of Southern California · arXiv:2410.07176v1 · 2024-10-09</p>
+  <div class="tags" aria-label="文章標籤">
+    <span class="tag">RAG</span><span class="tag">知識衝突</span><span class="tag">可靠性</span><span class="tag">後檢索</span>
+  </div>
+  <p class="scope">本頁的實驗數字與方法解讀以 v1 原文為準。arXiv 目前另列 v2，ACL Anthology 也收錄 2025 年正式版本；版本差異不在本頁混寫。<a class="cite" href="#src-v1-abs">[1]</a><a class="cite" href="#src-v2">[3]</a><a class="cite" href="#src-acl">[4]</a></p>
+</header>
 
-<h2>方法拆解（三步驟）</h2>
-<ol>
-    <li><strong>自適應 elicitation（適應性 elicitation）</strong>
-        <p>從 LLM 的內部知識中提取與查詢相關的關鍵資訊，以補充或校正檢索結果中可能的噪聲或錯誤。</p>
-    </li>
-    <li><strong>迭代 consolidation（來源感知的迴融）</strong>
-        <p>在明確來源標記的框架下，將內部 elicitation 知識與外部檢索知識進行多輪融合，逐步降低無關或誤導性資訊的影響。</p>
-    </li>
-    <li><strong>可靠性 based 最終答案選擇（可靠性驅動的答案選擇）</strong>
-        <p>根據資訊的可靠度（來源可信度、內部一致性、交叉驗證等）為每個候選答案打分，選擇分數最高的作為最終輸出。</p>
-    </li>
-</ol>
+<main>
+  <section class="one-liner" aria-label="一句話核心結論">
+    <strong>一句話核心結論：</strong>RAG 不能把「搜到的內容」直接視為答案；Astute RAG 讓模型先提出受限的內部候選，再保留內外部來源與衝突群組，最後依交叉支持與可靠性選答案，將後檢索階段變成一個明確的決策層。<a class="cite" href="#src-v1-html">[2]</a>
+  </section>
 
-<h2>關鍵數據</h2>
-<ul>
-    <li>實驗使用 <code>Gemini</code> 與 <code>Claude</code> 兩種大型語言模型。</li>
-    <li>在最糟檢索條件下（含大量無關、誤導或對抗性內容），Astute RAG 是唯一能達到或超越傳統 LLM 單獨使用性能的 RAG 方法。</li>
-    <li>相較於先前的 robustness‑enhanced RAG 基線，Astute RAG 在知識衝突情境下顯著提升答案正確率（具體提升幅度依資料集而異，但皆達統計顯著差異）。</li>
-    <li>進一步分析顯示，該方法有效解決 LLM 內部知識與外部檢索知識的衝突，進而提升系統的可信度與穩健性。</li>
-</ul>
+  <h2 id="problem">先給判斷：真正的問題在後檢索</h2>
+  <p>傳統 RAG 的直覺是「模型不知道，就去找資料」。問題在於，檢索器回傳的資料不保證相關、正確、最新，甚至可能含有惡意內容；模型一旦把噪聲當成上下文，新增的外部資訊反而會把原本答對的問題帶偏。論文把焦點從「如何再改進 retriever」移到「拿到結果後，模型該如何處理不確定性與衝突」。<a class="cite" href="#src-v1-html">[2]</a></p>
+  <div class="metric-grid">
+    <div class="metric"><strong>約 70%</strong><span>論文描述的 retrieved passages 沒有直接包含正確答案；這是 passage-level 觀察，不等同於 70% 的問題完全無解。</span></div>
+    <div class="metric"><strong>19.2%</strong><span>Claude 3.5 Sonnet 實驗中，無 RAG 與 RAG 的答案出現「一邊對、一邊錯」的知識衝突。</span></div>
+    <div class="metric"><strong>約 20%</strong><span>論文觀察：retrieval precision 低於這個區間時，RAG 增益開始不穩；接近 0 時可能明顯劣於不使用 RAG。</span></div>
+  </div>
+  <p>衝突案例中，內部知識正確的比例是 47.4%，外部資訊正確的比例是 52.6%。這個分布直接否定「永遠信模型記憶」與「永遠信檢索內容」兩種簡單規則；需要比較兩邊，而不是預先選邊。<a class="cite" href="#src-v1-html">[2]</a></p>
 
-<h2>對 Hermes 應用分析</h2>
-<h3>對應 content-curation-pipeline 的環節</h3>
-<p>Hermes 的內容策展管線（content-curation-pipeline）大致可分為四個階段：</p>
-<ol>
-    <li>資訊蒐集（Web Search、Web Extract 等工具）</li>
-    <li>相關性過濾與去噪</li>
-    <li>知識整合（寫入記憶庫、建立關聯）</li>
-    <li>輸出生成（回答、報告等）</li>
-</ol>
-<p>Astute RAG 的核心功能適合作為「相關性過濾與去噪」以及「知識整合」之間的橋梁，特別是在後檢索階段處理不完整或有衝突的資訊。</p>
-
-<h3>目前 Hermes 可能缺少的機制</h3>
-<ul>
-    <li>缺乏自適適從 LLM 內部知識中 elicitation 關鍵線索的步驟；多依賴檢索分數或關鍵字匹配。</li>
-    <li>缺少來源感知的迭代融合機制，難以在多輪資訊交互中區分可信來源與噪聲。</li>
-    <li>缺乏基於可靠性的最終答案選擇，易於將低品質資訊直接寫入記憶。</li>
-</ul>
-
-<h3>如何補充</h3>
-<ol>
-    <li>在 <code>web_extract</code> 取得原始網頁內容後，插入一個 <strong>Astute RAG 處理模組</strong>：</li>
+  <h2 id="method">方法拆解：三個角色，不是單純多塞一段 context</h2>
+  <div class="flow" aria-label="Astute RAG 三階段流程">
+    <div class="flow-step">
+      <div class="step-no">STEP 1</div>
+      <h3>自適應產生內部候選</h3>
+      <p>根據 query 從模型內部知識產生最多 <code>m̂</code> 段補充資訊；可以少產生，甚至回答「不知道」。v1 預設最多 1 段，避免內部幻覺無限擴張。</p>
+    </div>
+    <div class="flow-step">
+      <div class="step-no">STEP 2</div>
+      <h3>來源感知的知識合併</h3>
+      <p>把 external passages 與 internal passages 放在一起，保留來源標籤；一致資訊聚成一組，互相矛盾的資訊分開，無關內容剔除，可重複整理。</p>
+    </div>
+    <div class="flow-step">
+      <div class="step-no">STEP 3</div>
+      <h3>候選答案的最後決策</h3>
+      <p>針對每個一致資訊群組提出答案與信心，再比較來源、跨來源支持、出現頻率與完整度，選出最後答案，而不是直接採用多數文字。</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>核心設計的關鍵細節</h3>
     <ul>
-        <li>呼叫 LLM 進行自適應 elicitation，產生內部知識提示。</li>
-        <li>以來源標記（URL、域名等）為基礎，執行迭代 consolidation，將內部提示與外部文本進行加權合併。</li>
-        <li>設計可靠度評分函數（如來源權威度、跨來源一致性、LLM 自我評估），選擇最高分數的知識塊。</li>
+      <li>內部知識不是直接答案，而是第二個候選來源；它必須與外部 passages 一樣接受比較。</li>
+      <li>合併時同時提供初始 context 與上一輪整理後的 context，讓模型保留原始證據，也能逐輪縮短雜訊。</li>
+      <li>衝突資訊不被強行平均；每一組保留自己的來源與原始文件編號，方便最後追溯。</li>
+      <li>當 <code>t=1</code> 時，知識整理與答案產生可合併，總共 2 次 prediction API calls；<code>t=2</code>、<code>t=3</code> 則分別是 3、4 次。</li>
     </ul>
-    <li>將經 Astute RAG 篩選後的知識塊送往 Hermes 的記憶系統（Honcho 跨階段記憶或技能庫），作為後續生成的依據。</li>
-    <li>此過程可作為可選技能（skill）或工具集（toolset）掛載，僅在偵測到檢索品質低落時啟用，以節省成本。</li>
-</ol>
+  </div>
 
-<h2>限制</h2>
-<ul>
-    <li>額外的 LLM 推理成本：每次 elicitation 與 consolidation 都需要調用模型，可能增加延遲與費用。</li>
-    <li>依賴 LLM 內部知識的正確性：若模型本身包含錯誤知識，elicit 內容可能帶來偏差。</li>
-    <li>在極端對抗性檢索（大量精心構造的誤導資訊）下，仍有可能被騙過可靠性評分。</li>
-    <li>實作複�度提升：需要設計來源可信度評估、迭代輪數控制及分數校準等細節。</li>
-</ol>
+  <h2 id="experiment">實驗設計與結果：增益存在，但成本也是真的</h2>
+  <p>v1 使用 NQ、TriviaQA、BioASQ、PopQA 共 1,042 組短答案 QA，每題以 Google Search 取前 30 筆結果，再選前 10 個可存取網站，擷取對應 snippet 的段落；研究沒有依檢索結果反過來挑題或標註答案。模型是 Gemini 1.5 Pro (002) 與 Claude 3.5 Sonnet (20240620)，temperature 0、zero-shot。<a class="cite" href="#src-v1-html">[2]</a></p>
+  <div class="table-wrap">
+    <table>
+      <caption style="caption-side:bottom;text-align:left;color:var(--page-muted);padding-top:.5rem">表 1：各模型在四資料集上的 Overall accuracy；「最佳既有 baseline」取論文表中非 Astute RAG 的最高值。數字依 v1 Table 1、Table 2。<a class="cite" href="#src-v1-html">[2]</a></caption>
+      <thead><tr><th>模型</th><th>無 RAG</th><th>一般 RAG</th><th>最佳既有 baseline</th><th>Astute RAG 最佳</th><th>Astute prediction calls</th></tr></thead>
+      <tbody>
+        <tr><td>Claude 3.5 Sonnet</td><td>54.51</td><td>55.47</td><td>58.83<br><small>InstructRAG</small></td><td class="good">62.86<br><small>t=3</small></td><td>4</td></tr>
+        <tr><td>Gemini 1.5 Pro</td><td>51.34</td><td>53.65</td><td>57.58<br><small>Self-Route</small></td><td class="good">59.69<br><small>t=2</small></td><td>3</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>換成較容易解讀的絕對差距：Claude 的最佳既有 baseline 到 Astute RAG 是 <span class="good">+4.03 個百分點</span>；Gemini 是 <span class="good">+2.11 個百分點</span>。同時，Gemini 在 <code>t=3</code> 反而從 59.69 降回 59.21，說明「多一次整理」不是保證增益，輪數應由模型、資料與 context 長度共同決定。<a class="cite" href="#src-v1-html">[2]</a></p>
+  <div class="table-wrap">
+    <table>
+      <caption style="caption-side:bottom;text-align:left;color:var(--page-muted);padding-top:.5rem">表 2：最佳 Astute 設定相對於各資料集最佳既有 baseline 的絕對差距；用來看增益集中在哪些任務類型。<a class="cite" href="#src-v1-html">[2]</a></caption>
+      <thead><tr><th>模型／設定</th><th>NQ</th><th>TriviaQA</th><th>BioASQ</th><th>PopQA</th></tr></thead>
+      <tbody>
+        <tr><td>Claude／t=3</td><td class="good">53.56（+5.42）</td><td class="good">84.45（+1.41）</td><td class="good">62.24（+0.70）</td><td class="good">44.94（+3.93）</td></tr>
+        <tr><td>Gemini／t=2</td><td class="good">51.53（+4.07）</td><td class="good">81.27（+0.70）</td><td class="good">58.74（+0.35）</td><td class="good">40.45（+2.25）</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>最有價值的不是 Overall 排名，而是極端情境：在 RGB 的 worst-case 設定中，所有檢索文件都是 negative passages；一般 RAG 與無 RAG 的性能差距超過 50 個百分點，Astute RAG 是唯一接近無 RAG 表現的方法。這表示它至少具備「外部證據失效時不要跟著一起崩」的保底能力。<a class="cite" href="#src-v1-html">[2]</a></p>
 
-<div class="footer">
-引用：Fei Wang et al., ACL 2025, arXiv:2410.07176
-</div>
+  <h2 id="why">為什麼有效：它把「衝突」保留下來</h2>
+  <p>一般做法常把多個 passages 直接串接，或以答案投票做聚合；這兩者都可能把錯誤資訊的數量誤當成可信度。Astute RAG 的差異在於先建立資訊群組，再讓每個群組各自產生答案，最後才比較群組。這讓「外部資料多數勝出」不再是唯一規則，也讓「模型記憶答對」有機會抵抗一批錯誤檢索內容。<a class="cite" href="#src-v1-html">[2]</a></p>
+  <div class="card">
+    <h3>可以把它理解成三層防線</h3>
+    <ol>
+      <li><strong>補洞：</strong>檢索沒有覆蓋到的關鍵資訊，由模型內部候選補上，但不直接採信。</li>
+      <li><strong>分流：</strong>一致、衝突、無關資訊分開整理，避免摘要把差異抹掉。</li>
+      <li><strong>裁決：</strong>最後看來源、交叉支持與完整度，選擇一組有較強支持的答案。</li>
+    </ol>
+  </div>
+
+  <h2 id="lessons">最值得學的五件事</h2>
+  <ol>
+    <li><strong>RAG 必須有 no-RAG 退路。</strong>「加資料」不是單調增益；在低 precision 情境，沒有檢索反而可能比較好。生產系統要能記錄「有 RAG」與「無 RAG」兩條候選路徑，而不是只保留一條。</li>
+    <li><strong>來源標籤要跟著摘要走。</strong>只保存整理後的結論，等於丟掉日後查錯的證據。壓縮、重排、摘要都不應抹去 URL、文件編號、時間與來源類型。</li>
+    <li><strong>衝突不是噪聲，衝突是決策資料。</strong>不同說法被合併成一個「看似合理」句子後，錯誤很難追。應保留競爭假設，等最後一層判斷。</li>
+    <li><strong>模型自評的 confidence 不能單獨當可靠度。</strong>v1 用 prompt 要模型依可信度與一致性評分，但沒有提供可校準的機率模型或固定權重；工程上仍需要獨立來源、時間、新鮮度與人工覆核規則。<a class="cite" href="#src-v1-html">[2]</a></li>
+    <li><strong>額外推理要有觸發條件。</strong>v1 的預設是最多一段內部候選、<code>t=1</code> 的 2 calls；只有 context 長、來源互斥或任務風險高時才增加迭代，不能把 3–4 calls 當成免費的預設。</li>
+  </ol>
+
+  <h2 id="hermes">對 Hermes／DKY 的最小落地版本</h2>
+  <p>不必先複製完整論文框架，也不必立刻新增一個大型服務。先把它做成「後檢索可靠性閘門」：只在檢索稀疏、來源矛盾、或醫療／金融／法規／正式金額等高風險場景啟用。</p>
+  <div class="callout"><strong>ponytail：刻意簡化</strong>　第一版只記錄來源與衝突，不做複雜的學習式 reliability model。等有足夠的錯誤案例，再用實測資料校準觸發門檻與分數。</div>
+  <pre><code>raw = retrieve(query)
+internal = generate_at_most_one_candidate(query)  # 不確定就回不知道
+context = consolidate(
+    raw + internal,
+    keep_source_ids=True,
+    keep_conflict_groups=True,
+    drop_irrelevant=True,
+)
+if high_risk_conflict(context):
+    require_independent_primary_source(context)
+answer = finalize_with_citations(context)
+write_memory_only_after_evidence_check(answer)</code></pre>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>觸發條件</th><th>建議處理</th><th>不要做的事</th></tr></thead>
+      <tbody>
+        <tr><td>來源一致、低風險、可追溯</td><td>一般 RAG；保存來源 ID 與擷取時間。</td><td>為了形式而增加多輪 LLM calls。</td></tr>
+        <tr><td>來源稀疏或互相矛盾</td><td>產生一個內部候選，分組合併，保留 competing claims，再做最後判斷。</td><td>直接用多數票或摘要抹平差異。</td></tr>
+        <tr><td>醫療、金融、法規、正式金額</td><td>要求獨立第一手來源或人工覆核；未通過就不寫入長期記憶。</td><td>把模型 confidence 當成核准證明。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>論文的「20%」是它在特定 Google Search、短答案資料集上的 retrieval precision 觀察，不應直接硬編碼成所有系統的門檻。比較穩妥的做法是先收集自己的事件記錄：<code>query_id</code>、<code>source_id</code>、來源時間、衝突群組、最後採納理由、是否人工覆核，之後再用實測錯誤率調整。</p>
+
+  <h2 id="limits">限制與反方檢查</h2>
+  <ul>
+    <li><strong>評測範圍窄：</strong>主要是短答案 QA，正確性以模型回覆是否包含 ground-truth answer 判定；長文摘要、複合推理與引用完整性不在同一個評測內。<a class="cite" href="#src-v1-html">[2]</a></li>
+    <li><strong>檢索環境特定：</strong>使用 Google Search 的前 30 筆與前 10 個可存取網站，不能直接推論到所有私有向量資料庫、企業文件或中文網路內容。<a class="cite" href="#src-v1-html">[2]</a></li>
+    <li><strong>內部知識仍可能錯：</strong>它只是另一個證據候選，不是可靠的 ground truth；如果模型本身能力不足，內部候選會把錯誤帶進整理流程。</li>
+    <li><strong>可靠度沒有外部校準：</strong>v1 的裁決由同一個黑箱 LLM 依 prompt 完成，沒有獨立 verifier、可重現的權重或校準曲線，因此高風險系統仍要接上外部來源與人工控制。</li>
+    <li><strong>成本與延遲：</strong>預設至少多一次內部候選產生 call；迭代整理雖然提升部分結果，但 Gemini 的 <code>t=3</code> 已顯示額外一輪不一定帶來增益。<a class="cite" href="#src-v1-html">[2]</a></li>
+  </ul>
+
+  <h2 id="verdict">最終判斷</h2>
+  <p>值得搬走的不是三段 prompt，而是設計原則：把 RAG 當成「外部證據候選」，把內部知識當成「另一個候選」，在答案輸出前設一層能保留來源與衝突的決策閘門。對 Agent 系統而言，這比單純增加 <code>top-k</code>、把 context 塞得更長，或再加一個沒有驗證的 reranker 更有長期價值。</p>
+  <p>最小可行採用順序是：先記錄 raw evidence 與 provenance，再加入衝突分組，最後只對高風險／低信心案例開啟內部候選與獨立覆核。這樣能取得 Astute RAG 的保底思想，又不會把每個問題都變成 3–4 次昂貴推理。</p>
+
+  <h2 id="sources">來源與版本</h2>
+  <section class="sources" aria-label="研究來源">
+    <ol>
+      <li id="src-v1-abs"><a href="https://arxiv.org/abs/2410.07176v1" target="_blank" rel="noreferrer">arXiv v1 摘要頁：2410.07176v1</a> — 提交日期、作者、分類與版本資訊。</li>
+      <li id="src-v1-html"><a href="https://arxiv.org/html/2410.07176v1" target="_blank" rel="noreferrer">arXiv v1 HTML 全文</a> — 方法、資料收集、實驗設定、Table 1／2 與分析結果。</li>
+      <li id="src-v2"><a href="https://arxiv.org/abs/2410.07176v2" target="_blank" rel="noreferrer">arXiv v2 metadata</a> — 2025-05-31 修訂版與 ACL 2025 會議註記。</li>
+      <li id="src-acl"><a href="https://aclanthology.org/2025.acl-long.1476/" target="_blank" rel="noreferrer">ACL Anthology：2025.acl-long.1476</a> — 正式出版資訊、頁碼 30553–30571、DOI 與 CC BY 4.0。</li>
+    </ol>
+  </section>
+</main>
+
+<footer>
+  <a href="/research/">← 回論文筆記首頁</a>　·　<a href="/">回學習中心</a>　·　資料依引用版本為準，本文不是對任何 RAG 系統的正確性保證。
+</footer>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 </body>
 </html>
