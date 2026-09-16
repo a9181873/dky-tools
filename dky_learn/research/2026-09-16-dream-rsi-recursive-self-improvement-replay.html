@@ -1,0 +1,486 @@
+<!-- 📌 判讀：論文筆記 × AI Agent 開發者／研究者 × 學術嚴謹＋生活化比喻 × 從探索策略與可回放歷史切入 -->
+<!-- 旋鈕：ANALYTICAL_DEPTH=8；ORIGINALITY=7；READABILITY=8 -->
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fefaf6">
+<title>Dream-RSI：把探索歷史變成可回放的自我改進迴路 — DKY 論文筆記</title>
+<meta name="description" content="Dream-RSI 研究導讀：用 discovery tree 建立 replay simulator，在固定歷史上離線評估 exploration policy，再把較佳控制器帶回線上探索；含公式、實驗數據、限制與 Agent 平台落地檢查清單。">
+<meta property="og:title" content="Dream-RSI：把探索歷史變成可回放的自我改進迴路">
+<meta property="og:description" content="從固定探索策略的瓶頸切入，拆解 Dream-RSI 的 replay simulator、三階段 RSI loop、回放目標函數、實驗結果與實務邊界。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://learn.dky.tw/research/2026-09-16-dream-rsi-recursive-self-improvement-replay">
+<link rel="canonical" href="https://learn.dky.tw/research/2026-09-16-dream-rsi-recursive-self-improvement-replay">
+<style>
+:root {
+  --page-bg: var(--warm-bg, #fefaf6);
+  --page-surface: var(--warm-surface, #fef9f4);
+  --page-strong: var(--warm-surface-strong, #f8efe5);
+  --page-border: var(--warm-border, #e6d5c0);
+  --page-text: var(--warm-text, #3b2a1a);
+  --page-muted: var(--warm-muted, #8b6f50);
+  --page-accent: var(--warm-accent, #a0522d);
+  --page-accent-dark: var(--warm-accent-dark, #71391f);
+  --page-good: var(--warm-success, #5f7b50);
+  --page-warn: var(--warm-warning, #9a671e);
+}
+* { box-sizing: border-box; }
+html { background: var(--page-bg); scroll-behavior: smooth; }
+body {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 5rem;
+  background: var(--page-bg);
+  color: var(--page-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
+  line-height: 1.85;
+}
+main { max-width: 930px; }
+header { border-bottom: 1px solid var(--page-border); padding-bottom: 1.2rem; }
+.kicker {
+  margin: 0 0 .45rem;
+  color: var(--page-accent);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+h1 {
+  margin: 0;
+  color: var(--page-accent-dark);
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+  line-height: 1.35;
+}
+.meta { margin: .7rem 0 0; color: var(--page-muted); font-size: .88rem; }
+.utility-links { margin: .7rem 0 0; font-size: .84rem; }
+a { color: var(--page-accent); text-decoration-thickness: .08em; text-underline-offset: .16em; }
+a:hover { color: var(--page-accent-dark); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #d79567; outline-offset: 3px; }
+.cite { font-size: .76em; text-decoration: none; vertical-align: super; white-space: nowrap; }
+.one-liner {
+  margin: 1.35rem 0;
+  padding: 1.05rem 1.2rem;
+  border-left: 4px solid var(--page-good);
+  border-radius: 0 9px 9px 0;
+  background: #f4f7ed;
+  color: #435936;
+  font-size: 1.06rem;
+  font-weight: 650;
+}
+.one-liner strong { color: #435936 !important; }
+.scope, .evidence-note, .risk-note {
+  margin: 1rem 0;
+  padding: .8rem .95rem;
+  border-left: 3px solid var(--page-border);
+  background: var(--page-surface);
+  color: var(--page-muted);
+  font-size: .86rem;
+}
+.evidence-note { border-left-color: var(--page-warn); color: var(--page-text); background: #fff6e6; }
+.risk-note { border-left-color: var(--page-accent); color: var(--page-text); }
+h2 {
+  margin: 2.45rem 0 .85rem;
+  padding-bottom: .45rem;
+  border-bottom: 2px solid var(--page-border);
+  color: var(--page-accent-dark);
+  font-size: 1.24rem;
+  line-height: 1.45;
+  scroll-margin-top: 1rem;
+}
+h3 { margin: 1.35rem 0 .45rem; color: var(--page-accent-dark); font-size: 1.02rem; line-height: 1.5; }
+p { margin: .7rem 0; }
+ul, ol { padding-left: 1.45rem; }
+li { margin: .35rem 0; }
+.card {
+  margin: 1rem 0;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--page-border);
+  border-radius: 10px;
+  background: var(--page-surface);
+}
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+.flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin: 1rem 0;
+}
+.flow-step {
+  position: relative;
+  min-height: 9rem;
+  padding: .9rem;
+  border: 1px solid var(--page-border);
+  border-radius: 9px;
+  background: #fffdf9;
+}
+.flow-step:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -.75rem;
+  top: 42%;
+  z-index: 1;
+  color: var(--page-accent);
+  font-size: 1.25rem;
+}
+.flow-step .step-no { color: var(--page-accent); font-size: .78rem; font-weight: 750; }
+.flow-step h3 { margin: .15rem 0 .35rem; }
+.flow-step p { margin: 0; color: var(--page-muted); font-size: .86rem; }
+.table-wrap { margin: 1rem 0; overflow-x: auto; }
+table { width: 100%; min-width: 700px; border-collapse: collapse; }
+th, td { padding: .62rem .7rem; border-bottom: 1px solid var(--page-border); text-align: left; vertical-align: top; }
+th { background: var(--page-strong); color: var(--page-accent-dark); font-size: .88rem; line-height: 1.5; }
+td { font-size: .9rem; line-height: 1.7; }
+td:first-child { color: var(--page-accent-dark); font-weight: 650; }
+tr:nth-child(even) { background: #fffdf9; }
+.equation {
+  margin: 1rem 0;
+  padding: .9rem 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--page-border);
+  border-radius: 8px;
+  background: var(--page-strong);
+  color: #513621;
+  font: .9rem/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+pre {
+  margin: 1rem 0;
+  padding: .9rem 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--page-border);
+  border-radius: 8px;
+  background: var(--page-strong);
+  color: #513621;
+  font-size: .86rem;
+  line-height: 1.7;
+}
+code { padding: .08rem .28rem; border: 1px solid var(--page-border); border-radius: 4px; background: var(--page-strong); color: #513621; font-size: .9em; }
+pre code { padding: 0; border: 0; background: transparent; }
+.tag-list { display: flex; flex-wrap: wrap; gap: .45rem; margin: .8rem 0; }
+.tag { padding: .18rem .6rem; border: 1px solid var(--page-border); border-radius: 999px; background: var(--page-strong); color: var(--page-accent-dark); font-size: .76rem; }
+.metric-good { color: var(--page-good); font-weight: 700; }
+.metric-warn { color: var(--page-warn); font-weight: 700; }
+.checklist { list-style: none; padding-left: 0; }
+.checklist li { display: flex; gap: .55rem; align-items: flex-start; }
+.checklist input { flex: 0 0 auto; width: 1rem; height: 1rem; margin-top: .35rem; accent-color: var(--page-accent); }
+.sources { font-size: .88rem; }
+.sources li { margin: .6rem 0; }
+footer { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--page-border); color: var(--page-muted); font-size: .8rem; }
+@media (max-width: 800px) {
+  body { padding: 1.25rem 1rem 4rem; }
+  .flow { grid-template-columns: 1fr; }
+  .flow-step { min-height: 0; }
+  .flow-step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -.95rem; transform: translateX(50%); }
+  table { min-width: 620px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+</style>
+<link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+</head>
+<body>
+<main>
+<header>
+  <p class="kicker">論文筆記 · AI Agent 開發者／研究者</p>
+  <h1>Dream-RSI：把探索歷史變成可回放的自我改進迴路</h1>
+  <p class="meta">DKY 技術研究 · 2026-09-16 · Tong Zheng 等 · Google／Google DeepMind／University of Maryland／University of Virginia · <a href="https://arxiv.org/abs/2609.14858" target="_blank" rel="noreferrer">arXiv:2609.14858v1</a><a class="cite" href="#source-2" aria-label="來源 2">[2]</a></p>
+  <p class="utility-links"><a href="../">回學習中心首頁</a> · <a href="./">回研究索引</a> · <a href="https://dream-rsi.com/" target="_blank" rel="noreferrer">官方專案頁</a></p>
+</header>
+
+<div class="one-liner">一句話結論：Dream-RSI 不把「自我改進」放在模型權重更新，而是放在 meta-exploration（後設探索）控制器。它把一次次線上探索留下的 discovery tree（探索樹）整理成 replay simulator（回放模擬器），讓候選探索策略先在固定歷史上離線試走，再把選出的策略帶回下一輪真正執行。作者的「不變差」只成立於固定歷史與回放目標函數，不是線上部署品質的保證。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a><a class="cite" href="#source-1" aria-label="來源 1">[1]</a></div>
+
+<div class="scope">閱讀口徑：本文是繁體中文技術導讀與工程判讀，不是論文翻譯，也沒有在本機重新執行作者實驗。文中帶有倍數、分數、生成次數或 agent call 的數據，均標示為作者／官方頁面報告；「本文判讀」則是根據方法與證據界線提出的工程推論。</div>
+
+<h2 id="one-sentence">先用一個問題定位：它究竟改了什麼？</h2>
+<div class="card">
+  <p>長程 discovery（發現）任務通常有兩個角色。第一個是 <strong>discovery agent</strong>：提出候選演算法、數學構造或 GPU kernel，並實際執行與評估；第二個是 <strong>exploration policy</strong>：決定下一步要從哪個分支繼續、同時開幾個嘗試、何時停止。Dream-RSI 改的是後者，因此它比較像「探索控制器的離線評估與選擇器」，不是把 coding agent 重新訓練一遍。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <p>這個區分很重要：若把任何「下一輪做得更好」都叫作模型自我學習，就會把 prompt、工具、控制流程、策略程式與模型權重混成同一件事。本文後面所說的 RSI（recursive self-improvement，遞迴式自我改進），專指 exploration policy 在多輪中被回放評估、改寫、選出，再部署的閉環。</p>
+  <div class="tag-list" aria-label="本文術語">
+    <span class="tag">meta-exploration：改進如何探索</span>
+    <span class="tag">online：產生新結果</span>
+    <span class="tag">offline：只用已記錄歷史</span>
+    <span class="tag">off-policy：評估不同於行為策略的候選</span>
+  </div>
+</div>
+
+<h2 id="bottleneck">為什麼固定探索策略會成為瓶頸？</h2>
+<div class="card">
+  <p>固定策略不一定差；它的問題是，探索空間變大之後，策略仍用同一套「往哪裡分支、怎麼平行、何時收手」的規則。作者把瓶頸拆成兩層：一是固定策略無法從累積的 discovery experience 改善，可能重複把計算花在已經反覆失敗的方向；二是若直接在線上優化策略，每個候選策略都要等一個長程 rollout 完成後才知道好不好。<a class="cite" href="#source-1" aria-label="來源 1">[1]</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>問題</th><th>為何昂貴</th><th>Dream-RSI 的切入點</th></tr></thead>
+      <tbody>
+        <tr><td>回饋延遲</td><td>探索 policy 的好壞通常要等許多 proposal–evaluation cycle 後才顯現；不像單一候選，可以立刻看分數。</td><td>把已完成 rollout 的每個節點與結果保存下來，讓候選 policy 先讀取既有結果。</td></tr>
+        <tr><td>後設策略空間很大</td><td>很多新 policy 可能根本不行；若每個都線上試，差的候選也會消耗完整執行預算。</td><td>在同一批 history 上反覆回放，將昂貴的實際 rollout 留給入選者。</td></tr>
+        <tr><td>控制器被寫死</td><td>底層 coding agent 可能變強，但「如何分配探索計算」仍由固定程式決定。</td><td>把 branching、parallel exploration、stopping 顯式化為可改寫的 exploration-policy code。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>因此這篇工作的核心不是「再造一個更聰明的 discovery agent」，而是把原本藏在 harness 裡的探索決策抽出來，成為能被觀察、評估、版本化的 meta-layer。這也是為何它對 Agent 工程有啟發：長程任務的瓶頸有時不在模型回答內容，而在控制器把昂貴的執行機會分配給誰。</p>
+</div>
+
+<h2 id="metaphor">核心比喻：把走過的山徑變成可查閱地圖</h2>
+<div class="card">
+  <p>想像 Agent 第一次穿越一片陌生山區。它走錯路、遇到死路、回頭，並在過程中畫下一張地圖。下一個探索策略不需要把所有路再走一次；它可以在地圖上比較不同路線、避開已知死路，或重新考慮之前太早放棄的分岔。</p>
+  <p>Dream-RSI 把這張地圖對應到 discovery tree：每個節點是一個嘗試，帶著從父節點繼承的 workspace、產物、分數與診斷。完成的探索樹不是只供模型閱讀的文字摘要，而是能按父子關係被另一個 policy 重新走訪的記錄。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>山徑比喻</th><th>Dream-RSI 對應物</th><th>可做的事</th><th>不能做的事</th></tr></thead>
+      <tbody>
+        <tr><td>已走過的路</td><td>已記錄的節點與 parent–child 關係</td><td>改變分支順序、選擇不同已知分支、改變平行批次、提早停止</td><td>不能從未走過的地方讀出真實新結果</td></tr>
+        <tr><td>地圖上的觀測</td><td>artifact、score、diagnostics、workspace snapshot</td><td>讓候選 policy 依照目前已揭露資訊做下一個決策</td><td>不能偷看尚未揭露節點的分數</td></tr>
+        <tr><td>再次出發</td><td>下一輪 online deployment</td><td>把挑出的 policy 放回真實 discovery agent，新增另一棵樹</td><td>回放分數不等於真實部署已成功</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="risk-note"><strong>精確性的正確邊界：</strong>作者稱 replay simulator 在「已實現的 search space」上是 exact，因為它揭露的是已發生的 outcome，而不是模型猜測的 outcome。這不代表它對未探索分支、換了 evaluator 的環境或下一次隨機生成結果都精確。<a class="cite" href="#source-1" aria-label="來源 1">[1]</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+</div>
+
+<h2 id="loop">三階段 RSI loop：online → replay → redeploy</h2>
+<div class="card">
+  <p>論文的 loop 可以濃縮成三個階段。online（線上）是產生新候選與新結果；offline（離線）是固定 history 後，用相同的決策介面揭露既有節點；redeploy（重新部署）則把被選中的 policy 帶回下一輪。這裡的 offline 不是對模型做權重訓練，而是對探索控制器做歷史回放。</p>
+  <div class="flow" aria-label="Dream-RSI 三階段流程">
+    <div class="flow-step"><span class="step-no">01 · ONLINE EXPLORE</span><h3>真正探索</h3><p>目前的 π<sub>t</sub> 選擇分支與平行批次；discovery agent 和 evaluator 產生新節點與結果。</p></div>
+    <div class="flow-step"><span class="step-no">02 · CONSTRUCT REPLAY</span><h3>保存成世界池</h3><p>把完成的 discovery tree 加入 history；每棵樹成為一個可重播的 replay world。</p></div>
+    <div class="flow-step"><span class="step-no">03 · DREAM POLICY</span><h3>回放後再部署</h3><p>policy-development agent 改寫探索程式，在整個固定 history 上評分，選出下一輪 policy。</p></div>
+  </div>
+  <div class="equation" role="img" aria-label="Dream-RSI 外層迴圈公式">H₀ = ∅
+πₜ ── online explore ──▶ Tₜ
+Hₜ = (T₁, T₂, …, Tₜ)
+Hₜ ── offline replay ──▶ πₜ₊₁ ── redeploy ──▶ Tₜ₊₁</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>階段</th><th>誰在做決策</th><th>會不會產生新執行結果</th><th>改變的東西</th></tr></thead>
+      <tbody>
+        <tr><td>Online rollout</td><td>目前部署的 exploration policy</td><td class="metric-warn">會</td><td>新增 discovery tree；底層 discovery agent、evaluator 與執行介面固定。</td></tr>
+        <tr><td>Offline replay</td><td>候選 policy 與 policy-development agent</td><td class="metric-good">不會</td><td>只改寫與評估 exploration-policy code；從固定歷史揭露已存結果。</td></tr>
+        <tr><td>Redeploy</td><td>selector／部署閘門</td><td class="metric-warn">下一輪才會</td><td>把選中的策略版本帶回 online，讓 history pool 再長出新世界。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Off-policy（離策略）</strong>在此指「資料由一個已部署的行為策略留下，但現在拿另一個候選策略去評估」。它不是任意地把舊 log 丟給模型：候選只能使用回放時已揭露的 prefix（目前前綴），並且下一步只能走記錄中存在的 child。這個限制是低成本的來源，也是泛化能力的邊界。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+</div>
+
+<h2 id="tree">Discovery tree 與 replay 規則：只能揭露已存在的分支</h2>
+<div class="card">
+  <h3>先固定同一個決策介面</h3>
+  <p>每棵樹從 root <code>r</code> 開始。已揭露樹中的 root 與 leaf 是可繼續探索的 eligible nodes；平行 worker 數為 <code>W</code> 時，一輪動作是從這些節點挑一個 batch。用白話寫，policy 每次都在回答：「現在有哪些入口或分支尖端可以接著走？這一輪最多同時開幾個？」</p>
+  <div class="equation" role="img" aria-label="合法節點與平行批次定義">A(T) = { r } ∪ { v ∈ T : v 是目前已揭露的 leaf }
+A(T; W) = { C ⊆ A(T) : |C| ≤ W }
+policy action = C</div>
+  <p>論文把 online 與 replay 的介面刻意做成相同，差異放在「選完 batch 之後怎麼得到下一個觀測」。這使得 policy 的程式可以被拿到另一個 transition backend 執行，而不是為 offline 另造一套評估規則。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <h3>Online 會生成，replay 只會揭露</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>規則</th><th>Online rollout</th><th>Offline replay</th></tr></thead>
+      <tbody>
+        <tr><td>起點</td><td>新樹的 root；可同時使用已完成 history 作為上下文。</td><td>每個 policy–tree pair 都從該樹 root 重新開始；不沿用另一個候選的已揭露 subtree。</td></tr>
+        <tr><td>選 batch</td><td>從目前新樹的 root／leaf 選取，至多 W 個。</td><td>從目前已揭露 subtree 的 root／leaf 選取，至多 W 個。</td></tr>
+        <tr><td>transition</td><td>discovery agent 執行新嘗試，evaluator 評分；同一起點也可能產生不同 outcome。</td><td>依 selected node 揭露對應的已記錄 child；不呼叫 discovery agent 或 evaluator 生成新結果。</td></tr>
+        <tr><td>可見資料</td><td>新產生的 workspace、artifact、score、diagnostics。</td><td>只看已揭露 prefix；未揭露節點的結果仍是未知。</td></tr>
+        <tr><td>停止</td><td>policy 選空 batch 或到達 online round limit。</td><td>policy 選空 batch、到達 replay round limit，或沒有可揭露的 recorded continuation。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>對非 root 節點，replay 依照原樹的 parent–child 順序揭露下一個已記錄 child；對 root，則依既有記錄逐步開啟尚未揭露的分支。因而回放軌跡是原樹的 subtree，不是把所有節點一次塞進 prompt。每個 policy–tree pair 都重置，避免早先候選的觀測狀態污染後來候選。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+</div>
+
+<h2 id="objective">回放目標函數：品質、成本與平行性的折衷</h2>
+<div class="card">
+  <p>Dream-RSI 不只問「最後分數最高嗎」，也把代表性執行成本與平行度放進 replay objective（回放目標）。對第 <em>i</em> 棵歷史樹與第 <em>m</em> 個 policy version，論文給出的形式是：</p>
+  <div class="equation" role="img" aria-label="Dream-RSI 回放目標函數">Vᵢᵐ = max(v ∈ Tᵢᵐ) sᵥ − β₁ Nᵢᵐ + β₂ · Nᵢᵐ / max(1, kᵢᵐ,★)</div>
+  <p>其中：</p>
+  <ul>
+    <li><code>max sᵥ</code> 是這次回放揭露 subtree 中最好的 discovery quality，論文設定分數越高代表品質越好。</li>
+    <li><code>Nᵢᵐ</code> 是回放軌跡揭露的非 root 節點數，代表「這條策略等價於要求多少次 generation–evaluation」，不是 replay 當下真的發生了多少次 API／程式執行。</li>
+    <li><code>β₁</code> 是代表性執行成本懲罰；<code>β₂</code> 是平行性獎勵，讓一次批次完成多個有價值的 continuation，而不是把相同工作序列化。</li>
+    <li><code>kᵢᵐ,★</code> 是完成的回放決策輪數；若回放是非空的，最後一項近似「每一決策輪平均揭露多少嘗試」。</li>
+  </ul>
+  <p>這個目標函數帶來一個工程上的提醒：若只最大化最高分，policy 可能把所有資源押在單一路線；若只最小化節點數，policy 可能太早停；若忽略平行性，理論上相同的節點數也可能有完全不同的 wall-clock。實作時應把品質、代表性成本、平行輪數分開記錄，不能只留下單一總分。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+</div>
+
+<h2 id="guarantee">「固定歷史上不變差」到底保證什麼？</h2>
+<div class="card">
+  <p>外層 iteration <em>t</em> 的 offline phase 會從目前 policy <code>π<sub>t</sub></code> 開始產生多個 revision。關鍵做法是：目前已部署的版本本身也放在候選集合中，所有候選都在相同的固定 history <code>H<sub>t</sub></code> 上回放，再選平均 replay score 最高者：</p>
+  <div class="equation" role="img" aria-label="Dream-RSI policy selection 公式">Vᵐ = (1 / t) Σᵢ₌₁ᵗ Vᵢᵐ
+m★ ∈ arg maxₘ Vᵐ
+πₜ₊₁ = πₜᵐ★
+因 πₜ = πₜ⁰ ∈ 候選集合，所以 Vᵐ★ ≥ V⁰（固定 Hₜ、固定目標下）</div>
+  <p>這就是「固定歷史上不變差」的正確讀法：相對於同一批已收集的 trees、同一個 replay transition、同一組 <code>β</code>，選出的版本在平均回放分數不低於目前版本。論文與官方頁面都把這個候選保留機制視為 selection 的理由。<a class="cite" href="#source-1" aria-label="來源 1">[1]</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>可以說</th><th>不能說</th></tr></thead>
+      <tbody>
+        <tr><td class="metric-good">固定 H<sub>t</sub> 上的平均 replay score 不低於 π<sub>t</sub>。</td><td class="metric-warn">下一個未探索分支的真實結果一定更好。</td></tr>
+        <tr><td class="metric-good">候選 policy 在同一套 prefix-observable 規則下被公平比較。</td><td class="metric-warn">已經找到全域最佳 exploration policy。</td></tr>
+        <tr><td class="metric-good">選擇器不會因為回放分數較低而主動替換目前版本。</td><td class="metric-warn">線上 rollout、模型隨機性、資料分布改變或 evaluator 改版都不會造成 regression。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="risk-note"><strong>我的工程判讀：</strong>這是一個「對固定資料與固定 surrogate objective 的單調選擇性質」，不是部署安全性 theorem。若要把它帶進生產環境，仍需 holdout rollout、canary、版本鎖定與 rollback；否則只是把 history overfitting 包裝成穩定。</p>
+</div>
+
+<h2 id="experiments">三類實驗：作者報告了什麼數據？</h2>
+<div class="card">
+  <div class="evidence-note"><strong>證據標籤：</strong>本節數字是論文／官方專案頁報告，未由本文重新執行。作者設定 Dream-RSI 與 Recursive Fixed Exploration 使用相同 discovery agent、evaluator、初始化與每輪資源；兩者第一輪使用同一個手寫 parallel-refine policy，因此第一輪相同是設計結果，不是比較誤差。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a><a class="cite" href="#source-1" aria-label="來源 1">[1]</a></div>
+  <p>作者在三個 scientific discovery domain 評估八個任務：algorithm engineering、mathematical optimization 與 GPU kernel engineering。下面先列論文摘要和官方頁面特別突出的數字，再說這些數字不該被怎麼解讀。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>領域</th><th>作者報告的數據</th><th>正確解讀</th><th>來源</th></tr></thead>
+      <tbody>
+        <tr><td>Algorithm engineering<br>Lasso regularization path</td><td>相對 fixed exploration，最多 <strong>1.7×</strong> 較少 discovery-agent calls；相對 SimpleTES，最多 <strong>162×</strong> 較少 calls。SimpleTES 的表格預算為 51,200 generations。<a class="cite" href="#source-2" aria-label="來源 2">[2]</a></td><td>這是探索成本與下游 solver 表現的比較，不是說每個 Lasso 設定都得到 162× 加速，也不是本機重跑結果。</td><td><a href="https://arxiv.org/html/2609.14858v1" target="_blank" rel="noreferrer">arXiv HTML</a></td></tr>
+        <tr><td>Mathematical optimization</td><td>Sum–Difference、Autocorrelation、Circle Packing 三任務；作者摘要報告在少於 1k generations 的設定下，相對 SimpleTES 有超過 <strong>50×</strong> 的 budget savings。<a class="cite" href="#source-2" aria-label="來源 2">[2]</a></td><td>不同任務的方向不同：Sum Diff 越高越好，Auto Correlation 越低越好，Circle Packing 越高越好；不能把三個數字當成同一種指標。</td><td><a href="https://arxiv.org/html/2609.14858v1" target="_blank" rel="noreferrer">arXiv HTML</a></td></tr>
+        <tr><td>GPU kernel engineering<br>KernelBench</td><td>VGG16 以約 <strong>2.43×</strong> 較少 generations 達到可比性能；LayerNorm 為 <strong>1.79×</strong>；ConvDiv 在可比 budget 下性能 <strong>2.09×</strong>；ConvMax 為 <strong>1.44×</strong>。<a class="cite" href="#source-1" aria-label="來源 1">[1]</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></td><td>前兩個是較少 generations 達到 comparable performance，後兩個是 comparable budget 下較高 performance；方向不能混為「全部快 2 倍」。</td><td><a href="https://dream-rsi.com/" target="_blank" rel="noreferrer">官方專案頁</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>Lasso 的表格：成本與下游結果要一起看</h3>
+  <p>arXiv HTML 的 Lasso 表格列出兩個 discovery-agent 設定。Gemini-3.1-Pro 下，Dream-RSI 的 cumulative discovery-agent calls 為 317，六個 held-out downstream dataset 的平均 wall-clock runtime 為 2,931.0 ms；Recursive Fixed Exploration 為 550 calls 與 3,587.1 ms。Gemini-3.7-Flash 下，Dream-RSI 為 1,879 calls 與 2,350.6 ms；固定探索為 3,200 calls 與 2,516.7 ms。表格的 runtime 是越低越好，compute 是 cumulative calls。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Discovery agent</th><th>方法</th><th>Compute（calls）</th><th>六資料集平均 runtime（ms）</th><th>來源</th></tr></thead>
+      <tbody>
+        <tr><td>Gemini-3.1-Pro</td><td>Recursive Fixed Exploration</td><td>550</td><td>3,587.1</td><td>論文報告，未由本文重跑；<a href="https://arxiv.org/html/2609.14858v1" target="_blank" rel="noreferrer">arXiv HTML</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></td></tr>
+        <tr><td>Gemini-3.1-Pro</td><td>Dream-RSI</td><td>317</td><td>2,931.0</td><td>論文報告，未由本文重跑；<a href="https://arxiv.org/html/2609.14858v1" target="_blank" rel="noreferrer">arXiv HTML</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></td></tr>
+        <tr><td>Gemini-3.7-Flash</td><td>Recursive Fixed Exploration</td><td>3,200</td><td>2,516.7</td><td>論文報告，未由本文重跑；<a href="https://arxiv.org/html/2609.14858v1" target="_blank" rel="noreferrer">arXiv HTML</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></td></tr>
+        <tr><td>Gemini-3.7-Flash</td><td>Dream-RSI</td><td>1,879</td><td>2,350.6</td><td>論文報告，未由本文重跑；<a href="https://arxiv.org/html/2609.14858v1" target="_blank" rel="noreferrer">arXiv HTML</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>數學任務：不是每一欄都由 Dream-RSI 贏</h3>
+  <p>在作者列出的代表性數字中，Sum Diff 的 Dream-RSI 為 1.145427，Recursive Fixed Exploration 為 1.144047，SimpleTES 為 1.143975；Circle Packing 三者都列為 2.635983；Auto Correlation 則是 Dream-RSI 1.456375、固定探索 1.456001、SimpleTES 1.453675，而且該欄越低越好。這表示「整體 competitive」不等於每個任務都刷新最佳值；作者也特別註明 SimpleTES 在 Auto Correlation 的數值較佳，但使用 51,200 generations。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <h3>行為分析：先省計算，停滯後再擴張</h3>
+  <p>在 ConvDiv 的分析中，作者報告 learned exploration policy 會先把 evaluated attempts 從 110 降到 50，性能停滯後再增加探索力度，並與之後的 round-best score 上升對齊。這比較像自適應資源配置，而不是單調地「越廣越好」或「越貪心越好」。官方頁面也報告，把歷史抽成語義方向直接塞進 prompt，在相同 budget 下反而劣於 replay；長程、多分支任務中，過強的語義先驗可能壓縮探索多樣性。<a class="cite" href="#source-1" aria-label="來源 1">[1]</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+</div>
+
+<h2 id="not-world-model">為什麼它不是完整的 world model？</h2>
+<div class="card">
+  <p>論文把 replay simulator 與 world model 放在類比關係中：兩者都讓 policy 有機會在不重複真實互動的情況下「想像」路徑。然而，經典 world model 的核心是學習環境如何因動作而演化的可泛化 dynamics；Dream-RSI 的 replay simulator 則是把已發生的探索樹當成 empirical、grounded 的可回放資料結構。<a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>比較面向</th><th>學習式 world model</th><th>Dream-RSI replay simulator</th></tr></thead>
+      <tbody>
+        <tr><td>如何得到 transition</td><td>從經驗學習或近似環境 dynamics，產生預測。</td><td>從 recorded discovery tree 揭露已存的 child 與 outcome。</td></tr>
+        <tr><td>對未見狀態的能力</td><td>理想上可對未見組合做泛化，但準確度取決於模型。</td><td>不對未探索分支提供真實反事實；coverage 就是歷史實際走過的範圍。</td></tr>
+        <tr><td>是否更新模型權重</td><td>常見做法會學習 dynamics 或 policy representation。</td><td>作者固定 discovery agent、evaluator、execution interface，只改 exploration-policy code。</td></tr>
+        <tr><td>精確性敘述</td><td>是對真實環境的近似程度問題。</td><td>可在 realized search space 內精確重播，但不延伸成整個世界的真實模型。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>所以「evolving worlds」不是宣稱 Dream-RSI 擁有一個會預測未來的完整環境模型。每一輪 online deployment 只是新增一棵實際探索樹，讓 replay pool 擴大；它仍然不能把未被探索的 branch 變成已知事實。這個縮小後的定義反而是工程優勢：不必先訓練一個昂貴的 generative world model，就能利用已經為長程任務支付過的執行記錄。</p>
+</div>
+
+<h2 id="limits">失效模式、限制與證據界線</h2>
+<div class="card">
+  <p>Dream-RSI 的力量與限制是同一件事：它很忠實地重播歷史，因此不會憑空補上歷史沒有覆蓋的世界。下表把方法限制翻成工程風險。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>失效模式</th><th>會發生什麼</th><th>最小控制</th></tr></thead>
+      <tbody>
+        <tr><td>歷史覆蓋太窄</td><td>候選 policy 在已探索的幾條路上看起來很好，但真正部署遇到新的 branch 就失去依據。</td><td>保留多棵 tree、不同初始分支與 holdout rollout；不要只對單一幸運 run 選 policy。</td></tr>
+        <tr><td>回放 overfit</td><td>policy 學會針對既有節點分數排序，而不是學到可遷移的探索原則。</td><td>把 history、policy version、task version 與 evaluator version 綁定；以新的 online run 驗證。</td></tr>
+        <tr><td>記錄不完整或不可重建</td><td>缺 parent、workspace、artifact、diagnostics 或 score 時，transition 可能不再是原始 outcome。</td><td>以不可變 node ID 與 schema 驗證保存；缺欄位就讓 replay 失敗，不要靜默填值。</td></tr>
+        <tr><td>policy revision 產生壞程式</td><td>離線候選可能語法錯誤、超出介面、破壞批次限制，甚至讀取不該看的資料。</td><td>先做 syntax／contract test，再用隔離 backend 執行；只有通過靜態檢查和 approval 才能進 online。</td></tr>
+        <tr><td>目標函數被錯配</td><td>β₁、β₂ 或 evaluator 改變後，原本「最佳」可能只是成本與品質權重的產物。</td><td>版本化 objective，分別報告 quality、represented probes、rounds、parallelism，不只看總分。</td></tr>
+        <tr><td>敏感資料進入 history</td><td>workspace snapshot、錯誤輸出或 proposal 可能包含 token、個人資料或內部程式碼。</td><td>replay store 與線上工作區分權限；最小化保存、遮罩敏感欄位，禁止把 secrets 放入 tree。</td></tr>
+        <tr><td>把回放當成部署保證</td><td>離線 score 上升，但線上遇到 stochastic discovery agent、資源限制或新 evaluator 後回歸。</td><td>staging、canary、人工核准、版本鎖定與 rollback 缺一不可。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>公開性也是可重現性限制</h3>
+  <p>本次查證的官方 GitHub README 明確寫著 code is being prepared for release；其 release plan 將「Discovered programs」「Full codebase」與「Reproduction scripts」列為 Being prepared。這代表論文、專案頁與部分 PDF 資產可讀，不代表完整程式碼與重現腳本已可供外部獨立重跑。<a class="cite" href="#source-4" aria-label="來源 4">[4]</a></p>
+  <p class="evidence-note"><strong>證據界線：</strong>本文不把 preprint 寫成同儕審查定論，不宣稱作者結果已在本機重現，也不把「固定歷史上不變差」擴張成線上安全或品質保證。對任何引用的倍數與分數，請回到論文表格、官方頁面與 release plan 查核。</p>
+</div>
+
+<h2 id="architecture">對 Hermes、NOOA 與一般 Agent 平台的最小落地架構</h2>
+<div class="card">
+  <p>如果要把這個想法放進 Hermes、NOOA 或一般 Agent 平台，最小可行單位不是「讓 Agent 自己改所有東西」，而是增加一個可審核的 exploration-controller layer。以下是設計映射，不是聲稱論文已與這些平台整合；尤其 NOOA 的特定 API、隔離模型與資料格式，本文不做未查證假設。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>元件</th><th>最小責任</th><th>Hermes／NOOA／一般平台的對應方式</th></tr></thead>
+      <tbody>
+        <tr><td>Explorer</td><td>執行固定的 discovery agent、工具與 evaluator。</td><td>沿用現有 Agent loop；不讓 policy revision 直接改模型、工具權限或 evaluator。</td></tr>
+        <tr><td>Controller</td><td>輸入已揭露 prefix 與 legal actions，輸出至多 W 個 node 的 batch 或 stop。</td><td>可做成受版本控制的 Skill、worker 或 policy module；介面要比自由文字更窄。</td></tr>
+        <tr><td>Recorder</td><td>以 immutable tree 保存 parent、workspace／artifact reference、score、diagnostics、policy version。</td><td>放在 durable store／工作區；敏感原文與可回放 metadata 分離，權限分層。</td></tr>
+        <tr><td>Replay evaluator</td><td>不呼叫外部 Agent，依 recorded child 做 deterministic transition；每個 pair 從 root reset。</td><td>使用獨立 worker 或 sandbox，拒絕網路與未列入 history 的讀取。</td></tr>
+        <tr><td>Policy developer</td><td>根據 replay trajectory 產生有限候選版本與變更理由。</td><td>在隔離的研究 worker 執行；輸出 diff、測試結果與風險，不直接覆蓋 production policy。</td></tr>
+        <tr><td>Selector</td><td>以固定 objective 評估目前版本與 revisions，保留 current policy，選最高 replay score。</td><td>需要 approval gate、版本鎖定與可回滾 deployment record；不要只用最後一次候選。</td></tr>
+        <tr><td>Online gate</td><td>用新 rollout 驗證 history coverage、品質、成本與安全。</td><td>接到 Hermes／NOOA 的任務狀態與通知層；生產入口仍保留人工核准和 rollback。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3>不依賴新資料庫的最小記錄格式</h3>
+  <p>先把資料契約定清楚，再選儲存後端。下面只是欄位示意，不是作者公開的程式碼或固定 schema：</p>
+  <pre><code>{
+  "tree_id": "run-2026-09-16-001",
+  "task_version": "task-v3",
+  "policy_version": "policy-v7",
+  "evaluator_version": "eval-v2",
+  "nodes": [
+    {
+      "node_id": "n-0042",
+      "parent_id": "n-0017",
+      "observed": true,
+      "artifact_ref": "artifact://internal/…",
+      "score": 0.0,
+      "diagnostics": ["…"],
+      "sensitive_fields": "redacted-or-separated"
+    }
+  ]
+}</code></pre>
+  <p>對 Hermes，這個 controller 可以由獨立 worker 管理，policy revision 以檔案變更和測試結果交付，外層任務再決定是否部署；對 NOOA 或其他平台，重點同樣是把「觀測 prefix、合法 batch、回放 transition、選擇閘門」做成平台無關的合約。不要把平台已有的長期記憶直接當 discovery tree：記憶是可檢索上下文，tree 還需要 parent–child、可揭露順序與 outcome 完整性。</p>
+</div>
+
+<h2 id="checklist">實作檢查清單：先保留可回放性，再談自我改進</h2>
+<div class="card">
+  <ol class="checklist">
+    <li><input type="checkbox" disabled aria-label="未完成">定義固定的 policy API：觀測內容、合法節點、批次上限 W、停止語意都要明確。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">為每次 online rollout 建立不可變 tree ID，保存 parent、workspace／artifact reference、score 與 diagnostics。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">將 online executor 與 replay executor 分開；offline 不得偷偷呼叫 discovery agent 或 evaluator。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">讓每個 policy–tree pair 從 root reset，並強制 policy 只能看到已揭露 prefix。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">把 history、task、evaluator、policy、objective、schema 全部版本化。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">將 represented probes、quality、parallelism 與 replay score 分開記錄，避免只最佳化一個混合數字。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">把目前 deployed policy 放進候選集合；若 revision 低於 baseline，selector 不得自動替換。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">對 policy code 執行 syntax、contract、resource、權限與敏感資料檢查，再進 staging。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">用新的 online rollout 或 holdout tree 驗證，不把 replay 上升當成部署成功證據。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">保留 approval、canary、版本鎖定與 rollback；任何自動學習都不能繞過線上安全邊界。</li>
+    <li><input type="checkbox" disabled aria-label="未完成">在研究筆記中標示「作者報告／本文未重跑／尚未公開的 reproduction 資產」，讓讀者知道證據在哪一層。</li>
+  </ol>
+</div>
+
+<h2 id="reading-order">閱讀順序與證據界線：怎麼讀才不會把比喻當保證</h2>
+<div class="card">
+  <ol>
+    <li><strong>先看官方專案頁：</strong>快速建立三階段 loop、山徑地圖比喻與官方 highlight；不要先從倍數 headline 推導機制。<a href="https://dream-rsi.com/" target="_blank" rel="noreferrer">dream-rsi.com</a><a class="cite" href="#source-1" aria-label="來源 1">[1]</a></li>
+    <li><strong>再看 arXiv HTML 的方法段：</strong>優先讀 discovery tree、online rollout、offline evaluation、replay objective 與 policy selection，尤其注意「只揭露已記錄 child」和「每個 pair 從 root reset」。<a href="https://arxiv.org/html/2609.14858v1" target="_blank" rel="noreferrer">arXiv HTML v1</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></li>
+    <li><strong>接著看實驗段：</strong>確認每個數字的方向、budget、比較基準和是否是 held-out downstream data；不要把 2.43× fewer generations 和 2.09× higher performance 當成同一類指標。<a href="https://arxiv.org/abs/2609.14858" target="_blank" rel="noreferrer">arXiv abstract</a><a class="cite" href="#source-2" aria-label="來源 2">[2]</a></li>
+    <li><strong>最後查 GitHub release plan：</strong>確認哪些資產已公開、哪些仍在準備；在完整 code 與 reproduction scripts 未列為可取得前，不要把本篇或其他文章的轉述當成獨立重現。<a href="https://github.com/zhengkid/Dream-RSI" target="_blank" rel="noreferrer">GitHub repository</a><a class="cite" href="#source-4" aria-label="來源 4">[4]</a></li>
+  </ol>
+  <p>若只記得一個判斷：Dream-RSI 的新意在於把已付費的長程探索歷史，轉成可供 meta-policy 反覆試走的有限世界。它不是把未探索的未來預測出來，也不是保證線上策略永遠變好；它提供的是一個可以被版本化、評分、審核和回滾的 exploration-controller 改進迴路。</p>
+</div>
+
+<h2 id="sources">來源與研究口徑</h2>
+<div class="card sources">
+  <p>以下來源由查證時建立的 citation ledger 登錄；正文的 [1]–[5] 連結到此清單。論文與官方頁面是外部事實的依據；工程架構、風險控制與 Hermes／NOOA 對應段落則明確標示為本文設計建議，不冒充作者已驗證的整合。</p>
+  <ol>
+    <li id="source-1"><a href="https://dream-rsi.com/" target="_blank" rel="noreferrer">Dream-RSI 官方專案頁</a>：方法概念、三階段 loop、官方 highlight、結果摘要與行為分析。</li>
+    <li id="source-2"><a href="https://arxiv.org/abs/2609.14858" target="_blank" rel="noreferrer">arXiv 摘要：Dream-RSI: Recursive Self-Improvement through Evolving Worlds</a>：論文標題、作者、提交資訊與摘要中的跨領域數據。</li>
+    <li id="source-3"><a href="https://arxiv.org/html/2609.14858v1" target="_blank" rel="noreferrer">arXiv HTML v1：Dream-RSI</a>：discovery tree、online／offline replay 規則、回放目標函數、policy selection 與實驗表格。</li>
+    <li id="source-4"><a href="https://github.com/zhengkid/Dream-RSI" target="_blank" rel="noreferrer">Dream-RSI 官方 GitHub</a>：README、release plan、公開資產與 full codebase／reproduction scripts 的狀態。</li>
+    <li id="source-5"><a href="https://dream-rsi.com/assets/dream-rsi.pdf" target="_blank" rel="noreferrer">Dream-RSI 原始 PDF</a>：論文原始 PDF 版本，供公式、圖表與頁面版面交叉核對。<a class="cite" href="#source-5" aria-label="來源 5">[5]</a></li>
+  </ol>
+  <p>查證限制：本文未執行作者的 Gemini CLI、Discovery agent、evaluator 或 KernelBench 實驗；未把 GitHub release plan 的「Being prepared」改寫成已公開；如來源頁面後續更新，應以來源當下內容和版本標記重新核對。</p>
+</div>
+
+<footer>
+  <p><a href="./">回研究索引</a> · <a href="../">回學習中心首頁</a> · <a href="https://arxiv.org/abs/2609.14858" target="_blank" rel="noreferrer">arXiv 原文</a> · <a href="https://github.com/zhengkid/Dream-RSI" target="_blank" rel="noreferrer">官方 GitHub</a></p>
+  <p>DKY Learn · 論文筆記與 Agent 工程判讀 · 2026-09-16</p>
+</footer>
+</main>
+</body>
+</html>
