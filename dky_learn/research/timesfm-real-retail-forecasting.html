@@ -1,0 +1,587 @@
+<!-- 判讀：實驗教學 × 一般讀者與工程師 × 先分清 forecast 與因果 uplift，再談模型比較 -->
+<!-- 證據口徑：外部事實附來源；數字若標示「本地實跑」則來自既有 metrics.json／metadata.json artifact -->
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fefaf6">
+<title>TimesFM × UCI Online Retail：用真實銷售資料學會公平比較預測模型</title>
+<meta name="description" content="用 UCI Online Retail 真實交易資料與可重跑的 TimesFM 3.0 實驗，說明 target、時間切分、基線、ETS、foundation model、評估指標、prediction interval 與 forecast 和因果 uplift 的界線。">
+<meta property="og:title" content="TimesFM × UCI Online Retail：用真實銷售資料學會公平比較預測模型">
+<meta property="og:description" content="一份面向一般讀者與工程師的時間序列教學：從每週基線到 TimesFM 3.0，完整交代資料定義、leakage、實跑結果、程式命令與限制。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://learn.dky.tw/research/timesfm-real-retail-forecasting">
+<link rel="canonical" href="https://learn.dky.tw/research/timesfm-real-retail-forecasting">
+<link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+<style>
+:root {
+  --page-bg: var(--warm-bg, #fefaf6);
+  --page-surface: var(--warm-surface, #fef9f4);
+  --page-strong: var(--warm-surface-strong, #f8efe5);
+  --page-border: var(--warm-border, #e6d5c0);
+  --page-text: var(--warm-text, #3b2a1a);
+  --page-muted: var(--warm-muted, #8b6f50);
+  --page-accent: var(--warm-accent, #a0522d);
+  --page-accent-dark: var(--warm-accent-dark, #71391f);
+  --page-good: var(--warm-success, #5f7b50);
+  --page-warn: var(--warm-warning, #9a671e);
+  --page-danger: var(--warm-danger, #a6463b);
+}
+* { box-sizing: border-box; }
+html { background: var(--page-bg); scroll-behavior: smooth; }
+body {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 5rem;
+  background: var(--page-bg);
+  color: var(--page-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
+  line-height: 1.85;
+}
+main { max-width: 930px; }
+header { border-bottom: 1px solid var(--page-border); padding-bottom: 1.2rem; }
+.kicker {
+  margin: 0 0 .45rem;
+  color: var(--page-accent);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+h1 {
+  margin: 0;
+  color: var(--page-accent-dark);
+  font-size: clamp(1.55rem, 4vw, 2.2rem);
+  line-height: 1.35;
+}
+.meta { margin: .7rem 0 0; color: var(--page-muted); font-size: .88rem; }
+.utility-links { margin: .7rem 0 0; font-size: .84rem; }
+a { color: var(--page-accent); text-decoration-thickness: .08em; text-underline-offset: .16em; }
+a:hover { color: var(--page-accent-dark); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #d79567; outline-offset: 3px; }
+.cite { font-size: .76em; text-decoration: none; vertical-align: super; white-space: nowrap; }
+.one-liner {
+  margin: 1.35rem 0;
+  padding: 1.05rem 1.2rem;
+  border-left: 4px solid var(--page-good);
+  border-radius: 0 9px 9px 0;
+  background: #f4f7ed;
+  color: #435936;
+  font-size: 1.06rem;
+  font-weight: 650;
+}
+.one-liner strong { color: #435936 !important; }
+.scope, .evidence-note, .risk-note, .code-note {
+  margin: 1rem 0;
+  padding: .8rem .95rem;
+  border-left: 3px solid var(--page-border);
+  background: var(--page-surface);
+  color: var(--page-muted);
+  font-size: .86rem;
+}
+.evidence-note { border-left-color: var(--page-warn); color: var(--page-text); background: #fff6e6; }
+.risk-note { border-left-color: var(--page-danger); color: var(--page-text); }
+.code-note { border-left-color: var(--page-accent); color: var(--page-text); }
+h2 {
+  margin: 2.45rem 0 .85rem;
+  padding-bottom: .45rem;
+  border-bottom: 2px solid var(--page-border);
+  color: var(--page-accent-dark);
+  font-size: 1.24rem;
+  line-height: 1.45;
+  scroll-margin-top: 1rem;
+}
+h3 { margin: 1.35rem 0 .45rem; color: var(--page-accent-dark); font-size: 1.02rem; line-height: 1.5; }
+p { margin: .7rem 0; }
+ul, ol { padding-left: 1.45rem; }
+li { margin: .35rem 0; }
+.card {
+  margin: 1rem 0;
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--page-border);
+  border-radius: 10px;
+  background: var(--page-surface);
+}
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+.grid-3, .metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  margin: 1rem 0;
+}
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
+.mini-card, .metric {
+  min-height: 8rem;
+  padding: .9rem;
+  border: 1px solid var(--page-border);
+  border-radius: 9px;
+  background: #fffdf9;
+}
+.mini-card h3 { margin: 0 0 .3rem; }
+.mini-card p { margin: 0; font-size: .88rem; }
+.metric strong { display: block; color: var(--page-accent-dark); font-size: 1.38rem; line-height: 1.25; }
+.metric span { display: block; margin-top: .35rem; color: var(--page-muted); font-size: .82rem; line-height: 1.55; }
+.table-wrap { margin: 1rem 0; overflow-x: auto; }
+table { width: 100%; min-width: 650px; border-collapse: collapse; }
+th, td { padding: .62rem .7rem; border: 1px solid var(--page-border); text-align: left; vertical-align: top; }
+th { background: var(--page-strong); color: var(--page-accent-dark); font-size: .88rem; line-height: 1.5; }
+td { background: var(--page-surface); font-size: .89rem; line-height: 1.7; }
+td:first-child { color: var(--page-accent-dark); font-weight: 650; }
+tr:nth-child(even) td { background: #fffdf9; }
+.num { white-space: nowrap; color: var(--page-accent-dark); font-weight: 700; }
+.good { color: var(--page-good); font-weight: 700; }
+.warn { color: var(--page-warn); font-weight: 700; }
+.bad { color: var(--page-danger); font-weight: 700; }
+.flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
+.flow-step { position: relative; min-height: 8.7rem; padding: .9rem; border: 1px solid var(--page-border); border-radius: 9px; background: #fffdf9; }
+.flow-step:not(:last-child)::after { content: "→"; position: absolute; right: -.72rem; top: 40%; z-index: 1; color: var(--page-accent); font-size: 1.25rem; }
+.flow-step .step-no { color: var(--page-accent); font-size: .76rem; font-weight: 800; }
+.flow-step h3 { margin: .18rem 0 .35rem; }
+.flow-step p { margin: 0; color: var(--page-muted); font-size: .86rem; }
+.equation {
+  margin: 1rem 0;
+  padding: .9rem 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--page-border);
+  border-radius: 8px;
+  background: var(--page-strong);
+  color: #513621;
+  font: .9rem/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+pre {
+  margin: 1rem 0;
+  padding: .9rem 1rem;
+  overflow-x: auto;
+  border: 1px solid var(--page-border);
+  border-radius: 8px;
+  background: #faf4ed;
+  color: #513621;
+  font: .82rem/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+code { padding: .08rem .28rem; border: 1px solid var(--page-border); border-radius: 4px; background: #faf4ed; color: #513621; font-size: .9em; }
+pre code { padding: 0; border: 0; background: transparent; }
+.checklist { list-style: none; padding-left: 0; }
+.checklist li { display: flex; gap: .55rem; align-items: flex-start; }
+.checklist input { flex: 0 0 auto; width: 1rem; height: 1rem; margin-top: .35rem; accent-color: var(--page-accent); }
+.sources { font-size: .86rem; }
+.sources li { margin: .6rem 0; }
+.source-url { overflow-wrap: anywhere; }
+footer { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--page-border); color: var(--page-muted); font-size: .8rem; }
+@media (max-width: 800px) {
+  body { padding: 1.25rem 1rem 4rem; }
+  .grid-3, .metric-grid, .grid-2, .flow { grid-template-columns: 1fr; }
+  .flow-step { min-height: 0; }
+  .flow-step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -.95rem; transform: translateX(50%); }
+  table { min-width: 600px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <p class="kicker">可重跑教學 · 時間序列預測與模型評估</p>
+  <h1>TimesFM × UCI Online Retail：用真實銷售資料學會公平比較預測模型</h1>
+  <p class="meta">DKY 技術研究 · 2026-09-19 · UCI Online Retail、TimesFM 3.0 · 初始論文：<a href="https://arxiv.org/abs/2310.10688" target="_blank" rel="noreferrer">A decoder-only foundation model for time-series forecasting</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <p class="utility-links"><a href="../">回學習中心首頁</a> · <a href="./">回研究索引</a> · <a href="https://github.com/google-research/timesfm" target="_blank" rel="noreferrer">TimesFM 原始碼</a></p>
+</header>
+
+<div class="one-liner"><strong>先記住一句話：</strong>forecast 像是看過去的銷售紀錄，估計下週每天可能賣多少；它不是一個能回答「廣告造成多少新增銷售」的因果實驗。這一頁用同一個時間切分，讓 Seasonal Naive、ETS 與 TimesFM 3.0 在同一個 28 天 holdout 上接受檢驗，而不是因為模型名字新就先宣布它獲勝。</div>
+
+<div class="scope">閱讀口徑：本文是繁體中文教學與工程判讀，不是 TimesFM 論文翻譯。表格中標示「本地實跑」的數字來自既有的 `metrics.json`、`metadata.json` 與輸出 CSV；本文沒有重新匯入任何正式 GA4、CRM、廣告帳戶資料，也沒有把這個公開案例包裝成 production benchmark 或 uplift 實驗。</div>
+
+<h2 id="forecast-or-causal">第一個問題：預測到底能回答什麼？</h2>
+<div class="card">
+  <p>想像你在週五下午問：「根據目前已知的銷售歷史，下週每天大概會有多少英鎊的正向商品銷售？」這是 forecast。模型可以利用趨勢、週期、假日訊號與在預測時已經看得到的欄位，估計未來的數值。</p>
+  <p>但如果問題改成：「這次把廣告預算增加後，多賣出的銷售額是多少？」那是 causal uplift。它需要 treatment、對照或其他能識別反事實的設計；只看銷售曲線上升，無法排除節慶、價格、供貨、自然流量或其他同時發生的變化。</p>
+  <div class="grid-3" aria-label="Forecast、相關與因果的差別">
+    <div class="mini-card"><h3>Forecast</h3><p>估計在目前資訊與既有模式下，未來會觀察到什麼。可以用來排班、備貨與預算規劃。</p></div>
+    <div class="mini-card"><h3>相關</h3><p>兩條曲線一起變動。它是描述性的訊號，不自動代表其中一條造成另一條。</p></div>
+    <div class="mini-card"><h3>因果 uplift</h3><p>比較「有介入」和「沒有介入」的反事實差異。需要實驗、準實驗或清楚的識別假設。</p></div>
+  </div>
+  <p class="risk-note"><strong>本頁不做的事：</strong>不把 TimesFM 的點預測寫成廣告增量、ROAS、客戶終身價值或任何投放因果效果。這個案例只能回答「若歷史模式延續，基準銷售可能如何走」。</p>
+</div>
+
+<h2 id="problem">問題定義：用日銷售毛額預測接下來 28 天</h2>
+<div class="card">
+  <p>我們把原始公開交易資料聚合成日序列，target 命名為 <code>gross_sales_gbp</code>，單位是每天英鎊。只保留商品數量與單價都為正的列，先計算每列的商品價值，再按日期加總：</p>
+  <div class="equation" role="img" aria-label="每日 gross sales target 定義">y[d] = Σ (Quantity[d, row] × UnitPrice[d, row])，只對 Quantity &gt; 0 且 UnitPrice &gt; 0 的列求和</div>
+  <p>因此這裡的 target 是「正向商品銷售毛額」，不是扣除退貨後的淨收入，也不是完整 demand，更不是廣告增量。非正向列會被排除，排除筆數仍寫入本次 provenance 統計，讓資料選擇可以被稽核。</p>
+  <p>UCI 將 Online Retail 描述為英國非店面零售的交易型時間序列資料；公開資料期間是 2010-12-01 到 2011-12-09，共 541,909 筆資料，頁面另列出變數表與資料說明。[4] 本頁不展示原始識別碼或客戶層級欄位，只展示聚合後的教學 target。</p>
+</div>
+
+<h2 id="data">資料來源與安全資料字典</h2>
+<div class="card">
+  <p>資料來自 <a href="https://archive.ics.uci.edu/dataset/352/online+retail" target="_blank" rel="noreferrer">UCI Machine Learning Repository 的 Online Retail</a>，下載檔是 UCI 公開的 zip archive。[4][9]</p>
+  <p>UCI 頁面列出的授權是 Creative Commons Attribution 4.0 International；重用資料時應保留適當 attribution。[4][5]</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>處理後欄位</th><th>單位／定義</th><th>本頁用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>date</code></td><td>日曆日期；把交易時間正規化到日粒度。</td><td>時間索引與 chronological split。</td></tr>
+        <tr><td><code>gross_sales_gbp</code></td><td>符合正向銷售條件的商品價值日總和，英鎊／日。</td><td>本次唯一 forecast target。</td></tr>
+        <tr><td><code>sold_units</code></td><td>符合條件的商品數量日總和。</td><td>保留在 processed CSV 作為可稽核的輔助聚合。</td></tr>
+        <tr><td><code>invoice_count</code></td><td>正向銷售列所對應的交易數量聚合。</td><td>只作資料檢查，不進本次模型。</td></tr>
+        <tr><td><code>source_row_count</code></td><td>當天符合條件的來源列數。</td><td>檢查聚合後日序列與原始資料量是否合理。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>完整日曆會把「沒有正向銷售列」的日期補成 0。這不是插值，也不是捏造交易，而是明確定義「當天沒有觀測到正向銷售」的資料契約。公開頁面不放原始檔、客戶層級資料或大型 checkpoint。</p>
+  <div class="metric-grid">
+    <div class="metric"><strong>541,909</strong><span>本地 metadata 記錄的原始資料列</span></div>
+    <div class="metric"><strong>530,104</strong><span>符合正向銷售條件的列</span></div>
+    <div class="metric"><strong>11,805</strong><span>排除的非正向列</span></div>
+    <div class="metric"><strong>374 天</strong><span>完整日曆重建後的每日觀測</span></div>
+    <div class="metric"><strong>69 天</strong><span>gross sales 為 0 的日期</span></div>
+    <div class="metric"><strong>CC BY 4.0</strong><span>UCI 頁面列出的資料授權</span></div>
+  </div>
+  <div class="evidence-note"><strong>本地 provenance：</strong>`metadata.json` 記錄 archive 23,715,478 bytes、SHA-256 `f5385cbb54bbebf7196389109c6b0621faab0c304e3702548165e71c84aede8b`；解壓後 XLSX 為 23,715,344 bytes、SHA-256 `43465a06f2ccf7c8b5bd2892bc7defb52f97487934fe93b16ae4c3936424676d`。這些是本次 artifact 的 checksum，不是文章作者自行估算。</div>
+</div>
+
+<h2 id="split">為什麼不能 random split？</h2>
+<div class="card">
+  <p>時間序列的預測問題有一個不可逆的方向：預測日發生在訓練資料之後。若把日期隨機打散，模型可能在訓練階段看到「未來月份的模式」，評估時再假裝那些資訊不存在，結果會比真正上線時樂觀。</p>
+  <div class="flow" aria-label="本案例的時間切分">
+    <div class="flow-step"><span class="step-no">TRAIN</span><h3>2010-12-01 至 2011-11-11</h3><p>346 個每日觀測。所有模型 fit 或建立 context 只使用這段。</p></div>
+    <div class="flow-step"><span class="step-no">ORIGIN</span><h3>2011-11-11 之後</h3><p>把預測起點固定下來，先決定切分與流程，再看 holdout 答案。</p></div>
+    <div class="flow-step"><span class="step-no">HOLDOUT</span><h3>2011-11-12 至 2011-12-09</h3><p>28 天、horizon = 28。只用於最後計算誤差，不回填 context。</p></div>
+  </div>
+  <p class="equation">時間正確性：所有 fit、normalization、特徵規則與模型選擇，都必須在 holdout_start 之前決定；holdout 的實際值只在評估階段出現。</p>
+  <p>這個案例的切分是單一 chronological holdout，不是 rolling-origin 全面評估。因此它能告訴我們三個模型在這一個指定窗口的表現，不能保證下一個月份、另一個市場或生產資料也會保持同樣排序。</p>
+</div>
+
+<h2 id="leakage">Leakage 清單：尤其小心 lag 與 rolling</h2>
+<div class="card">
+  <p>在 forecast origin 當下，特徵只能由當時看得到的資料組成。最容易出錯的地方不是模型 API，而是特徵工程悄悄把答案放進去。</p>
+  <ul class="checklist">
+    <li><input type="checkbox" disabled aria-label="檢查項目">先切時間，再 fit、標準化、選超參數；不要先對全資料算統計量。</li>
+    <li><input type="checkbox" disabled aria-label="檢查項目">Seasonal Naive 只重複 train 尾端的 7 天；ETS 只用 train fit；TimesFM 只接收 train target。</li>
+    <li><input type="checkbox" disabled aria-label="檢查項目">lag 只使用過去值；未來日期若沒有已核准的資料，不能把事後實績當作 future-known。</li>
+    <li><input type="checkbox" disabled aria-label="檢查項目">rolling 特徵一定先 <code>shift(1)</code>，再 rolling；否則當日的 target 會參與當日特徵。</li>
+    <li><input type="checkbox" disabled aria-label="檢查項目">不要用 holdout 指標挑完模型後，再回頭調整 holdout 日期或指標。</li>
+    <li><input type="checkbox" disabled aria-label="檢查項目">每個 rolling origin 都要重做「當時可見」的 join、特徵與預測，不可把後來補回的資料倒灌。</li>
+  </ul>
+  <pre><code># 這段只讀取處理後的日序列，不含客戶層級原始欄位。
+import pandas as pd
+
+daily = pd.read_csv("data/processed/daily_gross_sales.csv", parse_dates=["date"])
+daily = daily.sort_values("date").reset_index(drop=True)
+y = daily["gross_sales_gbp"].astype("float64")
+
+# 輸入：截至目前的 y；輸出：只由更早日期形成的 lag 與 rolling 特徵。
+features = pd.DataFrame({"date": daily["date"], "target": y})
+features["lag_7"] = y.shift(7)
+features["lag_28"] = y.shift(28)
+# 先 shift(1) 再 rolling，避免把當日答案放入當日平均。
+features["rolling_mean_7"] = y.shift(1).rolling(7, min_periods=7).mean()
+features["rolling_std_7"] = y.shift(1).rolling(7, min_periods=7).std()
+
+# 常見錯誤：y.rolling(7).mean() 會包含當天 y；
+# 若這些特徵要拿去預測當天，必須先 shift(1)。
+print(features.tail())</code></pre>
+  <p class="code-note"><strong>這段程式的邊界：</strong>它是可直接執行的 leakage 示範，不是本次三模型正式 pipeline 的替代品。真正做 train／holdout 時，仍須先截出 train，並在每個預測 origin 只使用該 origin 以前的列。</p>
+</div>
+
+<h2 id="models">三種模型：從最簡單的基線開始</h2>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>模型</th><th>它在假設什麼</th><th>本案例的實作</th><th>公平比較的理由</th></tr></thead>
+      <tbody>
+        <tr><td>Seasonal Naive(7)</td><td>每週同一天的近期模式，是「下週像上週」的直接版本。</td><td>把 train 最後 7 個值週期性重複到 28 天。</td><td>低複雜度、可解釋、常是零售日資料不可跳過的基線。</td></tr>
+        <tr><td>ETS</td><td>用指數平滑處理水準、趨勢與週期；不使用未來外生變數。</td><td><code>statsmodels</code> additive trend、damped trend、additive weekly seasonality，period = 7。</td><td>代表傳統統計模型，不讓 foundation model 只和一個稻草人比。</td></tr>
+        <tr><td>TimesFM 3.0</td><td>預訓練時間序列 foundation model；在這個流程中以 train context 做 zero-shot forecast。</td><td><code>TimesFM3Forecaster</code>、CPU、checkpoint `google/timesfm-3.0-pytorch`，horizon = 28。</td><td>代表不針對這個資料集重新訓練的 foundation-model 路徑。[1][3][6]</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>TimesFM 的初始論文描述的是 decoder-only、patched-decoder style 的時間序列 foundation model，目標是讓模型在不同 history length、prediction length 與時間粒度下進行零樣本預測。[3] 這個論文定位不等同於「在 UCI Online Retail 上必然勝過所有基線」；本頁把論文背景和本地實跑結果分開。</p>
+  <div class="evidence-note">
+    <p><strong>授權不能省略：</strong>TimesFM repository 的 source code 採 Apache-2.0。[1][2]</p>
+    <p>官方 README 明確區分 3.0 pretrained weights；現行 3.0 weights 使用另外的 `timesfm-non-commercial-license-v1.0`，限制 non-commercial、non-production use。[1][6][7]</p>
+    <p>因此本頁的 3.0 下載與結果只定位為研究、教學與內部 benchmark，不是可直接商用的部署指示。</p>
+  </div>
+</div>
+
+<h2 id="metrics">評估指標：白話與正式定義都要看</h2>
+<div class="card">
+  <p>令實際值為 <code>y_t</code>，預測值為 <code>ŷ_t</code>，holdout 有 <code>n</code> 個日期。每個指標看的是不同錯誤形狀，不應只挑一個對自己有利的數字。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>指標</th><th>白話</th><th>正式定義</th><th>閱讀提醒</th></tr></thead>
+      <tbody>
+        <tr><td>MAE</td><td>平均每天錯多少英鎊。</td><td><code>(1/n) Σ |y_t − ŷ_t|</code></td><td>單位和 target 相同，容易向業務解釋。</td></tr>
+        <tr><td>RMSE</td><td>大錯會被更重地懲罰。</td><td><code>sqrt((1/n) Σ (y_t − ŷ_t)²)</code></td><td>適合注意節慶尖峰或極端日，但容易被少數大誤差主導。</td></tr>
+        <tr><td>sMAPE</td><td>把誤差相對於實際值和預測值的大小來看。</td><td><code>(100/n) Σ 2|y_t − ŷ_t| / (|y_t| + |ŷ_t|)</code></td><td>接近 0 的日期會放大解讀難度；分母為 0 時需明確處理。</td></tr>
+        <tr><td>WAPE</td><td>整個窗口的絕對錯誤，占實際銷售總量的比例。</td><td><code>100 Σ|y_t − ŷ_t| / Σ|y_t|</code></td><td>適合用總量觀點溝通，但仍不是因果增量。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>本實作對 sMAPE 的零分母項採 0，對 WAPE 的實際值總和為 0 也採 0，並把定義寫在程式中。讀者若換資料，應先確認自己的零值處理與業務解釋一致，不要直接比較不同實作的百分比。</p>
+</div>
+
+<h2 id="results">實際跑出了什麼？</h2>
+<div class="card">
+  <p>下表是既有 artifact 在 Linux ARM64、Python 3.13.5、CPU 上產生的結果。這是「本案例單一 28 天 holdout」，不是多次 rolling-origin，也不是作者在其他資料集上的 benchmark。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>模型</th><th>MAE（GBP）</th><th>RMSE（GBP）</th><th>sMAPE</th><th>WAPE</th></tr></thead>
+      <tbody>
+        <tr><td>Seasonal Naive(7)</td><td class="num good">15,184.71</td><td class="num good">30,914.67</td><td class="num good">21.51%</td><td class="num good">27.12%</td></tr>
+        <tr><td>ETS</td><td class="num">17,457.94</td><td class="num">31,568.15</td><td class="num">49.47%</td><td class="num">31.18%</td></tr>
+        <tr><td>TimesFM 3.0 CPU</td><td class="num">15,833.95</td><td class="num">33,164.46</td><td class="num">49.56%</td><td class="num">28.28%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="metric-grid">
+    <div class="metric"><strong>28 天</strong><span>holdout horizon；2011-11-12 至 2011-12-09</span></div>
+    <div class="metric"><strong>executed</strong><span>TimesFM status；CPU device，package 3.0.2</span></div>
+    <div class="metric"><strong>0.8571</strong><span>q10–q90 名義 80% 區間 coverage；只有 28 點</span></div>
+  </div>
+  <p class="evidence-note"><strong>怎麼讀：</strong>如果只在這一個 holdout 做暫時性的排序，Seasonal Naive 的四個點預測指標都優於本次 ETS 與 TimesFM 3.0，因此它應先保留為 champion baseline。這不是「Seasonal Naive 永遠最好」，也不是 TimesFM 沒有價值；它只表示在這個 target、這個資料量、這個切分與這 28 天窗口，最簡單的週期假設已經很有競爭力。</p>
+  <p>TimesFM 3.0 也實際回傳 quantile。q10 到 q90 的名義 80% prediction interval 在這 28 點的 coverage 是 0.8571，平均區間寬度是 38,005.06 GBP。28 個點不足以宣稱校準完成；coverage 高於 0.8 也不代表未來每個窗口都會如此。</p>
+</div>
+
+<h2 id="failure">如何解讀「TimesFM 沒有贏」？</h2>
+<div class="card">
+  <p>模型比較的價值不只在找冠軍，也在找出目前問題的形狀。這次結果不能推導出 TimesFM 在所有零售資料、所有 horizon 或所有頻率都比較差；比較合理的判讀是：</p>
+  <div class="grid-2">
+    <div class="mini-card"><h3>週期基線很強</h3><p>資料是日粒度，且每週購買模式可能已包含大量可預測訊號；Seasonal Naive 直接重複最近一週，沒有額外估計誤差。</p></div>
+    <div class="mini-card"><h3>target 不是完整 demand</h3><p>本頁只算正向商品價值，排除非正向列；退貨、取消、供貨與促銷的影響不在同一個 target 裡。</p></div>
+    <div class="mini-card"><h3>零值與節慶</h3><p>69 個零銷售日與年底窗口讓相對百分比指標、尖峰誤差與週期延伸都變得敏感。</p></div>
+    <div class="mini-card"><h3>資料量與驗證窗口有限</h3><p>約一年資料、單一序列、單一 28 天 holdout；要判斷泛化，必須增加 origins 與不同 horizon。</p></div>
+  </div>
+  <p>ETS 的 sMAPE 特別高，不應直接翻譯成「模型完全不能用」；先檢查零值附近的相對誤差、加法季節模型是否適合尖峰，以及是否需要更完整的外生變數。相同地，TimesFM 的 RMSE 高於 Seasonal Naive，代表本窗口的大誤差較大，不代表它的 prediction interval 或其他資料集表現都無用。</p>
+</div>
+
+<h2 id="intervals">Quantile 與 prediction interval：範圍不是保證</h2>
+<div class="card">
+  <p>點預測只給一條線；quantile forecast 則給出不同位置的條件分布摘要。這次以 q10 和 q90 形成名義 80% 區間，概念上是「在類似條件下，未來值可能落在這個範圍」，而不是「每次都會有 80% 機率正確」。</p>
+  <div class="equation">prediction interval = [q10(t), q90(t)]<br>coverage = holdout 中 q10(t) ≤ actual(t) ≤ q90(t) 的比例</div>
+  <ul>
+    <li>coverage 要在多個 rolling origins、不同 horizon 與節慶切點上檢查，不能用 28 個點單獨宣布已校準。</li>
+    <li>區間寬度也要一起看：很寬的區間容易提高 coverage，卻可能無法支援決策。</li>
+    <li>如果成本不對稱，例如缺貨比備貨過多更昂貴，應另外設計 decision threshold，而不是只看 q50。</li>
+    <li>讀取模型輸出時要確認 quantile index；本次 artifact 以 9 個 quantile 的第 0、4、8 欄對應 q10、q50、q90，並在程式中排序後再寫 CSV。</li>
+  </ul>
+</div>
+
+<h2 id="reproduce">程式碼與重跑方式</h2>
+<div class="card">
+  <p>本教學使用的可執行入口是完整程式包中的 `scripts/download_data.py`、`scripts/smoke_test.py` 與 `scripts/run_forecast.py`。先下載<a href="https://github.com/a9181873/dky-tools/raw/refs/heads/main/dky_learn/research/timesfm-online-retail-tutorial-zhTW.tar.gz" download>完整教學程式包（tar.gz，含 README、scripts、tests、requirements 與已產生的示例輸出）</a>，解壓後在 repository root 執行；程式包不攜帶原始交易檔與 TimesFM checkpoint，會由公開 UCI URL 與 Hugging Face checkpoint 重新取得。</p>
+  <p class="code-note"><strong>程式包內容：</strong>README 有完整資料契約與限制；`scripts/` 是可執行下載、聚合、baseline、ETS、TimesFM 與輸出流程；`tests/` 是最小單元測試；`requirements-baseline.txt` 可先不下載模型權重跑 CPU baseline。`outputs/` 內的檔案只是本次已驗證示例，不是重新執行的保證。</p>
+  <h3>1. 建立隔離環境與安裝 baseline</h3>
+  <pre><code># 輸入：Python 3.10 以上；輸出：專案自己的 .venv。
+# PEP 668 主機不要把 --break-system-packages 寫進教學命令。
+python3 -m venv --system-site-packages .venv
+
+# 輸入：requirements-baseline.txt；輸出：資料處理、ETS、metrics 與繪圖依賴。
+.venv/bin/python -m pip install -r requirements-baseline.txt</code></pre>
+  <p class="code-note"><strong>為什麼這樣寫：</strong>baseline 可以在沒有 PyTorch、沒有模型 cache 或不能下載 checkpoint 的機器上先跑完。常見錯誤是直接對系統 Python 安裝，或把 TimesFM 權重下載失敗誤寫成預測成功。</p>
+
+  <h3>2. 下載公開資料並留下 provenance</h3>
+  <pre><code># 輸入：UCI 公開 zip；輸出：data/raw/online_retail.zip、
+# data/raw/Online Retail.xlsx、data/raw/metadata.json。
+.venv/bin/python scripts/download_data.py --force
+
+# 程式會重新計算 archive 與 XLSX 的 SHA-256；下載失敗就 exit non-zero，
+# 不會用舊檔或合成資料冒充這次下載成功。</code></pre>
+  <p>下載程式只呼叫公開 UCI URL，不接受帳號、cookie、token 或 API key。UCI dataset page 與下載檔是本教學的資料來源。[4][9]</p>
+
+  <h3>3. 先跑單元測試與 baseline smoke test</h3>
+  <pre><code># 輸入：已下載的 raw data 與 metadata；輸出：測試結果與 smoke 目錄。
+.venv/bin/python -m unittest discover -s tests -v
+.venv/bin/python scripts/smoke_test.py
+
+# smoke_test 會使用 --horizon 7、--holdout 7、--timesfm off，
+# 確認 metrics.json、forecast_holdout.csv 與 forecast_comparison.png 都存在。
+# 它明確要求 TimesFM status 為 skipped，避免把 baseline smoke 誤當完整模型實跑。</code></pre>
+  <p>既有驗證紀錄是 3 個 tests、結果 `OK`；smoke test exit 0，且三個輸出檔非空。這些是 artifact 的已驗證紀錄，不是本文重新捏造的測試結果。若你的程式目錄沒有 `tests/`，不要把空目錄當成測試通過；先取得完整教學程式包，再執行上面的 unittest 命令。</p>
+
+  <h3>4. 安裝並執行 TimesFM 3.0</h3>
+  <pre><code># 輸入：baseline 依賴與支援主機架構的 PyTorch；輸出：TimesFM 套件。
+.venv/bin/python -m pip install -r requirements-timesfm.txt
+
+# 輸入：只到 holdout_start 以前的 target；輸出：28 天 forecast、quantiles、metrics、CSV 與 PNG。
+.venv/bin/python scripts/run_forecast.py \
+  --horizon 28 \
+  --holdout 28 \
+  --timesfm auto
+
+# 若你要求 TimesFM 必須成功，改用 required；下載或載入失敗時應該 exit non-zero。
+.venv/bin/python scripts/run_forecast.py \
+  --horizon 28 \
+  --holdout 28 \
+  --timesfm required</code></pre>
+  <p class="code-note"><strong>三個模式：</strong><code>auto</code> 會保留 CPU baseline，並把 TimesFM 失敗類型寫入 `metrics.json`；<code>off</code> 明確跳過 checkpoint；<code>required</code> 把 TimesFM 載入失敗升成錯誤。這個 fallback 是為了讓失敗可見，不是用 baseline 數字冒充 TimesFM。</p>
+
+  <h3>5. 核心 TimesFM 呼叫（可直接執行的最小片段）</h3>
+  <pre><code># 輸入：processed daily CSV；輸出：point forecast 與 quantile forecast。
+import numpy as np
+import pandas as pd
+from timesfm3 import TimesFM3Forecaster
+
+daily = pd.read_csv("data/processed/daily_gross_sales.csv", parse_dates=["date"])
+daily = daily.sort_values("date").reset_index(drop=True)
+
+# 先切出最後 28 天做 holdout；模型 context 只看更早的 target。
+horizon = 28
+train_values = daily.iloc[:-horizon]["gross_sales_gbp"].to_numpy(dtype="float32")
+
+# checkpoint 由 Hugging Face 在本機 cache；不要把權重複製進教學 artifact。
+forecaster = TimesFM3Forecaster.from_pretrained(
+    "google/timesfm-3.0-pytorch",
+    device="cpu",
+    per_core_batch_size=1,
+)
+output = forecaster.predict(
+    train_values,
+    horizon=horizon,
+    return_quantiles=True,
+    make_positive=True,
+    sort_quantiles=True,
+    use_znorm=False,
+    padding_mode="none",
+)
+point = np.asarray(output.forecast, dtype=float).reshape(-1)[:horizon]
+quantiles = np.asarray(output.quantiles, dtype=float)[:horizon]
+q10, q50, q90 = quantiles[:, 0], quantiles[:, 4], quantiles[:, 8]
+print(point.shape, q10.shape, q50.shape, q90.shape)
+
+# 常見錯誤：把 holdout actual 傳進 context、誤讀 quantile index，
+# 或把 checkpoint 下載失敗後的 NaN 當成模型預測；正式腳本會檢查 shape 與 finite values。</code></pre>
+  <p>官方 README 目前提供 TimesFM 3.0 checkpoint、multivariate 與 past-only／past-and-future covariate 的說明；官方 model card 則列出 checkpoint 的模型資訊與 license。[1][6][8] 上面的最小片段說明核心 API，完整 artifact 另外負責 target 聚合、時間切分、ETS、metrics、CSV、圖與 fallback。</p>
+</div>
+
+<h2 id="covariates">GA4、CRM 與廣告欄位：先分清 future-known 和 past-only</h2>
+<div class="card">
+  <p>本次實跑刻意只用交易 target，沒有匯入正式 GA4、CRM 或廣告資料。下面是隔離資料環境中設計欄位契約的方法示意，不是已完成的正式資料映射，也不代表這些欄位一定提升準確度。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>來源</th><th>可以考慮的日粒度欄位</th><th>預測時可否使用</th><th>常見泄漏</th></tr></thead>
+      <tbody>
+        <tr><td>GA4</td><td>sessions、engaged sessions、conversions、channel、campaign key。</td><td>已在 origin 前結算的歷史值可作 past-only；未來已排程的活動日曆可作 future-known。</td><td>把 holdout 期間事後完成或回補的 sessions、conversions 當成未來輸入。</td></tr>
+        <tr><td>CRM</td><td>日聚合的 lead count、opportunity count、匿名 segment count。</td><td>只用已授權、已聚合且在 origin 前可見的資料。</td><td>把事後更新的 stage 或個人層級資料 join 到 forecast input。</td></tr>
+        <tr><td>廣告</td><td>已核准 planned spend、planned impression、活動日曆；actual spend、clicks。</td><td>planned 欄位若在預測前已確定，可是 future-known；actual metrics 多半是 past-only。</td><td>把未來 actual clicks、actual spend 或歸因結果當成已知答案的一部分。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>建議每一列都保留 <code>observed_at</code>、<code>forecast_origin</code>、<code>is_future_known</code> 與來源版本。若 <code>observed_at &gt; forecast_origin</code>，實際結果只能留在 label 或監控，不能進該次 forecast input。正式資料仍須在授權、隔離、匿名化與存取控管下處理；不要把任何秘密或 customer-level data 放進公開教學。</p>
+</div>
+
+<h2 id="alternatives">下一層比較：ARIMA、SARIMAX 與 lag-feature 機器學習</h2>
+<div class="card">
+  <p>公平比較不是「只放一個 baseline，再和 TimesFM 二選一」。如果問題需要更明確的參數解釋或外生變數，還可以增加下列候選；本頁只提出評估設計，沒有把它們冒充成已完成的本次實跑。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>候選</th><th>適合問的問題</th><th>需要小心的地方</th><th>目前狀態</th></tr></thead>
+      <tbody>
+        <tr><td>ARIMA</td><td>差分後的自相關與趨勢，是否足以解釋單一序列？</td><td>階數選擇、差分、零值、季節性與殘差檢查都必須在 train 內完成。</td><td>延伸候選，尚未在本案例執行。</td></tr>
+        <tr><td>SARIMAX</td><td>季節 ARIMA 加上已知的外生變數，是否能解釋節慶或已排程活動？</td><td>未來 exogenous 欄位必須真的在整段 horizon 已知；缺一段就不能假裝有。</td><td>延伸候選，尚未在本案例執行。</td></tr>
+        <tr><td>LightGBM／XGBoost</td><td>lag、rolling、日曆與活動欄位的非線性組合是否有額外訊號？</td><td>沒有自然的時間順序；需手動建立 lag，使用 time split，避免 random K-fold 和 rolling leakage。</td><td>延伸候選，尚未在本案例執行。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <pre><code># 這是 lag-feature 模型的資料契約示意；先建特徵，再按日期切分。
+# 輸入：processed daily CSV；輸出：可供 LightGBM/XGBoost 使用的歷史特徵表。
+features = features.dropna(subset=["lag_7", "lag_28", "rolling_mean_7"])
+train_features = features[features["date"] &lt; "2011-11-12"].copy()
+holdout_features = features[features["date"] &gt;= "2011-11-12"].copy()
+
+# 不要把 holdout 的 target 反向填回 holdout_features；
+# rolling-origin 評估時，要在每個 origin 重建到當時為止的特徵。
+print(train_features.shape, holdout_features.shape)</code></pre>
+  <p>比較時要把「模型類別差異」和「特徵資訊量差異」分開說。若 SARIMAX 看得到已排程活動，而 Seasonal Naive 看不到，結果反映的是資訊集合不同，不只是演算法優劣。</p>
+</div>
+
+<h2 id="rolling">不要被一次 holdout 說服：rolling-origin 設計</h2>
+<div class="card">
+  <p>本案例的單一 28 天 holdout 適合教學與端到端 smoke，但不夠支撐長期選模。下一步應保留最後一段真正 untouched 的 final test，並在更早的資料上做 3–5 個 rolling origins。</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>設計項目</th><th>建議</th><th>為什麼</th></tr></thead>
+      <tbody>
+        <tr><td>origins</td><td>選 3–5 個依時間遞增的預測起點；每個 origin 只用之前資料。</td><td>檢查模型排序是否只在某一個月份成立。</td></tr>
+        <tr><td>horizon</td><td>至少比較 7、14、28 天；若業務還有月度規劃，再加更長 horizon。</td><td>短期週期和長期節慶效果可能由不同模型捕捉。</td></tr>
+        <tr><td>節慶切點</td><td>特別保留年底或促銷活動前後的 origin，並事前定義如何標註。</td><td>避免平均指標把尖峰需求沖淡。</td></tr>
+        <tr><td>模型選擇</td><td>只用 rolling validation 選 champion；最後 final test 只報一次。</td><td>避免反覆看 final test 後過度調參。</td></tr>
+        <tr><td>interval</td><td>同時報 coverage、平均寬度與極端日的失敗案例。</td><td>區間不能只追求寬或只追求命中率。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="flow" aria-label="rolling-origin 流程">
+    <div class="flow-step"><span class="step-no">ORIGIN 1–3</span><h3>歷史驗證</h3><p>每個起點重建 context、lag、rolling 與可用 covariates。</p></div>
+    <div class="flow-step"><span class="step-no">SELECT</span><h3>選模型與權重</h3><p>只根據 rolling 指標、成本函數與區間品質選 champion 或 ensemble。</p></div>
+    <div class="flow-step"><span class="step-no">FINAL TEST</span><h3>一次揭露</h3><p>固定流程後才看最後窗口；不因一次結果回頭改規則。</p></div>
+  </div>
+  <p>若多個模型在不同 origin 各有優勢，可以做 ensemble，例如在 rolling validation 估計固定權重，再把 Seasonal Naive、ETS、TimesFM 的 forecast 加權平均。權重不能直接用最後 holdout 的答案調出來；而且 ensemble 也要和最強單一基線一起比較，避免「平均」只是增加複雜度。</p>
+</div>
+
+<h2 id="next">下一步：從教學 artifact 走向可稽核評估</h2>
+<div class="card">
+  <ol>
+    <li>先保留 Seasonal Naive 作為 champion baseline，補上 3–5 個 rolling origins、7／14／28 horizon 與節慶切點。</li>
+    <li>用同一套 time split 加入 ARIMA／SARIMAX 與 lag-feature LightGBM／XGBoost；記錄每個模型看到的資訊集合。</li>
+    <li>把 prediction interval 的 coverage、寬度、尖峰日錯誤與業務成本一起評估，不只追 MAE。</li>
+    <li>若要加入 GA4、CRM 或廣告欄位，先建立 observed_at、origin、future-known 的 join audit，再於隔離且授權的資料管線執行。</li>
+    <li>若目標真的變成「廣告帶來多少增量」，另立 treatment／control 或準實驗設計；不要把 forecast 結果直接送進 uplift 結論。</li>
+    <li>如果考慮 TimesFM 3.0 production 使用，先重新確認 weights license、商業授權與供應鏈，不把本教學的 non-commercial checkpoint 當作部署許可。</li>
+  </ol>
+</div>
+
+<h2 id="limits">證據界線與限制</h2>
+<div class="card">
+  <ul class="checklist">
+    <li><input type="checkbox" disabled aria-label="限制項目">本案例只使用公開 UCI Online Retail；未使用正式 GA4、CRM 或廣告資料。</li>
+    <li><input type="checkbox" disabled aria-label="限制項目">本案例只有單一 28 天 holdout；尚未完成 3–5 個 rolling-origin 的全面評估。</li>
+    <li><input type="checkbox" disabled aria-label="限制項目">q10–q90 coverage 0.8571 只來自 28 個點，不能宣稱 prediction interval 已校準。</li>
+    <li><input type="checkbox" disabled aria-label="限制項目">TimesFM 3.0 weights 目前是 non-commercial、non-production 授權；不可直接商用。</li>
+    <li><input type="checkbox" disabled aria-label="限制項目">本頁不是 uplift 實驗；任何廣告增量、ROAS 或因果效果都需要另外的識別設計。</li>
+    <li><input type="checkbox" disabled aria-label="限制項目">UCI archive、TimesFM README 與 model card 都可能更新；若重跑，應重新驗證來源、checksum、套件版本與 metrics。</li>
+  </ul>
+  <p class="risk-note"><strong>最重要的閱讀習慣：</strong>先問「這個數字是誰的證據？」再問「哪個模型比較新？」公開來源、本地實跑 artifact、工程推論與尚未執行的延伸建議，必須分開標示。</p>
+</div>
+
+<h2 id="sources">來源</h2>
+<div class="card sources">
+  <p>正文的 [1]–[9] 由本次 citation ledger 登錄；外部來源支撐 TimesFM、UCI 資料、論文與授權敘述。模型比較表、checksum、metrics 與測試狀態若標示「本地實跑」，則以既有 artifact 為準，不把外部官方 benchmark 改寫成本案例結果。</p>
+  <ol>
+    <li id="source-1"><a class="source-url" href="https://raw.githubusercontent.com/google-research/timesfm/master/README.md" target="_blank" rel="noreferrer">TimesFM 官方 README</a>：模型定位、3.0 checkpoint、covariate 說明與 weights license notice。</li>
+    <li id="source-2"><a class="source-url" href="https://raw.githubusercontent.com/google-research/timesfm/master/pyproject.toml" target="_blank" rel="noreferrer">TimesFM 官方 pyproject.toml</a>：目前套件版本與 source package 的 Apache-2.0 宣告。</li>
+    <li id="source-3"><a class="source-url" href="https://arxiv.org/abs/2310.10688" target="_blank" rel="noreferrer">TimesFM 初始論文：A decoder-only foundation model for time-series forecasting</a>：模型研究背景、patched-decoder 與零樣本預測脈絡。</li>
+    <li id="source-4"><a class="source-url" href="https://archive.ics.uci.edu/dataset/352/online+retail" target="_blank" rel="noreferrer">UCI Online Retail dataset page</a>：資料期間、資料集規模、資料集說明、引用與授權連結。</li>
+    <li id="source-5"><a class="source-url" href="https://creativecommons.org/licenses/by/4.0/legalcode" target="_blank" rel="noreferrer">Creative Commons Attribution 4.0 legal code</a>：CC BY 4.0 的授權條款與 attribution 要求。</li>
+    <li id="source-6"><a class="source-url" href="https://huggingface.co/google/timesfm-3.0-pytorch" target="_blank" rel="noreferrer">Hugging Face：google/timesfm-3.0-pytorch</a>：官方 PyTorch weights、model details、quantile 與 license 標示。</li>
+    <li id="source-7"><a class="source-url" href="https://huggingface.co/google/timesfm-3.0-pytorch/raw/main/LICENSE" target="_blank" rel="noreferrer">TimesFM Non-Commercial License v1.0</a>：3.0 checkpoint 的 non-commercial／non-production 使用限制。</li>
+    <li id="source-8"><a class="source-url" href="https://github.com/google-research/timesfm/blob/master/timesfm-forecasting/SKILL.md" target="_blank" rel="noreferrer">TimesFM forecasting skill（官方 repository）</a>：forecasting、quantile index、covariate 與常見實作錯誤的補充說明。</li>
+    <li id="source-9"><a class="source-url" href="https://archive.ics.uci.edu/static/public/352/online+retail.zip" target="_blank" rel="noreferrer">UCI Online Retail 公開下載檔</a>：本次 metadata 所記錄的 archive URL。</li>
+  </ol>
+  <p>來源頁面會更新；若讀者要重現本案例，請以當次下載的 metadata、套件版本、checkpoint repo 與輸出 metrics 一起保存。本文沒有把大型原始資料或模型權重放進網站 artifact。</p>
+</div>
+
+<!--
+Sources:
+[1] https://raw.githubusercontent.com/google-research/timesfm/master/README.md
+[2] https://raw.githubusercontent.com/google-research/timesfm/master/pyproject.toml
+[3] https://arxiv.org/abs/2310.10688
+[4] https://archive.ics.uci.edu/dataset/352/online+retail
+[5] https://creativecommons.org/licenses/by/4.0/legalcode
+[6] https://huggingface.co/google/timesfm-3.0-pytorch
+[7] https://huggingface.co/google/timesfm-3.0-pytorch/raw/main/LICENSE
+[8] https://github.com/google-research/timesfm/blob/master/timesfm-forecasting/SKILL.md
+[9] https://archive.ics.uci.edu/static/public/352/online+retail.zip
+-->
+
+<footer>
+  <p><a href="./">回研究索引</a> · <a href="../">回學習中心首頁</a> · <a href="https://archive.ics.uci.edu/dataset/352/online+retail" target="_blank" rel="noreferrer">UCI 資料頁</a> · <a href="https://github.com/google-research/timesfm" target="_blank" rel="noreferrer">TimesFM GitHub</a></p>
+  <p>DKY Learn · 可重跑研究教學 · 2026-09-19</p>
+</footer>
+</main>
+</body>
+</html>
