@@ -59,6 +59,13 @@ h1 {
 .utility-links { margin: .7rem 0 0; font-size: .84rem; }
 a { color: var(--page-accent); text-decoration-thickness: .08em; text-underline-offset: .16em; }
 a:hover { color: var(--page-accent-dark); }
+.download-row { display: flex; flex-wrap: wrap; gap: .7rem; margin: .9rem 0 1.25rem; }
+.download-link {
+  display: inline-flex; align-items: center; min-height: 44px; padding: .6rem .9rem;
+  border: 1px solid var(--page-accent); border-radius: 8px; background: #fff;
+  color: var(--page-accent-dark); font-weight: 800; text-decoration: none;
+}
+.download-link:hover { background: #effaf3; color: var(--page-accent-dark); }
 a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid #d79567; outline-offset: 3px; }
 .cite { font-size: .76em; text-decoration: none; vertical-align: super; white-space: nowrap; }
 .one-liner {
@@ -201,11 +208,16 @@ footer { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--pa
 <header>
   <p class="kicker">可重跑教學 · 時間序列預測與模型評估</p>
   <h1>TimesFM × UCI Online Retail：用真實銷售資料學會公平比較預測模型</h1>
-  <p class="meta">DKY 技術研究 · 初版 2026-09-19 · 模型效果補強 2026-09-20 · UCI Online Retail、TimesFM 3.0 · 初始論文：<a href="https://arxiv.org/abs/2310.10688" target="_blank" rel="noreferrer">A decoder-only foundation model for time-series forecasting</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <p class="meta">DKY 技術研究 · 初版 2026-09-19 · 模型效果與 Jupyter Notebook 補強 2026-09-20 · UCI Online Retail、TimesFM 3.0 · 初始論文：<a href="https://arxiv.org/abs/2310.10688" target="_blank" rel="noreferrer">A decoder-only foundation model for time-series forecasting</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
   <p class="utility-links"><a href="../">回學習中心首頁</a> · <a href="./">回研究索引</a> · <a href="https://github.com/google-research/timesfm" target="_blank" rel="noreferrer">TimesFM 原始碼</a></p>
 </header>
 
 <div class="one-liner"><strong>結論先講：</strong>這次 28 天 holdout 的冠軍不是 TimesFM，而是最簡單的 Seasonal Naive(7)。TimesFM 3.0 的 MAE 為 £15,833.95／日，比冠軍多 £649.24（高 4.28%）；WAPE 為 28.28%，比冠軍高 1.16 個百分點。三個模型都抓到每週節奏，也都嚴重低估最後一天 £200,920.60 的極端高峰。</div>
+
+<div class="download-row" aria-label="程式碼下載">
+  <a class="download-link" href="timesfm-online-retail-tutorial-zhTW.ipynb" download>下載 Jupyter Notebook（.ipynb）</a>
+  <a class="download-link" href="timesfm-online-retail-tutorial-zhTW.tar.gz" download>下載完整可重跑程式包（.tar.gz）</a>
+</div>
 
 <h2 id="model-effect">模型效果：誰贏、差多少、錯在哪裡？</h2>
 <div class="card">
@@ -425,8 +437,9 @@ print(features.tail())</code></pre>
 
 <h2 id="reproduce">程式碼與重跑方式</h2>
 <div class="card">
-  <p>本教學使用的可執行入口是完整程式包中的 `scripts/download_data.py`、`scripts/smoke_test.py` 與 `scripts/run_forecast.py`。先下載<a href="https://github.com/a9181873/dky-tools/raw/refs/heads/main/dky_learn/research/timesfm-online-retail-tutorial-zhTW.tar.gz" download>完整教學程式包（tar.gz，含 README、scripts、tests、requirements 與已產生的示例輸出）</a>，解壓後在 repository root 執行；程式包不攜帶原始交易檔與 TimesFM checkpoint，會由公開 UCI URL 與 Hugging Face checkpoint 重新取得。</p>
-  <p class="code-note"><strong>程式包內容：</strong>README 有完整資料契約與限制；`scripts/` 是可執行下載、聚合、baseline、ETS、TimesFM 與輸出流程；`tests/` 是最小單元測試；`requirements-baseline.txt` 可先不下載模型權重跑 CPU baseline。`outputs/` 內的檔案只是本次已驗證示例，不是重新執行的保證。</p>
+  <p>想逐格閱讀可直接下載<a href="timesfm-online-retail-tutorial-zhTW.ipynb" download>繁體中文 Jupyter Notebook</a>；要實際執行請下載<a href="timesfm-online-retail-tutorial-zhTW.tar.gz" download>完整教學程式包（tar.gz）</a>並從解壓後的根目錄啟動 Jupyter。Notebook 預設重跑 Seasonal Naive、ETS、指標與效果圖，再明確標示讀取既有 TimesFM 輸出的證據邊界，不會自動下載大型權重。</p>
+  <p>命令列入口仍是完整程式包中的 `scripts/download_data.py`、`scripts/smoke_test.py` 與 `scripts/run_forecast.py`。程式包不攜帶原始交易檔與 TimesFM checkpoint；選擇完整重跑時，才會由公開 UCI URL 與 Hugging Face checkpoint 重新取得。</p>
+  <p class="code-note"><strong>程式包內容：</strong>README、Jupyter Notebook、`scripts/`、`tests/`、requirements 與已產生的示例輸出。`requirements-baseline.txt` 可先不下載模型權重跑 CPU baseline；`outputs/` 是本次已驗證示例，不是重新執行的保證。</p>
   <h3>1. 建立隔離環境與安裝 baseline</h3>
   <pre><code># 輸入：Python 3.10 以上；輸出：專案自己的 .venv。
 # PEP 668 主機不要把 --break-system-packages 寫進教學命令。
