@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#fefaf6">
 <title>TimesFM × UCI Online Retail：用真實銷售資料學會公平比較預測模型</title>
-<meta name="description" content="用 UCI Online Retail 真實交易資料與可重跑的 TimesFM 3.0 實驗，說明 target、時間切分、基線、ETS、foundation model、評估指標、prediction interval 與 forecast 和因果 uplift 的界線。">
+<meta name="description" content="實跑結論：Seasonal Naive(7) 在 28 天 holdout 勝過 TimesFM 3.0 與 ETS。用 UCI Online Retail 真實交易資料、效果圖、四項指標與可重跑程式，說明時間序列模型如何公平比較。">
 <meta property="og:title" content="TimesFM × UCI Online Retail：用真實銷售資料學會公平比較預測模型">
-<meta property="og:description" content="一份面向一般讀者與工程師的時間序列教學：從每週基線到 TimesFM 3.0，完整交代資料定義、leakage、實跑結果、程式命令與限制。">
+<meta property="og:description" content="Seasonal Naive(7) 在本次 28 天 holdout 勝過 TimesFM 3.0。看模型效果圖、MAE／RMSE／sMAPE／WAPE、失敗尖峰與完整可重跑程式。">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://learn.dky.tw/research/timesfm-real-retail-forecasting">
 <link rel="canonical" href="https://learn.dky.tw/research/timesfm-real-retail-forecasting">
@@ -123,6 +123,18 @@ li { margin: .35rem 0; }
 .mini-card p { margin: 0; font-size: .88rem; }
 .metric strong { display: block; color: var(--page-accent-dark); font-size: 1.38rem; line-height: 1.25; }
 .metric span { display: block; margin-top: .35rem; color: var(--page-muted); font-size: .82rem; line-height: 1.55; }
+.result-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
+.result-card { padding: 1rem; border: 1px solid var(--page-border); border-radius: 10px; background: #fffdf9; }
+.result-card.winner { border: 2px solid var(--page-good); background: #f4f7ed; }
+.result-rank { display: block; color: var(--page-muted); font-size: .75rem; font-weight: 800; letter-spacing: .04em; }
+.result-card h3 { margin: .22rem 0 .45rem; }
+.result-score { margin: 0; color: var(--page-accent-dark); font-size: 1.15rem; font-weight: 800; line-height: 1.45; }
+.result-delta { margin: .45rem 0 0; color: var(--page-muted); font-size: .82rem; line-height: 1.55; }
+.result-figure { margin: 1.35rem 0; }
+.result-figure img { display: block; width: 100%; height: auto; border: 1px solid var(--page-border); border-radius: 10px; background: #fffdf9; }
+.result-figure figcaption { margin-top: .55rem; color: var(--page-muted); font-size: .82rem; line-height: 1.6; }
+.result-points { margin: .7rem 0 0; }
+.result-points li { margin: .55rem 0; }
 .table-wrap { margin: 1rem 0; overflow-x: auto; }
 table { width: 100%; min-width: 650px; border-collapse: collapse; }
 th, td { padding: .62rem .7rem; border: 1px solid var(--page-border); text-align: left; vertical-align: top; }
@@ -173,7 +185,7 @@ pre code { padding: 0; border: 0; background: transparent; }
 footer { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--page-border); color: var(--page-muted); font-size: .8rem; }
 @media (max-width: 800px) {
   body { padding: 1.25rem 1rem 4rem; }
-  .grid-3, .metric-grid, .grid-2, .flow { grid-template-columns: 1fr; }
+  .grid-3, .metric-grid, .grid-2, .flow, .result-grid { grid-template-columns: 1fr; }
   .flow-step { min-height: 0; }
   .flow-step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -.95rem; transform: translateX(50%); }
   table { min-width: 600px; }
@@ -189,13 +201,52 @@ footer { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--pa
 <header>
   <p class="kicker">可重跑教學 · 時間序列預測與模型評估</p>
   <h1>TimesFM × UCI Online Retail：用真實銷售資料學會公平比較預測模型</h1>
-  <p class="meta">DKY 技術研究 · 2026-09-19 · UCI Online Retail、TimesFM 3.0 · 初始論文：<a href="https://arxiv.org/abs/2310.10688" target="_blank" rel="noreferrer">A decoder-only foundation model for time-series forecasting</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
+  <p class="meta">DKY 技術研究 · 初版 2026-09-19 · 模型效果補強 2026-09-20 · UCI Online Retail、TimesFM 3.0 · 初始論文：<a href="https://arxiv.org/abs/2310.10688" target="_blank" rel="noreferrer">A decoder-only foundation model for time-series forecasting</a><a class="cite" href="#source-3" aria-label="來源 3">[3]</a></p>
   <p class="utility-links"><a href="../">回學習中心首頁</a> · <a href="./">回研究索引</a> · <a href="https://github.com/google-research/timesfm" target="_blank" rel="noreferrer">TimesFM 原始碼</a></p>
 </header>
 
-<div class="one-liner"><strong>先記住一句話：</strong>forecast 像是看過去的銷售紀錄，估計下週每天可能賣多少；它不是一個能回答「廣告造成多少新增銷售」的因果實驗。這一頁用同一個時間切分，讓 Seasonal Naive、ETS 與 TimesFM 3.0 在同一個 28 天 holdout 上接受檢驗，而不是因為模型名字新就先宣布它獲勝。</div>
+<div class="one-liner"><strong>結論先講：</strong>這次 28 天 holdout 的冠軍不是 TimesFM，而是最簡單的 Seasonal Naive(7)。TimesFM 3.0 的 MAE 為 £15,833.95／日，比冠軍多 £649.24（高 4.28%）；WAPE 為 28.28%，比冠軍高 1.16 個百分點。三個模型都抓到每週節奏，也都嚴重低估最後一天 £200,920.60 的極端高峰。</div>
 
-<div class="scope">閱讀口徑：本文是繁體中文教學與工程判讀，不是 TimesFM 論文翻譯。表格中標示「本地實跑」的數字來自既有的 `metrics.json`、`metadata.json` 與輸出 CSV；本文沒有重新匯入任何正式 GA4、CRM、廣告帳戶資料，也沒有把這個公開案例包裝成 production benchmark 或 uplift 實驗。</div>
+<h2 id="model-effect">模型效果：誰贏、差多少、錯在哪裡？</h2>
+<div class="card">
+  <div class="result-grid" aria-label="三個模型的效果排名">
+    <section class="result-card winner">
+      <span class="result-rank">第 1 名 · 本次 champion</span>
+      <h3>Seasonal Naive(7)</h3>
+      <p class="result-score">MAE £15,184.71／日</p>
+      <p class="result-delta">WAPE 27.12%；MAE、RMSE、sMAPE、WAPE 四項都最低。先保留為正式基線。</p>
+    </section>
+    <section class="result-card">
+      <span class="result-rank">第 2 名 · challenger</span>
+      <h3>TimesFM 3.0</h3>
+      <p class="result-score">MAE £15,833.95／日</p>
+      <p class="result-delta">比冠軍多 £649.24／日（+4.28%）；WAPE 28.28%，高 1.16 個百分點。</p>
+    </section>
+    <section class="result-card">
+      <span class="result-rank">第 3 名</span>
+      <h3>ETS</h3>
+      <p class="result-score">MAE £17,457.94／日</p>
+      <p class="result-delta">比冠軍多 £2,273.23／日（+14.97%）；WAPE 31.18%，高 4.06 個百分點。</p>
+    </section>
+  </div>
+
+  <figure class="result-figure">
+    <a href="timesfm-model-effect-holdout.png" target="_blank" rel="noreferrer"><img src="timesfm-model-effect-holdout.png" width="1996" height="1396" alt="28 天 holdout 的實際每日銷售額、Seasonal Naive、ETS、TimesFM 3.0 與 TimesFM q10 到 q90 區間；下半部顯示每日絕對誤差，最後一天三個模型都大幅低估" loading="eager"></a>
+    <figcaption>上圖直接比較實際值與三個模型；下圖把每天的絕對誤差攤開。點圖可看原尺寸。這張圖顯示模型是否抓到週期與尖峰，冠軍判定仍以同一 holdout 上的四項數值指標為準。</figcaption>
+  </figure>
+
+  <h3>把模型效果翻成人話</h3>
+  <ol class="result-points">
+    <li><strong>TimesFM 有抓到規律，但沒有帶來更低誤差。</strong>它能跟著每週高低起伏走，卻在 MAE、RMSE、sMAPE、WAPE 四項都輸給 Seasonal Naive(7)。本案例不能把「foundation model」直接等同於「效果更好」。</li>
+    <li><strong>真正的共同弱點是尖峰。</strong>2011-12-09 實際值為 £200,920.60；Seasonal Naive 預測 £55,257.17、ETS 預測 £57,441.06、TimesFM 預測 £48,782.46。TimesFM 當天低估 £152,138.14（75.72%）。</li>
+    <li><strong>拿掉最後一天做敏感度檢查，排名仍沒變。</strong>前 27 天 MAE 依序是 Seasonal Naive £10,352.17、TimesFM £10,785.65、ETS £12,790.47。最後尖峰放大整體誤差，但不是 Seasonal Naive 勝出的唯一原因；這項檢查只用來理解誤差，不拿來重新挑 holdout。</li>
+    <li><strong>TimesFM 的區間有參考價值，但還不能說已校準。</strong>q10–q90 名義 80% 區間涵蓋 24／28 天（85.71%），平均寬度 £38,005.06；樣本只有 28 點，而且最後尖峰仍落在區間外。</li>
+    <li><strong>目前決策：</strong>保留 Seasonal Naive(7) 當 champion，TimesFM 只當 challenger。等 rolling-origin 在多個月份與 horizon 重複勝出，再談替換基線。</li>
+  </ol>
+  <p class="evidence-note"><strong>不要把 WAPE 倒過來叫「準確率」：</strong>WAPE 27.12% 的意思是，這 28 天的絕對誤差總和約為實際銷售總量的 27.12%；不能直接宣稱模型「準確率 72.88%」。完整四項指標與限制見<a href="#results">下方結果表</a>。</p>
+</div>
+
+<div class="scope">閱讀口徑：本文是繁體中文教學與工程判讀，不是 TimesFM 論文翻譯。表格中標示「本地實跑」的數字來自既有的 <code>metrics.json</code>、<code>metadata.json</code> 與輸出 CSV；新增的 27 天敏感度檢查由同一份 <code>forecast_holdout.csv</code> 重算。本文沒有匯入任何正式 GA4、CRM、廣告帳戶資料，也沒有把這個公開案例包裝成 production benchmark 或 uplift 實驗。</div>
 
 <h2 id="forecast-or-causal">第一個問題：預測到底能回答什麼？</h2>
 <div class="card">
@@ -326,7 +377,7 @@ print(features.tail())</code></pre>
   <p>本實作對 sMAPE 的零分母項採 0，對 WAPE 的實際值總和為 0 也採 0，並把定義寫在程式中。讀者若換資料，應先確認自己的零值處理與業務解釋一致，不要直接比較不同實作的百分比。</p>
 </div>
 
-<h2 id="results">實際跑出了什麼？</h2>
+<h2 id="results">完整指標與不確定性</h2>
 <div class="card">
   <p>下表是既有 artifact 在 Linux ARM64、Python 3.13.5、CPU 上產生的結果。這是「本案例單一 28 天 holdout」，不是多次 rolling-origin，也不是作者在其他資料集上的 benchmark。</p>
   <div class="table-wrap">
