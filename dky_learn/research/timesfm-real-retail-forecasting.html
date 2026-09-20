@@ -209,7 +209,7 @@ footer { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--pa
 
 <h2 id="model-effect">模型效果：誰贏、差多少、錯在哪裡？</h2>
 <div class="card">
-  <div class="result-grid" aria-label="三個模型的效果排名">
+  <div class="result-grid" aria-label="依 MAE 排列的三個模型效果；其他指標另列於內文">
     <section class="result-card winner">
       <span class="result-rank">第 1 名 · 本次 champion</span>
       <h3>Seasonal Naive(7)</h3>
@@ -217,16 +217,16 @@ footer { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--pa
       <p class="result-delta">WAPE 27.12%；MAE、RMSE、sMAPE、WAPE 四項都最低。先保留為正式基線。</p>
     </section>
     <section class="result-card">
-      <span class="result-rank">第 2 名 · challenger</span>
+      <span class="result-rank">MAE 第 2 名 · challenger</span>
       <h3>TimesFM 3.0</h3>
       <p class="result-score">MAE £15,833.95／日</p>
       <p class="result-delta">比冠軍多 £649.24／日（+4.28%）；WAPE 28.28%，高 1.16 個百分點。</p>
     </section>
     <section class="result-card">
-      <span class="result-rank">第 3 名</span>
+      <span class="result-rank">MAE 第 3 名</span>
       <h3>ETS</h3>
       <p class="result-score">MAE £17,457.94／日</p>
-      <p class="result-delta">比冠軍多 £2,273.23／日（+14.97%）；WAPE 31.18%，高 4.06 個百分點。</p>
+      <p class="result-delta">比冠軍多 £2,273.23／日（+14.97%）；WAPE 31.18%，但 RMSE、sMAPE 略優於 TimesFM。</p>
     </section>
   </div>
 
@@ -237,7 +237,7 @@ footer { margin-top: 2.8rem; padding-top: 1.2rem; border-top: 1px solid var(--pa
 
   <h3>把模型效果翻成人話</h3>
   <ol class="result-points">
-    <li><strong>TimesFM 有抓到規律，但沒有帶來更低誤差。</strong>它能跟著每週高低起伏走，卻在 MAE、RMSE、sMAPE、WAPE 四項都輸給 Seasonal Naive(7)。本案例不能把「foundation model」直接等同於「效果更好」。</li>
+    <li><strong>TimesFM 不是冠軍：</strong>按 MAE 與 WAPE 它排第二；但 RMSE 為 £33,164.46（ETS 為 £31,568.15），sMAPE 為 49.56%（ETS 為 49.47%），反而略輸 ETS。四項都輸 Seasonal Naive(7)，所以唯一穩定結論是 Seasonal Naive 勝出，不能宣稱 TimesFM 全面第二。</li>
     <li><strong>真正的共同弱點是尖峰。</strong>2011-12-09 實際值為 £200,920.60；Seasonal Naive 預測 £55,257.17、ETS 預測 £57,441.06、TimesFM 預測 £48,782.46。TimesFM 當天低估 £152,138.14（75.72%）。</li>
     <li><strong>拿掉最後一天做敏感度檢查，排名仍沒變。</strong>前 27 天 MAE 依序是 Seasonal Naive £10,352.17、TimesFM £10,785.65、ETS £12,790.47。最後尖峰放大整體誤差，但不是 Seasonal Naive 勝出的唯一原因；這項檢查只用來理解誤差，不拿來重新挑 holdout。</li>
     <li><strong>TimesFM 的區間有參考價值，但還不能說已校準。</strong>q10–q90 名義 80% 區間涵蓋 24／28 天（85.71%），平均寬度 £38,005.06；樣本只有 28 點，而且最後尖峰仍落在區間外。</li>
