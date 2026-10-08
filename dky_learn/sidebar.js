@@ -2,7 +2,7 @@
 (function () {
   if (document.querySelector('.study-sidebar')) return;
 
-  // [章節, 課名, 網址] — 三條課程線 + 延伸閱讀，全站唯一導覽資料源
+  // [章節, 課名, 網址] — 主課程地圖；獨立實務練習另列，不影響主線課程序號。
   const lessons = [
     ['統計學習 · 第 2 章','2.1 什麼是統計學習？','/statistics/02_What_Is_Statistical_Learning'],
     ['','2.2 評估模型準確度','/statistics/02_Assessing_Model_Accuracy'],
@@ -64,10 +64,16 @@
     ['','15. Computer Use Agent','/ai-agents/ai-agents-15-cua/']
   ];
 
+  const practiceLessons = [
+    ['續保流失風險：時間序列分類實作', '/statistics/practice-07-renewal-churn']
+  ];
+
   const normalize = p => (p.replace(/index\.html$/, '').replace(/\/$/, '') || '/');
   const current = normalize(location.pathname);
   const nav = lessons.map(([section, label, href]) =>
     `${section ? `<div class="study-sidebar__section">${section}</div>` : ''}<a class="study-nav-link" href="${href}" ${normalize(href) === current ? 'aria-current="page"' : ''}>${label}</a>`
+  ).join('') + `<div class="study-sidebar__section">實務練習</div>` + practiceLessons.map(([label, href]) =>
+    `<a class="study-nav-link" href="${href}" ${normalize(href) === current ? 'aria-current="page"' : ''}>${label}</a>`
   ).join('');
 
   document.body.classList.add('has-study-sidebar');
@@ -102,7 +108,8 @@
   const search = document.querySelector('.study-search');
   const searchInput = search.querySelector('input');
   const results = search.querySelector('.study-results, .study-search__results');
-  const catalog = lessons.map(([sec, label, href]) => ({ href: location.origin + href, label: (sec ? sec + '｜' : '') + label }));
+  const catalog = lessons.map(([sec, label, href]) => ({ href: location.origin + href, label: (sec ? sec + '｜' : '') + label }))
+    .concat(practiceLessons.map(([label, href]) => ({ href: location.origin + href, label: '實務練習｜' + label })));
   const contentLinks = [...document.querySelectorAll('a[href]')]
     .filter(a => a.href.startsWith(location.origin) && a.textContent.trim().length > 2)
     .map(a => ({ href: a.href, label: a.textContent.trim().replace(/\s+/g, ' ').slice(0, 120) }));

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#fefaf6">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>實務練習 07：保單續保流失風險 — DKY Learn</title>
+<meta name="description" content="使用固定亂數種子的合成保單資料，練習時間序列切分、訓練集標準化、邏輯斯迴歸、驗證集閾值選擇與一次性測試評估。">
+<link rel="canonical" href="https://learn.dky.tw/statistics/practice-07-renewal-churn">
+<link rel="stylesheet" href="../course.css">
+<link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js" defer></script>
+<style>
+.download-panel{display:flex;flex-wrap:wrap;gap:.75rem;margin:0 0 1.5rem}
+.download-link{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:.7rem 1rem;border:1px solid var(--warm-border,var(--border));border-radius:8px;background:var(--warm-surface,var(--card));color:var(--warm-accent-dark,var(--accent))!important;font-weight:700;text-align:center}
+.section-nav{flex-wrap:wrap;align-items:center;gap:.75rem}
+.section-nav a,footer a{display:inline-flex;align-items:center;min-height:44px}
+.download-link:focus-visible,.section-nav a:focus-visible{outline:3px solid #d79567;outline-offset:3px}
+.download-note{flex-basis:100%;margin:.1rem 0 0;color:var(--warm-muted,var(--fg-muted));font-size:.88rem}
+.field-list{padding-left:1.4rem}
+.field-list li{margin:.4rem 0}
+.table-scroll{overflow-x:auto;margin:1rem 0}
+.table-scroll table{min-width:700px}
+.checklist li,.steps li{margin:.45rem 0}
+@media(max-width:600px){.download-panel{display:grid;grid-template-columns:1fr}.download-link{width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <h1>實務練習 07：保單續保流失風險</h1>
+  <div class="meta"><span>獨立實務練習（非 ISLP 章節）</span><span>⏱️ 約 45–60 分鐘</span><span>純合成資料</span></div>
+  <div class="tags" aria-label="練習主題"><span class="tag">時間序列切分</span><span class="tag">邏輯斯迴歸</span><span class="tag">分類評估</span></div>
+</header>
+
+<section class="download-panel" aria-label="下載練習檔案">
+  <a class="download-link" href="/statistics/policy-renewal-churn.ipynb" download="policy-renewal-churn.ipynb">下載 Jupyter Notebook（policy-renewal-churn.ipynb）</a>
+  <a class="download-link" href="/statistics/policy-renewal-churn-package.zip" download="policy-renewal-churn-package.zip">下載程式套件（policy-renewal-churn-package.zip）</a>
+  <p class="download-note">Notebook 適合逐段閱讀與執行；ZIP 包含標準函式庫程式、測試、執行說明及範例輸出，不需安裝第三方套件。</p>
+</section>
+
+<nav class="section-nav" aria-label="課程導覽"><a href="/statistics/">← 回統計學習課程</a><span>獨立實務練習，不計入 43 堂主線課程</span></nav>
+
+<main>
+  <section aria-labelledby="goal">
+    <h2 id="goal">練習目標與可觀察成果</h2>
+    <p>你將使用 300 筆固定亂數種子產生的虛構資料，建立一個辨識「預測時點後 30 天內未續保」的二元分類示範。完成後，你應能：</p>
+    <ul>
+      <li>按時間先後切分訓練、驗證與測試資料，並說明為何不能隨機打散。</li>
+      <li>只從訓練集估計特徵平均數與標準差，再將同一組參數套用至驗證集和測試集。</li>
+      <li>以訓練集擬合邏輯斯迴歸，並只依驗證集 F1 選分類閾值。</li>
+      <li>在測試集只做一次最終評估，解讀混淆矩陣、precision、recall、F1 與 Brier score 的意義和限制。</li>
+    </ul>
+    <div class="callout"><strong>重要界線：</strong>模型輸出只可作為人工客服安排關懷順序的教學示範，不得用來決定保費、核保、理賠或任何個人權益。這些合成結果不代表真實續保效益，也不能證明模型在真實資料上的表現。</div>
+  </section>
+
+  <section aria-labelledby="data">
+    <h2 id="data">欄位與時間範圍</h2>
+    <p>附件以固定亂數種子 <code>20261007</code> 產生 10 個月份、每月 30 筆觀測，共 300 筆；時間標記是合成資料中的月份索引，不對應任何真實日期或保戶。目標標籤 <code>churn</code> 表示該筆觀測的預測時點之後 30 天內是否未續保。</p>
+    <ul class="field-list">
+      <li><code>premium_change</code>：合成的保費調整幅度特徵；數值單位沿用附件的合成設定。</li>
+      <li><code>contacts_90d</code>：截至預測時點之前 90 天內的客服聯絡次數。不可使用預測時點之後才發生的聯絡，否則會洩漏未來資訊。</li>
+      <li><code>tenure_years</code>：截至預測時點的保單年資（年）。</li>
+      <li><code>churn</code>：預測時點後 30 天內未續保的二元標籤；只作為訓練與離線評估的答案。</li>
+    </ul>
+    <p>依原始時間順序切分：月份索引 0–5 的前 180 筆為 train、6–7 的 60 筆為 validation、8–9 的最後 60 筆為 test，不洗牌。這個順序讓測試資料代表較晚的合成時間窗；附件刻意讓不同月份的保費調整分布改變，供觀察可能的資料漂移。</p>
+  </section>
+
+  <section aria-labelledby="workflow">
+    <h2 id="workflow">實作流程</h2>
+    <ol class="steps">
+      <li><strong>檢查資料與標籤：</strong>確認 300 筆、欄位定義及標籤時間窗；先辨認任何可能在預測時點後才可取得的資料。</li>
+      <li><strong>依時間切分：</strong>保留原始列順序，切成 train/valid/test = 180/60/60；不要隨機切分或把未來樣本混入訓練資料。</li>
+      <li><strong>估計標準化參數：</strong>只用 train 計算三個特徵的平均數與標準差。valid/test 只能套用 train 得到的數值，不能各自重新計算 scaler。</li>
+      <li><strong>訓練模型：</strong>只以標準化後的 train 訓練邏輯斯迴歸；同時建立 baseline，以訓練集正例率作為每筆測試資料的預測機率。</li>
+      <li><strong>選擇閾值：</strong>用模型對 valid 產生的機率比較候選閾值，依 validation F1 選擇。閾值與其他設定到此為止；不可查看 test 結果後再調整。</li>
+      <li><strong>一次性最終評估：</strong>將已選定的模型與閾值套用至 test 一次，計算混淆矩陣、precision、recall、F1 和 Brier score，並記錄限制。</li>
+    </ol>
+    <div class="callout"><strong>防止資料洩漏：</strong>Scaler 僅 fit 在 train；valid/test 僅 transform。閾值僅由 validation 選定；test 不參與選擇或調參。<code>contacts_90d</code> 的觀察窗必須完全截止於預測時點之前。</div>
+  </section>
+
+  <section aria-labelledby="metrics">
+    <h2 id="metrics">如何解讀指標</h2>
+    <ul>
+      <li><strong>閾值：</strong>將預測機率轉成「是否列入關懷排序」的操作界線；降低閾值通常會找出更多正例，也可能增加誤報。0.25 是本合成附件在 validation 上依 F1 選出的示例，不是通用或營運建議。</li>
+      <li><strong>Precision：</strong>被模型列為正例的觀測中，實際正例所占比例；低 precision 代表需要留意誤報帶來的客服工作量。</li>
+      <li><strong>Recall：</strong>所有實際正例中被模型找出的比例；低 recall 代表較多正例未被排序出來。</li>
+      <li><strong>F1：</strong>precision 與 recall 的調和平均，會隨閾值改變；它不包含誤報、漏報的實際成本，也不應脫離應用情境單獨決定流程。</li>
+      <li><strong>Brier score：</strong>預測機率與二元標籤的平均平方誤差，數值越低代表此測試樣本上的平方誤差較小；單一 Brier 數值不能證明機率已校準，仍需可靠度圖、分群檢查與外部驗證。</li>
+    </ul>
+    <div class="table-scroll" role="region" aria-label="合成測試集示範結果表，可水平捲動" tabindex="0">
+      <table class="comparison-table">
+        <caption>附件固定亂數種子所產生的合成測試集示例（60 筆；不可視為真實績效）</caption>
+        <thead><tr><th scope="col">方法</th><th scope="col">閾值</th><th scope="col">TP</th><th scope="col">FP</th><th scope="col">FN</th><th scope="col">TN</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col">F1</th><th scope="col">Brier</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Baseline（訓練集正例率機率）</th><td>0.50</td><td>0</td><td>0</td><td>12</td><td>48</td><td>0.000</td><td>0.000</td><td>0.000</td><td>0.160</td></tr>
+          <tr><th scope="row">邏輯斯迴歸</th><td>0.25</td><td>12</td><td>32</td><td>0</td><td>16</td><td>0.273</td><td>1.000</td><td>0.429</td><td>0.157</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>此固定示例的正例數為 train/valid/test = 32/18/12，test 平均 <code>premium_change</code> 為 0.165；validation 最佳 F1 為 0.522，據此選出的閾值為 0.25。模型在 test 捕捉到全部 12 個正例，但同時有 32 個 FP；不可只憑 recall=1.000 就說模型適合實務使用。測試集來自較晚的合成時間窗，分布變化也可能影響表現。</p>
+    <p><strong>限制：</strong>以上數字來自固定亂數種子的合成資料與單次時間切分，不代表真實世界泛化能力或續保成效。Brier score 0.157 略低於此例 baseline 的 0.160，也不能單獨證明校準良好。</p>
+  </section>
+
+  <section aria-labelledby="self-check">
+    <h2 id="self-check">自我驗收</h2>
+    <ul class="checklist">
+      <li>我保留時間順序，並使用 180/60/60 的 train/valid/test 切分。</li>
+      <li>我只用 train fit scaler，沒有用 valid/test 統計量重算平均或標準差。</li>
+      <li>我的 <code>contacts_90d</code> 只涵蓋預測時點之前的 90 天。</li>
+      <li>我只在 validation 依 F1 選閾值，test 沒有用來調參，且只做一次最終評估。</li>
+      <li>我能分辨 FP、FN、precision、recall、F1 和 Brier，並說明單次合成結果的限制。</li>
+      <li>我能清楚說明模型僅供人工客服排序示範，不會決定保費、核保或理賠。</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="extensions">
+    <h2 id="extensions">延伸思考</h2>
+    <ol>
+      <li>若誤報會大量占用客服容量，應如何在 validation 上比較其他閾值或成本導向指標？採用前還需要哪些實際成本資料與人工審核？</li>
+      <li>若月份較晚時 <code>premium_change</code> 分布改變，如何用多個時間窗的回測、監控與重新驗證來評估漂移，而不是只依賴一次 test？</li>
+      <li>若要檢查機率是否可信，你會補上哪些可靠度圖、分群評估與外部驗證？有哪些資料治理、授權、去識別與存取控制前提？</li>
+    </ol>
+  </section>
+</main>
+
+<footer>獨立實務練習 · 資料及示例結果均為合成虛構內容 · <a href="/statistics/">回統計學習課程</a></footer>
+</body>
+</html>
