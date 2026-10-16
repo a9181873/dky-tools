@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fefaf6">
+<title>Stanford CME 295（2025）九講導讀：從 Transformer 到 Agent — 學習中心</title>
+<meta name="description" content="依 Stanford CME 295 2025 九份官方投影片整理的繁體中文導讀：Transformer、LLM 訓練與微調、推理、Agent、評估及趨勢，附逐講來源與版本界線。">
+<meta property="og:title" content="Stanford CME 295（2025）九講導讀：從 Transformer 到 Agent">
+<meta property="og:description" content="用一條概念路線理解 Stanford CME 295 2025：模型如何讀寫文字、訓練與推理，如何接工具及如何被評估。">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://learn.dky.tw/research/stanford-cme295-2025">
+<link rel="canonical" href="https://learn.dky.tw/research/stanford-cme295-2025">
+<link rel="stylesheet" href="../warm-theme.css">
+<script src="../sidebar.js?v=812977f" defer></script>
+<style>
+:root{--page-bg:var(--warm-bg,#fefaf6);--page-surface:var(--warm-surface,#fef9f4);--page-strong:var(--warm-surface-strong,#f8efe5);--page-border:var(--warm-border,#e6d5c0);--page-text:var(--warm-text,#3b2a1a);--page-muted:var(--warm-muted,#8b6f50);--page-accent:var(--warm-accent,#a0522d);--page-accent-dark:var(--warm-accent-dark,#71391f);--page-good:var(--warm-success,#5f7b50)}
+*{box-sizing:border-box}html{background:var(--page-bg)}body{margin:0 auto;max-width:940px;padding:2.5rem 2rem 5rem;background:var(--page-bg);color:var(--page-text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",sans-serif;line-height:1.85}main{max-width:900px}header{border-bottom:1px solid var(--page-border);padding-bottom:1.2rem}.kicker{margin:0 0 .45rem;color:var(--page-accent);font-size:.8rem;font-weight:700;letter-spacing:.04em}h1{margin:0;color:var(--page-accent-dark);font-size:clamp(1.55rem,4vw,2.1rem);line-height:1.4}.meta{margin:.65rem 0 0;color:var(--page-muted);font-size:.88rem}.scope{margin:1rem 0 0;padding:.8rem 1rem;border-left:3px solid var(--page-border);background:var(--page-surface);color:var(--page-muted);font-size:.88rem}.one-liner{margin:1.35rem 0;padding:1rem 1.15rem;border-left:4px solid var(--page-good);border-radius:0 8px 8px 0;background:#f4f7ed;color:#435936}.one-liner strong{color:#435936}.route,.lesson,.card{margin:1rem 0;padding:1.1rem 1.2rem;border:1px solid var(--page-border);border-radius:9px;background:var(--page-surface)}.route h2,.lesson h2,.card h2{margin:0 0 .55rem;padding:0;border:0;font-size:1.18rem}.route ol,.route ul{margin:.4rem 0;padding-left:1.4rem}.route li{margin:.2rem 0}.lesson h2{color:var(--page-accent-dark)}h3{margin:1rem 0 .35rem;color:var(--page-accent-dark);font-size:1rem}p{margin:.65rem 0}ul{padding-left:1.35rem}.lesson p:last-child{margin-bottom:0}.takeaway{padding:.65rem .8rem;border-left:3px solid var(--page-accent);background:var(--page-strong)}.source-note{color:var(--page-muted);font-size:.82rem}.source-note a,.sources a, a{color:var(--page-accent)}a:hover{color:var(--page-accent-dark)}a:focus-visible{outline:3px solid #d79567;outline-offset:3px}.terms{width:100%;border-collapse:collapse;font-size:.9rem}.terms th,.terms td{padding:.55rem .65rem;border:1px solid var(--page-border);text-align:left;vertical-align:top}.terms th{background:var(--page-strong);color:var(--page-accent-dark)}.terms td{background:var(--page-surface)}.sources{font-size:.84rem}.sources li{margin:.55rem 0}footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--page-border);color:var(--page-muted);font-size:.82rem}@media(max-width:768px){body{padding:1.1rem 1rem 4rem}.route,.lesson,.card{padding:1rem}}
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">課程導讀／Transformer 與大型語言模型</p>
+  <h1>Stanford CME 295（2025）九講導讀：從 Transformer 到 Agent</h1>
+  <p class="meta">適合已具機器學習與線性代數基礎、想建立 LLM 全貌的讀者 · 繁體中文原創整理</p>
+  <p class="scope">正文以 Stanford CME 295 2025 官方投影片 PDF 為逐講證據；YouTube 清單只核對九講名稱與順序，未完整觀看影片或取得逐字稿，故本文是投影片導讀，不是逐字摘要。版本說明見文末。</p>
+</header>
+<main>
+  <section class="one-liner"><strong>先抓住整門課的主線：</strong>文字先被切成 token，再由 Transformer 建立上下文表示；大語言模型靠預訓練學會延續文字，接著可經微調調整行為。推理是在作答前投入額外計算；RAG 補進外部資料，工具呼叫讓模型請外部系統執行動作，Agent 把多步驟組成可觀察的迴圈；最後還要用合適的評估方式判斷輸出與系統是否真的達標。</section>
+
+  <section class="route" aria-label="閱讀路線">
+    <h2>建議閱讀路線</h2>
+    <p>若重點是搭建或評估 Agent，可先讀第 7 講（架構）、第 8 講（評估），再看第 6 講（推理）；完整建立基礎則依第 1 至第 9 講閱讀。這是概念地圖，不是官方課程重排。</p>
+    <ol>
+      <li><a href="#lecture-1">表示：token、向量與注意力</a> → <a href="#lecture-2">架構：位置、正規化與模型家族</a></li>
+      <li><a href="#lecture-3">生成：MoE、解碼與推論效率</a> → <a href="#lecture-4">訓練：預訓練、平行化與微調</a> → <a href="#lecture-5">偏好：RLHF、PPO 與 DPO</a></li>
+      <li><a href="#lecture-6">推理：測試時計算與可驗證獎勵</a> → <a href="#lecture-7">Agent：RAG、工具與行動迴圈</a> → <a href="#lecture-8">評估：指標、裁判模型與基準</a> → <a href="#lecture-9">延伸：視覺、擴散式 LLM 與趨勢</a></li>
+    </ol>
+  </section>
+
+  <article class="lesson" id="lecture-1">
+    <h2>第 1 講｜Transformer：從文字到上下文表示</h2>
+    <p><strong>核心概念。</strong>課程以分類、命名實體辨識、翻譯與生成引入 NLP，再走過 tokenization、詞向量、RNN／LSTM、注意力與 Transformer。子詞切分可降低未見詞問題，但不一定符合人的詞語直覺。Word2vec 與 RNN／LSTM 提供脈絡；自注意力以 Query、Key、Value 建立 token 關聯，Transformer 將其堆疊並平行運算。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>模型不是直接「讀懂句子」；它先把離散文字轉成向量，再依上下文更新各 token 的表示，並以逐 token 預測完成生成。</p>
+    <p><strong>常見誤解與應用映射。</strong>向量相近不等於完整理解，注意力權重也不是解釋證明。整理合成客服留言時，先區分分類（情緒／意圖）和生成（摘要／回覆），再選輸出與評估方式。</p>
+    <p class="source-note">投影片依據：tokenization、詞表示與 Transformer 流程，第 28–33、37–49、51–89、90–134 頁。<a href="#source-1">原始來源 [1]</a> · <a href="https://www.youtube.com/watch?v=Ub3GoFaUcds" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <article class="lesson" id="lecture-2">
+    <h2>第 2 講｜Transformer 模型與技巧：補位置、顧穩定、降成本</h2>
+    <p><strong>核心概念。</strong>注意力不會自動保留 token 順序，因此需加入位置資訊；投影片比較絕對位置嵌入、相對偏置與旋轉位置嵌入（RoPE），並說明正規化的穩定作用。長序列與記憶體限制帶來稀疏注意力、共享 Key／Value 的 MQA／GQA。後半以 BERT 對照 encoder-only、decoder-only、encoder-decoder 模型，並介紹遮蔽語言模型與下游微調。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>模型架構的「技巧」不是裝飾；它們是在序列長度、表達能力、訓練穩定與計算／記憶體成本之間取捨。</p>
+    <p><strong>常見誤解與應用映射。</strong>RoPE 或長上下文不等於可靠長期記憶，也不保證長文件資訊都同樣有效。處理合成政策文件時，先分辨全文理解、分類或生成，再確認上下文限制；最大支援長度不等於可用證據範圍。</p>
+    <p class="source-note">投影片依據：位置表示與 RoPE 第 12–35 頁、正規化第 37–44 頁、注意力變體第 46–54 頁、BERT 與 encoder-only 第 62–108 頁。<a href="#source-2">原始來源 [2]</a> · <a href="https://www.youtube.com/watch?v=yT84Y5zCnaA" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <article class="lesson" id="lecture-3">
+    <h2>第 3 講｜大型語言模型：模型家族、生成與推論效率</h2>
+    <p><strong>核心概念。</strong>課程把 LLM 描述為以 Transformer 為基礎、透過預測 token 機率生成文字的模型，並介紹混合專家（MoE）：路由器依 token 選擇部分專家運算，省下每一步啟用所有參數的成本，但也帶來路由不平衡等訓練難題。生成方面，greedy、beam search 與抽樣是不同解碼策略；temperature、top-k／top-p 改變候選分布與多樣性，受限解碼則讓輸出遵守指定結構。後段看 KV cache、GQA、PagedAttention、speculative decoding 與多 token 預測等效率方法。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>同一組模型權重，解碼策略與推論架構不同，輸出的穩定性、格式、延遲與資源需求也會不同。</p>
+    <p><strong>常見誤解與應用映射。</strong>合法 JSON 不代表欄位正確；MoE 總參數也不等於每個 token 都運算全部參數。從合成理賠文件抽欄位時，格式約束與原文證據要分開驗證，再依品質需求選擇解碼方式。</p>
+    <p class="source-note">投影片依據：MoE 第 17–31 頁、解碼與結構化輸出第 33–75 頁、推論效率第 87–124 頁。<a href="#source-3">原始來源 [3]</a> · <a href="https://www.youtube.com/watch?v=Q5baLehv5So" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <article class="lesson" id="lecture-4">
+    <h2>第 4 講｜LLM 訓練：預訓練、系統效率與監督式微調</h2>
+    <p><strong>核心概念。</strong>預訓練以大量文字與程式碼學習下一 token 預測，讓模型形成通用語言能力；它不是替某個單一任務寫好的規則。課程接著談資料／模型平行化、ZeRO、FlashAttention 與混合精度等訓練系統技巧，最後介紹監督式微調（SFT）如何以示範輸出改變模型行為，以及 LoRA／QLoRA 如何只訓練低秩增量、或量化凍結權重來降低微調資源門檻。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>預訓練建立廣泛的續寫能力，SFT 讓模型模仿指定任務的示範；兩者資料、目標與成本都不同。</p>
+    <p><strong>常見誤解與應用映射。</strong>微調不會自動補進新文件，也不保證未見情境可靠；LoRA 仍需訓練。固定合成摘要格式可先整理示範與驗收，再評估 SFT；需更新事實則用檢索，不要硬寫入權重。</p>
+    <p class="source-note">投影片依據：預訓練與 scaling 第 14–27 頁、訓練平行化與 FlashAttention 第 29–81 頁、SFT 與任務行為第 84–102 頁、LoRA／QLoRA 第 106–127 頁。<a href="#source-4">原始來源 [4]</a> · <a href="https://www.youtube.com/watch?v=VlA_jt_3Qc4" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <article class="lesson" id="lecture-5">
+    <h2>第 5 講｜LLM 調整：偏好資料、RLHF 與 DPO</h2>
+    <p><strong>核心概念。</strong>當「像示範那樣回答」不足以表達偏好時，可收集同一提示下較佳與較差的回答。RLHF 通常先用偏好比較訓練獎勵模型，再透過強化學習（投影片以 PPO 為例）更新語言模型，並限制它不要偏離基礎模型太遠。DPO 則把偏好目標改寫成較直接的監督式最佳化，不必分開訓練同一種獎勵模型；Best-of-N 是推論時生成多個候選、再按分數挑選的另一種路徑。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>偏好調整的品質上限受偏好資料與評分方式牽制；演算法不能替有偏或含糊的標註背書。</p>
+    <p><strong>常見誤解與應用映射。</strong>DPO 仍依賴偏好資料；PPO 也非加獎勵就能安全對齊。改善合成文件問答的語氣或拒答行為時，先建立成對範例並確認標註準則，再選偏好調整或提示／SFT。</p>
+    <p class="source-note">投影片依據：偏好資料第 15–21 頁、RLHF／獎勵模型與 PPO 第 31–82 頁、Best-of-N 與 DPO 第 83–107 頁。<a href="#source-5">原始來源 [5]</a> · <a href="https://www.youtube.com/watch?v=PmW_TMQ3l0I" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <article class="lesson" id="lecture-6">
+    <h2>第 6 講｜LLM 推理：把更多計算留給難題</h2>
+    <p><strong>核心概念。</strong>鏈式思考（Chain-of-Thought）把中間步驟納入解題，推理模型則增加作答前的測試時計算。對數學答案或程式測試等可驗證任務，可用結果正確性作強化學習獎勵；GRPO 以同題候選的相對表現估計優勢，並與 PPO 比較。投影片亦談長度膨脹、探索多樣性及 R1 訓練與蒸餾。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>增加作答時的計算能擴大搜尋與驗證機會，但「輸出更長」和「推理正確」不是同一件事。</p>
+    <p><strong>常見誤解與應用映射。</strong>推理文字不等於可驗證的內在思考。分析合成報表時，可由檢查器驗算、模型提出解釋，再以數據核對；只有可自動驗證的部分適合直接當獎勵，開放式判斷仍需評審。</p>
+    <p class="source-note">投影片依據：推理概念與 benchmark 第 16–47 頁、測試時計算與獎勵第 49–67 頁、GRPO／R1 訓練與蒸餾第 69–147 頁。<a href="#source-6">原始來源 [6]</a> · <a href="https://www.youtube.com/watch?v=k5Fh-UgTuCo" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <article class="lesson" id="lecture-7">
+    <h2>第 7 講｜Agentic LLM：檢索、工具呼叫與行動迴圈</h2>
+    <p><strong>核心概念。</strong>RAG（檢索增強生成）從知識庫找資料、排序，再把片段放進提示；召回率與精確率服務於不同階段。工具呼叫依描述選 API、填參數，由系統執行並回傳。Agent 把觀察、規劃、行動串成迴圈；ReAct 展示推理與行動交替，MCP 連接模型與工具／資料，A2A 探索 Agent 協作，並伴隨安全風險。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>RAG 是「找資料並帶入上下文」，工具呼叫是「請外部功能執行」，Agent 是「組織多步驟目標與狀態」；三者可以組合，但不是同義詞。</p>
+    <p><strong>常見誤解與應用映射。</strong>找到文件不代表答案有根據，工具成功也不代表回傳正確；Agent 可能選錯工具、參數或越權。合成資料助理可先只讀取表格並列出依據，寫入或寄送等副作用則要求人確認。2025 本講聚焦 RAG、工具與 Agent，不挪用新版材料。</p>
+    <p class="source-note">投影片依據：RAG 與 retrieval/ranking 第 20–76 頁、工具呼叫與 MCP 第 80–115 頁、Agent／ReAct／A2A 與安全第 116–150 頁。<a href="#source-7">原始來源 [7]</a> · <a href="https://www.youtube.com/watch?v=h-7S6HNq0Vg" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <article class="lesson" id="lecture-8">
+    <h2>第 8 講｜LLM 評估：從回答品質到系統可靠性</h2>
+    <p><strong>核心概念。</strong>評估分為輸出品質（遵循指令、事實性）與系統表現（延遲、費用、可靠性）。BLEU、ROUGE、METEOR 可重複計算，但可能漏掉改寫與語境；LLM-as-a-Judge 可按準則評分，卻有位置、冗長與自我偏好偏差，需清楚規準並抽樣人工校準。Agent 評估要定位工具、參數、回傳或最終答覆的失敗；基準依知識、推理、程式、安全或 Agent 任務選用，並留意資料污染與 Goodhart 效應。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>指標是目標某個面的投影，不是「模型整體好壞」的單一真相；先定義任務，再選對量尺。</p>
+    <p><strong>常見誤解與應用映射。</strong>LLM 評審不是人工真值，也不是把主觀判斷變客觀；benchmark 高分也可能受訓練資料污染或測試條件影響。若比較合成文件問答系統，應分開量測答案正確與引用支持、工具流程成功、失敗復原及延遲，再用人工作為抽查基準，不能只看單一總分。</p>
+    <p class="source-note">投影片依據：評估範圍與規則式指標第 9–37 頁、LLM 裁判與偏差第 39–95 頁、Agent 故障模式第 97–136 頁、基準與限制第 137–168 頁。<a href="#source-8">原始來源 [8]</a> · <a href="https://www.youtube.com/watch?v=8fNP4N46RRo" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <article class="lesson" id="lecture-9">
+    <h2>第 9 講｜回顧與趨勢：Transformer 的邊界之外</h2>
+    <p><strong>核心概念。</strong>前段回顧全課，再說明 Transformer 延伸至視覺：Vision Transformer 將影像切成 patch 序列，視覺語言模型把圖像表示接入語言模型。擴散式語言模型則以遮罩和多輪去遮罩生成文字，不同於自回歸逐 token 生成。課程也談基礎研究、硬體／品質成本取捨與幻覺挑戰。</p>
+    <p class="takeaway"><strong>帶走一句：</strong>新架構帶來新的生成與效率取捨；應先問它改善哪種任務、付出哪些成本，而不是只追逐新名稱。</p>
+    <p><strong>常見誤解與應用映射。</strong>介紹新架構不等於證明它全面勝過自回歸模型，課堂觀察也不是今日市場定論。評估多模態文件助理時，先拆分頁面辨識、文字引用與問答，再比較適配性和資源需求。</p>
+    <p class="source-note">投影片依據：ViT／VLM 第 43–69 頁、擴散式 LLM 第 71–98 頁、趨勢與未解問題第 100–124 頁。<a href="#source-9">原始來源 [9]</a> · <a href="https://www.youtube.com/watch?v=Q86qzJ1K1Ss" target="_blank" rel="noopener noreferrer">影片播放入口</a></p>
+  </article>
+
+  <section class="card" id="distinctions">
+    <h2>五個容易混在一起的概念</h2>
+    <div style="overflow-x:auto"><table class="terms"><thead><tr><th>概念</th><th>主要改變什麼</th><th>不等於什麼</th></tr></thead><tbody>
+      <tr><td>微調</td><td>以示範或偏好資料調整模型權重／行為。</td><td>不是即時查資料，也不保證知識永遠最新。</td></tr>
+      <tr><td>RAG</td><td>每次任務檢索外部證據並置入上下文。</td><td>不會因此自動修改模型權重；檢索結果也未必正確。</td></tr>
+      <tr><td>工具呼叫</td><td>模型提出工具名稱與參數，由外部執行並回傳結果。</td><td>不是單純把文件貼進提示，也不是工具本身的正確性保證。</td></tr>
+      <tr><td>記憶</td><td>一般系統設計中的持續狀態／歷史資訊管理。</td><td>不等於當次 RAG 檢索。2025 投影片雖談 KV cache 等運算記憶體，未把 Agent 的持續記憶列為獨立主題。</td></tr>
+      <tr><td>模型／系統評估</td><td>模型評估看輸出能力；系統評估也看流程、成本、延遲與可靠性。</td><td>不是 Agent 內的一個工具，也不能以單一 benchmark 代表全貌。</td></tr>
+    </tbody></table></div>
+    <p>這些元件可以組合，但需分別記錄輸入、輸出與失敗原因：檢索漏資料、模型未呼叫工具、工具回錯或微調退化，都是不同診斷項目。</p>
+  </section>
+
+  <section class="card" id="versions">
+    <h2>2025／2026 版次提醒</h2>
+    <p>2025 清單依序為 Transformer、Transformer tricks、LLM、Training、Tuning、Reasoning、Agentic LLMs、Evaluation、Recap。第 6／7／8 講分別是推理、Agent、評估。2026 課綱把 Agent 列第 6 講、Evaluation 列第 7 講，另有第 8 講 Diffusion LLMs，並把記憶／檢索納入新版 Agent 主題；兩年內容不可按講次互換。<a href="#source-10">清單與順序 [10]</a><a href="#source-11">2026 課綱 [11]</a></p>
+    <p>因此，本文只把實際讀到的 2025 投影片當逐講證據；2026 課綱只用於版本比較，不能拿來補寫 2025 未涵蓋的內容。建議選讀順序「7 → 8 → 6」是本文依應用問題提出的路線，不是 Stanford 官方安排。</p>
+  </section>
+
+  <section class="card sources" id="sources">
+    <h2>來源與證據範圍</h2>
+    <ol>
+      <li id="source-1"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture1.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 1 投影片 PDF</a> — NLP 任務、tokenization、詞表示、RNN／LSTM、注意力與 Transformer（本頁引用頁碼見第 1 講）。</li>
+      <li id="source-2"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture2.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 2 投影片 PDF</a> — 位置表示、正規化、注意力變體、BERT 與 encoder-only 模型。</li>
+      <li id="source-3"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture3.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 3 投影片 PDF</a> — LLM／MoE、解碼、受限輸出與推論最佳化。</li>
+      <li id="source-4"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture4.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 4 投影片 PDF</a> — 預訓練、平行化、FlashAttention、SFT、LoRA／QLoRA。</li>
+      <li id="source-5"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture5.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 5 投影片 PDF</a> — 偏好資料、RLHF、PPO、Best-of-N 與 DPO。</li>
+      <li id="source-6"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture6.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 6 投影片 PDF</a> — 推理模型、測試時計算、GRPO、R1 訓練與蒸餾。</li>
+      <li id="source-7"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture7.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 7 投影片 PDF</a> — RAG、檢索與排序、工具呼叫、MCP、Agent、ReAct、A2A 與安全。</li>
+      <li id="source-8"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture8.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 8 投影片 PDF</a> — 評估範圍、規則式指標、LLM-as-a-Judge、Agent 故障與 benchmarks。</li>
+      <li id="source-9"><a href="https://cme295.stanford.edu/slides/fall25-cme295-lecture9.pdf" target="_blank" rel="noopener noreferrer">Stanford CME 295，Fall 2025 Lecture 9 投影片 PDF</a> — ViT／VLM、擴散式 LLM、趨勢與限制。</li>
+      <li id="source-10"><a href="https://www.youtube.com/playlist?list=PLoROMvodv4rOCXd21gf0CF4xr35yINeOy" target="_blank" rel="noopener noreferrer">Stanford Online：CME295 Autumn 2025 官方播放清單</a> — 核對播放清單標題、九支影片名稱與順序；頁面擷取的播放器內容回應 401，因此不作為影片逐字內容證據。</li>
+      <li id="source-11"><a href="https://cme295.stanford.edu/syllabus/" target="_blank" rel="noopener noreferrer">Stanford CME 295 官方現行課綱（2026）</a> — 僅用來說明新版講次調整與課程主題差異。</li>
+    </ol>
+    <p>LinkedIn 貼文僅是推薦線索，不是九講內容來源。本文依官方 PDF 文字層與頁面整理，未重製投影片全文；影片連結只作播放入口。</p>
+  </section>
+</main>
+<footer><a href="/research/">← 回延伸閱讀</a>　·　<a href="/">回學習中心</a>　·　本文為課程導讀，不是官方教材或 Stanford 背書。</footer>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
