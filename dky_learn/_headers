@@ -4,6 +4,9 @@
 /sw.js
   Cache-Control: no-cache
 
+/sidebar.js
+  Cache-Control: no-cache
+
 /assets/sidebar.js
   Cache-Control: no-cache
 

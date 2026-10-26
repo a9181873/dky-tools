@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSON 格式正確，不代表 Agent 有權執行：四道輸出驗證閘門</title>
+<meta name="description" content="從完整解析、結構、業務語意到授權逐層驗證 LLM 結構化輸出，附可在 Python 標準庫執行的合成退款提案範例。">
+<link rel="canonical" href="https://learn.dky.tw/research/structured-output-untrusted-contract">
+<meta property="og:title" content="JSON 格式正確，不代表 Agent 有權執行：四道輸出驗證閘門">
+<meta property="og:description" content="從完整解析、結構、業務語意到授權逐層驗證 LLM 結構化輸出，附可在 Python 標準庫執行的合成退款提案範例。">
+<meta property="og:url" content="https://learn.dky.tw/research/structured-output-untrusted-contract">
+<link rel="stylesheet" href="../warm-theme.css">
+<style>
+:root{color-scheme:light}body.has-study-sidebar{max-width:980px;margin-right:auto!important;padding:1.5rem!important}main{max-width:900px;margin:0 auto;padding:0 1rem 4rem}header{margin:1rem 0 1.6rem;padding:1.2rem 1.35rem;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:14px}.meta{font-size:.85rem}.lead{font-size:1.1rem;line-height:1.75}section{margin:2.3rem 0}h1{font-size:clamp(1.65rem,4vw,2.4rem)}h2{margin-top:2.2rem;padding-bottom:.3rem;border-bottom:1px solid var(--warm-border)}h3{margin-top:1.6rem}.section-nav{display:flex;flex-wrap:wrap;gap:.55rem;padding:.8rem;border:1px solid var(--warm-border);border-radius:10px}.section-nav a{display:inline-flex;align-items:center;min-height:44px;padding:.3rem .65rem;border-radius:7px;text-decoration:none}.section-nav a:hover{background:var(--warm-surface-strong)}.table-wrap{max-width:100%;overflow-x:auto;border:1px solid var(--warm-border);border-radius:8px}table{border-collapse:collapse;min-width:680px;width:100%}th,td{text-align:left;vertical-align:top;padding:.65rem .75rem;border:1px solid var(--warm-border)}pre.code-block{max-width:100%;overflow-x:auto;white-space:pre;padding:1rem;border-radius:9px;line-height:1.55}pre code{display:block;white-space:pre;min-width:max-content}.citation{font-size:.78em;white-space:nowrap}.sources li{overflow-wrap:anywhere;margin:.4rem 0}.backlinks{display:flex;gap:.6rem;flex-wrap:wrap;padding:1rem 0;border-top:1px solid var(--warm-border)}a{min-height:24px}@media(max-width:768px){body.has-study-sidebar{padding:.8rem!important}main{padding:0 .2rem 4rem}header{padding:1rem}.table-wrap{margin-right:-.1rem}pre.code-block{font-size:.82rem;padding:.75rem}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+<script src="../sidebar.js?v=20261026-74" defer></script>
+</head>
+<body>
+<div id="sidebar"></div>
+<main id="main-content">
+<header><p class="meta">AI 工程實作筆記 · Python 標準庫 · 合成資料 · 本頁程式已於 ARM64 Linux / Python 3.13.5 實跑</p><h1>JSON 格式正確，不代表 Agent 有權執行：四道輸出驗證閘門</h1><p class="lead">結構化輸出（依固定欄位格式產生的模型回答）能讓答案更像表單；它不能替你確認內容為真，也不能替使用者取得退款權限。</p></header>
+<nav class="section-nav" aria-label="文章章節"><a href="#scenario">情境</a><a href="#gates">四道閘門</a><a href="#lab">Python 實作</a><a href="#judgment">判斷與限制</a></nav>
+<section id="scenario"><h2>先看一個客服情境</h2><p>客服 AI 代理人（Agent）收到「這筆重複扣款，幫我退 25 元」。模型回傳一段 JSON（JavaScript Object Notation，JavaScript 物件表示法） <code>{&quot;intent&quot;:&quot;refund&quot;,&quot;amount_cents&quot;:2500,&quot;reason&quot;:&quot;duplicate charge&quot;}</code>。這段文字是合法 JSON，欄位也都齊全；但它仍可能指向不存在的訂單、超過可退餘額，或來自沒有權限操作該帳戶的人。</p><p>JSON Schema（描述 JSON 欄位、型別與限制的規格）把資料寫成可驗證的合約。<sup class="citation"><a href="#source-11" aria-label="來源 11">[11]</a></sup><sup class="citation"><a href="#source-13" aria-label="來源 13">[13]</a></sup> OpenAI 與 Anthropic 都提供依 schema 約束輸出的功能。<sup class="citation"><a href="#source-18" aria-label="來源 18">[18]</a></sup><sup class="citation"><a href="#source-14" aria-label="來源 14">[14]</a></sup> OpenAI 文件區分 JSON mode（只要求輸出可解析 JSON 的模式）與 Structured Outputs（依 schema 約束回應）；前者不保證符合指定 schema，並仍需處理不完整輸出等邊界情況。<sup class="citation"><a href="#source-10" aria-label="來源 10">[10]</a></sup> 這能減少格式與欄位形狀不符，但不能證明交易事實或使用者權限。<sup class="citation"><a href="#source-18" aria-label="來源 18">[18]</a></sup><sup class="citation"><a href="#source-11" aria-label="來源 11">[11]</a></sup><sup class="citation"><a href="#source-16" aria-label="來源 16">[16]</a></sup></p><p>AI Engineering from Scratch 的一課把應用端防線拆成 JSON 解析、結構驗證、業務語意驗證、授權四關；這是可落地的工程分層，不是把「模型守約」當成安全機制。<sup class="citation"><a href="#source-2" aria-label="來源 2">[2]</a></sup><sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> 原 repo 測試也包含格式錯誤、缺少／額外欄位及型別陷阱等拒絕案例。<sup class="citation"><a href="#source-4" aria-label="來源 4">[4]</a></sup> 這篇教學擴展的是伺服器端信任邊界（明確限制各身分可讀取的資料與可執行的動作）；下方範例是本次另寫並實跑，不是原作者的程式。<sup class="citation"><a href="#source-1" aria-label="來源 1">[1]</a></sup><sup class="citation"><a href="#source-2" aria-label="來源 2">[2]</a></sup></p></section>
+<section id="gates"><h2>四道閘門各自能證明什麼</h2><div class="table-wrap"><table><thead><tr><th scope="col">閘門</th><th scope="col">退款提案的檢查</th><th scope="col">通過後仍不能推論</th></tr></thead><tbody><tr><th scope="row">1. 完整解析</th><td>回應已結束、JSON 可完整解析；拒絕截斷片段、重複 key 和非標準 NaN（非數字值）。<sup class="citation"><a href="#source-17" aria-label="來源 17">[17]</a></sup></td><td>欄位正確或提案為真。</td></tr><tr><th scope="row">2. 結構</th><td>只接受明確列出的欄位與型別；金額是整數，不接受布林值。</td><td>訂單存在、金額合理。</td></tr><tr><th scope="row">3. 業務語意</th><td>對照可信的訂單記錄、可退餘額、幣別和作業規則。</td><td>呼叫者有權讀取或操作該訂單。</td></tr><tr><th scope="row">4. 授權與提交</th><td>用伺服器驗證的身分、帳戶範圍、權限與人工核准規則決定是否建立待審提案。</td><td>除非下游再檢查，前面的模型輸出不會變成授權憑證。</td></tr></tbody></table></div><p>RFC 8259 的 JSON 數字文法不接受 NaN 或 Infinity，範例解析器因此在輸入邊界拒絕它們。<sup class="citation"><a href="#source-17" aria-label="來源 17">[17]</a></sup> OWASP 將未充分驗證、清理就把模型輸出送往下游系統列為 Improper Output Handling；風險包含把輸出當成 SQL（資料庫查詢語言）、HTML（網頁標記語言）、檔案路徑或 shell（命令列殼層）指令直接使用。<sup class="citation"><a href="#source-15" aria-label="來源 15">[15]</a></sup> OWASP GenAI Top 10 將 Improper Output Handling 和 Excessive Agency 列為不同風險類別，處理的邊界並不相同。<sup class="citation"><a href="#source-12" aria-label="來源 12">[12]</a></sup></p><p>Excessive Agency 的防線是在下游執行授權、採最小權限，並讓高影響操作經明確核准，而不是讓模型自行判斷「我可以做」。<sup class="citation"><a href="#source-16" aria-label="來源 16">[16]</a></sup></p></section>
+<section id="lab"><h2>可執行範例：模型只能提出，不直接退款</h2><p>以下程式只用 Python 標準庫。輸入、帳戶和訂單都是合成資料；解析器拒絕重複欄位、額外欄位、超長輸入及布林金額。授權函式另外使用伺服器提供的 session（已驗證工作階段）與 order（可信訂單紀錄），成功也只回傳「待人工審核」，不呼叫外部應用程式介面（API）。</p><pre class="code-block"><code>import json
+
+MAX_INPUT_BYTES = 4096
+ALLOWED_INTENTS = {&quot;refund&quot;}
+REQUIRED_FIELDS = {&quot;intent&quot;, &quot;amount_cents&quot;, &quot;reason&quot;}
+
+
+def reject_constant(value):
+    # JSON 標準以外的 NaN、Infinity 一律拒絕。
+    raise ValueError(&quot;non-standard JSON number: &quot; + value)
+
+
+def unique_object(pairs):
+    # 同一個 key 出現兩次時拒絕，避免不同元件採用不同解讀。
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(&quot;duplicate JSON key: &quot; + key)
+        result[key] = value
+    return result
+
+
+def parse_proposal(raw):
+    # 先限制輸入大小，再解析完整 JSON；不從串流片段觸發動作。
+    if not isinstance(raw, str) or len(raw.encode(&quot;utf-8&quot;)) &gt; MAX_INPUT_BYTES:
+        raise ValueError(&quot;input is missing or too large&quot;)
+    value = json.loads(
+        raw,
+        object_pairs_hook=unique_object,
+        parse_constant=reject_constant,
+    )
+    if type(value) is not dict or set(value) != REQUIRED_FIELDS:
+        raise ValueError(&quot;object fields do not match the contract&quot;)
+    if type(value[&quot;intent&quot;]) is not str or value[&quot;intent&quot;] not in ALLOWED_INTENTS:
+        raise ValueError(&quot;intent is not allowed&quot;)
+    # bool 是 int 的子類別；用 type(...) is int 拒絕 true/false 金額。
+    if type(value[&quot;amount_cents&quot;]) is not int or not 1 &lt;= value[&quot;amount_cents&quot;] &lt;= 100000:
+        raise ValueError(&quot;amount_cents is outside the demo contract&quot;)
+    if type(value[&quot;reason&quot;]) is not str or not value[&quot;reason&quot;].strip() or len(value[&quot;reason&quot;]) &gt; 240:
+        raise ValueError(&quot;reason must be 1-240 characters&quot;)
+    return value
+
+
+def authorize_proposal(proposal, session, order):
+    # session 與 order 必須由伺服器端身分驗證及資料庫查詢提供，不能取自模型輸出。
+    if session.get(&quot;authenticated&quot;) is not True:
+        raise PermissionError(&quot;authentication required&quot;)
+    if session.get(&quot;account_id&quot;) != order.get(&quot;account_id&quot;):
+        raise PermissionError(&quot;order is outside the authenticated account&quot;)
+    if session.get(&quot;can_request_refund&quot;) is not True:
+        raise PermissionError(&quot;refund request is not permitted&quot;)
+    if proposal[&quot;amount_cents&quot;] &gt; order.get(&quot;refundable_cents&quot;, 0):
+        raise ValueError(&quot;requested amount exceeds the refundable balance&quot;)
+    # 示範只產生待人工審核的提案，不呼叫退款 API，也不改正式資料。
+    return {&quot;status&quot;: &quot;requires_human_review&quot;, &quot;amount_cents&quot;: proposal[&quot;amount_cents&quot;]}
+
+
+def expect_rejection(operation, error_type):
+    try:
+        operation()
+    except error_type:
+        return
+    raise AssertionError(&quot;expected rejection was not raised&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    # 全部輸入與權限資料均為合成示例；這裡不連接外部服務。
+    proposal = parse_proposal(
+        &#x27;{&quot;intent&quot;:&quot;refund&quot;,&quot;amount_cents&quot;:2500,&quot;reason&quot;:&quot;duplicate charge&quot;}&#x27;
+    )
+    session = {&quot;authenticated&quot;: True, &quot;account_id&quot;: &quot;acct-demo&quot;, &quot;can_request_refund&quot;: True}
+    order = {&quot;account_id&quot;: &quot;acct-demo&quot;, &quot;refundable_cents&quot;: 3000}
+    result = authorize_proposal(proposal, session, order)
+    assert result == {&quot;status&quot;: &quot;requires_human_review&quot;, &quot;amount_cents&quot;: 2500}
+
+    expect_rejection(lambda: parse_proposal(&quot;not json&quot;), ValueError)
+    expect_rejection(
+        lambda: parse_proposal(&#x27;{&quot;intent&quot;:&quot;refund&quot;,&quot;intent&quot;:&quot;refund&quot;,&quot;amount_cents&quot;:2,&quot;reason&quot;:&quot;x&quot;}&#x27;),
+        ValueError,
+    )
+    expect_rejection(
+        lambda: parse_proposal(&#x27;{&quot;intent&quot;:&quot;refund&quot;,&quot;amount_cents&quot;:true,&quot;reason&quot;:&quot;x&quot;}&#x27;),
+        ValueError,
+    )
+    expect_rejection(
+        lambda: parse_proposal(&#x27;{&quot;intent&quot;:&quot;refund&quot;,&quot;amount_cents&quot;:2,&quot;reason&quot;:&quot;x&quot;,&quot;admin&quot;:true}&#x27;),
+        ValueError,
+    )
+    expect_rejection(
+        lambda: authorize_proposal(proposal, {&quot;authenticated&quot;: True, &quot;account_id&quot;: &quot;other&quot;, &quot;can_request_refund&quot;: True}, order),
+        PermissionError,
+    )
+    print(&quot;6 checks passed; no external action was performed&quot;)
+</code></pre><h3>本次實跑結果</h3><p>在 ARM64 Linux（aarch64）、Python 3.13.5 執行 <code>python3 structured_output_lab.py</code>，語法編譯與六項 assert（斷言）／拒絕案例均通過，程式輸出為 <samp>6 checks passed; no external action was performed</samp>。這只驗證範例程式的預期行為，沒有連線支付服務，也不是生產環境安全認證。</p><h3>把範例接到真實服務前</h3><ol><li>把 session 換成已驗證的登入主體，把 order 換成伺服器從資料來源讀取的訂單；絕不採信模型提供的 account_id 或「已核准」欄位。<sup class="citation"><a href="#source-16" aria-label="來源 16">[16]</a></sup></li><li>在真正執行退款的 API 再檢查使用者、訂單歸屬、可退餘額、冪等鍵（用來識別重送請求、避免重複執行同一操作的值）與人工核准。前端或 Agent 層的檢查不能取代下游授權。<sup class="citation"><a href="#source-16" aria-label="來源 16">[16]</a></sup></li><li>若模型輸出採串流，等待完整結束事件後再解析與提交；部分 JSON 僅供畫面暫顯，不可觸發副作用。<sup class="citation"><a href="#source-2" aria-label="來源 2">[2]</a></sup></li></ol></section>
+<section id="case"><h2>GBrain 文件中的具體信任邊界</h2><p>GBrain README 明確提醒，來源授權與可見性篩選不能隔離本機檔案或共用資料庫憑證的呼叫者。<sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup> architecture 文件區分遠端來源授權與本機檔案等存取邊界。<sup class="citation"><a href="#source-6" aria-label="來源 6">[6]</a></sup> 管理文件另說明管理者認證與用戶端授權責任。<sup class="citation"><a href="#source-7" aria-label="來源 7">[7]</a></sup> 專案的授權單元測試和 HTTP grant（HTTP 請求授權）整合測試覆蓋特定路徑；它們是那些案例的證據，不是對所有存取方式的安全保證。<sup class="citation"><a href="#source-8" aria-label="來源 8">[8]</a></sup><sup class="citation"><a href="#source-9" aria-label="來源 9">[9]</a></sup></p><p>這和模型輸出驗證是同一種工程思路：每一層只對自己能證明的事負責。schema 證明資料形狀；資料庫查詢證明當下記錄；授權程式證明這個主體在這個範圍可做這個動作。不要把其中一項成功擴張解讀成整條流程安全。<sup class="citation"><a href="#source-11" aria-label="來源 11">[11]</a></sup><sup class="citation"><a href="#source-16" aria-label="來源 16">[16]</a></sup></p></section>
+<section id="judgment"><h2>我的判斷：把結構化輸出當成不可信 API 請求</h2><p>最值得保留的不是某個模型供應商的輸出模式，而是「解析、結構、語意、授權」四關分離。模型可以幫忙把自然語言整理成提案；是否成立，要由可信資料與權限政策決定。<sup class="citation"><a href="#source-2" aria-label="來源 2">[2]</a></sup><sup class="citation"><a href="#source-15" aria-label="來源 15">[15]</a></sup><sup class="citation"><a href="#source-16" aria-label="來源 16">[16]</a></sup></p><p>對低風險的標籤或草稿，可在通過結構與語意檢查後直接使用。退款、寄信、刪除、發布、部署等有外部副作用的動作，應另設授權、冪等與核准閘門；若系統無法取得足以判斷的資料，拒絕或轉人工比猜測更安全。<sup class="citation"><a href="#source-15" aria-label="來源 15">[15]</a></sup><sup class="citation"><a href="#source-16" aria-label="來源 16">[16]</a></sup></p><h2>限制與風險</h2><ul><li>範例只支援一個簡化退款提案，沒有涵蓋多幣別、部分退款、交易競態、重試或正式 API。</li><li>示範的金額上限是測試合約，不是任何商業服務的實際政策；正式規則必須由服務端設定。</li><li>六項本地檢查不是完整威脅模型；仍需針對 prompt injection（提示注入）、輸入大小、日誌敏感資料、權限撤銷及下游重放設計測試。</li><li>供應商支援的 schema 關鍵字、拒答格式與串流事件可能改變；上線時應核對該模型與 API 當前文件，並保留應用端驗證。<sup class="citation"><a href="#source-18" aria-label="來源 18">[18]</a></sup><sup class="citation"><a href="#source-14" aria-label="來源 14">[14]</a></sup></li></ul></section>
+<p class="backlinks"><a href="./">回研究資源索引</a> · <a href="../">回學習中心</a></p>
+<section class="sources" id="sources"><h2>來源</h2><ol><li id="source-1"><a href="https://github.com/rohitg00/ai-engineering-from-scratch/blob/56c886c8821fc488b6f9608895c983d18f0d1ea3/README.md" target="_blank" rel="noopener noreferrer">AI Engineering from Scratch README（commit 56c886c）</a></li><li id="source-2"><a href="https://github.com/rohitg00/ai-engineering-from-scratch/blob/56c886c8821fc488b6f9608895c983d18f0d1ea3/certifications/claude/lessons/09-structured-output-and-defensive-parsing/docs/en.md" target="_blank" rel="noopener noreferrer">Structured Output Is an Untrusted Contract</a></li><li id="source-3"><a href="https://github.com/rohitg00/ai-engineering-from-scratch/blob/56c886c8821fc488b6f9608895c983d18f0d1ea3/certifications/claude/lessons/09-structured-output-and-defensive-parsing/code/main.py" target="_blank" rel="noopener noreferrer">Runnable validator source</a></li><li id="source-4"><a href="https://github.com/rohitg00/ai-engineering-from-scratch/blob/56c886c8821fc488b6f9608895c983d18f0d1ea3/certifications/claude/lessons/09-structured-output-and-defensive-parsing/code/tests/test_main.py" target="_blank" rel="noopener noreferrer">Runnable validator tests</a></li><li id="source-5"><a href="https://github.com/garrytan/gbrain/blob/7a066c21a212892fd191b63907506ddcfce94f7b/README.md" target="_blank" rel="noopener noreferrer">GBrain README（commit 7a066c2）</a></li><li id="source-6"><a href="https://github.com/garrytan/gbrain/blob/7a066c21a212892fd191b63907506ddcfce94f7b/docs/architecture/brains-and-sources.md" target="_blank" rel="noopener noreferrer">GBrain brains and sources trust boundaries</a></li><li id="source-7"><a href="https://github.com/garrytan/gbrain/blob/7a066c21a212892fd191b63907506ddcfce94f7b/docs/mcp/ADMIN.md" target="_blank" rel="noopener noreferrer">GBrain MCP authorization administration</a></li><li id="source-8"><a href="https://github.com/garrytan/gbrain/blob/7a066c21a212892fd191b63907506ddcfce94f7b/test/authorization-boundaries.test.ts" target="_blank" rel="noopener noreferrer">GBrain authorization boundary tests</a></li><li id="source-9"><a href="https://github.com/garrytan/gbrain/blob/7a066c21a212892fd191b63907506ddcfce94f7b/test/e2e/serve-http-source-grant.test.ts" target="_blank" rel="noopener noreferrer">GBrain HTTP source grant integration test</a></li><li id="source-10"><a href="https://platform.openai.com/docs/guides/structured-outputs" target="_blank" rel="noopener noreferrer">OpenAI Structured Outputs</a></li><li id="source-11"><a href="https://json-schema.org/draft/2020-12/json-schema-validation" target="_blank" rel="noopener noreferrer">JSON Schema Validation draft 2020-12</a></li><li id="source-12"><a href="https://genai.owasp.org/llm-top-10" target="_blank" rel="noopener noreferrer">OWASP GenAI Security Project LLM Top 10</a></li><li id="source-13"><a href="https://json-schema.org/learn/getting-started-step-by-step" target="_blank" rel="noopener noreferrer">JSON Schema: Creating your first schema</a></li><li id="source-14"><a href="https://platform.claude.com/docs/en/build-with-claude/structured-outputs" target="_blank" rel="noopener noreferrer">Anthropic Structured Outputs</a></li><li id="source-15"><a href="https://genai.owasp.org/llmrisk/llm052025-improper-output-handling" target="_blank" rel="noopener noreferrer">OWASP LLM05: Improper Output Handling</a></li><li id="source-16"><a href="https://genai.owasp.org/llmrisk/llm062025-excessive-agency" target="_blank" rel="noopener noreferrer">OWASP LLM06: Excessive Agency</a></li><li id="source-17"><a href="https://www.rfc-editor.org/rfc/rfc8259" target="_blank" rel="noopener noreferrer">RFC 8259: The JavaScript Object Notation (JSON) Data Interchange Format</a></li><li id="source-18"><a href="https://developers.openai.com/api/docs/guides/structured-outputs" target="_blank" rel="noopener noreferrer">Structured model outputs | OpenAI API</a></li></ol></section>
+</main>
+</body>
+</html>
