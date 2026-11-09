@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>共用 AI Agent 記憶如何防止跨成員外洩：GBrain 的逐頁授權</title>
+<meta name="description" content="用 Alice 與 Bob 的合成情境拆解 GBrain default source、成員專屬頁、讀者 ACL、寫入路徑與負向授權測試。">
+<link rel="canonical" href="https://learn.dky.tw/research/gbrain-default-source-member-privacy">
+<meta property="og:title" content="共用 AI Agent 記憶如何防止跨成員外洩：GBrain 的逐頁授權">
+<meta property="og:description" content="從 default source 與 page reader 的差異，學會設計成員專屬記憶、明確分享與可驗收的授權測試。">
+<meta property="og:url" content="https://learn.dky.tw/research/gbrain-default-source-member-privacy">
+<link rel="stylesheet" href="../warm-theme.css">
+<style>
+:root{color-scheme:light}
+body.has-study-sidebar{max-width:980px;margin-right:auto!important;padding:1.5rem!important}
+main{max-width:900px;margin:0 auto;padding:0 1rem 4rem}
+.breadcrumbs{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin:.2rem 0 1rem;font-size:.88rem}
+.article-meta{margin:.2rem 0 1.2rem;color:var(--warm-muted);font-size:.88rem}
+.article-content{overflow-wrap:anywhere}
+.article-content h1{font-size:clamp(1.7rem,4vw,2.45rem);line-height:1.35;margin:.5rem 0 1.4rem}
+.article-content h2{margin-top:2.25rem;padding-bottom:.35rem;border-bottom:1px solid var(--warm-border);font-size:clamp(1.25rem,2.6vw,1.65rem)}
+.article-content p,.article-content li{line-height:1.85}
+.article-content .lead{padding:1rem 1.1rem;background:var(--warm-surface);border-left:4px solid var(--warm-accent);border-radius:0 10px 10px 0;font-size:1.06rem}
+.article-content code{padding:.08rem .32rem;border:1px solid var(--warm-border);border-radius:5px;background:var(--warm-code);overflow-wrap:anywhere}
+.table-wrap{max-width:100%;margin:1.2rem 0;overflow-x:auto;border:1px solid var(--warm-border);border-radius:9px;background:var(--warm-surface)}
+.table-wrap table{width:100%;min-width:680px;border-collapse:collapse}
+.table-wrap th,.table-wrap td{padding:.7rem .8rem;border:1px solid var(--warm-border);text-align:left;vertical-align:top}
+.table-wrap th{background:var(--warm-surface-strong);color:var(--warm-accent-dark)}
+.citation{font-size:.72em;vertical-align:super;margin-left:.08em}
+.citation a{text-decoration:none}
+.sources{margin-top:2.5rem;padding:1rem 1.2rem;background:var(--warm-surface);border:1px solid var(--warm-border);border-radius:10px}
+.sources h2{margin-top:0}
+.sources li{margin:.55rem 0;overflow-wrap:anywhere}
+.article-footer{margin-top:2rem;padding-top:1rem;border-top:1px solid var(--warm-border)}
+.skip-link{position:absolute;left:-9999px}.skip-link:focus{left:1rem;top:1rem;z-index:200;padding:.7rem;background:#fff;border:2px solid var(--warm-accent)}
+@media(max-width:768px){body.has-study-sidebar{padding:1.1rem!important}main{padding:0 .1rem 4rem}.table-wrap{margin-left:0;margin-right:0}}
+</style>
+<script src="../sidebar.js?v=20261109-75" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳至文章內容</a>
+<main id="main-content">
+<nav class="breadcrumbs" aria-label="麵包屑導覽"><a href="/">首頁</a><span aria-hidden="true">/</span><a href="/research/">延伸閱讀</a></nav>
+<p class="article-meta">AI 工程教學 · 2026-11-09 · GBrain v0.60.621.0</p>
+<article class="article-content">
+<h1>共用 AI Agent 記憶如何防止跨成員外洩：GBrain 的 default source 與逐頁授權</h1>
+<h2>一句話摘要</h2><p class="lead">同一個資料來源不等於同一種讀者；來源授權只劃出粗邊界，成員專屬頁還要在寫入時帶入讀者限制，並在每條讀取路徑都驗證。</p>
+<h2>從一份共用會議筆記開始</h2>
+<p>想像 Alice 和 Bob 都連到團隊的 AI 記憶庫。Alice 的 Agent 把私人的會議筆記寫進共用的 <code>default</code> 來源；如果系統只看「這個憑證能不能讀 default」，Bob 或沒有成員綁定的整合程式就可能看見 Alice 的頁面。問題不是模型答錯，而是資料在模型收到之前就已經越過讀者邊界。<sup class="citation"><a href="#source-10" aria-label="來源 10">[10]</a></sup></p>
+<p>這裡要分清三件事：brain 是資料庫；source 是資料庫裡的內容庫；page reader 是單一頁面的允許讀者。<sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup> GBrain 文件把 source grant 定位為粗粒度邊界，頁面上的 <code>readable_by</code> 只能再縮小讀者範圍，不能擴大 source grant。<sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup> 身分驗證回答「呼叫者是誰」，授權回答「這個身分能否對這個物件做這個動作」；已登入不代表可讀所有資料。<sup class="citation"><a href="#source-9" aria-label="來源 9">[9]</a></sup></p>
+<h2>為什麼 <code>default</code> 不是私人空間</h2>
+<p>GBrain 文件指出，沒有 source grant 的遠端憑證會讀取 <code>default</code> 和已 federate 的來源；初始 <code>default</code> 來源本身會參與未指定來源的搜尋。<sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup> 因此，把 Alice 的憑證綁到 member，卻仍讓它寫進每個未綁定憑證都可讀的 <code>default</code>，只驗了來源，沒有完成頁面層級的隔離。<sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup></p>
+<p>GBrain v0.60.621.0 的 release notes 說明，修正前，綁定成員但沒有來源限制的憑證在 <code>default</code> 建立頁面時，其他成員和未綁定憑證可經 <code>get_page</code>、<code>search</code>、<code>query</code>、<code>recall</code> 與 <code>list_pages</code> 讀到它。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> 這是專案對自身舊行為與修正內容的說明，不是本文在正式服務上重現的漏洞。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup></p>
+<h2>新頁面的讀者如何被限制</h2>
+<p>在 v0.60.621.0，成員綁定的遠端 token 或 OAuth client 寫入 <code>default</code> 且建立新頁面時，系統會替頁面記上該成員為讀者。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> 未提供新讀者的改寫會沿用原讀者；頁面要分享給另一位成員或群組，必須明確列出讀者。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> 若改寫的是既有共用頁，省略讀者欄位仍不會自動把它轉成私人頁。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup></p>
+<div class="table-wrap" role="region" aria-label="成員與未綁定憑證的頁面可見性比較"><table>
+<thead>
+<tr>
+<th>狀況</th>
+<th>Alice</th>
+<th>Bob</th>
+<th>未綁定憑證</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Alice 新建成員專屬頁</td>
+<td>可讀</td>
+<td>不可讀</td>
+<td>不可讀</td>
+</tr>
+<tr>
+<td>Alice 改寫頁面但未指定新讀者</td>
+<td>保留原權限</td>
+<td>仍不可讀</td>
+<td>仍不可讀</td>
+</tr>
+<tr>
+<td>Alice 明確把 Bob 加入讀者</td>
+<td>可讀</td>
+<td>可讀</td>
+<td>不可讀</td>
+</tr>
+<tr>
+<td>Alice 改寫原有共用頁且未改讀者</td>
+<td>依原設定</td>
+<td>依原設定</td>
+<td>依原設定</td>
+</tr>
+</tbody>
+</table></div>
+<p>表格中的預設可見性與改寫行為來自 GBrain 的 release notes。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> 這種規則把「建立時預設只給本人」和「明確分享」分開，避免一次一般更新意外清掉 ACL（存取控制清單，記錄哪些主體可讀取資源）。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> OWASP 建議未明確允許時預設拒絕，且每個請求都要檢查權限。<sup class="citation"><a href="#source-9" aria-label="來源 9">[9]</a></sup></p>
+<h2>寫入路徑也會改變安全結果</h2>
+<p>上述修正針對能保留頁面讀者欄位的 <code>put_page</code>。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> 同一版本的 release notes 指出，<code>POST /ingest</code> 無法把新頁限制給成員，所以這類成員憑證呼叫時會收到 <code>permission_denied</code>，而且不會排入 ingestion 工作；改用 <code>put_page</code>，或讓管理者把憑證配置到專屬來源。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup></p>
+<p>衍生頁面是另一個容易漏測的地方。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> Release notes 表示，從成員專屬頁抽出的 atoms、chronicle events、<code>derived_from</code> 頁面及綜合概念頁，也會套用讀者規則；這些衍生內容對所有遠端呼叫者都不可讀，包含原寫入者。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> 這能避免改了原頁 ACL，卻讓下游副本繼續外洩；代價是工作流要另外設計由誰整理及重新分享衍生頁。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup></p>
+<h2>可驗收的授權測試矩陣</h2>
+<p>專案的 regression test 以 Alice、Bob 和未綁定讀者檢查新頁，並跨 <code>get_page</code>、<code>search</code>、<code>query</code>、<code>recall</code>、<code>list_pages</code> 觀察是否洩漏；它也涵蓋保留讀者的改寫、明確分享、既有共用頁、<code>POST /ingest</code> 拒絕，以及 repo-less 和 repo-backed 的持久化路徑。<sup class="citation"><a href="#source-4" aria-label="來源 4">[4]</a></sup> Release notes 將測試範圍列為 PGLite、Postgres 與 repo brain，但這是上游提供的測試覆蓋說明。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup></p>
+<p>本文本次只靜態檢視 release notes、文件與測試原始碼，沒有在本機安裝 GBrain 或執行其測試套件。實際驗收時，應以合成頁面和三種憑證建立測試資料，逐項確認上表結果、直接查頁的拒絕、搜尋結果不含 canary 字串、改寫後 ACL 不消失，以及拒絕的 ingest 沒有新增佇列項目。<sup class="citation"><a href="#source-4" aria-label="來源 4">[4]</a></sup> OWASP 也把物件層級授權檢查列為每個接收物件 ID 並執行動作的 API 端點責任。<sup class="citation"><a href="#source-10" aria-label="來源 10">[10]</a></sup></p>
+<h2>升級前後的操作檢查</h2>
+<ol>
+<li>先分類資料：整個內容庫只屬於一個人或群組時，以 source grant 建立主要邊界；同一來源內混有個人與團隊頁時，再用 <code>readable_by</code> 表達例外讀者。<sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup></li>
+<li>分享頁要在建立時明確設定成員或群組讀者；不要假設來源 federate、能搜尋到、或 agent 知道頁面 slug，就代表所有人都應該看到。<sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup></li>
+<li>升級後檢視既有頁面的實際讀者。版本升級不會自動重寫既有頁的讀者；GBrain 文件建議用 <code>gbrain access who-can-read &lt;slug&gt;</code> 查單頁，再由 brain host 修正本來應為私有的舊頁。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup></li>
+<li>不要用 <code>POST /ingest</code> 的成功與否推定 <code>put_page</code> 的 ACL 行為相同；兩條路徑必須分開測。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup><sup class="citation"><a href="#source-4" aria-label="來源 4">[4]</a></sup></li>
+</ol>
+<h2>限制與風險</h2>
+<p>這項修正描述的是特定成員綁定遠端憑證寫入 <code>default</code> 的頁面可見性，不是「整個 GBrain 部署已安全」的證明。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup> GBrain README 明確提醒，本機檔案與共用資料庫憑證屬於不同信任邊界，source grant 不會隔離這些呼叫者；專案測試也只覆蓋特定存取路徑，不是所有方式都不會洩漏的保證。<sup class="citation"><a href="#source-2" aria-label="來源 2">[2]</a></sup></p>
+<p>若團隊允許直接讀取主機檔案或使用共用資料庫帳號，應另外在作業系統、資料庫與憑證層定義邊界。<sup class="citation"><a href="#source-2" aria-label="來源 2">[2]</a></sup> 即使遠端 API 隱藏頁面，仍需驗證修改、刪除、搜尋索引、衍生內容與匯出路徑；任何接收頁面 ID 或 slug 的端點，都必須使用呼叫者身分重新判斷該物件的權限。<sup class="citation"><a href="#source-9" aria-label="來源 9">[9]</a></sup><sup class="citation"><a href="#source-10" aria-label="來源 10">[10]</a></sup></p>
+<h2>我的判斷</h2>
+<p>最重要的工程選擇不是替每一頁塞一個權限欄位，而是先問「誰是這份資料的讀者？」如果讀者群組彼此長期固定，拆成不同 source 通常比較容易稽核；只有在內容本來就共用、但少數頁面需要縮小範圍時，才讓 page-level readers 管理例外。<sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup> GBrain 這次把成員身分帶到新頁寫入時，比事後靠 prompt 要求 Agent「別讀別人的筆記」可靠，因為限制發生在資料讀取層，而不是模型自律層。<sup class="citation"><a href="#source-3" aria-label="來源 3">[3]</a></sup><sup class="citation"><a href="#source-5" aria-label="來源 5">[5]</a></sup></p>
+<p>它仍不是全面隔離方案：管理者、本機檔案與共用 DB 憑證可以跨越遠端讀取政策。<sup class="citation"><a href="#source-2" aria-label="來源 2">[2]</a></sup> 正式採用前，應把遠端成員、未綁定憑證、管理者與主機層存取各自列成主體，並為每條讀取與寫入路徑維持可重跑的負向測試。<sup class="citation"><a href="#source-4" aria-label="來源 4">[4]</a></sup><sup class="citation"><a href="#source-9" aria-label="來源 9">[9]</a></sup></p>
+<section class="sources" aria-labelledby="sources-heading"><h2 id="sources-heading">來源</h2><ol>
+<li id="source-2"><a href="https://github.com/garrytan/gbrain/blob/master/README.md" target="_blank" rel="noopener noreferrer">GBrain README</a></li>
+<li id="source-3"><a href="https://github.com/garrytan/gbrain/releases/tag/v0.60.621.0" target="_blank" rel="noopener noreferrer">GBrain v0.60.621.0 release notes</a></li>
+<li id="source-4"><a href="https://raw.githubusercontent.com/garrytan/gbrain/master/test/access-ungranted-member-writes.test.ts" target="_blank" rel="noopener noreferrer">GBrain member-write authorization regression tests</a></li>
+<li id="source-5"><a href="https://raw.githubusercontent.com/garrytan/gbrain/master/docs/guides/multi-source-brains.md" target="_blank" rel="noopener noreferrer">GBrain multi-source brain guide</a></li>
+<li id="source-9"><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html" target="_blank" rel="noopener noreferrer">OWASP Authorization Cheat Sheet</a></li>
+<li id="source-10"><a href="https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization" target="_blank" rel="noopener noreferrer">OWASP API1:2023 Broken Object Level Authorization</a></li>
+</ol></section>
+</article>
+<footer class="article-footer"><a href="/research/">返回延伸閱讀索引</a> · <a href="/">返回學習中心首頁</a></footer>
+</main>
+</body>
+</html>
